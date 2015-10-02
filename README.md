@@ -18,7 +18,7 @@ PGPASSWORD: "supersecretpassword"
 
 # Using the EIS
 
-
+Details of experiments, e.g. parameters, are stored in a YAML file - example in `default.yaml`. 
 
 # Running tests
 

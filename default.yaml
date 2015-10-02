@@ -1,0 +1,30 @@
+################################################
+#          UChicago DSaPP Police EIS           # 
+#              Model experiments               #       
+################################################
+
+########################
+# Temporal parameters  #
+########################
+fake_today: '01Jan2008'
+testing_interval_days: 90
+training_interval_days: 365
+
+########################
+# Feature selection    #
+########################
+
+
+########################
+# Model selection      #
+########################
+model: 'RandomForest'
+parameters:
+    n_estimators: [100]
+    depth: [10]
+
+########################
+# Output file details  #
+########################
+directory: 'results/'
+pkl_prefix: 'police_eis_results'
