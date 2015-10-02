@@ -23,6 +23,13 @@ parameters:
     n_estimators: [100]
     depth: [10]
 
+
+########################
+# Parallelization      #
+########################
+n_cpus: 1
+
+
 ########################
 # Output file details  #
 ########################

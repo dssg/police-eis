@@ -1,0 +1,17 @@
+################################################
+#          UChicago DSaPP Police EIS           # 
+#  Example Police Department Configuration     #       
+################################################
+
+# Database setup
+
+arrest_charges_table: ""
+si_table: ""
+officer_table: ""
+extra_duty_table: ""
+eis_table: ""
+stops_table: ""
+citations_table: ""
+plateau_table: ""
+incidents_table: ""
+field_int_table: ""

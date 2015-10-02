@@ -1,6 +1,9 @@
 # Committing credentials is A Bad Thing 
 default_profile
 
+# Committing the names of police departments using EIS is A Bad Thing
+*pd.yaml
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
