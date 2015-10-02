@@ -1,0 +1,16 @@
+language: python
+python:
+  - "3.4"
+install:
+  # Install conda
+  - sudo pip install conda
+  # install deps
+  - sudo conda init
+  - conda create -p $HOME/py --yes --file requirements.conda "python=$TRAVIS_PYTHON_VERSION"
+  - export PATH=$HOME/py/bin:$PATH
+  - cp dbconfig.sample dbconfig.py
+  # install your own package into the environment
+  #- python setup.py install
+script:
+- "nosetests -v"
+- pep8 police-eis

@@ -1,0 +1,5 @@
+PGPORT: 65535
+PGHOST: "example.com"
+PGDATABASE: "example"
+PGUSER: "janedoe"
+PGPASSWORD: "supersecretpassword"

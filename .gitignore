@@ -1,6 +1,13 @@
+# Committing credentials is A Bad Thing 
+default_profile
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.swp
+
+# Logs from runs
+*.log
 
 # C extensions
 *.so
