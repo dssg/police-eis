@@ -1,6 +1,9 @@
 # Committing credentials is A Bad Thing 
 default_profile
 
+# Committing the trained models is A Bad Thing
+*.pkl
+
 # Committing the names of police departments using EIS is A Bad Thing
 *pd.yaml
 

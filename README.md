@@ -14,6 +14,7 @@ PGHOST: "example.com"
 PGDATABASE: "example"
 PGUSER: "janedoe"
 PGPASSWORD: "supersecretpassword"
+DBCONFIG: ""
 ```
 
 # Using the EIS

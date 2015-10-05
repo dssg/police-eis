@@ -4,6 +4,7 @@
 ################################################
 
 # Database setup
+schema: ""
 
 arrest_charges_table: ""
 si_table: ""

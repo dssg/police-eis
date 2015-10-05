@@ -13,7 +13,9 @@ training_interval_days: 365
 ########################
 # Feature selection    #
 ########################
-
+features:
+    personal_stats: True  # Height, weight, gender of the officer
+    ia_history: True  # History of their investigations in IA (e.g. are there safety concerns?)
 
 ########################
 # Model selection      #

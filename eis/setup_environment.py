@@ -24,9 +24,12 @@ def get_connection_from_profile(config_file_name="default_profile"):
             'PGPORT' in vals.keys()):
         raise Exception('Bad config file: ' + config_file_name)
 
+    if 'DBSETUP' not in vals.keys():
+        raise Exception('Point to PD database config file!')
+
     return get_engine(vals['PGDATABASE'], vals['PGUSER'],
                       vals['PGHOST'], vals['PGPORT'],
-                      vals['PGPASSWORD'])
+                      vals['PGPASSWORD']),  vals['DBSETUP']
 
 
 def get_engine(db, user, host, port, passwd):
