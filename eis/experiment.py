@@ -45,11 +45,13 @@ def main(config_file_name="default.yaml"):
 
     log.info("Loading officers and features to use as training...")
     train_x, train_y, train_id = dataset.grab_data(config["features"],
-                                         train_start_date, fake_today)
+                                                   train_start_date,
+                                                   fake_today)
 
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id = dataset.grab_data(config["features"],
-                                       train_start_date, fake_today)
+                                                train_start_date,
+                                                fake_today)
 
     log.info("Running models on dataset...")
     result_y = models.run(train_x, train_y, test_x, config)

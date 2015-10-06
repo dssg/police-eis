@@ -87,7 +87,7 @@ class Features():
             features = features.drop_duplicates(subset=["newid"])
 
         features = features.set_index(["newid"])
-        #features = features[features_to_load]
+        # features = features[features_to_load]
 
         log.debug("... {} rows, {} features".format(len(features),
                                                     len(features.columns)))
@@ -114,7 +114,7 @@ def grab_data(features, start_date, end_date):
             raise UnknownFeatureError(feature)
 
     officers = data.labeller()
-    #officers.set_index(["newid"])
+    # officers.set_index(["newid"])
 
     dataset = officers
     for each_feat in features:
@@ -135,6 +135,6 @@ def grab_data(features, start_date, end_date):
     # Imputation will go here
 
     log.debug("Dataset has {} rows and {} features".format(
-       len(labels), len(feats.columns)))   
+       len(labels), len(feats.columns)))
 
     return feats, labels, ids

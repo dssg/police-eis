@@ -10,6 +10,7 @@ log = logging.getLogger(__name__)
 class ConfigError():
     pass
 
+
 def run(train_x, train_y, test_x, config):
 
     # Feature scaling
