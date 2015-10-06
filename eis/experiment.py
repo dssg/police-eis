@@ -44,20 +44,24 @@ def main(config_file_name="default.yaml"):
     log.info("Test window stop: {}".format(test_end_date))
 
     log.info("Loading officers and features to use as training...")
-    train_x, train_y = dataset.grab_data(config["features"],
+    train_x, train_y, train_id = dataset.grab_data(config["features"],
                                          train_start_date, fake_today)
 
     log.info("Loading officers and features to use as testing...")
-    test_x, test_y = dataset.grab_data(config["features"],
+    test_x, test_y, test_id = dataset.grab_data(config["features"],
                                        train_start_date, fake_today)
 
     log.info("Running models on dataset...")
-    models.run(train_x, train_y, test_x, test_y)
+    result_y = models.run(train_x, train_y, test_x, config)
 
     log.info("Saving pickled results...")
+    to_save = {"test_truth": test_y,
+               "test_pred": result_y,
+               "config": config}
+
     pkl_file = "{}{}_{}.pkl".format(
         config['directory'], config['pkl_prefix'], timestamp)
-    pickle_results(pkl_file, config)
+    pickle_results(pkl_file, to_save)
 
     log.info("Done!")
     return None

@@ -15,22 +15,39 @@ training_interval_days: 365
 ########################
 features:
     personal_stats: True  # Height, weight, gender of the officer
-    ia_history: True  # History of their investigations in IA (e.g. are there safety concerns?)
+    ia_history: False  # History of their investigations in IA (e.g. are there safety concerns?)
 
 ########################
 # Model selection      #
 ########################
 model: 'RandomForest'
 parameters:
-    n_estimators: [100]
-    depth: [10]
+    n_estimators: 100
+    depth: 10
 
+# parameters:  # search ranges for RandomForest
+#     n_estimators:  [1, 10, 25, 50, 100]
+#     depth: [3, 5, 10, 20]
+#     max_features: [2, 4, 8, 16, "auto"]
+#     criterion: ["gini", "entropy"]
+
+# model: 'SVM'
+# parameters:
+#     C_reg: [100.0]
+#     kernel: 'linear'
+
+# model: 'LogisticRegression'
+# parameters:
+#     C_reg: [0.01, 0.1, 1.0, 10.0, 100.0]
+
+# model: 'AdaBoost'
+# parameters:
+#     learning_rate: [0.01, 0.1, 1, 10, 100]
 
 ########################
 # Parallelization      #
 ########################
 n_cpus: 1
-
 
 ########################
 # Output file details  #
