@@ -6,10 +6,18 @@ import logging
 import sys
 import datetime
 
-from eis import setup_environment
+from eis import setup_environment, queries
 
 
 log = logging.getLogger(__name__)
+
+
+class UnknownFeatureError(Exception):
+    def __init__(self, feature):
+        self.feature = feature
+
+    def __str__(self):
+        return "Unknown feature: {}".format(self.feature)
 
 
 class Features():
@@ -37,7 +45,7 @@ class Features():
         self.tables = config  # Dict of tables
         self.schema = config['schema']
 
-    def load_labels(self):
+    def labeller(self):
         """
         Load the IDs for a set of officers investigated between
         two dates and the outcomes
@@ -46,6 +54,8 @@ class Features():
         labels: pandas dataframe with two columns:
         newid and adverse_by_ourdef
         """
+
+        log.info("Loading labels...")
         query = ("SELECT newid, adverse_by_ourdef from {}.{} "
                  "WHERE dateoccured >= %(start_date)s "
                  "AND dateoccured <= %(end_date)s"
@@ -54,6 +64,34 @@ class Features():
         labels = pd.read_sql(query, con=self.con, params={"start_date":
                              self.start_date, "end_date": self.end_date})
         return labels
+
+    def loader(self, features_to_load):
+        features = self.__read_feature_from_db(queries.sql[features_to_load],
+                                               features_to_load,
+                                               drop_duplicates=True)
+
+        return features
+
+    def __read_feature_from_db(self, query, features_to_load,
+                               drop_duplicates=True):
+
+        log.debug("Loading features for "
+                  "%(start_date)s to %(end_date)s".format(
+                        self.start_date, self.end_date))
+
+        features = pd.read_sql(query, con=self.con,
+                               params={"start_date": self.start_date,
+                                       "end_date": self.end_date})
+
+        if drop_duplicates:
+            features = features.drop_duplicates(subset=["newid"])
+
+        features = features.set_index(["newid"])
+        #features = features[features_to_load]
+
+        log.debug("... {} rows, {} features".format(len(features),
+                                                    len(features.columns)))
+        return features
 
 
 def grab_data(features, start_date, end_date):
@@ -69,11 +107,34 @@ def grab_data(features, start_date, end_date):
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
+    data = Features(start_date, end_date)
 
-    mydata = Features(start_date, end_date)
-    officers = mydata.load_labels()
+    for feature in features:
+        if feature not in queries.sql:
+            raise UnknownFeatureError(feature)
 
-    feats = "dummydummydummy"
+    officers = data.labeller()
+    #officers.set_index(["newid"])
 
-    pdb.set_trace()
-    return feats, officers
+    dataset = officers
+    for each_feat in features:
+        if features[each_feat] == True:
+            feature_df = data.loader(each_feat)
+            dataset = dataset.join(feature_df, how='left', on='newid')
+
+    dataset = dataset.reset_index()
+    dataset = dataset.reindex(np.random.permutation(dataset.index))
+    dataset = dataset.set_index(["newid"])
+
+    dataset = dataset.dropna()
+
+    labels = dataset["adverse_by_ourdef"].values
+    feats = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
+    ids = dataset.index.values
+
+    # Imputation will go here
+
+    log.debug("Dataset has {} rows and {} features".format(
+       len(labels), len(feats.columns)))   
+
+    return feats, labels, ids
