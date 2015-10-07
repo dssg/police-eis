@@ -5,6 +5,7 @@ import sqlalchemy
 import logging
 import sys
 import pickle
+import pdb
 import datetime
 
 from eis import setup_environment, dataset, models
@@ -54,12 +55,18 @@ def main(config_file_name="default.yaml"):
                                                 fake_today)
 
     log.info("Running models on dataset...")
-    result_y = models.run(train_x, train_y, test_x, config)
+    result_y, importances = models.run(train_x, train_y, test_x, config)
 
     log.info("Saving pickled results...")
-    to_save = {"test_truth": test_y,
-               "test_pred": result_y,
-               "config": config}
+    to_save = {"test_labels": test_y,
+               "test_predictions": result_y,
+               "config": config,
+               "features": config["features"],
+               "timestamp": timestamp, 
+               "parameters": config["parameters"],
+               "train_start_date": train_start_date,
+               "test_end_date": test_end_date,
+               "feature_importances": importances}
 
     pkl_file = "{}{}_{}.pkl".format(
         config['directory'], config['pkl_prefix'], timestamp)
@@ -69,12 +76,10 @@ def main(config_file_name="default.yaml"):
     return None
 
 
-def pickle_results(pkl_file, config):
+def pickle_results(pkl_file, to_save):
     """
     Save contents of experiment to pickle file for later use
     """
-
-    to_save = {"config": config}
 
     with open(pkl_file, 'wb') as f:
         pickle.dump(to_save, f, protocol=pickle.HIGHEST_PROTOCOL)

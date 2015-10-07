@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pdb
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -25,7 +26,7 @@ def plot_normalized_confusion_matrix(labels, predictions):
     fig = plt.figure()
     cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
-    target_names = ["No violation", "Violation"]
+    target_names = ["No adverse inc.", "Adverse inc."]
     plt.imshow(cm_normalized, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title("Normalized Confusion Matrix")
     plt.colorbar()
@@ -57,7 +58,7 @@ def plot_growth(results):
     results = results.set_index("date")
     results["score"] = results["score"].astype(float)
     results = results.reindex(pd.date_range(datetime(2015, 10, 1),
-                                            datetime(2015, 12, 1)))
+                                            datetime(2016, 3, 1)))
     # results["random"] = pd.Series(3409/float(6124), index=results.index)
     with plt.style.context(('ggplot')):
         fig, ax = plt.subplots(figsize=(8, 3))

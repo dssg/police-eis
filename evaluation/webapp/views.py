@@ -13,7 +13,6 @@ from webapp.ioutils import *
 from webapp import config
 
 
-
 @app.route('/')
 def index():
     experiments = get_experiments_list()

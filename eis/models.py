@@ -18,10 +18,10 @@ def run(train_x, train_y, test_x, config):
     train_x = scaler.transform(train_x)
     test_x = scaler.transform(test_x)
 
-    results = gen_model(train_x, train_y, test_x, config['model'],
+    results, importances = gen_model(train_x, train_y, test_x, config['model'],
                         config['parameters'])
 
-    return results
+    return results, importances
 
 
 def gen_model(train_x, train_y, test_x, model, parameters):
@@ -29,7 +29,20 @@ def gen_model(train_x, train_y, test_x, model, parameters):
     model = define_model(model, parameters)
     model.fit(train_x, train_y)
     result_y = model.predict_proba(test_x)
-    return result_y
+    importances = get_feature_importances(model)
+    return result_y[:, 1], importances
+
+
+def get_feature_importances(model):
+    try:
+        return model.feature_importances_
+    except:
+        pass
+    try:
+        return model.coef_
+    except:
+        pass
+    return None
 
 
 def define_model(model, parameters):

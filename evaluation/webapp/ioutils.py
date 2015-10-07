@@ -12,15 +12,12 @@ from webapp.evaluation import precision_at_x_percent
 from webapp import config
 
 
-results_folder = "/home/krasch/results/"  # should be in config todo
-# results_folder = "results"
-
 cache = {}
 cache_lock = Lock()
 
 
 def timestamp_from_path(pkl_path):
-    prefix = path.join(results_folder, "modelresult_")
+    prefix = path.join(config.results_folder, "police_eis_results_")
     ts = pkl_path.replace(prefix, "")
     ts = ts.replace(".pkl", "")
     return ts
@@ -35,17 +32,19 @@ def experiment_summary(pkl_file):
     if "parameters" not in model_config:
         model_config["parameters"] = "?"
 
-    if "residential_only" not in model_config:
-        model_config["residential_only"] = False
+    if "train_start_date" not in data:
+        model_config["train_start_date"] = "01Jan1970"
+    else:
+        model_config["train_start_date"] = data["train_start_date"].strftime("%d%b%Y")
 
-    if "start_date" not in model_config:
-        model_config["start_date"] = "01Jan1970"
+    model_config["test_end_date"] = data["test_end_date"].strftime("%d%b%Y")
+
 
     model_config["features"] = data["features"]
     model_config["feature_summary"] = feature_summary(data["features"])
     prec_at = precision_at_x_percent(
         data["test_labels"], data["test_predictions"],
-        x_percent=config.precision_at_for_overview)
+        x_percent=0.01)
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config,
                       prec_at,
@@ -53,8 +52,8 @@ def experiment_summary(pkl_file):
 
 
 def update_experiments_cache():
-    experiments = glob.glob(results_folder)
-    experiments = glob.glob(path.join(results_folder, "*.pkl"))
+    experiments = glob.glob(config.results_folder)
+    experiments = glob.glob(path.join(config.results_folder, "*.pkl"))
     with cache_lock:
         for pkl in experiments:
             ts = timestamp_from_path(pkl)
