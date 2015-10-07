@@ -13,15 +13,19 @@
 
       <style>
           .row {
-  margin-bottom: 10px;
-}
-         .date {
-  background-color: #dfc06d;
-  border: 1px solid #ddd;
-  border: 1px solid rgba(86,61,124,.2);
+          margin-bottom: 10px;
+          }
+          .date {
+          background-color: #2456DF;
+          border: 1px solid #ddd;
+          border: 1px solid rgba(86,61,124,.2);
           margin-right:30px;
-margin-left:0px;
-         }
+          margin-left:0px;
+          color: white;
+          }
+          .header {
+          font-weight: bold; 
+          }
         </style>
 
   </head>
@@ -38,7 +42,8 @@ margin-left:0px;
       <div class="row header">
         <div class="col-sm-1">Time</div>
         <div class="col-sm-2">Features</div>
-        <div class="col-sm-2">Time windows</div>
+        <div class="col-sm-2">Training Time Window</div>
+        <div class="col-sm-2">Testing Time Window</div>
         <div class="col-sm-2">Model</div>
         <div class="col-sm-1">{{score_name}}</div>
       </div>
@@ -50,7 +55,8 @@ margin-left:0px;
           <div class="row">
             <div class="col-sm-1"><a href="/{{experiment.timestamp.isoformat()}}">{{experiment.timestamp.strftime('%H:%M')}}</a></div>
             <div class="col-sm-2"><span title="{{', '.join(experiment.config.features)}}">{{experiment.config.feature_summary}}</span></div>
-            <div class="col-sm-2">{{experiment.config.train_start_date}}, {{experiment.config.fake_today}}, {{experiment.config.test_end_date}}</div>
+            <div class="col-sm-2">{{experiment.config.train_start_date}} - {{experiment.config.fake_today}}</div>
+            <div class="col-sm-2">{{experiment.config.fake_today}} - {{experiment.config.test_end_date}}</div>
             <div class="col-sm-2">{{experiment.config.model}}<br/>{{experiment.config.parameters}} </div>
             <div class="col-sm-1">{{experiment.score|round(2)}}</div>
           </div>
