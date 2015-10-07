@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+
+    <title>List of experiments</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+
+      <style>
+          .row {
+  margin-bottom: 10px;
+}
+         .date {
+  background-color: #dfc06d;
+  border: 1px solid #ddd;
+  border: 1px solid rgba(86,61,124,.2);
+          margin-right:30px;
+margin-left:0px;
+         }
+        </style>
+
+  </head>
+
+  <body>
+
+
+
+    <div class="container">
+      <br/>
+      <div class="row">
+        <div class="center-block"><h1>Police-EIS Pipeline Experiments</h1></div>
+      </div>
+      <div class="row header">
+        <div class="col-sm-1">Time</div>
+        <div class="col-sm-2">Features</div>
+        <div class="col-sm-2">Times</div>
+        <div class="col-sm-2">Model</div>
+        <div class="col-sm-1">{{score_name}}</div>
+      </div>
+    {% for date, date_experiments in experiments %}
+      <div class="row date">
+          <div class="col-sm-9">{{date.strftime('%d %b %Y')}}</div>
+      </div>
+      {% for experiment in date_experiments %}
+          <div class="row">
+            <div class="col-sm-1"><a href="/{{experiment.timestamp.isoformat()}}">{{experiment.timestamp.strftime('%H:%M')}}</a></div>
+            <div class="col-sm-2"><span title="{{', '.join(experiment.config.features)}}">{{experiment.config.feature_summary}}</span></div>
+            <div class="col-sm-2">{{experiment.config.start_date}}, {{experiment.config.fake_today}}, {{experiment.config.validation_window}}</div>
+            <div class="col-sm-2">{{experiment.config.model}}<br/>{{experiment.config.parameters}} </div>
+            <div class="col-sm-1">{{experiment.score|round(2)}}</div>
+          </div>
+      {% endfor %}
+
+    {% endfor %}
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!--script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script-->
+    <script src="static/js/bootstrap.min.js"></script>
+  </body>
+</html>
