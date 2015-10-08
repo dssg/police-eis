@@ -6,7 +6,7 @@ import logging
 import sys
 import datetime
 
-from eis import setup_environment, queries
+from eis import setup_environment, features
 
 
 log = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class UnknownFeatureError(Exception):
         return "Unknown feature: {}".format(self.feature)
 
 
-class Features():
+class FeatureLoader():
 
     def __init__(self, start_date, end_date):
 
@@ -107,7 +107,7 @@ def grab_data(features, start_date, end_date):
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
-    data = Features(start_date, end_date)
+    data = FeatureLoader(start_date, end_date)
 
     for feature in features:
         if feature not in queries.sql:
