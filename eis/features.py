@@ -108,3 +108,12 @@ class OfficerAge(Feature):
                       "as age from {}".format(self.time_bound.year,
                                               tables['officer_table']))
 
+
+class OfficerAgeAtHire(Feature):
+    def __init__(self, **kwargs):
+        Feature.__init__(self, **kwargs)
+        self.description = "Officer age at hire"
+        self.name_of_features = ["age_at_hire"]
+        self.query = ("select newid, extract(year from "
+                      "hire_date_employed)-birthdate_year as "
+                      "age_at_hire from {}".format(tables['officer_table']))

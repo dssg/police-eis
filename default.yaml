@@ -6,7 +6,7 @@
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2008'
+fake_today: '01Jan2009'
 testing_interval_days: 365
 training_interval_days: 1460
 
@@ -22,6 +22,7 @@ features:
     malefemale: True  # Is officer male or female
     race: True  # What is officer race
     officerage: True  # Age of officers
+    officerageathire: True  # Officer age when hired
 
 ########################
 # Model selection      #

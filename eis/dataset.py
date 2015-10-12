@@ -56,7 +56,8 @@ def lookup(feature, **kwargs):
                     'daysexperience': features.OfficerDaysExperience(**kwargs),
                     'malefemale': features.OfficerMaleFemale(**kwargs),
                     'race': features.OfficerRace(**kwargs),
-                    'officerage': features.OfficerAge(**kwargs)}
+                    'officerage': features.OfficerAge(**kwargs),
+                    'officerageathire': features.OfficerAgeAtHire(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
