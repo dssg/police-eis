@@ -27,6 +27,8 @@ def convert_categorical(df):
 
     onecol = df.columns[0]
     categories = pd.unique(df[onecol])
+    # Replace Nones or empty fields with NaNs?
+    categories = [x for x in categories if x is not None]
 
     # Set up new features
     featnames = []
@@ -41,8 +43,6 @@ def convert_categorical(df):
                 featnames.append(newfeatstr)
                 df[newfeatstr] = df[onecol] == categories[i]
 
-    # Replace Nones or empty fields with NaNs?
-
     df = df.drop(onecol, axis=1)
     return df.astype(int), list(df.columns)
 
@@ -55,7 +55,8 @@ def lookup(feature, **kwargs):
                     'yearsexperience': features.OfficerYearsExperience(**kwargs),
                     'daysexperience': features.OfficerDaysExperience(**kwargs),
                     'malefemale': features.OfficerMaleFemale(**kwargs),
-                    'race': features.OfficerRace(**kwargs)}
+                    'race': features.OfficerRace(**kwargs),
+                    'officerage': features.OfficerAge(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)

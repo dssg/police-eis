@@ -77,7 +77,7 @@ class OfficerDaysExperience(Feature):
                       "hire_date_employed) as "
                       "days_experience from {}".format(self.time_bound.strftime(
                                                        time_format),
-                                                      tables['officer_table']))
+                                                       tables['officer_table']))
 
 
 class OfficerMaleFemale(Feature):
@@ -96,3 +96,15 @@ class OfficerRace(Feature):
         self.query = ("select newid, empl_race_cleaned as "
                       "race from {}".format(tables['officer_table']))
         self.type_of_features = "categorical"
+
+
+class OfficerAge(Feature):
+    def __init__(self, **kwargs):
+        Feature.__init__(self, **kwargs)
+        self.description = "Officer age"
+        self.time_bound = kwargs["time_bound"]
+        self.name_of_features = ["age"]
+        self.query = ("select newid, {} - birthdate_year "
+                      "as age from {}".format(self.time_bound.year,
+                                              tables['officer_table']))
+
