@@ -58,7 +58,7 @@
             <div class="col-sm-2">{{experiment.config.train_start_date}} - {{experiment.config.fake_today}}</div>
             <div class="col-sm-2">{{experiment.config.fake_today}} - {{experiment.config.test_end_date}}</div>
             <div class="col-sm-2">{{experiment.config.model}}<br/>{{experiment.config.parameters}} </div>
-            <div class="col-sm-1">{{experiment.score|round(2)}}</div>
+            <div class="col-sm-1">{{experiment.score|round(2) * 100}}&#37;</div>
           </div>
       {% endfor %}
 
