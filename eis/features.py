@@ -7,6 +7,7 @@ from eis import setup_environment
 
 log = logging.getLogger(__name__)
 _, tables = setup_environment.get_database()
+time_format = "%Y-%m-%d %X"
 
 
 class Feature():
@@ -66,3 +67,23 @@ class OfficerYearsExperience(Feature):
                       "yrs_experience from {}".format(self.time_bound.year,
                                                       tables['officer_table']))
 
+class OfficerDaysExperience(Feature):
+    def __init__(self, **kwargs):
+        Feature.__init__(self, **kwargs)
+        self.description = "Number of days of experience for police officer"
+        self.time_bound = kwargs["time_bound"]
+        self.name_of_features = ["days_experience"]
+        self.query = ("select newid, EXTRACT('days' FROM '{}'::date - "
+                      "hire_date_employed) as "
+                      "days_experience from {}".format(self.time_bound.strftime(
+                                                       time_format),
+                                                      tables['officer_table']))
+
+
+class OfficerMaleFemale(Feature):
+    def __init__(self, **kwargs):
+        Feature.__init__(self, **kwargs)
+        self.description = "Officer binary male/female feature"
+        self.query = ("select newid, empl_sex_clean as "
+                      "male_female from {}".format(tables['officer_table']))
+        self.type_of_features = "categorical"

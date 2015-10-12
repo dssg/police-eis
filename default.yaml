@@ -17,7 +17,9 @@ features:
     height_weight: True  # Height, weight, gender of the officer
     education: True  # Education level of officer
     ia_history: False  # History of their investigations in IA (e.g. are there safety concerns?)
-    experience: True  # Experience level of officer (number of years)
+    yearsexperience: True  # Experience level of officer (number of years)
+    daysexperience: True  # Experience level of officer (number of days)
+    malefemale: True  # Is officer male or female
 
 ########################
 # Model selection      #

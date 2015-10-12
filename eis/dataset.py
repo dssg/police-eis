@@ -28,12 +28,20 @@ def convert_categorical(df):
     onecol = df.columns[0]
     categories = pd.unique(df[onecol])
 
+    # Set up new features
     featnames = []
-    for i in range(len(categories)):
-        if type(categories[i]) is str:
-            newfeatstr = 'is_' + categories[i]
-            featnames.append(newfeatstr)
-            df[newfeatstr] = df[onecol] == categories[i]
+    if len(categories) == 2:
+        newfeatstr = 'is_' + categories[0]
+        featnames.append(newfeatstr)
+        df[newfeatstr] = df[onecol] == categories[0]
+    else:
+        for i in range(len(categories)):
+            if type(categories[i]) is str:
+                newfeatstr = 'is_' + categories[i]
+                featnames.append(newfeatstr)
+                df[newfeatstr] = df[onecol] == categories[i]
+
+    # Replace Nones or empty fields with NaNs?
 
     df = df.drop(onecol, axis=1)
     return df.astype(int), list(df.columns)
@@ -44,7 +52,9 @@ def lookup(feature, **kwargs):
     class_lookup = {'height_weight': features.OfficerHeightWeight(**kwargs),
                     'education': features.OfficerEducation(**kwargs),
                     'ia_history': features.IAHistory(**kwargs),
-                    'experience': features.OfficerYearsExperience(**kwargs)}
+                    'yearsexperience': features.OfficerYearsExperience(**kwargs),
+                    'daysexperience': features.OfficerDaysExperience(**kwargs),
+                    'malefemale': features.OfficerMaleFemale(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
