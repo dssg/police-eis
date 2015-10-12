@@ -43,7 +43,8 @@ def lookup(feature, **kwargs):
 
     class_lookup = {'height_weight': features.OfficerHeightWeight(**kwargs),
                     'education': features.OfficerEducation(**kwargs),
-                    'ia_history': features.IAHistory(**kwargs)}
+                    'ia_history': features.IAHistory(**kwargs),
+                    'experience': features.OfficerYearsExperience(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
@@ -61,7 +62,7 @@ class UnknownFeatureError(Exception):
 
 class FeatureLoader():
 
-    def __init__(self, start_date, end_date):
+    def __init__(self, start_date, end_date, fake_today):
 
         engine, config = setup_environment.get_database()
 
@@ -69,6 +70,7 @@ class FeatureLoader():
         self.con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
         self.start_date = start_date
         self.end_date = end_date
+        self.fake_today = fake_today
         self.tables = config  # Dict of tables
         self.schema = config['schema']
 
@@ -94,7 +96,7 @@ class FeatureLoader():
 
     def loader(self, features_to_load):
         kwargs = {
-            'time_bound': 'BLAHHHH'
+            'time_bound': self.fake_today
         }
         feature = lookup(features_to_load, **kwargs)
 
@@ -130,7 +132,7 @@ class FeatureLoader():
         return results
 
 
-def grab_data(features, start_date, end_date):
+def grab_data(features, start_date, end_date, fake_today):
     """
     Function that defines the dataset.
 
@@ -143,7 +145,7 @@ def grab_data(features, start_date, end_date):
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
-    data = FeatureLoader(start_date, end_date)
+    data = FeatureLoader(start_date, end_date, fake_today)
 
     officers = data.labeller()
     # officers.set_index(["newid"])

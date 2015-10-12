@@ -53,3 +53,16 @@ class IAHistory(Feature):
         self.type_of_features = "float"
         self.name_of_features = ["weight", "height"]
         self.query = ()
+
+
+class OfficerYearsExperience(Feature):
+    def __init__(self, **kwargs):
+        Feature.__init__(self, **kwargs)
+        self.description = "Number of years of experience for police officer"
+        self.time_bound = kwargs["time_bound"]
+        self.name_of_features = ["years_experience"]
+        self.query = ("select newid, {} - EXTRACT(YEAR FROM "
+                      "hire_date_employed) as "
+                      "yrs_experience from {}".format(self.time_bound.year,
+                                                      tables['officer_table']))
+

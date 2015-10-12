@@ -34,10 +34,10 @@ def main(config_file_name="default.yaml"):
     fake_today = datetime.datetime.strptime(config["fake_today"], "%d%b%Y")
     train_start_date = datetime.datetime.strptime(config["fake_today"],
                                                   "%d%b%Y") - \
-        datetime.timedelta(days=config["testing_interval_days"])
+        datetime.timedelta(days=config["training_interval_days"])
     test_end_date = datetime.datetime.strptime(config["fake_today"],
                                                "%d%b%Y") + \
-        datetime.timedelta(days=config["training_interval_days"])
+        datetime.timedelta(days=config["testing_interval_days"])
 
     log.info("Train window start: {}".format(train_start_date))
     log.info("Train window stop: {}".format(fake_today))
@@ -47,18 +47,19 @@ def main(config_file_name="default.yaml"):
     log.info("Loading officers and features to use as training...")
     train_x, train_y, train_id, names = dataset.grab_data(config["features"],
                                                           train_start_date,
+                                                          fake_today,
                                                           fake_today)
 
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id, names = dataset.grab_data(config["features"],
-                                                       train_start_date,
+                                                       fake_today,
+                                                       test_end_date,
                                                        fake_today)
 
     log.info("Running models on dataset...")
     result_y, importances = models.run(train_x, train_y, test_x, config)
 
     log.info("Saving pickled results...")
-    pdb.set_trace()
     to_save = {"test_labels": test_y,
                "test_predictions": result_y,
                "config": config,

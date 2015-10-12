@@ -7,16 +7,17 @@
 # Temporal parameters  #
 ########################
 fake_today: '01Jan2008'
-testing_interval_days: 90
-training_interval_days: 365
+testing_interval_days: 365
+training_interval_days: 1460
 
 ########################
 # Feature selection    #
 ########################
 features:
     height_weight: True  # Height, weight, gender of the officer
-    education: True # Education level of officer
+    education: True  # Education level of officer
     ia_history: False  # History of their investigations in IA (e.g. are there safety concerns?)
+    experience: True  # Experience level of officer (number of years)
 
 ########################
 # Model selection      #
