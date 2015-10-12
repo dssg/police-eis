@@ -37,10 +37,8 @@ class OfficerHeightWeight(Feature):
 class OfficerEducation(Feature):
     def __init__(self, **kwargs):
         Feature.__init__(self, **kwargs)
-        self.description = ("Officer height and weight, calculated as "
-                            "an average across all SI cases involving "
-                            "that officer.")
-        self.num_features = 2
+        self.description = "Officer education level"
+        self.num_features = 12
         self.type_of_features = "categorical"
         self.name_of_features = [""]
         self.query = ("select newid, education_level_cleaned "
