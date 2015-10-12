@@ -40,8 +40,8 @@ def experiment_summary(pkl_file):
     model_config["test_end_date"] = data["test_end_date"].strftime("%d%b%Y")
 
 
-    model_config["features"] = data["features"]
-    model_config["feature_summary"] = feature_summary(data["features"])
+    # model_config["features"] = data["features"]
+    model_config["feature_summary"] = feature_summary(model_config["features"])
     prec_at = precision_at_x_percent(
         data["test_labels"], data["test_predictions"],
         x_percent=0.01)
@@ -98,18 +98,19 @@ def get_experiments_list():
 
 
 def feature_summary(features):
-    known_features = ['personal_stats', 'ia_history']
+    known_features = ['height_weight', 'ia_history', 'education']
+    used_features = [key for key, val in features.items() if val == True]
 
-    not_used = set(known_features) - set(features)
+    not_used = set(known_features) - set(used_features)
     if len(not_used) == 0:
         return "all"
     else:
         not_used = [n for n in not_used if not n.startswith("imputation_")]
-        any_census_used = any([True for n in features
-                              if n.startswith("rate_")])
-        if not any_census_used:
-            not_used = [n for n in not_used if not n.startswith("rate_")]
-            not_used.append("census")
+        # any_census_used = any([True for n in features
+        #                       if n.startswith("rate_")])
+        # if not any_census_used:
+        #     not_used = [n for n in not_used if not n.startswith("rate_")]
+        #     not_used.append("census")
         return "not used: {}".format(", ".join(not_used))
 
 # will be run when webapp first starts

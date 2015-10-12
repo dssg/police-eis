@@ -12,6 +12,45 @@ from eis import setup_environment, features
 log = logging.getLogger(__name__)
 
 
+def convert_categorical(df):
+    """
+    this function generates features from a nominal feature
+
+    Inputs:
+    df: a dataframe with two columns: id, and a feature which is 1
+    of n categories
+
+    Outputs:
+    df: a dataframe with 1 + n columns: id and boolean features that are
+    "category n" or not
+    """
+
+    onecol = df.columns[0]
+    categories = pd.unique(df[onecol])
+
+    featnames = []
+    for i in range(len(categories)):
+        if type(categories[i]) is str:
+            newfeatstr = 'is_' + categories[i]
+            featnames.append(newfeatstr)
+            df[newfeatstr] = df[onecol] == categories[i]
+
+    df = df.drop(onecol, axis=1)
+    return df.astype(int), list(df.columns)
+
+
+def lookup(feature, **kwargs):
+
+    class_lookup = {'height_weight': features.OfficerHeightWeight(**kwargs),
+                    'education': features.OfficerEducation(**kwargs),
+                    'ia_history': features.IAHistory(**kwargs)}
+
+    if feature not in class_lookup.keys():
+        raise UnknownFeatureError(feature)
+
+    return class_lookup[feature]
+
+
 class UnknownFeatureError(Exception):
     def __init__(self, feature):
         self.feature = feature
@@ -24,19 +63,7 @@ class FeatureLoader():
 
     def __init__(self, start_date, end_date):
 
-        try:
-            engine, dbconf = setup_environment.get_connection_from_profile()
-            log.info("Connected to PostgreSQL database!")
-        except IOError:
-            log.exception("Failed to get database connection!")
-            sys.exit(1)
-
-        try:
-            with open(dbconf, 'r') as f:
-                config = yaml.load(f)
-                log.info("Loaded experiment file")
-        except:
-            log.exception("Failed to get experiment configuration file!")
+        engine, config = setup_environment.get_database()
 
         self.con = engine.raw_connection()
         self.con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
@@ -66,11 +93,20 @@ class FeatureLoader():
         return labels
 
     def loader(self, features_to_load):
-        features = self.__read_feature_from_db(queries.sql[features_to_load],
-                                               features_to_load,
-                                               drop_duplicates=True)
+        kwargs = {
+            'time_bound': 'BLAHHHH'
+        }
+        feature = lookup(features_to_load, **kwargs)
 
-        return features
+        results = self.__read_feature_from_db(feature.query,
+                                              features_to_load,
+                                              drop_duplicates=True)
+        featurenames = feature.name_of_features
+
+        if feature.type_of_features == "categorical":
+            results, featurenames = convert_categorical(results)
+
+        return results, featurenames
 
     def __read_feature_from_db(self, query, features_to_load,
                                drop_duplicates=True):
@@ -79,19 +115,19 @@ class FeatureLoader():
                   "%(start_date)s to %(end_date)s".format(
                         self.start_date, self.end_date))
 
-        features = pd.read_sql(query, con=self.con,
-                               params={"start_date": self.start_date,
-                                       "end_date": self.end_date})
+        results = pd.read_sql(query, con=self.con,
+                              params={"start_date": self.start_date,
+                                      "end_date": self.end_date})
 
         if drop_duplicates:
-            features = features.drop_duplicates(subset=["newid"])
+            results = results.drop_duplicates(subset=["newid"])
 
-        features = features.set_index(["newid"])
+        results = results.set_index(["newid"])
         # features = features[features_to_load]
 
-        log.debug("... {} rows, {} features".format(len(features),
-                                                    len(features.columns)))
-        return features
+        log.debug("... {} rows, {} features".format(len(results),
+                                                    len(results.columns)))
+        return results
 
 
 def grab_data(features, start_date, end_date):
@@ -109,17 +145,15 @@ def grab_data(features, start_date, end_date):
     end_date = end_date.strftime('%Y-%m-%d')
     data = FeatureLoader(start_date, end_date)
 
-    for feature in features:
-        if feature not in queries.sql:
-            raise UnknownFeatureError(feature)
-
     officers = data.labeller()
     # officers.set_index(["newid"])
 
     dataset = officers
+    featnames = []
     for each_feat in features:
         if features[each_feat] == True:
-            feature_df = data.loader(each_feat)
+            feature_df, names = data.loader(each_feat)
+            featnames = featnames + names
             dataset = dataset.join(feature_df, how='left', on='newid')
 
     dataset = dataset.reset_index()
@@ -137,4 +171,4 @@ def grab_data(features, start_date, end_date):
     log.debug("Dataset has {} rows and {} features".format(
        len(labels), len(feats.columns)))
 
-    return feats, labels, ids
+    return feats, labels, ids, featnames

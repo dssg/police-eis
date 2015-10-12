@@ -45,24 +45,25 @@ def main(config_file_name="default.yaml"):
     log.info("Test window stop: {}".format(test_end_date))
 
     log.info("Loading officers and features to use as training...")
-    train_x, train_y, train_id = dataset.grab_data(config["features"],
-                                                   train_start_date,
-                                                   fake_today)
+    train_x, train_y, train_id, names = dataset.grab_data(config["features"],
+                                                          train_start_date,
+                                                          fake_today)
 
     log.info("Loading officers and features to use as testing...")
-    test_x, test_y, test_id = dataset.grab_data(config["features"],
-                                                train_start_date,
-                                                fake_today)
+    test_x, test_y, test_id, names = dataset.grab_data(config["features"],
+                                                       train_start_date,
+                                                       fake_today)
 
     log.info("Running models on dataset...")
     result_y, importances = models.run(train_x, train_y, test_x, config)
 
     log.info("Saving pickled results...")
+    pdb.set_trace()
     to_save = {"test_labels": test_y,
                "test_predictions": result_y,
                "config": config,
-               "features": config["features"],
-               "timestamp": timestamp, 
+               "features": names,
+               "timestamp": timestamp,
                "parameters": config["parameters"],
                "train_start_date": train_start_date,
                "test_end_date": test_end_date,

@@ -19,7 +19,7 @@ def run(train_x, train_y, test_x, config):
     test_x = scaler.transform(test_x)
 
     results, importances = gen_model(train_x, train_y, test_x, config['model'],
-                        config['parameters'])
+                                     config['parameters'])
 
     return results, importances
 

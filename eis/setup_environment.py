@@ -2,6 +2,27 @@
 import os
 import yaml
 from sqlalchemy import create_engine
+import logging
+
+log = logging.getLogger(__name__)
+
+
+def get_database():
+    try:
+        engine, dbconf = get_connection_from_profile()
+        log.info("Connected to PostgreSQL database!")
+    except IOError:
+        log.exception("Failed to get database connection!")
+        sys.exit(1)
+
+    try:
+        with open(dbconf, 'r') as f:
+            config = yaml.load(f)
+            log.info("Loaded experiment file")
+    except:
+        log.exception("Failed to get experiment configuration file!")
+
+    return engine, config
 
 
 def get_connection_from_profile(config_file_name="default_profile"):

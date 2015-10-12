@@ -14,7 +14,8 @@ training_interval_days: 365
 # Feature selection    #
 ########################
 features:
-    personal_stats: True  # Height, weight, gender of the officer
+    height_weight: True  # Height, weight, gender of the officer
+    education: True # Education level of officer
     ia_history: False  # History of their investigations in IA (e.g. are there safety concerns?)
 
 ########################
@@ -22,7 +23,7 @@ features:
 ########################
 model: 'RandomForest'
 parameters:
-    n_estimators: 100
+    n_estimators: 10
     depth: 10
 
 # parameters:  # search ranges for RandomForest
