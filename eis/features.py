@@ -83,7 +83,16 @@ class OfficerDaysExperience(Feature):
 class OfficerMaleFemale(Feature):
     def __init__(self, **kwargs):
         Feature.__init__(self, **kwargs)
-        self.description = "Officer binary male/female feature"
+        self.description = "Is officer male or female"
         self.query = ("select newid, empl_sex_clean as "
                       "male_female from {}".format(tables['officer_table']))
+        self.type_of_features = "categorical"
+
+
+class OfficerRace(Feature):
+    def __init__(self, **kwargs):
+        Feature.__init__(self, **kwargs)
+        self.description = "Officer race"
+        self.query = ("select newid, empl_race_cleaned as "
+                      "race from {}".format(tables['officer_table']))
         self.type_of_features = "categorical"

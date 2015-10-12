@@ -20,6 +20,7 @@ features:
     yearsexperience: True  # Experience level of officer (number of years)
     daysexperience: True  # Experience level of officer (number of days)
     malefemale: True  # Is officer male or female
+    race: True  # What is officer race
 
 ########################
 # Model selection      #

@@ -54,7 +54,8 @@ def lookup(feature, **kwargs):
                     'ia_history': features.IAHistory(**kwargs),
                     'yearsexperience': features.OfficerYearsExperience(**kwargs),
                     'daysexperience': features.OfficerDaysExperience(**kwargs),
-                    'malefemale': features.OfficerMaleFemale(**kwargs)}
+                    'malefemale': features.OfficerMaleFemale(**kwargs),
+                    'race': features.OfficerRace(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
