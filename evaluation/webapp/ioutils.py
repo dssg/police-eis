@@ -100,7 +100,7 @@ def get_experiments_list():
 def feature_summary(features):
     known_features = ['height_weight', 'ia_history', 'education', 'daysexperience',
                       'yearsexperience', 'malefemale', 'race', 'officerage',
-                      'officerageathire']
+                      'officerageathire', 'maritalstatus']
     used_features = [key for key, val in features.items() if val == True]
 
     not_used = set(known_features) - set(used_features)

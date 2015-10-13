@@ -45,17 +45,21 @@ def main(config_file_name="default.yaml"):
     log.info("Test window start: {}".format(fake_today))
     log.info("Test window stop: {}".format(test_end_date))
 
-    log.info("Loading officers and features to use as training...")
-    train_x, train_y, train_id, names = dataset.grab_data(config["features"],
-                                                          train_start_date,
-                                                          fake_today,
-                                                          fake_today)
+    if config["unit"] == "officer":
+        log.info("Loading officers and features to use as training...")
+        train_x, train_y, train_id, names = dataset.grab_officer_data(
+            config["features"], train_start_date, fake_today, fake_today)
 
-    log.info("Loading officers and features to use as testing...")
-    test_x, test_y, test_id, names = dataset.grab_data(config["features"],
-                                                       fake_today,
-                                                       test_end_date,
-                                                       fake_today)
+        log.info("Loading officers and features to use as testing...")
+        test_x, test_y, test_id, names = dataset.grab_officer_data(
+            config["features"], fake_today, test_end_date, fake_today)
+
+    elif config["unit"] == "dispatch":
+        log.info("Loading dispatch events and features to use as training...")
+        pass
+
+        log.info("Loading dispatch events and features to use as testing...")
+        pass
 
     log.info("Running models on dataset...")
 

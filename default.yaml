@@ -4,9 +4,15 @@
 ################################################
 
 ########################
+# Type of Experiment   #
+########################
+
+unit: 'officer'  # or 'dispatch'
+
+########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2008'
+fake_today: '01Jan2007'
 testing_interval_days: 365
 training_interval_days: 1460
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
@@ -24,6 +30,7 @@ features:
     race: True  # What is officer race
     officerage: True  # Age of officers
     officerageathire: True  # Officer age when hired
+    maritalstatus: True  # Officer marital status
 
 ########################
 # Model selection      #

@@ -56,6 +56,15 @@ class IAHistory(Feature):
         self.query = ()
 
 
+class OfficerMaritalStatus(Feature):
+    def __init__(self, **kwargs):
+        Feature.__init__(self, **kwargs)
+        self.type_of_features = "categorical"
+        self.description = "Marital status of officer"
+        self.query = ("select newid, marital_status as "
+                      "married from {}".format(tables['officer_table']))
+
+
 class OfficerYearsExperience(Feature):
     def __init__(self, **kwargs):
         Feature.__init__(self, **kwargs)

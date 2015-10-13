@@ -27,8 +27,17 @@ def convert_categorical(df):
 
     onecol = df.columns[0]
     categories = pd.unique(df[onecol])
+
+    # Remove empty fields
     # Replace Nones or empty fields with NaNs?
     categories = [x for x in categories if x is not None]
+    try:
+        categories.remove(' ')
+    except:
+        pass
+
+    # Get rid of capitalization differences
+    categories = list(set([str.lower(x) for x in categories]))
 
     # Set up new features
     featnames = []
@@ -57,7 +66,8 @@ def lookup(feature, **kwargs):
                     'malefemale': features.OfficerMaleFemale(**kwargs),
                     'race': features.OfficerRace(**kwargs),
                     'officerage': features.OfficerAge(**kwargs),
-                    'officerageathire': features.OfficerAgeAtHire(**kwargs)}
+                    'officerageathire': features.OfficerAgeAtHire(**kwargs),
+                    'maritalstatus': features.OfficerMaritalStatus(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
@@ -87,7 +97,7 @@ class FeatureLoader():
         self.tables = config  # Dict of tables
         self.schema = config['schema']
 
-    def labeller(self):
+    def officer_labeller(self):
         """
         Load the IDs for a set of officers investigated between
         two dates and the outcomes
@@ -99,6 +109,7 @@ class FeatureLoader():
 
         log.info("Loading labels...")
 
+        # These are the objects flagged as ones
         query = ("SELECT newid, adverse_by_ourdef from {}.{} "
                  "WHERE dateoccured >= '{}'::date "
                  "AND dateoccured <= '{}'::date"
@@ -106,6 +117,42 @@ class FeatureLoader():
                           self.start_date, self.end_date)
 
         labels = pd.read_sql(query, con=self.con)
+
+        # Now also label those not sampled
+
+        pdb.set_trace()
+
+        return labels
+
+
+    def dispatch_labeller(self):
+        """
+        Load the dispatch events investigated between
+        two dates and the outcomes
+
+        Returns:
+        labels: pandas dataframe with two columns:
+        newid, adverse_by_ourdef, dateoccured
+        """
+
+        log.info("Loading labels...")
+
+        # These are the objects flagged as ones and twos
+        query = ("SELECT newid, adverse_by_ourdef, "
+                 "dateoccured from {}.{} "
+                 "WHERE dateoccured >= '{}'::date "
+                 "AND dateoccured <= '{}'::date"
+                 ).format(self.schema, self.tables["si_table"],
+                          self.start_date, self.end_date)
+
+        labels = pd.read_sql(query, con=self.con)
+
+        # Now also label those not sampled
+        # Grab all dispatch events and filter out the ones 
+        # already included
+
+        pdb.set_trace()
+
         return labels
 
     def loader(self, features_to_load):
@@ -146,7 +193,7 @@ class FeatureLoader():
         return results
 
 
-def grab_data(features, start_date, end_date, fake_today):
+def grab_officer_data(features, start_date, end_date, fake_today):
     """
     Function that defines the dataset.
 
@@ -161,7 +208,7 @@ def grab_data(features, start_date, end_date, fake_today):
     end_date = end_date.strftime('%Y-%m-%d')
     data = FeatureLoader(start_date, end_date, fake_today)
 
-    officers = data.labeller()
+    officers = data.officer_labeller()
     # officers.set_index(["newid"])
 
     dataset = officers
