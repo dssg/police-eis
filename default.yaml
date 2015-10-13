@@ -6,9 +6,10 @@
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2009'
+fake_today: '01Jan2008'
 testing_interval_days: 365
 training_interval_days: 1460
+# 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
 ########################
 # Feature selection    #
@@ -28,15 +29,15 @@ features:
 # Model selection      #
 ########################
 model: 'RandomForest'
-parameters:
-    n_estimators: 10
-    depth: 10
+# parameters:
+#    n_estimators: [10]
+#    depth: [10]
 
-# parameters:  # search ranges for RandomForest
-#     n_estimators:  [1, 10, 25, 50, 100]
-#     depth: [3, 5, 10, 20]
-#     max_features: [2, 4, 8, 16, "auto"]
-#     criterion: ["gini", "entropy"]
+parameters:  # search ranges for RandomForest
+    n_estimators:  [1, 10, 25, 50, 100]
+    depth: [3, 5, 10, 20]
+    # max_features: [2, 4, 8, 16, "auto"]
+    criterion: ["gini", "entropy"]
 
 # model: 'SVM'
 # parameters:

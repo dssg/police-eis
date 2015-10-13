@@ -7,6 +7,7 @@ import sys
 import pickle
 import pdb
 import datetime
+from itertools import product
 
 from eis import setup_environment, dataset, models
 
@@ -57,22 +58,37 @@ def main(config_file_name="default.yaml"):
                                                        fake_today)
 
     log.info("Running models on dataset...")
-    result_y, importances = models.run(train_x, train_y, test_x, config)
 
-    log.info("Saving pickled results...")
-    to_save = {"test_labels": test_y,
-               "test_predictions": result_y,
-               "config": config,
-               "features": names,
-               "timestamp": timestamp,
-               "parameters": config["parameters"],
-               "train_start_date": train_start_date,
-               "test_end_date": test_end_date,
-               "feature_importances": importances}
+    parameter_names = sorted(config["parameters"])
+    parameter_values = [config["parameters"][p] for p in parameter_names]
+    all_params = product(*parameter_values)
 
-    pkl_file = "{}{}_{}.pkl".format(
-        config['directory'], config['pkl_prefix'], timestamp)
-    pickle_results(pkl_file, to_save)
+    for each_param in all_params:
+        timestamp = datetime.datetime.now().isoformat()
+
+        parameters = {name: value for name, value
+                          in zip(parameter_names, each_param)}
+        log.info("Training model: {} with {}".format(config["model"],
+            parameters))
+        result_y, importances = models.run(train_x, train_y,
+                                           test_x, config["model"],
+                                           parameters)
+
+        config["parameters"] = parameters
+        log.info("Saving pickled results...")
+        to_save = {"test_labels": test_y,
+                   "test_predictions": result_y,
+                   "config": config,
+                   "features": names,
+                   "timestamp": timestamp,
+                   "parameters": parameters,
+                   "train_start_date": train_start_date,
+                   "test_end_date": test_end_date,
+                   "feature_importances": importances}
+
+        pkl_file = "{}{}_{}.pkl".format(
+            config['directory'], config['pkl_prefix'], timestamp)
+        pickle_results(pkl_file, to_save)
 
     log.info("Done!")
     return None

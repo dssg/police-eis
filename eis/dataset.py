@@ -98,13 +98,14 @@ class FeatureLoader():
         """
 
         log.info("Loading labels...")
-        query = ("SELECT newid, adverse_by_ourdef from {}.{} "
-                 "WHERE dateoccured >= %(start_date)s "
-                 "AND dateoccured <= %(end_date)s"
-                 ).format(self.schema, self.tables["si_table"])
 
-        labels = pd.read_sql(query, con=self.con, params={"start_date":
-                             self.start_date, "end_date": self.end_date})
+        query = ("SELECT newid, adverse_by_ourdef from {}.{} "
+                 "WHERE dateoccured >= '{}'::date "
+                 "AND dateoccured <= '{}'::date"
+                 ).format(self.schema, self.tables["si_table"],
+                          self.start_date, self.end_date)
+
+        labels = pd.read_sql(query, con=self.con)
         return labels
 
     def loader(self, features_to_load):

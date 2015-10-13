@@ -11,15 +11,15 @@ class ConfigError():
     pass
 
 
-def run(train_x, train_y, test_x, config):
+def run(train_x, train_y, test_x, model, parameters):
 
     # Feature scaling
     scaler = preprocessing.StandardScaler().fit(train_x)
     train_x = scaler.transform(train_x)
     test_x = scaler.transform(test_x)
 
-    results, importances = gen_model(train_x, train_y, test_x, config['model'],
-                                     config['parameters'])
+    results, importances = gen_model(train_x, train_y, test_x, model,
+                                     parameters)
 
     return results, importances
 
