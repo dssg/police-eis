@@ -28,7 +28,7 @@ def setup(config):
 
     log.info("Loading officers and features to use as training...")
     train_x, train_y, train_id, names = dataset.grab_officer_data(
-        config["features"], train_start_date, fake_today, fake_today)
+        config["features"], train_start_date, fake_today, train_start_date)
 
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id, names = dataset.grab_officer_data(

@@ -192,20 +192,21 @@ class FeatureLoader():
         return results
 
 
-def grab_officer_data(features, start_date, end_date, fake_today):
+def grab_officer_data(features, start_date, end_date, time_bound):
     """
     Function that defines the dataset.
 
     Inputs:
     -------
     features: dict containing which features to use
-    start_date: date to start building features from
-    end_date: date to stop building features until
+    start_date: start date for selecting officers
+    end_date: end date for selecting officers
+    time_bound: build features with respect to this date
     """
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
-    data = FeatureLoader(start_date, end_date, fake_today)
+    data = FeatureLoader(start_date, end_date, time_bound)
 
     officers = data.officer_labeller()
     # officers.set_index(["newid"])
