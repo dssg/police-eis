@@ -65,7 +65,7 @@ class OfficerMaritalStatus(Feature):
                       "married from {}".format(tables['officer_table']))
 
 
-class OfficerYearsExperience(Feature):
+class OfficerYrsExperience(Feature):
     def __init__(self, **kwargs):
         Feature.__init__(self, **kwargs)
         self.description = "Number of years of experience for police officer"
@@ -76,6 +76,7 @@ class OfficerYearsExperience(Feature):
                       "yrs_experience from {}".format(self.time_bound.year,
                                                       tables['officer_table']))
 
+
 class OfficerDaysExperience(Feature):
     def __init__(self, **kwargs):
         Feature.__init__(self, **kwargs)
@@ -84,9 +85,9 @@ class OfficerDaysExperience(Feature):
         self.name_of_features = ["days_experience"]
         self.query = ("select newid, EXTRACT('days' FROM '{}'::date - "
                       "hire_date_employed) as "
-                      "days_experience from {}".format(self.time_bound.strftime(
-                                                       time_format),
-                                                       tables['officer_table']))
+                      "days_experience from {}".format(
+                          self.time_bound.strftime(time_format),
+                          tables['officer_table']))
 
 
 class OfficerMaleFemale(Feature):

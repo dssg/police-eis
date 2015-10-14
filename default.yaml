@@ -13,8 +13,9 @@ unit: 'officer'  # or 'dispatch'
 # Temporal parameters  #
 ########################
 fake_today: '01Jan2007'
-testing_interval_days: 365
-training_interval_days: 1460
+prediction_interval: 365  # days, used for officer-level prediction
+testing_interval_days: 365  # days, used for dispatch-level prediction
+training_interval_days: 1460  # days, used for dispatch-level prediction
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
 ########################

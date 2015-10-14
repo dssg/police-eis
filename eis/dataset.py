@@ -61,7 +61,7 @@ def lookup(feature, **kwargs):
     class_lookup = {'height_weight': features.OfficerHeightWeight(**kwargs),
                     'education': features.OfficerEducation(**kwargs),
                     'ia_history': features.IAHistory(**kwargs),
-                    'yearsexperience': features.OfficerYearsExperience(**kwargs),
+                    'yearsexperience': features.OfficerYrsExperience(**kwargs),
                     'daysexperience': features.OfficerDaysExperience(**kwargs),
                     'malefemale': features.OfficerMaleFemale(**kwargs),
                     'race': features.OfficerRace(**kwargs),
@@ -124,7 +124,6 @@ class FeatureLoader():
 
         return labels
 
-
     def dispatch_labeller(self):
         """
         Load the dispatch events investigated between
@@ -148,7 +147,7 @@ class FeatureLoader():
         labels = pd.read_sql(query, con=self.con)
 
         # Now also label those not sampled
-        # Grab all dispatch events and filter out the ones 
+        # Grab all dispatch events and filter out the ones
         # already included
 
         pdb.set_trace()

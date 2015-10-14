@@ -9,7 +9,7 @@ import pdb
 import datetime
 from itertools import product
 
-from eis import setup_environment, dataset, models
+from eis import setup_environment, models, officer, dispatch
 
 
 def main(config_file_name="default.yaml"):
@@ -32,34 +32,10 @@ def main(config_file_name="default.yaml"):
     except:
         log.exception("Failed to get experiment configuration file!")
 
-    fake_today = datetime.datetime.strptime(config["fake_today"], "%d%b%Y")
-    train_start_date = datetime.datetime.strptime(config["fake_today"],
-                                                  "%d%b%Y") - \
-        datetime.timedelta(days=config["training_interval_days"])
-    test_end_date = datetime.datetime.strptime(config["fake_today"],
-                                               "%d%b%Y") + \
-        datetime.timedelta(days=config["testing_interval_days"])
-
-    log.info("Train window start: {}".format(train_start_date))
-    log.info("Train window stop: {}".format(fake_today))
-    log.info("Test window start: {}".format(fake_today))
-    log.info("Test window stop: {}".format(test_end_date))
-
     if config["unit"] == "officer":
-        log.info("Loading officers and features to use as training...")
-        train_x, train_y, train_id, names = dataset.grab_officer_data(
-            config["features"], train_start_date, fake_today, fake_today)
-
-        log.info("Loading officers and features to use as testing...")
-        test_x, test_y, test_id, names = dataset.grab_officer_data(
-            config["features"], fake_today, test_end_date, fake_today)
-
+        exp_data = officer.setup(config)
     elif config["unit"] == "dispatch":
-        log.info("Loading dispatch events and features to use as training...")
-        pass
-
-        log.info("Loading dispatch events and features to use as testing...")
-        pass
+        exp_data = dispatch.setup(config)
 
     log.info("Running models on dataset...")
 
@@ -71,23 +47,25 @@ def main(config_file_name="default.yaml"):
         timestamp = datetime.datetime.now().isoformat()
 
         parameters = {name: value for name, value
-                          in zip(parameter_names, each_param)}
+                      in zip(parameter_names, each_param)}
         log.info("Training model: {} with {}".format(config["model"],
-            parameters))
-        result_y, importances = models.run(train_x, train_y,
-                                           test_x, config["model"],
+                 parameters))
+        result_y, importances = models.run(exp_data["train_x"],
+                                           exp_data["train_y"],
+                                           exp_data["test_x"],
+                                           config["model"],
                                            parameters)
 
         config["parameters"] = parameters
         log.info("Saving pickled results...")
-        to_save = {"test_labels": test_y,
+        to_save = {"test_labels": exp_data["test_y"],
                    "test_predictions": result_y,
                    "config": config,
-                   "features": names,
+                   "features": exp_data["names"],
                    "timestamp": timestamp,
                    "parameters": parameters,
-                   "train_start_date": train_start_date,
-                   "test_end_date": test_end_date,
+                   "train_start_date": exp_data["train_start_date"],
+                   "test_end_date": exp_data["test_end_date"],
                    "feature_importances": importances}
 
         pkl_file = "{}{}_{}.pkl".format(
