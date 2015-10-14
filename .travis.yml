@@ -12,4 +12,4 @@ install:
   #- python setup.py install
 script:
 - "nosetests -v"
-- pep8 police-eis
+- pep8 police-eis/eis
