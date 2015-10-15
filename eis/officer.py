@@ -8,7 +8,6 @@ import datetime
 
 from eis import dataset
 
-
 log = logging.getLogger(__name__)
 
 

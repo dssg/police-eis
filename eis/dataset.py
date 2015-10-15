@@ -6,7 +6,8 @@ import logging
 import sys
 import datetime
 
-from eis import setup_environment, features
+from eis import setup_environment
+from eis.features import officers as featoff
 
 
 log = logging.getLogger(__name__)
@@ -58,16 +59,18 @@ def convert_categorical(df):
 
 def lookup(feature, **kwargs):
 
-    class_lookup = {'height_weight': features.OfficerHeightWeight(**kwargs),
-                    'education': features.OfficerEducation(**kwargs),
-                    'ia_history': features.IAHistory(**kwargs),
-                    'yearsexperience': features.OfficerYrsExperience(**kwargs),
-                    'daysexperience': features.OfficerDaysExperience(**kwargs),
-                    'malefemale': features.OfficerMaleFemale(**kwargs),
-                    'race': features.OfficerRace(**kwargs),
-                    'officerage': features.OfficerAge(**kwargs),
-                    'officerageathire': features.OfficerAgeAtHire(**kwargs),
-                    'maritalstatus': features.OfficerMaritalStatus(**kwargs)}
+    class_lookup = {'height_weight': featoff.OfficerHeightWeight(**kwargs),
+                    'education': featoff.OfficerEducation(**kwargs),
+                    'ia_history': featoff.IAHistory(**kwargs),
+                    'yearsexperience': featoff.OfficerYrsExperience(**kwargs),
+                    'daysexperience': featoff.OfficerDaysExperience(**kwargs),
+                    'malefemale': featoff.OfficerMaleFemale(**kwargs),
+                    'race': featoff.OfficerRace(**kwargs),
+                    'officerage': featoff.OfficerAge(**kwargs),
+                    'officerageathire': featoff.OfficerAgeAtHire(**kwargs),
+                    'maritalstatus': featoff.OfficerMaritalStatus(**kwargs),
+                    'careerarrests': featoff.OfficerCareerArrests(**kwargs),
+                    'numrecentarrests': featoff.NumRecentArrests(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
@@ -119,8 +122,6 @@ class FeatureLoader():
         labels = pd.read_sql(query, con=self.con)
 
         # Now also label those not sampled
-
-        pdb.set_trace()
 
         return labels
 

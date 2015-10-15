@@ -32,6 +32,8 @@ features:
     officerage: True  # Age of officers
     officerageathire: True  # Officer age when hired
     maritalstatus: True  # Officer marital status
+    careerarrests: True  # Career arrests of officer
+    numrecentarrests: True  # Number arrests in last year
 
 ########################
 # Model selection      #
