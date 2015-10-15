@@ -34,6 +34,8 @@ features:
     maritalstatus: True  # Officer marital status
     careerarrests: True  # Career arrests of officer
     numrecentarrests: True  # Number arrests in last year
+    careerNPCarrests: True  # Career no probable cause (NPC) arrests
+    recentNPCarrests: True  # Last year NPC arrests  
 
 ########################
 # Model selection      #

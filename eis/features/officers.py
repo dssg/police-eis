@@ -149,6 +149,38 @@ class OfficerCareerArrests(abstract.Feature):
                           self.end_date, self.start_date)
 
 
+class CareerNPCArrests(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.description = "Number of career NPC arrests for officer"
+        self.name_of_features = ["career_npc_arrest_count"]
+        self.start_date = "1970-01-01"
+        self.end_date = kwargs["time_bound"]
+        self.query = ("select count(distinct aa_id) as career_npc_count, "
+                      "newid from {} where magistrate_action_mlov = 'MA03' "
+                      "and arrest_date <= '{}'::date "
+                      "and arrest_date >= '{}'::date "
+                      "group by newid").format(
+                          tables["arrest_charges_table"],
+                          self.end_date, self.start_date)
+
+
+class RecentNPCArrests(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.description = "Number of recent NPC arrests for officer"
+        self.name_of_features = ["recent_npc_arrest_count"]
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.query = ("select count(distinct aa_id) as recent_npc_count, "
+                      "newid from {} where magistrate_action_mlov = 'MA03' "
+                      "and arrest_date <= '{}'::date "
+                      "and arrest_date >= '{}'::date "
+                      "group by newid").format(
+                          tables["arrest_charges_table"],
+                          self.end_date, self.start_date)
+
+
 class IAHistory(abstract.Feature):
     def __init__(self, **kwargs):
         abstract.Feature.__init__(self, **kwargs)

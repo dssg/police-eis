@@ -70,7 +70,9 @@ def lookup(feature, **kwargs):
                     'officerageathire': featoff.OfficerAgeAtHire(**kwargs),
                     'maritalstatus': featoff.OfficerMaritalStatus(**kwargs),
                     'careerarrests': featoff.OfficerCareerArrests(**kwargs),
-                    'numrecentarrests': featoff.NumRecentArrests(**kwargs)}
+                    'numrecentarrests': featoff.NumRecentArrests(**kwargs),
+                    'careerNPCarrests': featoff.CareerNPCArrests(**kwargs),
+                    'recentNPCarrests': featoff.RecentNPCArrests(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
