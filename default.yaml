@@ -35,7 +35,11 @@ features:
     careerarrests: True  # Career arrests of officer
     numrecentarrests: True  # Number arrests in last year
     careerNPCarrests: True  # Career no probable cause (NPC) arrests
-    recentNPCarrests: True  # Last year NPC arrests  
+    recentNPCarrests: True  # Last year NPC arrests
+    careerdiscarrests: True  # Career discretionary arrests
+    recentdiscarrests: True  # Recent discretionary arrests
+    arresttod: True  # Average arrest time of day
+    arresteeage: True  # Average arrestee age
 
 ########################
 # Model selection      #

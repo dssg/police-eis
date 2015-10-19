@@ -72,7 +72,11 @@ def lookup(feature, **kwargs):
                     'careerarrests': featoff.OfficerCareerArrests(**kwargs),
                     'numrecentarrests': featoff.NumRecentArrests(**kwargs),
                     'careerNPCarrests': featoff.CareerNPCArrests(**kwargs),
-                    'recentNPCarrests': featoff.RecentNPCArrests(**kwargs)}
+                    'recentNPCarrests': featoff.RecentNPCArrests(**kwargs),
+                    'careerdiscarrests': featoff.CareerDiscretionaryArrests(**kwargs),
+                    'recentdiscarrests': featoff.RecentDiscretionaryArrests(**kwargs),
+                    'arresttod': featoff.OfficerAvgTimeOfDayArrests(**kwargs),
+                    'arresteeage': featoff.OfficerAvgAgeArrests(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
@@ -176,13 +180,11 @@ class FeatureLoader():
     def __read_feature_from_db(self, query, features_to_load,
                                drop_duplicates=True):
 
-        log.debug("Loading features for "
+        log.debug("Loading features for events from "
                   "%(start_date)s to %(end_date)s".format(
                         self.start_date, self.end_date))
 
-        results = pd.read_sql(query, con=self.con,
-                              params={"start_date": self.start_date,
-                                      "end_date": self.end_date})
+        results = pd.read_sql(query, con=self.con)
 
         if drop_duplicates:
             results = results.drop_duplicates(subset=["newid"])

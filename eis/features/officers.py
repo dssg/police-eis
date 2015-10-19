@@ -133,20 +133,84 @@ class OfficerArrestsTimeSeries(abstract.Feature):
     pass
 
 
+class OfficerAvgAgeArrests(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.description = "Average age of arrestees for officer"
+        self.name_of_features = ["avg_age_arrestees"]
+        self.end_date = kwargs["time_bound"]
+        self.query = ("select avg(age) as avg_age_arrestees, newid "
+                      "from {} "
+                      "where arrest_date <= '{}'::date "
+                      "group by newid").format(
+                          tables["arrest_charges_table"],
+                          self.end_date)
+
+
+class OfficerAvgTimeOfDayArrests(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.description = "Average arrest time of day for officer"
+        self.name_of_features = ["tod_arrest"]
+        self.end_date = kwargs["time_bound"]
+        self.query = ("select avg(extract(hour from arrest_date)) "
+                      "as arrest_avg_hour, newid from {} "
+                      "where arrest_date <= '{}'::date "
+                      "group by newid").format(
+                          tables["arrest_charges_table"],
+                          self.end_date)
+
+
+class CareerDiscretionaryArrests(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.description = "Number of career discretionary arrests for officer"
+        self.name_of_features = ["career_disc_arrest_count"]
+        self.end_date = kwargs["time_bound"]
+        self.query = ("select count(*) as career_disc_arrest_count, newid from ("
+                      "select count(*) as c, newid, string_agg("
+                      "charge_desc::text, '    ') as charges from "
+                      "{} where charge_desc is not null "
+                      "and arrest_date <= '{}'::date "
+                      "group by newid, aa_id) a "
+                      "where c=1 and charges similar to '%(DISORDERLY|RESIST|OBSTRUCT|DELAY)%' "
+                      "group by newid").format(
+                          tables["arrest_charges_table"],
+                          self.end_date)
+
+
+class RecentDiscretionaryArrests(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.description = "Number of recent discretionary arrests for officer"
+        self.name_of_features = ["recent_disc_arrest_count"]
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.query = ("select count(*) as recent_disc_arrest_count, newid from ("
+                      "select count(*) as c, newid, string_agg("
+                      "charge_desc::text, '    ') as charges from "
+                      "{} where charge_desc is not null "
+                      "and arrest_date <= '{}'::date "
+                      "and arrest_date >= '{}'::date "
+                      "group by newid, aa_id) a "
+                      "where c=1 and charges similar to '%(DISORDERLY|RESIST|OBSTRUCT|DELAY)%' "
+                      "group by newid").format(
+                          tables["arrest_charges_table"],
+                          self.end_date, self.start_date)
+
+
 class OfficerCareerArrests(abstract.Feature):
     def __init__(self, **kwargs):
         abstract.Feature.__init__(self, **kwargs)
         self.description = "Number of career arrests for officer"
         self.name_of_features = ["career_arrest_count"]
-        self.start_date = "1970-01-01"
         self.end_date = kwargs["time_bound"]
         self.query = ("select count(distinct aa_id) as career_arrest_count, "
                       "newid from {} "
                       "where arrest_date <= '{}'::date "
-                      "and arrest_date >= '{}'::date "
                       "group by newid").format(
                           tables["arrest_charges_table"],
-                          self.end_date, self.start_date)
+                          self.end_date)
 
 
 class CareerNPCArrests(abstract.Feature):
@@ -154,15 +218,13 @@ class CareerNPCArrests(abstract.Feature):
         abstract.Feature.__init__(self, **kwargs)
         self.description = "Number of career NPC arrests for officer"
         self.name_of_features = ["career_npc_arrest_count"]
-        self.start_date = "1970-01-01"
         self.end_date = kwargs["time_bound"]
         self.query = ("select count(distinct aa_id) as career_npc_count, "
                       "newid from {} where magistrate_action_mlov = 'MA03' "
                       "and arrest_date <= '{}'::date "
-                      "and arrest_date >= '{}'::date "
                       "group by newid").format(
                           tables["arrest_charges_table"],
-                          self.end_date, self.start_date)
+                          self.end_date)
 
 
 class RecentNPCArrests(abstract.Feature):
