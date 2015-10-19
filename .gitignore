@@ -1,3 +1,7 @@
+# No IPython notebooks
+*.ipynb
+.ipynb_checkpoints
+
 # Committing credentials is A Bad Thing 
 default_profile
 
