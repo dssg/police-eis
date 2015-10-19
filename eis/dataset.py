@@ -73,10 +73,12 @@ def lookup(feature, **kwargs):
                     'numrecentarrests': featoff.NumRecentArrests(**kwargs),
                     'careerNPCarrests': featoff.CareerNPCArrests(**kwargs),
                     'recentNPCarrests': featoff.RecentNPCArrests(**kwargs),
-                    'careerdiscarrests': featoff.CareerDiscretionaryArrests(**kwargs),
-                    'recentdiscarrests': featoff.RecentDiscretionaryArrests(**kwargs),
+                    'careerdiscarrests': featoff.CareerDiscArrests(**kwargs),
+                    'recentdiscarrests': featoff.RecentDiscArrests(**kwargs),
                     'arresttod': featoff.OfficerAvgTimeOfDayArrests(**kwargs),
-                    'arresteeage': featoff.OfficerAvgAgeArrests(**kwargs)}
+                    'arresteeage': featoff.OfficerAvgAgeArrests(**kwargs),
+                    'disconlyarrests': featoff.DiscOnlyArrestsCount(**kwargs),
+                    'arrestratedelta': featoff.ArrestRateDelta(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)

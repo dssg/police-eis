@@ -40,6 +40,8 @@ features:
     recentdiscarrests: True  # Recent discretionary arrests
     arresttod: True  # Average arrest time of day
     arresteeage: True  # Average arrestee age
+    disconlyarrests: True  # Number of disconly arrests
+    arrestratedelta: True  # Arrest rate delta
 
 ########################
 # Model selection      #
