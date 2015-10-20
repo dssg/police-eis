@@ -103,7 +103,9 @@ def feature_summary(features):
                       'officerageathire', 'maritalstatus', 'careerarrests',
                       'numrecentarrests', 'careerNPCarrests', 'recentNPCarrests',
                       'careerdiscarrests', 'recentdiscarrests', 'arresttod',
-                      'arresteeage', 'disconlyarrests', 'arrestratedelta']
+                      'arresteeage', 'disconlyarrests', 'arrestratedelta',
+                      'arresttimeseries', 'arrestcentroids', 'careernpccitations',
+                      'recentnpccitations', 'careercitations', 'recentcitations']
     used_features = [key for key, val in features.items() if val == True]
 
     not_used = set(known_features) - set(used_features)

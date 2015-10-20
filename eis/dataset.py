@@ -13,6 +13,18 @@ from eis.features import officers as featoff
 log = logging.getLogger(__name__)
 
 
+def convert_series(df):
+    onecol = df.columns[0]
+    numcols = len(df[onecol].iloc[0])
+    newcols = [onecol + '_' + str(i) for i in range(numcols)]
+
+    newdf = pd.DataFrame(columns=newcols, index=df.index)
+    for i in range(len(df)):
+        newdf.iloc[i] = df[onecol].iloc[i]
+
+    return newdf.astype(int), newcols
+
+
 def convert_categorical(df):
     """
     this function generates features from a nominal feature
@@ -78,7 +90,13 @@ def lookup(feature, **kwargs):
                     'arresttod': featoff.OfficerAvgTimeOfDayArrests(**kwargs),
                     'arresteeage': featoff.OfficerAvgAgeArrests(**kwargs),
                     'disconlyarrests': featoff.DiscOnlyArrestsCount(**kwargs),
-                    'arrestratedelta': featoff.ArrestRateDelta(**kwargs)}
+                    'arrestratedelta': featoff.ArrestRateDelta(**kwargs),
+                    'arresttimeseries': featoff.OfficerArrestTimeSeries(**kwargs),
+                    'arrestcentroids': featoff.ArrestCentroids(**kwargs),
+                    'careernpccitations': featoff.CareerNPCCitations(**kwargs),
+                    'recentnpccitations': featoff.RecentNPCCitations(**kwargs),
+                    'careercitations': featoff.CareerCitations(**kwargs),
+                    'recentcitations': featoff.RecentCitations(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
@@ -176,6 +194,10 @@ class FeatureLoader():
 
         if feature.type_of_features == "categorical":
             results, featurenames = convert_categorical(results)
+        elif feature.type_of_features == "series":
+            results, featurenames = convert_series(results)
+        else:
+            pass
 
         return results, featurenames
 

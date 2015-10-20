@@ -12,7 +12,7 @@ unit: 'officer'  # or 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2007'
+fake_today: '01Jan2009'
 prediction_interval: 365  # days, used for officer-level prediction
 testing_interval_days: 365  # days, used for dispatch-level prediction
 training_interval_days: 1460  # days, used for dispatch-level prediction
@@ -42,6 +42,12 @@ features:
     arresteeage: True  # Average arrestee age
     disconlyarrests: True  # Number of disconly arrests
     arrestratedelta: True  # Arrest rate delta
+    arresttimeseries: True  # Arrest time series
+    arrestcentroids: False  # Subbeats
+    careernpccitations: True  # Career NPC citations
+    recentnpccitations: True  # Recent NPC citations
+    careercitations: True  # Career citations
+    recentcitations: True  # Recent citations
 
 ########################
 # Model selection      #

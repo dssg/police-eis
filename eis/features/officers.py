@@ -12,6 +12,8 @@ _, tables = setup_environment.get_database()
 time_format = "%Y-%m-%d %X"
 
 
+### Basic Officer Features
+
 class OfficerHeightWeight(abstract.Feature):
     def __init__(self, **kwargs):
         abstract.Feature.__init__(self, **kwargs)
@@ -109,6 +111,8 @@ class OfficerAgeAtHire(abstract.Feature):
                       "age_at_hire from {}".format(tables['officer_table']))
 
 
+### Arrest History Features
+
 class NumRecentArrests(abstract.Feature):
     def __init__(self, **kwargs):
         abstract.Feature.__init__(self, **kwargs)
@@ -125,8 +129,39 @@ class NumRecentArrests(abstract.Feature):
                           self.end_date, self.start_date)
 
 
-class OfficerArrestFracMale(abstract.Feature):
+class OfficerFractionMaleFemale(abstract.Feature):
     pass
+
+
+class OfficerArrestTimeSeries(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.description = "Timeseries of arrest counts (1 yr agg) for officer"
+        self.name_of_features = ["timeseries_arrests"]
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
+        self.query = ("select newid, array_agg(intervals_count) as "
+                      "arrest_timeseries from (select "
+                      "a.newid as newid, a.intervals as intervals, "
+                      "intervalid, greatest(a.default_count,b.arrcount) "
+                      "as intervals_count from (select a.newid, "
+                      "b.intervals, intervalid, 0 as default_count "
+                      "from (select distinct newid "
+                      "from {}) as a left join (select intervals, "
+                      "row_number() over () as intervalid from ( "              
+                      "select distinct date_trunc('year',d) as intervals "
+                      "from generate_series('{}'::timestamp, '{}'::timestamp, "
+                      "'1 day') as d order by intervals) as foo) as b "
+                      "on True) as a "
+                      "left join (select newid, date_trunc('year',arrest_date) "
+                      "as intervals, count(distinct aa_id)::int as arrcount "
+                      "from {} group by newid, date_trunc('year',arrest_date)) "
+                      "as b on a.newid = b.newid and a.intervals = b.intervals) "
+                      "as koo group by newid").format(
+                          tables["arrest_charges_table"], self.start_date, 
+                          self.end_date, tables["arrest_charges_table"])
+        self.type_of_features = "series"
+
 
 
 class ArrestRateDelta(abstract.Feature):
@@ -157,10 +192,6 @@ class ArrestRateDelta(abstract.Feature):
                           self.end_date, tables["officer_table"],
                           tables["arrest_charges_table"], self.end_date,
                           self.start_date)
-
-
-class OfficerArrestsTimeSeries(abstract.Feature):
-    pass
 
 
 class DiscOnlyArrestsCount(abstract.Feature):
@@ -302,6 +333,94 @@ class RecentNPCArrests(abstract.Feature):
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
 
+
+class ArrestCentroids(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.description = "Arrest Centroids"
+        self.name_of_features = ["arrest_centroids"]
+        self.end_date = kwargs["time_bound"]
+        self.type_of_features = "categorical"
+        self.query = ("select a.newid, b.subbeat "
+                      "from( select *, st_setsrid(st_makepoint( "
+                      "cent_long,cent_lat), 4326) as point "
+                      "from( "
+                      "select avg(long) as cent_long, avg(lat) as "
+                      "cent_lat, newid "
+                      "from( select distinct on (aa_id) "
+                      "aa_id, arrest_date, newid, lat, long "
+                      "from {} ) as foo "
+                      "where arrest_date <= '{}'::date "
+                      "group by newid ) as doo ) as a "
+                      "left join {} as b "
+                      "on st_contains(b.geom2::geometry, a.point::"
+                      "geometry)").format(tables["arrest_charges_table"],
+                       self.end_date, tables["sub_beats"])
+
+
+### Citations
+
+class CareerNPCCitations(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of career NPC citations"
+        self.name_of_features = ["career_npc_citations_count"]
+        self.query = ("select newid,count(*) as career_cit_npc "
+                      "from {} where type = 'NPC' "
+                      "and datet <= '{}'::date "
+                      " group by newid").format(
+                      tables["citations_table"],
+                      self.end_date)
+
+
+class RecentNPCCitations(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of recent NPC citations"
+        self.name_of_features = ["recent_npc_citations_count"]
+        self.query = ("select newid,count(*) as recent_cit_npc "
+                      "from {} where type = 'NPC' "
+                      "and datet <= '{}'::date "
+                      "and datet >= '{}'::date "
+                      " group by newid").format(
+                      tables["citations_table"],
+                      self.end_date, self.start_date)
+
+
+class CareerCitations(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of career citations"
+        self.name_of_features = ["career_citations_count"]
+        self.query = ("select newid,count(*) as career_cit "
+                      "from {} where type = 'NPC' "
+                      "and datet <= '{}'::date "
+                      " group by newid").format(
+                      tables["citations_table"],
+                      self.end_date)
+
+
+class RecentCitations(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of recent citations"
+        self.name_of_features = ["recent_citations_count"]
+        self.query = ("select newid,count(*) as recent_cit "
+                      "from {} where type = 'NPC' "
+                      "and datet <= '{}'::date "
+                      "and datet >= '{}'::date "
+                      " group by newid").format(
+                      tables["citations_table"],
+                      self.end_date, self.start_date)
+
+
+### Internal Affairs
 
 class IAHistory(abstract.Feature):
     def __init__(self, **kwargs):
