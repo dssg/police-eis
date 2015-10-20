@@ -127,6 +127,7 @@ class NumRecentArrests(abstract.Feature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
 
 
 class OfficerFractionMaleFemale(abstract.Feature):
@@ -220,6 +221,7 @@ class DiscOnlyArrestsCount(abstract.Feature):
                           self.end_date,
                           tables["arrest_charges_table"],
                           self.end_date)
+        self.type_of_imputation = "zero"
 
 
 class OfficerAvgAgeArrests(abstract.Feature):
@@ -267,6 +269,7 @@ class CareerDiscArrests(abstract.Feature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date)
+        self.type_of_imputation = "zero"
 
 
 class RecentDiscArrests(abstract.Feature):
@@ -288,6 +291,7 @@ class RecentDiscArrests(abstract.Feature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
 
 
 class OfficerCareerArrests(abstract.Feature):
@@ -302,6 +306,7 @@ class OfficerCareerArrests(abstract.Feature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date)
+        self.type_of_imputation = "zero"
 
 
 class CareerNPCArrests(abstract.Feature):
@@ -316,6 +321,7 @@ class CareerNPCArrests(abstract.Feature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date)
+        self.type_of_imputation = "zero"
 
 
 class RecentNPCArrests(abstract.Feature):
@@ -332,6 +338,7 @@ class RecentNPCArrests(abstract.Feature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
 
 
 class ArrestCentroids(abstract.Feature):
@@ -372,6 +379,7 @@ class CareerNPCCitations(abstract.Feature):
                       " group by newid").format(
                       tables["citations_table"],
                       self.end_date)
+        self.type_of_imputation = "zero"
 
 
 class RecentNPCCitations(abstract.Feature):
@@ -388,6 +396,7 @@ class RecentNPCCitations(abstract.Feature):
                       " group by newid").format(
                       tables["citations_table"],
                       self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
 
 
 class CareerCitations(abstract.Feature):
@@ -402,6 +411,7 @@ class CareerCitations(abstract.Feature):
                       " group by newid").format(
                       tables["citations_table"],
                       self.end_date)
+        self.type_of_imputation = "zero"
 
 
 class RecentCitations(abstract.Feature):
@@ -418,9 +428,212 @@ class RecentCitations(abstract.Feature):
                       " group by newid").format(
                       tables["citations_table"],
                       self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
 
 
-### Internal Affairs
+## CAD 
+
+
+## EIS
+
+
+## Field interviews
+
+
+## Incidents
+class YearNumSuicides(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of suicides in last year"
+        self.name_of_features = ["suicides_count"]
+        self.query = ("select newid,count(distinct inc_id) as num_suicide "
+                      "from {} where ucr_desc = 'Suicide' "
+                      "and date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class YearNumJuvenileVictim(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of juvenile victims in last year"
+        self.name_of_features = ["juvenile_count"]
+        self.query = ("select newid,count(distinct inc_id) as num_juv_victim "
+                      "from {} where victim1_age_int < 16 "
+                      "and date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class YearNumDomesticViolence(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of domestic violence incidents in last year"
+        self.name_of_features = ["domestic_violence_count"]
+        self.query = ("select newid,count(distinct inc_id) as num_domestic_violence "
+                      "from {} where domestic_violence_flag = 'Y' "
+                      "and date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class YearNumHate(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hate incidents in last year"
+        self.name_of_features = ["hate_count"]
+        self.query = ("select newid,count(distinct inc_id) as num_hate "
+                      "from {} where bias_hate_flag = 'Y' "
+                      "and date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class YearNumNarcotics(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of narcotics incidents in last year"
+        self.name_of_features = ["narcotics_count"]
+        self.query = ("select newid,count(distinct inc_id) as num_narcotics "
+                      "from {} where narcotics_flag = 'Y' "
+                      "and date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class YearNumGang(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of gang incidents in last year"
+        self.name_of_features = ["gang_count"]
+        self.query = ("select newid,count(distinct inc_id) as num_gang "
+                      "from {} where gang_flag = 'Y' "
+                      "and date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class YearNumGunKnife(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of gun/knife incidents in last year"
+        self.name_of_features = ["gun_knife_count"]
+        self.query = ("select newid,count(distinct inc_id) as num_guns "
+                      "from {} where gang_flag = 'Y' "
+                      "and date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class YearNumPersWeaps(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of personal weapons incidents in last year"
+        self.name_of_features = ["personal_weapon_count"]
+        self.query = ("select newid,count(distinct inc_id) as num_weapons "
+                      "from {} where weapon_type_code = 'G' "
+                      "and date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class AvgAgeVictims(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Average age of victims in last year"
+        self.name_of_features = ["avg_victim_age"]
+        self.query = ("select avg(cast(victim1_age as float)), newid as victim_age,"
+                      "newid from {} "
+                      "where date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class MinAgeVictims(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Min age of victims in last year"
+        self.name_of_features = ["min_victim_age"]
+        self.query = ("select avg(cast(victim1_age as float)) as min_victim_age,"
+                      "newid from {} "
+                      "where date_incident_began <= '{}'::date "
+                      "and date_incident_began >= '{}'::date "
+                      " group by newid").format(
+                      tables["incidents_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+## Traffic stops
+
+
+## Training
+
+
+## Investigations
+# Adverse investigations in last year
+#         qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
+#                  "WHERE dateoccured >= '{}'::date "
+#                  "AND dateoccured <= '{}'::date "
+#                  "group by newid "
+#                  ).format(self.tables["si_table"],
+#                           self.start_date, self.end_date)
+#       qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
+#                    "WHERE adverse_by_ourdef = 1 "
+#                    "AND dateoccured >= '{}'::date "
+#                    "AND dateoccured <= '{}'::date "
+#                    "group by newid "
+#                    ).format(self.tables["si_table"],
+#                             self.start_date, self.end_date)
+
+### Internal Affairs allegations
 
 class IAHistory(abstract.Feature):
     def __init__(self, **kwargs):

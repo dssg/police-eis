@@ -13,6 +13,17 @@ from eis.features import officers as featoff
 log = logging.getLogger(__name__)
 
 
+def imputation_zero(df, ids):
+    fulldf = pd.DataFrame(ids, columns=["newid"] + [df.columns[0]]) 
+    df["newid"] = df.index
+    newdf = df.merge(fulldf, how="right", on="newid")
+    newdf = newdf.fillna(0)
+    newdf[df.columns[0]] = newdf[df.columns[0] + "_x"] + newdf[df.columns[0] + "_y"] 
+    newdf = newdf.drop([df.columns[0] + "_x", df.columns[0] + "_y"], axis=1)
+    newdf = newdf.set_index("newid")
+    return newdf
+
+
 def convert_series(df):
     onecol = df.columns[0]
     numcols = len(df[onecol].iloc[0])
@@ -96,7 +107,17 @@ def lookup(feature, **kwargs):
                     'careernpccitations': featoff.CareerNPCCitations(**kwargs),
                     'recentnpccitations': featoff.RecentNPCCitations(**kwargs),
                     'careercitations': featoff.CareerCitations(**kwargs),
-                    'recentcitations': featoff.RecentCitations(**kwargs)}
+                    'recentcitations': featoff.RecentCitations(**kwargs),
+                    'numsuicides': featoff.YearNumSuicides(**kwargs),
+                    'numjuveniles': featoff.YearNumJuvenileVictim(**kwargs),
+                    'numdomesticviolence': featoff.YearNumDomesticViolence(**kwargs),
+                    'numhate': featoff.YearNumHate(**kwargs),
+                    'numnarcotics': featoff.YearNumNarcotics(**kwargs),
+                    'numgang': featoff.YearNumGang(**kwargs),
+                    'numgunknife': featoff.YearNumGunKnife(**kwargs),
+                    'numpersweaps': featoff.YearNumPersWeaps(**kwargs),
+                    'avgagevictims': featoff.AvgAgeVictims(**kwargs),
+                    'minagevictims': featoff.MinAgeVictims(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
@@ -138,18 +159,37 @@ class FeatureLoader():
 
         log.info("Loading labels...")
 
-        # These are the objects flagged as ones
-        query = ("SELECT newid, adverse_by_ourdef from {}.{} "
-                 "WHERE dateoccured >= '{}'::date "
-                 "AND dateoccured <= '{}'::date"
-                 ).format(self.schema, self.tables["si_table"],
-                          self.start_date, self.end_date)
+        qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
+                  "WHERE dateoccured >= '{}'::date "
+                  "AND dateoccured <= '{}'::date "
+                  "group by newid "
+                  ).format(self.tables["si_table"],
+                           self.start_date, self.end_date)
 
-        labels = pd.read_sql(query, con=self.con)
+        qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
+                    "WHERE adverse_by_ourdef = 1 "
+                    "AND dateoccured >= '{}'::date "
+                    "AND dateoccured <= '{}'::date "
+                    "group by newid "
+                    ).format(self.tables["si_table"],
+                             self.start_date, self.end_date)
+
+        invest = pd.read_sql(qinvest, con=self.con)
+        adverse = pd.read_sql(qadverse, con=self.con)
+        adverse["adverse_by_ourdef"] = 1
+        adverse = adverse.drop(["count"], axis=1)
+        invest = invest.drop(["count"], axis=1)
+        outcomes = adverse.merge(invest, how='right', on='newid')
+        outcomes = outcomes.fillna(0)
 
         # Now also label those not sampled
+        noinvest = ""
 
-        return labels
+        # labels = labels.set_index(["newid"])
+
+        # should be no duplicates
+
+        return outcomes
 
     def dispatch_labeller(self):
         """
@@ -181,7 +221,7 @@ class FeatureLoader():
 
         return labels
 
-    def loader(self, features_to_load):
+    def loader(self, features_to_load, ids):
         kwargs = {
             'time_bound': self.fake_today
         }
@@ -196,8 +236,9 @@ class FeatureLoader():
             results, featurenames = convert_categorical(results)
         elif feature.type_of_features == "series":
             results, featurenames = convert_series(results)
-        else:
-            pass
+
+        if feature.type_of_imputation == 'zero':
+                results = imputation_zero(results, ids)
 
         return results, featurenames
 
@@ -244,9 +285,13 @@ def grab_officer_data(features, start_date, end_date, time_bound):
     featnames = []
     for each_feat in features:
         if features[each_feat] == True:
-            feature_df, names = data.loader(each_feat)
+            feature_df, names = data.loader(each_feat,
+                                            dataset["newid"])
+            log.info("Loaded feature {} with {} rows".format(
+                featnames, len(feature_df)))
             featnames = featnames + names
             dataset = dataset.join(feature_df, how='left', on='newid')
+
 
     dataset = dataset.reset_index()
     dataset = dataset.reindex(np.random.permutation(dataset.index))

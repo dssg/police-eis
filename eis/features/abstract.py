@@ -18,3 +18,4 @@ class Feature():
         self.end_date = None
         self.query = None
         self.name_of_features = ""
+        self.type_of_imputation = ""

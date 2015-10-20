@@ -48,6 +48,16 @@ features:
     recentnpccitations: True  # Recent NPC citations
     careercitations: True  # Career citations
     recentcitations: True  # Recent citations
+    numsuicides: True  # Number of suicide incidents for officer in last year
+    numjuveniles: True  # Number of incidents involving juveniles for officer in last year
+    numdomesticviolence: True  # Number of domestic violence incidents in last year
+    numhate: True   # Number of hate incidents for officer in last year
+    numnarcotics: True  # Number of narcotics incidents for officer in last year
+    numgang: True  # Number of gang incidents for officer in last year
+    numgunknife: True  # Number of incidents involving guns, knives, clubs in last year
+    numpersweaps: True # Number of incidents involving hands, feet, teeth used as weapons in last year
+    avgagevictims: True  # Average age of victims in last year
+    minagevictims: True  # Minimum age of victims in last year
 
 ########################
 # Model selection      #
