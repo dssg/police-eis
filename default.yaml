@@ -12,7 +12,7 @@ unit: 'officer'  # or 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2009'
+fake_today: '01Jan2010'
 prediction_interval: 365  # days, used for officer-level prediction
 testing_interval_days: 365  # days, used for dispatch-level prediction
 training_interval_days: 1460  # days, used for dispatch-level prediction
@@ -42,7 +42,7 @@ features:
     arresttod: True  # Average arrest time of day
     arresteeage: True  # Average arrestee age
     disconlyarrests: True  # Number of disconly arrests
-    arrestratedelta: True  # Arrest rate delta
+    arrestratedelta: False  # Arrest rate delta
     arresttimeseries: True  # Arrest time series
     arrestcentroids: False  # Subbeats
     careernpccitations: True  # Career NPC citations
@@ -74,7 +74,26 @@ features:
     fitimeseries: True  # Field interviews timeseries
     careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
     recentcadstats: False  # Slow # CAD statistics in last year
-
+    careerelectivetrain: True  # Number of elective hours of training in career
+    recentelectivetrain: True  # Number of elective hours of training in last year
+    careerhourstrain: True  # Number of hours of training in career
+    recenthourstrain: True  # Number of hours of training in last year
+    careerworkouthours: True  # Number of hours working out in career
+    recentworkouthours: True  # Number of hours working out in last year
+    careerrochours: True  # Number of hours in rules of conduct training in career
+    recentrochours: True  # Number of hours in rules of conduct training in last year
+    careerproftrain: True  # Number of hours in profiling training in career
+    recentproftrain: True  # Number of hours in profiling training in last year
+    careerdomvioltrain: True  # Number of hours of domestic violence training in career
+    recentdomvioltrain: True  # Number of hours of domestic violence training in last year
+    careertasertrain: True  # Number of hours spent training with Tasers in career
+    recenttasertrain: True  # Number of hours spent training with Tasers in last year
+    careerbiastrain: True  # Number of hours spent in bias training in career
+    recentbiastrain: True  # Number of hours spent in bias training in last year
+    careerforcetrain: True  # Number of hours spent in use of force training in career
+    recentforcetrain: True  # Number of hours spent in use of force training in last year
+    careermilitarytrain: True  # Number of hours spent in return from military training
+    recentmilitarytrain: True  # Number of hours spent in return from military training in last year
 
 ########################
 # Model selection      #

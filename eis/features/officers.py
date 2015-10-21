@@ -918,12 +918,381 @@ class MinAgeVictims(abstract.Feature):
 
 
 ## Traffic stops
+class CareerNumTrafficStops(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of traffic stops in career"
+        self.name_of_features = ["career_num_traffic_stops"]
+        self.query = ("select newid, count(distinct inc_key) as "
+                      "career_trf_count from {} "
+                      "and date_time_action <= '{}'::date "
+                      " group by newid").format(
+                      tables["stops_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentNumTrafficStops(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description =  "Number of traffic stops in last year"
+        self.name_of_features = ["recent_num_traffic_stops"]
+        self.query = ("select newid, count(distinct inc_key) as "
+                      "recent_trf_count from {} "
+                      "and date_time_action <= '{}'::date "
+                      "and date_time_action >= '{}'::date "
+                      " group by newid").format(
+                      tables["stops_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"            
+
 
 
 ## Training
 
+class CareerElectHoursTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of elective hours of training"
+        self.name_of_features = ["career_elect_hrs_train"]
+        self.query = ("select sum(credit_hrs) as career_elec_training_hrs,"
+                      "newid from {} where rtyp_id = 'ELECTIVE' "
+                      "and compl_dte <= '{}'::date "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentElectHoursTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of elective hours of training in last year"
+        self.name_of_features = ["recent_elect_hrs_train"]
+        self.query = ("select sum(credit_hrs) as recent_elec_training_hrs,"
+                      "newid from {} where rtyp_id = 'ELECTIVE' "
+                      "and compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours of training in career"
+        self.name_of_features = ["career_hrs_train"]
+        self.query = ("select sum(credit_hrs) as career_training_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours of training in last year"
+        self.name_of_features = ["recent_hrs_train"]
+        self.query = ("select sum(credit_hrs) as recent_training_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursPhysFit(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours working out in career"
+        self.name_of_features = ["career_hrs_physfit"]
+        self.query = ("select sum(credit_hrs) as career_workout_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and cpnt_typ_id = 'PHYS TEST' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursPhysFit(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours working out in last year"
+        self.name_of_features = ["recent_hrs_physfit"]
+        self.query = ("select sum(credit_hrs) as recent_workout_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      "and cpnt_typ_id = 'PHYS TEST' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursROCTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours in Rules of Conduct training in career"
+        self.name_of_features = ["career_hrs_roc"]
+        self.query = ("select sum(credit_hrs) as career_roc_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and cpnt_id like '%Rules of Conduct%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursROCTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours in Rules of Conduct training in last year"
+        self.name_of_features = ["recent_hrs_roc"]
+        self.query = ("select sum(credit_hrs) as recent_roc_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      "and cpnt_id like '%Rules of Conduct%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursProfTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours in profiling training in career"
+        self.name_of_features = ["career_hrs_proftrain"]
+        self.query = ("select sum(credit_hrs) as career_proftrain_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and cpnt_id like '%Profil%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursProfTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours in profiling training in last year"
+        self.name_of_features = ["recent_hrs_proftrain"]
+        self.query = ("select sum(credit_hrs) as recent_proftrain_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      "and cpnt_id like '%Profil%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursDomViolTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours in domestic violence training in career"
+        self.name_of_features = ["career_hrs_proftrain"]
+        self.query = ("select sum(credit_hrs) as career_domvioltrain_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and cpnt_id like '%DOMESTIC_VIOLENCE%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursDomViolTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours in domestic violence training in last year"
+        self.name_of_features = ["recent_hrs_domestic_violence_train"]
+        self.query = ("select sum(credit_hrs) as recent_domvioltrain_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      "and cpnt_id like '%DOMESTIC_VIOLENCE%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursMilitaryReturn(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours in military training in career"
+        self.name_of_features = ["career_hrs_military_train"]
+        self.query = ("select sum(credit_hrs) as career_military_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and cpnt_id like '%ilitary%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursMilitaryReturn(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours in military training in last year"
+        self.name_of_features = ["recent_hrs_military_train"]
+        self.query = ("select sum(credit_hrs) as recent_military_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      "and cpnt_id like '%ilitary%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursTaserTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours in taser training in career"
+        self.name_of_features = ["career_hrs_taser_train"]
+        self.query = ("select sum(credit_hrs) as career_taser_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and cpnt_id like '%Taser%' "
+                      "or cpnt_id like '%TASER%'"
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursTaserTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours in taser training in last year"
+        self.name_of_features = ["recent_hrs_taser_train"]
+        self.query = ("select sum(credit_hrs) as recent_taser_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      "and cpnt_id like '%Taser%' "
+                      "or cpnt_id like '%TASER%'"
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursBiasTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours in bias training in career"
+        self.name_of_features = ["career_hrs_bias_train"]
+        self.query = ("select sum(credit_hrs) as career_bias_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and cpnt_id like '%Bias%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursBiasTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours in bias training in last year"
+        self.name_of_features = ["recent_hrs_bias_train"]
+        self.query = ("select sum(credit_hrs) as recent_bias_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      "and cpnt_id like '%Bias%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerHoursForceTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of hours in use of force training in career"
+        self.name_of_features = ["career_hrs_force_train"]
+        self.query = ("select sum(credit_hrs) as career_force_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and cpnt_id like '%Force%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHoursForceTrain(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of hours in use of force training in last year"
+        self.name_of_features = ["recent_hrs_force_train"]
+        self.query = ("select sum(credit_hrs) as recent_force_hrs,"
+                      "newid from {} "
+                      "where compl_dte <= '{}'::date "
+                      "and compl_dte >= '{}'::date "
+                      "and cpnt_id like '%Force%' "
+                      " group by newid").format(
+                      tables["plateau_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
 
 ## Investigations
+
+
 # Adverse investigations in last year
 #         qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
 #                  "WHERE dateoccured >= '{}'::date "

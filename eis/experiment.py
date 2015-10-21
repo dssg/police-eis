@@ -71,8 +71,6 @@ def main(config_file_name="default.yaml"):
                    "test_end_date": exp_data["test_end_date"],
                    "feature_importances": importances}
 
-        pdb.set_trace()
-
         pkl_file = "{}{}_{}.pkl".format(
             config['directory'], config['pkl_prefix'], timestamp)
         pickle_results(pkl_file, to_save)

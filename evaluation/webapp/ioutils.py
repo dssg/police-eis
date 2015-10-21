@@ -115,7 +115,13 @@ def feature_summary(features):
                       'recenthighcrimefi', 'recentloiterfi', 'careerloiterfi',
                       'careerblackfi', 'careerwhitefi', 'avgsuspectagefi',
                       'avgtimeofdayfi', 'fitimeseries', 'careercadstats',
-                      'recentcadstats']
+                      'recentcadstats', 'careerelectivetrain', 'recentelectivetrain',
+                      'careerhourstrain', 'recenthourstrain', 'careerworkouthours',
+                      'recentworkouthours', 'careerrochours', 'recentrochours',
+                      'careerproftrain', 'recentproftrain', 'careerdomvioltrain',
+                      'recentdomvioltrain', 'careermilitarytrain', 'recentmilitarytrain',
+                      'careertasertrain', 'recenttasertrain', 'careerbiastrain',
+                      'recentbiastrain', 'careerforcetrain', 'recentforcetrain']
 
 
     used_features = [key for key, val in features.items() if val == True]

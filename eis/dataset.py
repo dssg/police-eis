@@ -143,7 +143,30 @@ def lookup(feature, **kwargs):
                     'avgtimeofdayfi': featoff.FIAvgTimeOfDay(**kwargs),
                     'fitimeseries': featoff.FITimeseries(**kwargs),
                     'careercadstats': featoff.CareerCADStatistics(**kwargs),
-                    'recentcadstats': featoff.RecentCADStatistics(**kwargs)}
+                    'recentcadstats': featoff.RecentCADStatistics(**kwargs),
+                    'careerelectivetrain': featoff.CareerElectHoursTrain(**kwargs),
+                    'recentelectivetrain': featoff.RecentElectHoursTrain(**kwargs),
+                    'careerhourstrain': featoff.CareerHoursTrain(**kwargs),
+                    'recenthourstrain': featoff.RecentHoursTrain(**kwargs),
+                    'careerworkouthours': featoff.CareerHoursPhysFit(**kwargs),
+                    'recentworkouthours': featoff.RecentHoursPhysFit(**kwargs),
+                    'careerrochours': featoff.CareerHoursROCTrain(**kwargs),
+                    'recentrochours': featoff.RecentHoursROCTrain(**kwargs),
+                    'careerproftrain': featoff.CareerHoursProfTrain(**kwargs),
+                    'recentproftrain': featoff.RecentHoursProfTrain(**kwargs),
+                    'careertrafficstopnum': featoff.CareerNumTrafficStops(**kwargs),
+                    'recenttrafficstopnum': featoff.RecentNumTrafficStops(**kwargs),
+                    'careerdomvioltrain': featoff.CareerHoursDomViolTrain(**kwargs),
+                    'recentdomvioltrain': featoff.RecentHoursDomViolTrain(**kwargs),
+                    'careermilitarytrain': featoff.CareerHoursMilitaryReturn(**kwargs),
+                    'recentmilitarytrain': featoff.RecentHoursMilitaryReturn(**kwargs),
+                    'careertasertrain': featoff.CareerHoursTaserTrain(**kwargs),
+                    'recenttasertrain': featoff.RecentHoursTaserTrain(**kwargs),
+                    'careerbiastrain': featoff.CareerHoursBiasTrain(**kwargs),
+                    'recentbiastrain': featoff.RecentHoursBiasTrain(**kwargs),
+                    'careerforcetrain': featoff.CareerHoursForceTrain(**kwargs),
+                    'recentforcetrain': featoff.RecentHoursForceTrain(**kwargs)}
+
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
