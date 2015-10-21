@@ -175,11 +175,18 @@ def plot_ROC(test_labels, test_predictions):
         test_labels, test_predictions, pos_label=1)
     with plt.style.context(('ggplot')):
         fig, ax = plt.subplots()
-        ax.plot(fpr[2], tpr[2])
-        # ax.plot([0, 1], [0, 1], 'k--')
-        # plt.xlim([0.0, 1.0])
-        # plt.ylim([0.0, 1.05])
+        ax.plot(fpr, tpr, "#000099", label='ROC curve')
+        ax.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
+        plt.legend(loc='lower right')
         plt.title('Receiver operating characteristic')
     return fig
+
+
+def compute_AUC(test_labels, test_predictions):
+    fpr, tpr, thresholds = metrics.roc_curve(
+        test_labels, test_predictions, pos_label=1)
+    return metrics.auc(fpr, tpr)

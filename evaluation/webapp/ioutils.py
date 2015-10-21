@@ -8,7 +8,7 @@ from threading import Lock
 
 from flask import abort
 
-from webapp.evaluation import precision_at_x_percent
+from webapp.evaluation import precision_at_x_percent, compute_AUC
 from webapp import config
 
 
@@ -45,9 +45,10 @@ def experiment_summary(pkl_file):
     prec_at = precision_at_x_percent(
         data["test_labels"], data["test_predictions"],
         x_percent=0.01)
+    auc_model = compute_AUC(data["test_labels"], data["test_predictions"])
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config,
-                      prec_at,
+                      auc_model,
                       data)
 
 
@@ -108,7 +109,15 @@ def feature_summary(features):
                       'recentnpccitations', 'careercitations', 'recentcitations',
                       'numsuicides', 'numjuveniles', 'numdomesticviolence',
                       'numhate', 'numnarcotics', 'numgang', 'numpersweaps',
-                      'numgunknife', 'avgagevictims', 'minagevictims']
+                      'numgunknife', 'avgagevictims', 'minagevictims',
+                      'careerficount', 'recentficount', 'careernontrafficficount',
+                      'recentnontrafficficount', 'careerhighcrimefi',
+                      'recenthighcrimefi', 'recentloiterfi', 'careerloiterfi',
+                      'careerblackfi', 'careerwhitefi', 'avgsuspectagefi',
+                      'avgtimeofdayfi', 'fitimeseries', 'careercadstats',
+                      'recentcadstats']
+
+
     used_features = [key for key, val in features.items() if val == True]
 
     not_used = set(known_features) - set(used_features)
