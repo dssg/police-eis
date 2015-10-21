@@ -21,8 +21,9 @@ training_interval_days: 1460  # days, used for dispatch-level prediction
 ########################
 # Feature selection    #
 ########################
+loop_over_feature_sets: False  # if set will loop through the features set to True to find the best combination
 features:
-    height_weight: True  # Height, weight, gender of the officer
+    height_weight: True  # Height, weight of the officer
     education: True  # Education level of officer
     ia_history: False  # History of their investigations in IA (e.g. are there safety concerns?)
     yearsexperience: True  # Experience level of officer (number of years)
@@ -34,10 +35,10 @@ features:
     maritalstatus: True  # Officer marital status
     careerarrests: True  # Career arrests of officer
     numrecentarrests: True  # Number arrests in last year
-    careerNPCarrests: True  # Career no probable cause (NPC) arrests
-    recentNPCarrests: True  # Last year NPC arrests
-    careerdiscarrests: True  # Career discretionary arrests
-    recentdiscarrests: True  # Recent discretionary arrests
+    careerNPCarrests: True  # Number of no probable cause (NPC) arrests in career
+    recentNPCarrests: True  # Last year number of NPC arrests
+    careerdiscarrests: True  # Number of discretionary arrests in career
+    recentdiscarrests: True  # Number of discretionary arrests in last year
     arresttod: True  # Average arrest time of day
     arresteeage: True  # Average arrestee age
     disconlyarrests: True  # Number of disconly arrests
@@ -58,6 +59,22 @@ features:
     numpersweaps: True # Number of incidents involving hands, feet, teeth used as weapons in last year
     avgagevictims: True  # Average age of victims in last year
     minagevictims: True  # Minimum age of victims in last year
+    careerficount: True  # Number of field interviews in career
+    recentficount: True  # Number of field interviews in last year
+    careernontrafficficount: True  # Number of non-traffic field interviews in career
+    recentnontrafficficount: True  # Number of non-traffic field interviews in last year
+    careerhighcrimefi: True  # Number of field interviews in high crime areas in career
+    recenthighcrimefi: True  # Number of field interviews in high crime areas in last year
+    recentloiterfi: True  # Number of field interviews of people loitering without call for service in last year
+    careerloiterfi: True  # Number of field interviews of people loitering without call for service in career
+    careerblackfi: True  # Fraction of field interviews where suspects are black
+    careerwhitefi: True  # Fraction of field interviews where suspects are white
+    avgsuspectagefi: True  # Average age of suspects in field interviews
+    avgtimeofdayfi: True  # Average time of day for field interviews
+    fitimeseries: True  # Field interviews timeseries
+    careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
+    recentcadstats: False  # Slow # CAD statistics in last year
+
 
 ########################
 # Model selection      #

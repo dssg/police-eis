@@ -37,6 +37,9 @@ def main(config_file_name="default.yaml"):
     elif config["unit"] == "dispatch":
         exp_data = dispatch.setup(config)
 
+    log.info("Training data: {} rows. Testing data: {} rows.".format(
+        len(exp_data["train_y"]), len(exp_data["test_x"])))
+
     log.info("Running models on dataset...")
 
     parameter_names = sorted(config["parameters"])
@@ -67,6 +70,8 @@ def main(config_file_name="default.yaml"):
                    "train_start_date": exp_data["train_start_date"],
                    "test_end_date": exp_data["test_end_date"],
                    "feature_importances": importances}
+
+        pdb.set_trace()
 
         pkl_file = "{}{}_{}.pkl".format(
             config['directory'], config['pkl_prefix'], timestamp)

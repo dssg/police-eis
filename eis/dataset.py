@@ -24,6 +24,17 @@ def imputation_zero(df, ids):
     return newdf
 
 
+def imputation_mean(df):
+    try:
+        newdf = df.set_index("newid")
+    except:
+        newdf = df
+    for i in range(len(newdf.columns)):
+        this_col = newdf.columns[i]
+        newdf[this_col] = newdf[this_col].fillna(np.mean(newdf[this_col]))
+    return newdf
+
+
 def convert_series(df):
     onecol = df.columns[0]
     numcols = len(df[onecol].iloc[0])
@@ -117,7 +128,22 @@ def lookup(feature, **kwargs):
                     'numgunknife': featoff.YearNumGunKnife(**kwargs),
                     'numpersweaps': featoff.YearNumPersWeaps(**kwargs),
                     'avgagevictims': featoff.AvgAgeVictims(**kwargs),
-                    'minagevictims': featoff.MinAgeVictims(**kwargs)}
+                    'minagevictims': featoff.MinAgeVictims(**kwargs),
+                    'careerficount': featoff.CareerFICount(**kwargs),
+                    'recentficount': featoff.RecentFICount(**kwargs),
+                    'careernontrafficficount': featoff.CareerNonTrafficFICount(**kwargs),
+                    'recentnontrafficficount': featoff.RecentNonTrafficFICount(**kwargs),
+                    'careerhighcrimefi': featoff.CareerHighCrimeAreaFI(**kwargs),
+                    'recenthighcrimefi': featoff.RecentHighCrimeAreaFI(**kwargs),
+                    'recentloiterfi': featoff.RecentLoiterFI(**kwargs),
+                    'careerloiterfi': featoff.CareerLoiterFI(**kwargs),
+                    'careerblackfi': featoff.CareerBlackFI(**kwargs),
+                    'careerwhitefi': featoff.CareerWhiteFI(**kwargs),
+                    'avgsuspectagefi': featoff.FIAvgSuspectAge(**kwargs),
+                    'avgtimeofdayfi': featoff.FIAvgTimeOfDay(**kwargs),
+                    'fitimeseries': featoff.FITimeseries(**kwargs),
+                    'careercadstats': featoff.CareerCADStatistics(**kwargs),
+                    'recentcadstats': featoff.RecentCADStatistics(**kwargs)}
 
     if feature not in class_lookup.keys():
         raise UnknownFeatureError(feature)
@@ -237,8 +263,10 @@ class FeatureLoader():
         elif feature.type_of_features == "series":
             results, featurenames = convert_series(results)
 
-        if feature.type_of_imputation == 'zero':
+        if feature.type_of_imputation == "zero":
                 results = imputation_zero(results, ids)
+        elif feature.type_of_imputation == "mean":
+                results = imputation_mean(results)
 
         return results, featurenames
 
@@ -291,7 +319,6 @@ def grab_officer_data(features, start_date, end_date, time_bound):
                 featnames, len(feature_df)))
             featnames = featnames + names
             dataset = dataset.join(feature_df, how='left', on='newid')
-
 
     dataset = dataset.reset_index()
     dataset = dataset.reindex(np.random.permutation(dataset.index))

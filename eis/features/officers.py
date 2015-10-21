@@ -25,6 +25,7 @@ class OfficerHeightWeight(abstract.Feature):
         self.query = ("select newid, avg(weight_int) as avg_weight, "
                       "avg(height_inches_int) as avg_height_inches "
                       "from {} group by newid".format(tables['si_table']))
+        self.type_of_imputation = "mean"
 
 
 class OfficerEducation(abstract.Feature):
@@ -36,6 +37,7 @@ class OfficerEducation(abstract.Feature):
         self.name_of_features = [""]
         self.query = ("select newid, education_level_cleaned "
                       "from {}".format(tables['officer_table']))
+        self.type_of_imputation = "mean"
 
 
 class OfficerMaritalStatus(abstract.Feature):
@@ -45,6 +47,7 @@ class OfficerMaritalStatus(abstract.Feature):
         self.description = "Marital status of officer"
         self.query = ("select newid, marital_status as "
                       "married from {}".format(tables['officer_table']))
+        self.type_of_imputation = "mean"
 
 
 class OfficerYrsExperience(abstract.Feature):
@@ -57,6 +60,7 @@ class OfficerYrsExperience(abstract.Feature):
                       "hire_date_employed) as "
                       "yrs_experience from {}".format(self.time_bound.year,
                                                       tables['officer_table']))
+        self.type_of_imputation = "mean"
 
 
 class OfficerDaysExperience(abstract.Feature):
@@ -70,6 +74,7 @@ class OfficerDaysExperience(abstract.Feature):
                       "days_experience from {}".format(
                           self.time_bound.strftime(time_format),
                           tables['officer_table']))
+        self.type_of_imputation = "mean"
 
 
 class OfficerMaleFemale(abstract.Feature):
@@ -79,6 +84,7 @@ class OfficerMaleFemale(abstract.Feature):
         self.query = ("select newid, empl_sex_clean as "
                       "male_female from {}".format(tables['officer_table']))
         self.type_of_features = "categorical"
+        self.type_of_imputation = "mean"
 
 
 class OfficerRace(abstract.Feature):
@@ -88,6 +94,7 @@ class OfficerRace(abstract.Feature):
         self.query = ("select newid, empl_race_cleaned as "
                       "race from {}".format(tables['officer_table']))
         self.type_of_features = "categorical"
+        self.type_of_imputation = "mean"
 
 
 class OfficerAge(abstract.Feature):
@@ -99,6 +106,7 @@ class OfficerAge(abstract.Feature):
         self.query = ("select newid, {} - birthdate_year "
                       "as age from {}".format(self.time_bound.year,
                                               tables['officer_table']))
+        self.type_of_imputation = "mean"
 
 
 class OfficerAgeAtHire(abstract.Feature):
@@ -109,6 +117,7 @@ class OfficerAgeAtHire(abstract.Feature):
         self.query = ("select newid, extract(year from "
                       "hire_date_employed)-birthdate_year as "
                       "age_at_hire from {}".format(tables['officer_table']))
+        self.type_of_imputation = "mean"
 
 
 ### Arrest History Features
@@ -162,7 +171,7 @@ class OfficerArrestTimeSeries(abstract.Feature):
                           tables["arrest_charges_table"], self.start_date, 
                           self.end_date, tables["arrest_charges_table"])
         self.type_of_features = "series"
-
+        self.type_of_imputation = "mean"
 
 
 class ArrestRateDelta(abstract.Feature):
@@ -193,6 +202,7 @@ class ArrestRateDelta(abstract.Feature):
                           self.end_date, tables["officer_table"],
                           tables["arrest_charges_table"], self.end_date,
                           self.start_date)
+        self.type_of_imputation = "mean"
 
 
 class DiscOnlyArrestsCount(abstract.Feature):
@@ -236,6 +246,7 @@ class OfficerAvgAgeArrests(abstract.Feature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date)
+        self.type_of_imputation = "mean"
 
 
 class OfficerAvgTimeOfDayArrests(abstract.Feature):
@@ -250,6 +261,7 @@ class OfficerAvgTimeOfDayArrests(abstract.Feature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date)
+        self.type_of_imputation = "mean"
 
 
 class CareerDiscArrests(abstract.Feature):
@@ -363,6 +375,7 @@ class ArrestCentroids(abstract.Feature):
                       "on st_contains(b.geom2::geometry, a.point::"
                       "geometry)").format(tables["arrest_charges_table"],
                        self.end_date, tables["sub_beats"])
+        self.type_of_imputation = "mean"
 
 
 ### Citations
@@ -431,16 +444,309 @@ class RecentCitations(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-## CAD 
+## CAD
+
+class CareerCADStatistics(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Career CAD Statistics"
+        self.name_of_features = ['career_avg_seq_assgn',
+                                 'career_avg_diff_arrv_assgn',
+                                 'career_avg_travel_time',
+                                 'career_std_travel_time',
+                                 'career_avg_response_time',
+                                 'career_avg_scene_time',
+                                 'career_avg_prior_orig',
+                                 'career_std_prior_orig',
+                                 'career_avg_prior_fin',
+                                 'career_std_prior_fin',
+                                 'career_priority_diff']
+        self.query = ("select avg(seq_assigned) as career_avg_seq_assgn, "
+                      "avg(seq_arrived-seq_assigned) as career_avg_diff_arrv_assgn, "
+                      "avg(travel_time) as career_avg_travel_time, "
+                      "stddev(travel_time) as career_std_travel_time, "
+                      "avg(response_time) as career_avg_response_time, "
+                      "log(avg(at_scene_time)+1) as career_avg_scene_time, "
+                      "avg(priority_org::int) as career_avg_prior_orig, "
+                      "stddev(priority_org::int) as career_std_prior_orig, "
+                      "avg(priority_fin::int) as career_avg_prior_fin, "
+                      "stddev(priority_fin::int) as career_std_prior_fin, "
+                      "avg(priority_org::int - priority_fin::int) as "
+                      "career_priority_diff, newid from {} "
+                      "where date_add <= '{}'::date "
+                      "group by newid").format(tables["dispatch_table"],
+                      self.end_date)
+        self.type_of_imputation = "mean"
+
+
+class RecentCADStatistics(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Recent CAD Statistics"
+        self.name_of_features = ['recent_avg_seq_assgn',
+                                 'recent_avg_diff_arrv_assgn',
+                                 'recent_avg_travel_time',
+                                 'recent_std_travel_time',
+                                 'recent_avg_response_time',
+                                 'recent_avg_scene_time',
+                                 'recent_avg_prior_orig',
+                                 'recent_std_prior_orig',
+                                 'recent_avg_prior_fin',
+                                 'recent_std_prior_fin',
+                                 'recent_priority_diff']
+        self.query = ("select avg(seq_assigned) as recent_avg_seq_assgn, "
+                      "avg(seq_arrived-seq_assigned) as recent_avg_diff_arrv_assgn, "
+                      "avg(travel_time) as recent_avg_travel_time, "
+                      "stddev(travel_time) as recent_std_travel_time, "
+                      "avg(response_time) as recent_avg_response_time, "
+                      "log(avg(at_scene_time)+1) as recent_avg_scene_time, "
+                      "avg(priority_org::int) as recent_avg_prior_orig, "
+                      "stddev(priority_org::int) as recent_std_prior_orig, "
+                      "avg(priority_fin::int) as recent_avg_prior_fin, "
+                      "stddev(priority_fin::int) as recent_std_prior_fin, "
+                      "avg(priority_org::int - priority_fin::int) as "
+                      "recent_priority_diff, newid from {} "
+                      "where date_add <= '{}'::date "
+                      "and date_add >= '{}'::date "
+                      "group by newid").format(tables["dispatch_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "mean"
+
+
+termination_types = ['CANCOMM', 'FTC', 'UNKNOWN', 'CANCCOMP', 'CANCOFC', 'DUPNCAN',
+              'CANCALRM', 'ASSTUNIT', 'UL', 'CITE_NMV', 'CITE_MV', 'ACCIDENT', 'WARNING', 'OO/CASE',
+              "MI"]
 
 
 ## EIS
 
 
 ## Field interviews
+class CareerFICount(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of field interviews in career"
+        self.name_of_features = ["career_fi_count"]
+        self.query = ("select count(*) as all_fi_count, newid "
+                      "from {} "
+                      "where corrected_interview_date <= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentFICount(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of field interviews in last year"
+        self.name_of_features = ["recent_fi_count"]
+        self.query = ("select count(*) as recent_fi_count, newid "
+                      "from {} "
+                      "where corrected_interview_date <= '{}'::date "
+                      "and corrected_interview_date >= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerNonTrafficFICount(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of non-traffic field interviews in career"
+        self.name_of_features = ["career_fi_nontraffic_count"]
+        self.query = ("select count(*) as career_fi_count_nontraffic, newid "
+                      "from {} where traffic_stop_yn = 'N' "
+                      "and corrected_interview_date <= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentNonTrafficFICount(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of non-traffic field interviews in last year"
+        self.name_of_features = ["recent_fi_nontraffic_count"]
+        self.query = ("select count(*) as recent_fi_count_nontraffic, newid "
+                      "from {} where traffic_stop_yn = 'N' "
+                      "and corrected_interview_date <= '{}'::date "
+                      "and corrected_interview_date >= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentHighCrimeAreaFI(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of field interviews in last year in high crime area"
+        self.name_of_features = ["recent_fi_highcrime_count"]
+        self.query = ("select count(*) as recent_fi_count_highcrime, newid "
+                      "from {} where narrative like '%high crime area%' "
+                      "and corrected_interview_date <= '{}'::date "
+                      "and corrected_interview_date >= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero" 
+
+
+class CareerHighCrimeAreaFI(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of field interviews in career in high crime area"
+        self.name_of_features = ["career_fi_highcrime_count"]
+        self.query = ("select count(*) as career_fi_count_highcrime, newid "
+                      "from {} where narrative like '%high crime area%' "
+                      "and corrected_interview_date <= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+loiter_sleep_sit = """ (narrative like '%loiter%' or narrative like '%sleep%'
+                      or narrative like '%sitting%' or narrative like '%walk%'
+                      and narrative not like '%call for service%') """
+
+
+class RecentLoiterFI(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Number of field interviews of loiterers in last year"
+        self.name_of_features = ["recent_fi_loiter_count"]
+        self.query = ("select count(*) as recent_fi_loiter, newid "
+                      "from {} where {} "
+                      "and corrected_interview_date <= '{}'::date "
+                      "and corrected_interview_date >= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"], loiter_sleep_sit,
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero" 
+
+
+class CareerLoiterFI(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of field interviews of loiterers in career"
+        self.name_of_features = ["career_fi_loiter_count"]
+        self.query = ("select count(*) as career_fi_loiter, newid "
+                      "from {} where {} "
+                      "and corrected_interview_date <= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"], loiter_sleep_sit,
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerBlackFI(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Fraction of field interviews where the suspect is black"
+        self.name_of_features = ["career_frac_black_suspects"]
+        self.query = ("select newid, "
+                      "(SUM(CASE WHEN rac_code = 'B' then 1 else null end))::float/"
+                      "(count(*) + 1) as fi_prop_black from {} "
+                      "where corrected_interview_date <= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerWhiteFI(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Fraction of field interviews where the suspect is white"
+        self.name_of_features = ["career_frac_white_suspects"]
+        self.query = ("select newid, "
+                      "(SUM(CASE WHEN rac_code = 'W' then 1 else null end))::float/"
+                      "(count(*) + 1) as fi_prop_white from {} "
+                      "where corrected_interview_date <= '{}'::date "
+                      " group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class FIAvgSuspectAge(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Average age of suspects in field interviews"
+        self.name_of_features = ["avg_age_suspects_fi"]
+        self.query = ("select avg(age) as fi_avg_age, newid from {} "
+                      "group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class FIAvgTimeOfDay(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Average time of day for field interviews"
+        self.name_of_features = ["avg_tod_fi"]
+        self.query = ("select avg(extract(hour from corrected_interview_date)) "
+                      "as fi_avg_hour, newid from {} "
+                      "group by newid").format(
+                      tables["field_int_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class FITimeseries(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
+        self.type_of_features = "series"
+        self.description = "Timeseries for interviews"
+        self.name_of_features = ["fi_timeseries"]
+        self.query = ("select newid, array_agg(intervals_count) as fi_timeseries "
+                      "from ( select a.newid as newid, a.intervals as intervals, "
+                      "intervalid, greatest(a.default_count,b.ficount) as intervals_count "
+                      "from (select a.newid, b.intervals, intervalid, "
+                      "0 as default_count from "
+                      "(select distinct newid from {}) as a "
+                      "left join (select intervals, row_number() over () as intervalid "
+                      "from ( select distinct date_trunc('year',d) as intervals "
+                      "from generate_series('{}'::timestamp, '{}'::timestamp, '1 day') "
+                      "as d order by intervals) as foo) as b on True) as a "
+                      "left join (select newid, date_trunc('year',corrected_interview_date) "
+                      "as intervals, count(*)::int as ficount from {} "
+                      "group by newid, date_trunc('year',corrected_interview_date)) as b "
+                      "on a.newid = b.newid and a.intervals = b.intervals) as koo "
+                      "group by newid").format(
+                      tables["field_int_table"], self.start_date,
+                      self.end_date, tables["field_int_table"])
+        self.type_of_imputation = "mean"
 
 
 ## Incidents
+
 class YearNumSuicides(abstract.Feature):
     def __init__(self, **kwargs):
         abstract.Feature.__init__(self, **kwargs)
