@@ -165,7 +165,15 @@ def lookup(feature, **kwargs):
                     'careerbiastrain': featoff.CareerHoursBiasTrain(**kwargs),
                     'recentbiastrain': featoff.RecentHoursBiasTrain(**kwargs),
                     'careerforcetrain': featoff.CareerHoursForceTrain(**kwargs),
-                    'recentforcetrain': featoff.RecentHoursForceTrain(**kwargs)}
+                    'recentforcetrain': featoff.RecentHoursForceTrain(**kwargs),
+                    'careertsuofarr': featoff.CareerNumTStopRunTagUOFOrArrest(**kwargs),
+                    'recenttsuofarr': featoff.RecentNumTStopRunTagUOFOrArrest(**kwargs),
+                    'careerforcetraffic': featoff.CareerNumTrafficStopsForce(**kwargs),
+                    'recentforcetraffic': featoff.RecentNumTrafficStopsForce(**kwargs),
+                    'careertsblackdaynight': featoff.CareerTSPercBlackDayNight(**kwargs),
+                    'recenttsblackdaynight': featoff.RecentTSPercBlackDayNight(**kwargs),
+                    'careerresistts': featoff.CareerNumTrafficStopsResist(**kwargs),
+                    'recentresistts': featoff.RecentNumTrafficStopsResist(**kwargs)}
 
 
     if feature not in class_lookup.keys():

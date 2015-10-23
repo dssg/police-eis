@@ -94,6 +94,15 @@ features:
     recentforcetrain: True  # Number of hours spent in use of force training in last year
     careermilitarytrain: True  # Number of hours spent in return from military training
     recentmilitarytrain: True  # Number of hours spent in return from military training in last year
+    careertsuofarr: True  # Number of traffic stops in career where tags were run and then force was used or an arrest was made
+    recenttsuofarr: True  # Number of traffic stops in last year where tags were run and then force was used or an arrest was made
+    careerforcetraffic: True  # Number of traffic stops in career where force is used
+    recentforcetraffic: True  # Number of traffic stops in last year where force is used
+    careertsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in career
+    recenttsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in last year
+    careerresistts: True  # Number of traffic stops where physical resistance is encountered in career
+    recentresistts: True  # Number of traffic stops where physical resistance is encountered in last year
+
 
 ########################
 # Model selection      #

@@ -121,7 +121,10 @@ def feature_summary(features):
                       'careerproftrain', 'recentproftrain', 'careerdomvioltrain',
                       'recentdomvioltrain', 'careermilitarytrain', 'recentmilitarytrain',
                       'careertasertrain', 'recenttasertrain', 'careerbiastrain',
-                      'recentbiastrain', 'careerforcetrain', 'recentforcetrain']
+                      'recentbiastrain', 'careerforcetrain', 'recentforcetrain',
+                      'careertsuofarr', 'recenttsuofarr', 'careerforcetraffic',
+                      'recentforcetraffic', 'careertsblackdaynight',
+                      'recenttsblackdaynight', 'careerresistts', 'recentresistts']
 
 
     used_features = [key for key, val in features.items() if val == True]

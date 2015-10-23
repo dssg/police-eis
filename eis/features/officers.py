@@ -918,6 +918,7 @@ class MinAgeVictims(abstract.Feature):
 
 
 ## Traffic stops
+
 class CareerNumTrafficStops(abstract.Feature):
     def __init__(self, **kwargs):
         abstract.Feature.__init__(self, **kwargs)
@@ -950,6 +951,148 @@ class RecentNumTrafficStops(abstract.Feature):
         self.type_of_imputation = "zero"            
 
 
+class CareerNumTStopRunTagUOFOrArrest(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description =  ("Number of traffic stops in career where the tag was "
+                            "run and then force was used or an arrest was made")
+        self.name_of_features = ["career_num_traffic_stops"]
+        self.query = ("select newid, count(*) as career_ts_uof_or_arrest "
+                      "from {} where run_tag='Y' and (uof='Y' or "
+                      "arrest_driver='Y' or arrest_pass='Y') "
+                      "and date_time_action <= '{}'::date "
+                      " group by newid").format(
+                      tables["stops_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentNumTStopRunTagUOFOrArrest(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description =  ("Number of traffic stops in last year where the tag was "
+                            "run and then force was used or an arrest was made")
+        self.name_of_features = ["recent_num_traffic_stops"]
+        self.query = ("select newid, count(*) as recent_ts_uof_or_arrest "
+                      "from {} where run_tag='Y' and (uof='Y' or "
+                      "arrest_driver='Y' or arrest_pass='Y') "
+                      "and date_time_action <= '{}'::date "
+                      "and date_time_action >= '{}'::date "
+                      " group by newid").format(
+                      tables["stops_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerNumTrafficStopsForce(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of traffic stops in career where force is used"
+        self.name_of_features = ["career_num_traffic_stops_uof"]
+        self.query = ("select newid, count(distinct inc_key) as "
+                      "career_trf_uof_count from {} where uof='Y' "
+                      "and date_time_action <= '{}'::date "
+                      " group by newid").format(
+                      tables["stops_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentNumTrafficStopsForce(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description =  "Number of traffic stops in last year where force is used"
+        self.name_of_features = ["recent_num_traffic_stops_uof"]
+        self.query = ("select newid, count(distinct inc_key) as "
+                      "recent_trf_uof_count from {} where uof='Y' "
+                      "and date_time_action <= '{}'::date "
+                      "and date_time_action >= '{}'::date "
+                      " group by newid").format(
+                      tables["stops_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerTSPercBlackDayNight(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Ratio of times officer stops a black person at night vs during the day in career"
+        self.name_of_features = ["career_ratio_bl_night_day"]
+        self.query = ("select newid, "
+                      "(SUM(CASE WHEN (extract(hour from date_time_action) "
+                      "> 21 or extract(hour from date_time_action) < 5 ) "
+                      "then 1 else 0 end )+1)::float/ "
+                      "(SUM(CASE WHEN (extract(hour from date_time_action) "
+                      "> 21 or extract(hour from date_time_action) < 5 ) "
+                      "then 0 else 1 end )+1) as career_ratio_bl_night_day "
+                      "from {} where race='B' "
+                      "and date_time_action <= '{}'::date "
+                      "group by newid").format(
+                      tables["stops_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentTSPercBlackDayNight(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description = "Ratio of times officer stops a black person at night vs during the day in last year"
+        self.name_of_features = ["recent_ratio_bl_night_day"]
+        self.query = ("select newid, "
+                      "(SUM(CASE WHEN (extract(hour from date_time_action) "
+                      "> 21 or extract(hour from date_time_action) < 5 ) "
+                      "then 1 else 0 end )+1)::float/ "
+                      "(SUM(CASE WHEN (extract(hour from date_time_action) "
+                      "> 21 or extract(hour from date_time_action) < 5 ) "
+                      "then 0 else 1 end )+1) as recent_ratio_bl_night_day "
+                      "from {} where race='B' "
+                      "and date_time_action <= '{}'::date "
+                      "and date_time_action >= '{}'::date "
+                      "group by newid").format(
+                      tables["stops_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
+
+
+class CareerNumTrafficStopsResist(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.description = "Number of traffic stops in career where resistance is encountered"
+        self.name_of_features = ["career_ts_physresist"]
+        self.query = ("select newid, count(distinct inc_key) as "
+                      "career_ts_physresist from {} where physical_resist='Y' "
+                      "and date_time_action <= '{}'::date "
+                      " group by newid").format(
+                      tables["stops_table"],
+                      self.end_date)
+        self.type_of_imputation = "zero"
+
+
+class RecentNumTrafficStopsResist(abstract.Feature):
+    def __init__(self, **kwargs):
+        abstract.Feature.__init__(self, **kwargs)
+        self.end_date = kwargs["time_bound"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.description =  "Number of traffic stops in last year where resistance is encountered"
+        self.name_of_features = ["recent_ts_physresist"]
+        self.query = ("select newid, count(distinct inc_key) as "
+                      "recent_ts_physresist from {} where physical_resist='Y' "
+                      "and date_time_action <= '{}'::date "
+                      "and date_time_action >= '{}'::date "
+                      " group by newid").format(
+                      tables["stops_table"],
+                      self.end_date, self.start_date)
+        self.type_of_imputation = "zero"
 
 ## Training
 
