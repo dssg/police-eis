@@ -124,7 +124,8 @@ def feature_summary(features):
                       'recentbiastrain', 'careerforcetrain', 'recentforcetrain',
                       'careertsuofarr', 'recenttsuofarr', 'careerforcetraffic',
                       'recentforcetraffic', 'careertsblackdaynight',
-                      'recenttsblackdaynight', 'careerresistts', 'recentresistts']
+                      'recenttsblackdaynight', 'careerresistts', 'recentresistts',
+                      '1yrtrafstopsearch', 'careertrafstopsearch']
 
 
     used_features = [key for key, val in features.items() if val == True]

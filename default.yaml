@@ -102,6 +102,8 @@ features:
     recenttsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in last year
     careerresistts: True  # Number of traffic stops where physical resistance is encountered in career
     recentresistts: True  # Number of traffic stops where physical resistance is encountered in last year
+    1yrtrafstopsearch: True  # Traffic stops where search was requested in the last year
+    careertrafstopsearch: True  # Traffic stops where search was requested in career
 
 
 ########################

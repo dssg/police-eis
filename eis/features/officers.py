@@ -14,9 +14,9 @@ time_format = "%Y-%m-%d %X"
 
 ### Basic Officer Features
 
-class OfficerHeightWeight(abstract.Feature):
+class OfficerHeightWeight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Officer height and weight, calculated as "
                             "an average across all SI cases involving "
                             "that officer.")
@@ -28,9 +28,9 @@ class OfficerHeightWeight(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerEducation(abstract.Feature):
+class OfficerEducation(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer education level"
         self.num_features = 12
         self.type_of_features = "categorical"
@@ -40,9 +40,9 @@ class OfficerEducation(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerMaritalStatus(abstract.Feature):
+class OfficerMaritalStatus(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.type_of_features = "categorical"
         self.description = "Marital status of officer"
         self.query = ("select newid, marital_status as "
@@ -50,9 +50,9 @@ class OfficerMaritalStatus(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerYrsExperience(abstract.Feature):
+class OfficerYrsExperience(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of years of experience for police officer"
         self.time_bound = kwargs["time_bound"]
         self.name_of_features = ["years_experience"]
@@ -63,9 +63,9 @@ class OfficerYrsExperience(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerDaysExperience(abstract.Feature):
+class OfficerDaysExperience(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of days of experience for police officer"
         self.time_bound = kwargs["time_bound"]
         self.name_of_features = ["days_experience"]
@@ -77,9 +77,9 @@ class OfficerDaysExperience(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerMaleFemale(abstract.Feature):
+class OfficerMaleFemale(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Is officer male or female"
         self.query = ("select newid, empl_sex_clean as "
                       "male_female from {}".format(tables['officer_table']))
@@ -87,9 +87,9 @@ class OfficerMaleFemale(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerRace(abstract.Feature):
+class OfficerRace(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer race"
         self.query = ("select newid, empl_race_cleaned as "
                       "race from {}".format(tables['officer_table']))
@@ -97,9 +97,9 @@ class OfficerRace(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerAge(abstract.Feature):
+class OfficerAge(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer age"
         self.time_bound = kwargs["time_bound"]
         self.name_of_features = ["age"]
@@ -109,9 +109,9 @@ class OfficerAge(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerAgeAtHire(abstract.Feature):
+class OfficerAgeAtHire(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer age at hire"
         self.name_of_features = ["age_at_hire"]
         self.query = ("select newid, extract(year from "
@@ -122,12 +122,11 @@ class OfficerAgeAtHire(abstract.Feature):
 
 ### Arrest History Features
 
-class NumRecentArrests(abstract.Feature):
+class NumRecentArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of recent (<1yr) arrests for officer"
         self.name_of_features = ["1yr_arrest_count"]
-        self.end_date = kwargs["time_bound"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.query = ("select count(distinct aa_id) as year_arrest_count, "
                       "newid from {} "
@@ -139,16 +138,15 @@ class NumRecentArrests(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class OfficerFractionMaleFemale(abstract.Feature):
+class OfficerFractionMaleFemale(abstract.OfficerFeature):
     pass
 
 
-class OfficerArrestTimeSeries(abstract.Feature):
+class OfficerArrestTimeSeries(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Timeseries of arrest counts (1 yr agg) for officer"
         self.name_of_features = ["timeseries_arrests"]
-        self.end_date = kwargs["time_bound"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
         self.query = ("select newid, array_agg(intervals_count) as "
                       "arrest_timeseries from (select "
@@ -174,12 +172,11 @@ class OfficerArrestTimeSeries(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class ArrestRateDelta(abstract.Feature):
+class ArrestRateDelta(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Delta recent (<1yr) arrest rate to career rate"
         self.name_of_features = ["delta_arrest_rate"]
-        self.end_date = kwargs["time_bound"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.query = ("select a.newid, a.career_rate, b.recent_rate, "
                       "b.recent_rate / a.career_rate as "
@@ -205,12 +202,11 @@ class ArrestRateDelta(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class DiscOnlyArrestsCount(abstract.Feature):
+class DiscOnlyArrestsCount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career disc ONLY arrests for officer"
         self.name_of_features = ["disc_only_count"]
-        self.end_date = kwargs["time_bound"]
         self.query = ("select newid, count(distinct aa_id) as disc_only_count "
                       "from ( select a.*, b.aa_id as aa_id2 from "
                       "( select aa_id, newid, arrest_date from {} "
@@ -234,12 +230,11 @@ class DiscOnlyArrestsCount(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class OfficerAvgAgeArrests(abstract.Feature):
+class OfficerAvgAgeArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Average age of arrestees for officer"
         self.name_of_features = ["avg_age_arrestees"]
-        self.end_date = kwargs["time_bound"]
         self.query = ("select avg(age) as avg_age_arrestees, newid "
                       "from {} "
                       "where arrest_date <= '{}'::date "
@@ -249,12 +244,11 @@ class OfficerAvgAgeArrests(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class OfficerAvgTimeOfDayArrests(abstract.Feature):
+class OfficerAvgTimeOfDayArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Average arrest time of day for officer"
         self.name_of_features = ["tod_arrest"]
-        self.end_date = kwargs["time_bound"]
         self.query = ("select avg(extract(hour from arrest_date)) "
                       "as arrest_avg_hour, newid from {} "
                       "where arrest_date <= '{}'::date "
@@ -264,12 +258,11 @@ class OfficerAvgTimeOfDayArrests(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class CareerDiscArrests(abstract.Feature):
+class CareerDiscArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career discretionary arrests for officer"
         self.name_of_features = ["career_disc_arrest_count"]
-        self.end_date = kwargs["time_bound"]
         self.query = ("select count(*) as career_disc_arrest_count, newid "
                       "from ( select count(*) as c, newid, string_agg("
                       "charge_desc::text, '    ') as charges from "
@@ -284,12 +277,11 @@ class CareerDiscArrests(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentDiscArrests(abstract.Feature):
+class RecentDiscArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of recent discretionary arrests for officer"
         self.name_of_features = ["recent_disc_arrest_count"]
-        self.end_date = kwargs["time_bound"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.query = ("select count(*) as recent_disc_arrest_count, newid "
                       "from ( select count(*) as c, newid, string_agg("
@@ -306,12 +298,11 @@ class RecentDiscArrests(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class OfficerCareerArrests(abstract.Feature):
+class OfficerCareerArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career arrests for officer"
         self.name_of_features = ["career_arrest_count"]
-        self.end_date = kwargs["time_bound"]
         self.query = ("select count(distinct aa_id) as career_arrest_count, "
                       "newid from {} "
                       "where arrest_date <= '{}'::date "
@@ -321,12 +312,11 @@ class OfficerCareerArrests(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerNPCArrests(abstract.Feature):
+class CareerNPCArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career NPC arrests for officer"
         self.name_of_features = ["career_npc_arrest_count"]
-        self.end_date = kwargs["time_bound"]
         self.query = ("select count(distinct aa_id) as career_npc_count, "
                       "newid from {} where magistrate_action_mlov = 'MA03' "
                       "and arrest_date <= '{}'::date "
@@ -336,12 +326,11 @@ class CareerNPCArrests(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentNPCArrests(abstract.Feature):
+class RecentNPCArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of recent NPC arrests for officer"
         self.name_of_features = ["recent_npc_arrest_count"]
-        self.end_date = kwargs["time_bound"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.query = ("select count(distinct aa_id) as recent_npc_count, "
                       "newid from {} where magistrate_action_mlov = 'MA03' "
@@ -353,12 +342,11 @@ class RecentNPCArrests(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class ArrestCentroids(abstract.Feature):
+class ArrestCentroids(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Arrest Centroids"
         self.name_of_features = ["arrest_centroids"]
-        self.end_date = kwargs["time_bound"]
         self.type_of_features = "categorical"
         self.query = ("select a.newid, b.subbeat "
                       "from( select *, st_setsrid(st_makepoint( "
@@ -380,10 +368,9 @@ class ArrestCentroids(abstract.Feature):
 
 ### Citations
 
-class CareerNPCCitations(abstract.Feature):
+class CareerNPCCitations(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career NPC citations"
         self.name_of_features = ["career_npc_citations_count"]
         self.query = ("select newid,count(*) as career_cit_npc "
@@ -395,10 +382,9 @@ class CareerNPCCitations(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentNPCCitations(abstract.Feature):
+class RecentNPCCitations(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of recent NPC citations"
         self.name_of_features = ["recent_npc_citations_count"]
@@ -412,10 +398,9 @@ class RecentNPCCitations(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerCitations(abstract.Feature):
+class CareerCitations(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career citations"
         self.name_of_features = ["career_citations_count"]
         self.query = ("select newid,count(*) as career_cit "
@@ -427,10 +412,9 @@ class CareerCitations(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentCitations(abstract.Feature):
+class RecentCitations(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of recent citations"
         self.name_of_features = ["recent_citations_count"]
@@ -446,10 +430,9 @@ class RecentCitations(abstract.Feature):
 
 ## CAD
 
-class CareerCADStatistics(abstract.Feature):
+class CareerCADStatistics(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Career CAD Statistics"
         self.name_of_features = ['career_avg_seq_assgn',
                                  'career_avg_diff_arrv_assgn',
@@ -480,10 +463,9 @@ class CareerCADStatistics(abstract.Feature):
         self.type_of_imputation = "mean"
 
 
-class RecentCADStatistics(abstract.Feature):
+class RecentCADStatistics(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Recent CAD Statistics"
         self.name_of_features = ['recent_avg_seq_assgn',
@@ -525,10 +507,9 @@ termination_types = ['CANCOMM', 'FTC', 'UNKNOWN', 'CANCCOMP', 'CANCOFC', 'DUPNCA
 
 
 ## Field interviews
-class CareerFICount(abstract.Feature):
+class CareerFICount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of field interviews in career"
         self.name_of_features = ["career_fi_count"]
         self.query = ("select count(*) as all_fi_count, newid "
@@ -540,10 +521,9 @@ class CareerFICount(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentFICount(abstract.Feature):
+class RecentFICount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of field interviews in last year"
         self.name_of_features = ["recent_fi_count"]
@@ -557,10 +537,9 @@ class RecentFICount(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerNonTrafficFICount(abstract.Feature):
+class CareerNonTrafficFICount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of non-traffic field interviews in career"
         self.name_of_features = ["career_fi_nontraffic_count"]
         self.query = ("select count(*) as career_fi_count_nontraffic, newid "
@@ -572,10 +551,9 @@ class CareerNonTrafficFICount(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentNonTrafficFICount(abstract.Feature):
+class RecentNonTrafficFICount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of non-traffic field interviews in last year"
         self.name_of_features = ["recent_fi_nontraffic_count"]
@@ -589,10 +567,9 @@ class RecentNonTrafficFICount(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHighCrimeAreaFI(abstract.Feature):
+class RecentHighCrimeAreaFI(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of field interviews in last year in high crime area"
         self.name_of_features = ["recent_fi_highcrime_count"]
@@ -606,10 +583,9 @@ class RecentHighCrimeAreaFI(abstract.Feature):
         self.type_of_imputation = "zero" 
 
 
-class CareerHighCrimeAreaFI(abstract.Feature):
+class CareerHighCrimeAreaFI(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of field interviews in career in high crime area"
         self.name_of_features = ["career_fi_highcrime_count"]
         self.query = ("select count(*) as career_fi_count_highcrime, newid "
@@ -626,10 +602,9 @@ loiter_sleep_sit = """ (narrative like '%loiter%' or narrative like '%sleep%'
                       and narrative not like '%call for service%') """
 
 
-class RecentLoiterFI(abstract.Feature):
+class RecentLoiterFI(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of field interviews of loiterers in last year"
         self.name_of_features = ["recent_fi_loiter_count"]
@@ -643,10 +618,9 @@ class RecentLoiterFI(abstract.Feature):
         self.type_of_imputation = "zero" 
 
 
-class CareerLoiterFI(abstract.Feature):
+class CareerLoiterFI(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of field interviews of loiterers in career"
         self.name_of_features = ["career_fi_loiter_count"]
         self.query = ("select count(*) as career_fi_loiter, newid "
@@ -658,10 +632,9 @@ class CareerLoiterFI(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerBlackFI(abstract.Feature):
+class CareerBlackFI(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Fraction of field interviews where the suspect is black"
         self.name_of_features = ["career_frac_black_suspects"]
         self.query = ("select newid, "
@@ -674,10 +647,9 @@ class CareerBlackFI(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerWhiteFI(abstract.Feature):
+class CareerWhiteFI(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Fraction of field interviews where the suspect is white"
         self.name_of_features = ["career_frac_white_suspects"]
         self.query = ("select newid, "
@@ -690,10 +662,9 @@ class CareerWhiteFI(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class FIAvgSuspectAge(abstract.Feature):
+class FIAvgSuspectAge(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Average age of suspects in field interviews"
         self.name_of_features = ["avg_age_suspects_fi"]
         self.query = ("select avg(age) as fi_avg_age, newid from {} "
@@ -703,10 +674,9 @@ class FIAvgSuspectAge(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class FIAvgTimeOfDay(abstract.Feature):
+class FIAvgTimeOfDay(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Average time of day for field interviews"
         self.name_of_features = ["avg_tod_fi"]
         self.query = ("select avg(extract(hour from corrected_interview_date)) "
@@ -717,10 +687,9 @@ class FIAvgTimeOfDay(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class FITimeseries(abstract.Feature):
+class FITimeseries(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
         self.type_of_features = "series"
         self.description = "Timeseries for interviews"
@@ -747,10 +716,9 @@ class FITimeseries(abstract.Feature):
 
 ## Incidents
 
-class YearNumSuicides(abstract.Feature):
+class YearNumSuicides(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of suicides in last year"
         self.name_of_features = ["suicides_count"]
@@ -764,10 +732,9 @@ class YearNumSuicides(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class YearNumJuvenileVictim(abstract.Feature):
+class YearNumJuvenileVictim(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of juvenile victims in last year"
         self.name_of_features = ["juvenile_count"]
@@ -781,10 +748,9 @@ class YearNumJuvenileVictim(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class YearNumDomesticViolence(abstract.Feature):
+class YearNumDomesticViolence(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of domestic violence incidents in last year"
         self.name_of_features = ["domestic_violence_count"]
@@ -798,10 +764,9 @@ class YearNumDomesticViolence(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class YearNumHate(abstract.Feature):
+class YearNumHate(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hate incidents in last year"
         self.name_of_features = ["hate_count"]
@@ -815,10 +780,9 @@ class YearNumHate(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class YearNumNarcotics(abstract.Feature):
+class YearNumNarcotics(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of narcotics incidents in last year"
         self.name_of_features = ["narcotics_count"]
@@ -832,10 +796,9 @@ class YearNumNarcotics(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class YearNumGang(abstract.Feature):
+class YearNumGang(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of gang incidents in last year"
         self.name_of_features = ["gang_count"]
@@ -849,10 +812,9 @@ class YearNumGang(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class YearNumGunKnife(abstract.Feature):
+class YearNumGunKnife(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of gun/knife incidents in last year"
         self.name_of_features = ["gun_knife_count"]
@@ -866,10 +828,9 @@ class YearNumGunKnife(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class YearNumPersWeaps(abstract.Feature):
+class YearNumPersWeaps(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of personal weapons incidents in last year"
         self.name_of_features = ["personal_weapon_count"]
@@ -883,10 +844,9 @@ class YearNumPersWeaps(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class AvgAgeVictims(abstract.Feature):
+class AvgAgeVictims(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Average age of victims in last year"
         self.name_of_features = ["avg_victim_age"]
@@ -900,10 +860,9 @@ class AvgAgeVictims(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class MinAgeVictims(abstract.Feature):
+class MinAgeVictims(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Min age of victims in last year"
         self.name_of_features = ["min_victim_age"]
@@ -919,10 +878,30 @@ class MinAgeVictims(abstract.Feature):
 
 ## Traffic stops
 
-class CareerNumTrafficStops(abstract.Feature):
+class TrafficStopsSearch(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of times officer asks for "
+                            "consent to search in traffic stop")
+        self.type_of_imputation = "zero"
+        self.feat_time_window = kwargs["feat_time_window"] * 365
+        self.name_of_features = ["traffic_stops_search_{}days".format(
+            self.feat_time_window)]
+        self.start_date = self.end_date - datetime.timedelta(
+            days=self.feat_time_window)
+        self.query = ("select newid,count(*) as {} "
+                      "from {} where consent_search='Y' "
+                      "and date_time_action <= '{}'::date "
+                      "and date_time_action >= '{}'::date "
+                      "group by newid").format(
+                      self.name_of_features[0],
+                      tables["stops_table"],
+                      self.end_date, self.start_date)
+
+
+class CareerNumTrafficStops(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of traffic stops in career"
         self.name_of_features = ["career_num_traffic_stops"]
         self.query = ("select newid, count(distinct inc_key) as "
@@ -934,10 +913,9 @@ class CareerNumTrafficStops(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentNumTrafficStops(abstract.Feature):
+class RecentNumTrafficStops(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description =  "Number of traffic stops in last year"
         self.name_of_features = ["recent_num_traffic_stops"]
@@ -951,10 +929,9 @@ class RecentNumTrafficStops(abstract.Feature):
         self.type_of_imputation = "zero"            
 
 
-class CareerNumTStopRunTagUOFOrArrest(abstract.Feature):
+class CareerNumTStopRunTagUOFOrArrest(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description =  ("Number of traffic stops in career where the tag was "
                             "run and then force was used or an arrest was made")
         self.name_of_features = ["career_num_traffic_stops"]
@@ -968,10 +945,9 @@ class CareerNumTStopRunTagUOFOrArrest(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentNumTStopRunTagUOFOrArrest(abstract.Feature):
+class RecentNumTStopRunTagUOFOrArrest(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description =  ("Number of traffic stops in last year where the tag was "
                             "run and then force was used or an arrest was made")
@@ -987,10 +963,9 @@ class RecentNumTStopRunTagUOFOrArrest(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerNumTrafficStopsForce(abstract.Feature):
+class CareerNumTrafficStopsForce(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of traffic stops in career where force is used"
         self.name_of_features = ["career_num_traffic_stops_uof"]
         self.query = ("select newid, count(distinct inc_key) as "
@@ -1002,10 +977,9 @@ class CareerNumTrafficStopsForce(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentNumTrafficStopsForce(abstract.Feature):
+class RecentNumTrafficStopsForce(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description =  "Number of traffic stops in last year where force is used"
         self.name_of_features = ["recent_num_traffic_stops_uof"]
@@ -1019,10 +993,9 @@ class RecentNumTrafficStopsForce(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerTSPercBlackDayNight(abstract.Feature):
+class CareerTSPercBlackDayNight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Ratio of times officer stops a black person at night vs during the day in career"
         self.name_of_features = ["career_ratio_bl_night_day"]
         self.query = ("select newid, "
@@ -1040,10 +1013,9 @@ class CareerTSPercBlackDayNight(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentTSPercBlackDayNight(abstract.Feature):
+class RecentTSPercBlackDayNight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Ratio of times officer stops a black person at night vs during the day in last year"
         self.name_of_features = ["recent_ratio_bl_night_day"]
@@ -1063,10 +1035,9 @@ class RecentTSPercBlackDayNight(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerNumTrafficStopsResist(abstract.Feature):
+class CareerNumTrafficStopsResist(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of traffic stops in career where resistance is encountered"
         self.name_of_features = ["career_ts_physresist"]
         self.query = ("select newid, count(distinct inc_key) as "
@@ -1078,10 +1049,9 @@ class CareerNumTrafficStopsResist(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentNumTrafficStopsResist(abstract.Feature):
+class RecentNumTrafficStopsResist(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description =  "Number of traffic stops in last year where resistance is encountered"
         self.name_of_features = ["recent_ts_physresist"]
@@ -1096,10 +1066,9 @@ class RecentNumTrafficStopsResist(abstract.Feature):
 
 ## Training
 
-class CareerElectHoursTrain(abstract.Feature):
+class CareerElectHoursTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of elective hours of training"
         self.name_of_features = ["career_elect_hrs_train"]
         self.query = ("select sum(credit_hrs) as career_elec_training_hrs,"
@@ -1111,10 +1080,9 @@ class CareerElectHoursTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentElectHoursTrain(abstract.Feature):
+class RecentElectHoursTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of elective hours of training in last year"
         self.name_of_features = ["recent_elect_hrs_train"]
@@ -1128,10 +1096,9 @@ class RecentElectHoursTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursTrain(abstract.Feature):
+class CareerHoursTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours of training in career"
         self.name_of_features = ["career_hrs_train"]
         self.query = ("select sum(credit_hrs) as career_training_hrs,"
@@ -1143,10 +1110,9 @@ class CareerHoursTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursTrain(abstract.Feature):
+class RecentHoursTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours of training in last year"
         self.name_of_features = ["recent_hrs_train"]
@@ -1160,10 +1126,9 @@ class RecentHoursTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursPhysFit(abstract.Feature):
+class CareerHoursPhysFit(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours working out in career"
         self.name_of_features = ["career_hrs_physfit"]
         self.query = ("select sum(credit_hrs) as career_workout_hrs,"
@@ -1176,10 +1141,9 @@ class CareerHoursPhysFit(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursPhysFit(abstract.Feature):
+class RecentHoursPhysFit(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours working out in last year"
         self.name_of_features = ["recent_hrs_physfit"]
@@ -1194,10 +1158,9 @@ class RecentHoursPhysFit(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursROCTrain(abstract.Feature):
+class CareerHoursROCTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours in Rules of Conduct training in career"
         self.name_of_features = ["career_hrs_roc"]
         self.query = ("select sum(credit_hrs) as career_roc_hrs,"
@@ -1210,10 +1173,9 @@ class CareerHoursROCTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursROCTrain(abstract.Feature):
+class RecentHoursROCTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours in Rules of Conduct training in last year"
         self.name_of_features = ["recent_hrs_roc"]
@@ -1228,10 +1190,9 @@ class RecentHoursROCTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursProfTrain(abstract.Feature):
+class CareerHoursProfTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours in profiling training in career"
         self.name_of_features = ["career_hrs_proftrain"]
         self.query = ("select sum(credit_hrs) as career_proftrain_hrs,"
@@ -1244,10 +1205,9 @@ class CareerHoursProfTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursProfTrain(abstract.Feature):
+class RecentHoursProfTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours in profiling training in last year"
         self.name_of_features = ["recent_hrs_proftrain"]
@@ -1262,10 +1222,9 @@ class RecentHoursProfTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursDomViolTrain(abstract.Feature):
+class CareerHoursDomViolTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours in domestic violence training in career"
         self.name_of_features = ["career_hrs_proftrain"]
         self.query = ("select sum(credit_hrs) as career_domvioltrain_hrs,"
@@ -1278,10 +1237,9 @@ class CareerHoursDomViolTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursDomViolTrain(abstract.Feature):
+class RecentHoursDomViolTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours in domestic violence training in last year"
         self.name_of_features = ["recent_hrs_domestic_violence_train"]
@@ -1296,10 +1254,9 @@ class RecentHoursDomViolTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursMilitaryReturn(abstract.Feature):
+class CareerHoursMilitaryReturn(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours in military training in career"
         self.name_of_features = ["career_hrs_military_train"]
         self.query = ("select sum(credit_hrs) as career_military_hrs,"
@@ -1312,10 +1269,9 @@ class CareerHoursMilitaryReturn(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursMilitaryReturn(abstract.Feature):
+class RecentHoursMilitaryReturn(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours in military training in last year"
         self.name_of_features = ["recent_hrs_military_train"]
@@ -1330,10 +1286,9 @@ class RecentHoursMilitaryReturn(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursTaserTrain(abstract.Feature):
+class CareerHoursTaserTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours in taser training in career"
         self.name_of_features = ["career_hrs_taser_train"]
         self.query = ("select sum(credit_hrs) as career_taser_hrs,"
@@ -1347,10 +1302,9 @@ class CareerHoursTaserTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursTaserTrain(abstract.Feature):
+class RecentHoursTaserTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours in taser training in last year"
         self.name_of_features = ["recent_hrs_taser_train"]
@@ -1366,10 +1320,9 @@ class RecentHoursTaserTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursBiasTrain(abstract.Feature):
+class CareerHoursBiasTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours in bias training in career"
         self.name_of_features = ["career_hrs_bias_train"]
         self.query = ("select sum(credit_hrs) as career_bias_hrs,"
@@ -1382,10 +1335,9 @@ class CareerHoursBiasTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursBiasTrain(abstract.Feature):
+class RecentHoursBiasTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours in bias training in last year"
         self.name_of_features = ["recent_hrs_bias_train"]
@@ -1400,10 +1352,9 @@ class RecentHoursBiasTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class CareerHoursForceTrain(abstract.Feature):
+class CareerHoursForceTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of hours in use of force training in career"
         self.name_of_features = ["career_hrs_force_train"]
         self.query = ("select sum(credit_hrs) as career_force_hrs,"
@@ -1416,10 +1367,9 @@ class CareerHoursForceTrain(abstract.Feature):
         self.type_of_imputation = "zero"
 
 
-class RecentHoursForceTrain(abstract.Feature):
+class RecentHoursForceTrain(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
-        self.end_date = kwargs["time_bound"]
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Number of hours in use of force training in last year"
         self.name_of_features = ["recent_hrs_force_train"]
@@ -1453,9 +1403,9 @@ class RecentHoursForceTrain(abstract.Feature):
 
 ### Internal Affairs allegations
 
-class IAHistory(abstract.Feature):
+class IAHistory(abstract.OfficerFeature):
     def __init__(self, **kwargs):
-        abstract.Feature.__init__(self, **kwargs)
+        abstract.OfficerFeature.__init__(self, **kwargs)
         self.time_bound = kwargs["time_bound"]
         self.num_features = 2
         self.type_of_features = "float"

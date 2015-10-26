@@ -93,7 +93,15 @@ def convert_categorical(df):
 
 def lookup(feature, **kwargs):
 
-    class_lookup = {'height_weight': featoff.OfficerHeightWeight(**kwargs),
+    arg_lookup = {'1yrtrafstopsearch': {'feat_time_window': 1},
+                  'careertrafstopsearch': {'feat_time_window': 100}}
+
+    if feature in arg_lookup.keys():
+        feat_dict = arg_lookup[feature]
+        for element in feat_dict.keys():
+            kwargs[element] = feat_dict[element]
+
+    dict_lookup = {'height_weight': featoff.OfficerHeightWeight(**kwargs),
                     'education': featoff.OfficerEducation(**kwargs),
                     'ia_history': featoff.IAHistory(**kwargs),
                     'yearsexperience': featoff.OfficerYrsExperience(**kwargs),
@@ -173,13 +181,14 @@ def lookup(feature, **kwargs):
                     'careertsblackdaynight': featoff.CareerTSPercBlackDayNight(**kwargs),
                     'recenttsblackdaynight': featoff.RecentTSPercBlackDayNight(**kwargs),
                     'careerresistts': featoff.CareerNumTrafficStopsResist(**kwargs),
-                    'recentresistts': featoff.RecentNumTrafficStopsResist(**kwargs)}
+                    'recentresistts': featoff.RecentNumTrafficStopsResist(**kwargs),
+                    '1yrtrafstopsearch': featoff.TrafficStopsSearch(**kwargs),
+                    'careertrafstopsearch': featoff.TrafficStopsSearch(**kwargs)}
 
-
-    if feature not in class_lookup.keys():
+    if feature not in dict_lookup.keys():
         raise UnknownFeatureError(feature)
 
-    return class_lookup[feature]
+    return dict_lookup[feature]
 
 
 class UnknownFeatureError(Exception):
@@ -279,15 +288,25 @@ class FeatureLoader():
         return labels
 
     def loader(self, features_to_load, ids):
-        kwargs = {
-            'time_bound': self.fake_today
-        }
+        kwargs = {"time_bound": self.fake_today,
+                  "feat_time_window": 0}
         feature = lookup(features_to_load, **kwargs)
 
-        results = self.__read_feature_from_db(feature.query,
-                                              features_to_load,
-                                              drop_duplicates=True)
-        featurenames = feature.name_of_features
+        if type(feature.query) == str:
+            results = self.__read_feature_from_db(feature.query,
+                                                  features_to_load,
+                                                  drop_duplicates=True)
+            featurenames = feature.name_of_features
+        elif type(feature.query) == list:
+            featurenames = []
+            results = pd.DataFrame()
+            for each_query in feature.query:
+                ea_resu = self.__read_feature_from_db(each_query,
+                                                      features_to_load,
+                                                      drop_duplicates=True)
+                featurenames = featurenames + feature.name_of_features
+                results = results.join(each_resu, how='left', on='newid')
+
 
         if feature.type_of_features == "categorical":
             results, featurenames = convert_categorical(results)
