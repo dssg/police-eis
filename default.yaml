@@ -12,7 +12,7 @@ unit: 'officer'  # or 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2010'
+fake_today: '01Jan2009'
 prediction_interval: 365  # days, used for officer-level prediction
 testing_interval_days: 365  # days, used for dispatch-level prediction
 training_interval_days: 1460  # days, used for dispatch-level prediction
@@ -100,10 +100,28 @@ features:
     recentforcetraffic: True  # Number of traffic stops in last year where force is used
     careertsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in career
     recenttsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in last year
-    careerresistts: True  # Number of traffic stops where physical resistance is encountered in career
-    recentresistts: True  # Number of traffic stops where physical resistance is encountered in last year
+    careertrafstopresist: True  # Number of traffic stops where physical resistance is encountered in career
+    1yrtrafstopresist: True  # Number of traffic stops where physical resistance is encountered in last year
     1yrtrafstopsearch: True  # Traffic stops where search was requested in the last year
     careertrafstopsearch: True  # Traffic stops where search was requested in career
+    1yrtrafstopsearchreason: True  # Traffic stop search reasons in last year
+    careertrafstopsearchreason: True  # Traffic stop search reasons in career
+    1yrtrafstopruntagreason: True  # Traffic stop run tag reasons in last year
+    careertrafstopruntagreason: True  # Traffic stop run tag reasons in career
+    1yrtrafstopresult: True  # Traffic stop results in last year
+    careertrafstopresult: True   # Traffic stop results in career
+    1yrtrafstopbyrace: True  # Traffic stops by race in last year
+    careertrafstopbyrace: True  # Traffic stops by race in career
+    1yrtrafstopbygender: True  # Traffic stops by gender in last year
+    careertrafstopbygender: True  # Traffic stops by gender in career
+    trafficstoptimeseries: True  # Time series of traffic stops
+    1yreiswarnings: True  # EIS warnings in last year
+    5yreiswarnings: True  # EIS warnings in last five years
+    careereiswarnings: True  # EIS warnings in first 
+    1yreiswarningtypes: True  # Frac of EIS warnings by type in last year
+    careereiswarningtypes: True  # Frac of EIS warnings by type in career
+    1yreiswarninginterventions: True  # Frac of EIS warning interventions by type in last year
+    careereiswarninginterventions: True  # Frac of EIS warning interventions by type in career
 
 
 ########################

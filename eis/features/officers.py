@@ -3,6 +3,7 @@ import pdb
 import logging
 import yaml
 import datetime
+from math import ceil
 
 from eis import setup_environment
 from eis.features import abstract
@@ -135,7 +136,6 @@ class NumRecentArrests(abstract.OfficerFeature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class OfficerFractionMaleFemale(abstract.OfficerFeature):
@@ -227,7 +227,6 @@ class DiscOnlyArrestsCount(abstract.OfficerFeature):
                           self.end_date,
                           tables["arrest_charges_table"],
                           self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class OfficerAvgAgeArrests(abstract.OfficerFeature):
@@ -274,7 +273,6 @@ class CareerDiscArrests(abstract.OfficerFeature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentDiscArrests(abstract.OfficerFeature):
@@ -295,7 +293,6 @@ class RecentDiscArrests(abstract.OfficerFeature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class OfficerCareerArrests(abstract.OfficerFeature):
@@ -309,7 +306,6 @@ class OfficerCareerArrests(abstract.OfficerFeature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerNPCArrests(abstract.OfficerFeature):
@@ -323,7 +319,6 @@ class CareerNPCArrests(abstract.OfficerFeature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentNPCArrests(abstract.OfficerFeature):
@@ -339,7 +334,6 @@ class RecentNPCArrests(abstract.OfficerFeature):
                       "group by newid").format(
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class ArrestCentroids(abstract.OfficerFeature):
@@ -379,7 +373,6 @@ class CareerNPCCitations(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["citations_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentNPCCitations(abstract.OfficerFeature):
@@ -395,7 +388,6 @@ class RecentNPCCitations(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["citations_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerCitations(abstract.OfficerFeature):
@@ -409,7 +401,6 @@ class CareerCitations(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["citations_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentCitations(abstract.OfficerFeature):
@@ -425,7 +416,6 @@ class RecentCitations(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["citations_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 ## CAD
@@ -503,10 +493,134 @@ termination_types = ['CANCOMM', 'FTC', 'UNKNOWN', 'CANCCOMP', 'CANCOFC', 'DUPNCA
               "MI"]
 
 
-## EIS
+## Former EIS
 
+eis_warning_types_name_map = {'Use Of Force':'uof',
+                    'Complaint':'cml',
+                    'Pursuit':'pur',
+                    'Sick Leave Frequency':'slf',
+                    'Injury':'inj',
+                    'Sick Leave/Days Off':'sld',
+                    'Combination':'comb',
+                    'Accident':'acc',
+                    'Supv Initiated':'sup'}
+
+eis_intervention_types_name_map = {'No Intervention Required':'noint',
+                        'Training':'trn',
+                        'Other':'oth',
+                        'EAP':'eap',
+                        'Counseling':'coun',
+                        'Combined':'comb'}
+
+
+class EISWarningsCount(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Count of EIS warnings"
+        self.name_of_features = ["eis_warning_count_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select count(distinct eisno) as {}, newid "
+                      "from {} where "
+                      "datecreated <= '{}'::date " 
+                      "and datecreated >= '{}'::date "
+                      "group by newid").format(self.name_of_features[0],
+                      tables["eis_table"],
+                      self.end_date, self.start_date)
+
+
+class EISWarningByTypeFrac(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Frac of each EIS warning by type"
+        all_featnames, all_queries = [], []
+        for warning_type in list(eis_warning_types_name_map.keys()):
+            this_feature = "eis_frac_warnings_{}_{}yr".format(
+            eis_warning_types_name_map[warning_type],
+            ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(case when eventtype LIKE '%{}%' then 1 else null end)"
+            "::float/(count(case when eventtype is not null then 1 else null end)+1) as {} "
+            "from (select distinct eisno, eventtype, newid, datecreated from {}) as a "
+            "where datecreated <= '{}'::date "
+            "and datecreated >= '{}'::date "
+            "group by newid").format(warning_type, this_feature,
+            tables["eis_table"], self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class EISWarningByTypeCount(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Count of each EIS warning by type"
+        all_featnames, all_queries = [], []
+        for warning_type in list(eis_warning_types_name_map.keys()):
+            this_feature = "eis_count_warnings_{}_{}yr".format(
+            eis_warning_types_name_map[warning_type],
+            ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(distinct eisno) as {} "
+            "from {} "
+            "where eventtype = '{}' "
+            "and datecreated <= '{}'::date "
+            "and datecreated >= '{}'::date "
+            "group by newid").format(this_feature, tables["eis_table"],
+            warning_type, self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class EISWarningInterventionFrac(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Frac of each EIS warning by type"
+        all_featnames, all_queries = [], []
+        for intervention_type in list(eis_intervention_types_name_map.keys()):
+            this_feature = "eis_frac_intervention_{}_{}yr".format(
+            eis_intervention_types_name_map[intervention_type],
+            ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(case when intervention LIKE '%{}%' then 1 else null end)"
+            "::float/(count(case when intervention is not null then 1 else null end)+1) as {} "
+            "from (select distinct eisno, intervention, newid, datecreated from {}) as a "
+            "where datecreated <= '{}'::date "
+            "and datecreated >= '{}'::date "
+            "group by newid").format(intervention_type, this_feature,
+            tables["eis_table"], self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class EISInterventionByTypeCount(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Count of each EIS intervention by type"
+        all_featnames, all_queries = [], []
+        for intervention_type in list(eis_intervention_types_name_map.keys()):
+            this_feature = "eis_count_interventions_{}_{}yr".format(
+            eis_warning_types_name_map[intervention_type],
+            ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(distinct eisno) as {} "
+            "from {} "
+            "where intervention = '{}' "
+            "and datecreated <= '{}'::date "
+            "and datecreated >= '{}'::date "
+            "group by newid").format(this_feature, tables["eis_table"],
+            intervention_type, self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
 
 ## Field interviews
+
 class CareerFICount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
@@ -518,7 +632,6 @@ class CareerFICount(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentFICount(abstract.OfficerFeature):
@@ -534,7 +647,6 @@ class RecentFICount(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerNonTrafficFICount(abstract.OfficerFeature):
@@ -548,7 +660,6 @@ class CareerNonTrafficFICount(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentNonTrafficFICount(abstract.OfficerFeature):
@@ -564,7 +675,6 @@ class RecentNonTrafficFICount(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHighCrimeAreaFI(abstract.OfficerFeature):
@@ -580,7 +690,6 @@ class RecentHighCrimeAreaFI(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero" 
 
 
 class CareerHighCrimeAreaFI(abstract.OfficerFeature):
@@ -594,7 +703,6 @@ class CareerHighCrimeAreaFI(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 loiter_sleep_sit = """ (narrative like '%loiter%' or narrative like '%sleep%'
@@ -615,7 +723,6 @@ class RecentLoiterFI(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"], loiter_sleep_sit,
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero" 
 
 
 class CareerLoiterFI(abstract.OfficerFeature):
@@ -629,7 +736,6 @@ class CareerLoiterFI(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"], loiter_sleep_sit,
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerBlackFI(abstract.OfficerFeature):
@@ -644,7 +750,6 @@ class CareerBlackFI(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerWhiteFI(abstract.OfficerFeature):
@@ -659,7 +764,6 @@ class CareerWhiteFI(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["field_int_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class FIAvgSuspectAge(abstract.OfficerFeature):
@@ -671,7 +775,6 @@ class FIAvgSuspectAge(abstract.OfficerFeature):
                       "group by newid").format(
                       tables["field_int_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class FIAvgTimeOfDay(abstract.OfficerFeature):
@@ -684,7 +787,6 @@ class FIAvgTimeOfDay(abstract.OfficerFeature):
                       "group by newid").format(
                       tables["field_int_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class FITimeseries(abstract.OfficerFeature):
@@ -729,7 +831,6 @@ class YearNumSuicides(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class YearNumJuvenileVictim(abstract.OfficerFeature):
@@ -745,7 +846,6 @@ class YearNumJuvenileVictim(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class YearNumDomesticViolence(abstract.OfficerFeature):
@@ -761,7 +861,6 @@ class YearNumDomesticViolence(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class YearNumHate(abstract.OfficerFeature):
@@ -777,7 +876,6 @@ class YearNumHate(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class YearNumNarcotics(abstract.OfficerFeature):
@@ -793,7 +891,6 @@ class YearNumNarcotics(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class YearNumGang(abstract.OfficerFeature):
@@ -809,7 +906,6 @@ class YearNumGang(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class YearNumGunKnife(abstract.OfficerFeature):
@@ -825,7 +921,6 @@ class YearNumGunKnife(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class YearNumPersWeaps(abstract.OfficerFeature):
@@ -841,7 +936,6 @@ class YearNumPersWeaps(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class AvgAgeVictims(abstract.OfficerFeature):
@@ -857,7 +951,6 @@ class AvgAgeVictims(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class MinAgeVictims(abstract.OfficerFeature):
@@ -873,22 +966,31 @@ class MinAgeVictims(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 ## Traffic stops
 
-class TrafficStopsSearch(abstract.OfficerFeature):
+runtag_reasons = ["tag", "seatbelt", "random",
+                            "expired", "safety", "crime", "light",
+                            "speeding", "speed", "insurance",
+                            "verify", "29"]
+
+search_reasons = ["crime", "suspicious", "marijuana", "consent", "all my stops", "area", "drug"]
+
+#stop_reasons = ['DWI', 'INV', 'SAFE', 'SPD', 'STBLT', 'STPLT', 'VEHQP', 'VEHRG']
+stop_results = ['A', 'C', 'VW', 'WW']
+
+races = ['B', 'W', 'A', 'U', 'I']
+
+genders = ['M', 'F']
+
+class TrafficStopsSearch(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = ("Number of times officer asks for "
                             "consent to search in traffic stop")
-        self.type_of_imputation = "zero"
-        self.feat_time_window = kwargs["feat_time_window"] * 365
-        self.name_of_features = ["traffic_stops_search_{}days".format(
-            self.feat_time_window)]
-        self.start_date = self.end_date - datetime.timedelta(
-            days=self.feat_time_window)
+        self.name_of_features = ["traffic_stops_search_{}yr".format(
+            ceil(self.feat_time_window/365))]
         self.query = ("select newid,count(*) as {} "
                       "from {} where consent_search='Y' "
                       "and date_time_action <= '{}'::date "
@@ -897,6 +999,145 @@ class TrafficStopsSearch(abstract.OfficerFeature):
                       self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
+
+
+class TrafficStopSearchReason(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Frac of each traffic stop search reasons"
+        all_featnames, all_queries = [], []
+        for reason in search_reasons:
+            this_feature = "traffic_stops_search_reason_{}_{}yr".format(
+            reason.replace(" ", ""), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(case when search_reason LIKE '%{}%' then 1 else null end)"
+            "::float/(count(case when search_reason is not null then 1 else null end)+1) as {} "
+            "from {} "
+            "where date_time_action <= '{}'::date "
+            "and date_time_action >= '{}'::date "
+            "group by newid").format(reason, this_feature,
+            tables["stops_table"], self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class TrafficStopRunTagReason(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Frac of each traffic stop run tag reasons"
+        all_featnames, all_queries = [], []
+        for reason in runtag_reasons:
+            this_feature = "traffic_stops_runtag_reason_{}_{}yr".format(
+            reason.replace(" ", ""), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(case when runtag_reason LIKE '%{}%' then 1 else null end)"
+            "::float/(count(case when runtag_reason is not null then 1 else null end)+1) as {} "
+            "from {} "
+            "where date_time_action <= '{}'::date "
+            "and date_time_action >= '{}'::date "
+            "group by newid").format(reason, this_feature,
+            tables["stops_table"], self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class TrafficStopResult(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Frac of each traffic stop results"
+        all_featnames, all_queries = [], []
+        for reason in stop_results:
+            this_feature = "traffic_stops_result_{}_{}yr".format(
+            reason.replace(" ", ""), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(case when resultofstop='{}' then 1 else null end)::float/"
+            "(count(*)+1) as {} from {} "
+            "where date_time_action <= '{}'::date "
+            "and date_time_action >= '{}'::date "
+            "group by newid").format(reason, this_feature,
+            tables["stops_table"], self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class TrafficStopFracRace(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Fraction of traffic stops by suspect race"
+        all_featnames, all_queries = [], []
+        for race in races:
+            this_feature = "traffic_stops_byrace_{}_{}yr".format(
+            race.replace(" ", ""), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(case when race = '{}' then 1 else null end)"
+            "::float/(count(case when race is not null then 1 else null end)+1) "
+            "as {} from {} "
+            "where date_time_action <= '{}'::date "
+            "and date_time_action >= '{}'::date "
+            "group by newid").format(race, this_feature,
+            tables["stops_table"], self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class TrafficStopFracGender(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Fraction of traffic stops by suspect gender"
+        all_featnames, all_queries = [], []
+        for gender in genders:
+            this_feature = "traffic_stops_bygender_{}_{}yr".format(
+            gender.replace(" ", ""), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(case when race = '{}' then 1 else null end)"
+            "::float/(count(case when gender is not null then 1 else null end)+1) "
+            "as {} from {} "
+            "where date_time_action <= '{}'::date "
+            "and date_time_action >= '{}'::date "
+            "group by newid").format(gender, this_feature,
+            tables["stops_table"], self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class TrafficStopTimeSeries(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = "Timeseries of traffic stop counts (1 yr agg) for officer"
+        self.name_of_features = ["timeseries_trafficstops"]
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
+        self.query = ("select newid, array_agg(intervals_count) as "
+                      "trf_stop_timeseries from (select "
+                      "a.newid as newid, a.intervals as intervals, "
+                      "intervalid, greatest(a.default_count,b.trfcount) "
+                      "as intervals_count from (select a.newid, "
+                      "b.intervals, intervalid, 0 as default_count "
+                      "from (select distinct newid "
+                      "from {}) as a left join (select intervals, "
+                      "row_number() over () as intervalid from ( "              
+                      "select distinct date_trunc('year',d) as intervals "
+                      "from generate_series('{}'::timestamp, '{}'::timestamp, "
+                      "'1 day') as d order by intervals) as foo) as b "
+                      "on True) as a "
+                      "left join (select newid, date_trunc('year',date_time_action) "
+                      "as intervals, count(distinct inc_key) as trfcount "
+                      "from {} group by newid, date_trunc('year',date_time_action)) "
+                      "as b on a.newid = b.newid and a.intervals = b.intervals) "
+                      "as koo group by newid").format(
+                          tables["officer_table"], self.start_date, 
+                          self.end_date, tables["stops_table"])
+        self.type_of_features = "series"
+        self.type_of_imputation = "mean"
 
 
 class CareerNumTrafficStops(abstract.OfficerFeature):
@@ -910,7 +1151,6 @@ class CareerNumTrafficStops(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["stops_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentNumTrafficStops(abstract.OfficerFeature):
@@ -926,7 +1166,6 @@ class RecentNumTrafficStops(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["stops_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"            
 
 
 class CareerNumTStopRunTagUOFOrArrest(abstract.OfficerFeature):
@@ -942,7 +1181,6 @@ class CareerNumTStopRunTagUOFOrArrest(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["stops_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentNumTStopRunTagUOFOrArrest(abstract.OfficerFeature):
@@ -960,7 +1198,6 @@ class RecentNumTStopRunTagUOFOrArrest(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["stops_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerNumTrafficStopsForce(abstract.OfficerFeature):
@@ -974,7 +1211,6 @@ class CareerNumTrafficStopsForce(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["stops_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentNumTrafficStopsForce(abstract.OfficerFeature):
@@ -990,7 +1226,6 @@ class RecentNumTrafficStopsForce(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["stops_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerTSPercBlackDayNight(abstract.OfficerFeature):
@@ -1010,7 +1245,6 @@ class CareerTSPercBlackDayNight(abstract.OfficerFeature):
                       "group by newid").format(
                       tables["stops_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentTSPercBlackDayNight(abstract.OfficerFeature):
@@ -1032,7 +1266,6 @@ class RecentTSPercBlackDayNight(abstract.OfficerFeature):
                       "group by newid").format(
                       tables["stops_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerNumTrafficStopsResist(abstract.OfficerFeature):
@@ -1046,23 +1279,42 @@ class CareerNumTrafficStopsResist(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["stops_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
-class RecentNumTrafficStopsResist(abstract.OfficerFeature):
+class TrafficStopsSearch(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description =  "Number of traffic stops in last year where resistance is encountered"
-        self.name_of_features = ["recent_ts_physresist"]
+        self.description = ("Number of times officer asks for "
+                            "consent to search in traffic stop")
+        self.feat_time_window = kwargs["feat_time_window"] * 365
+        self.name_of_features = ["traffic_stops_search_{}days".format(
+            self.feat_time_window)]
+        self.start_date = self.end_date - datetime.timedelta(
+            days=self.feat_time_window)
+        self.query = ("select newid,count(*) as {} "
+                      "from {} where consent_search='Y' "
+                      "and date_time_action <= '{}'::date "
+                      "and date_time_action >= '{}'::date "
+                      "group by newid").format(
+                      self.name_of_features[0],
+                      tables["stops_table"],
+                      self.end_date, self.start_date)
+
+
+class NumTrafficStopsResist(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.name_of_features = ["trafficstop_physresist_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.description = "Number of traffic stops where resistance is encountered"
         self.query = ("select newid, count(distinct inc_key) as "
-                      "recent_ts_physresist from {} where physical_resist='Y' "
+                      "{} from {} where physical_resist='Y' "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 ## Training
 
@@ -1077,7 +1329,6 @@ class CareerElectHoursTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentElectHoursTrain(abstract.OfficerFeature):
@@ -1093,7 +1344,6 @@ class RecentElectHoursTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursTrain(abstract.OfficerFeature):
@@ -1107,7 +1357,6 @@ class CareerHoursTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursTrain(abstract.OfficerFeature):
@@ -1123,7 +1372,6 @@ class RecentHoursTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursPhysFit(abstract.OfficerFeature):
@@ -1138,7 +1386,6 @@ class CareerHoursPhysFit(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursPhysFit(abstract.OfficerFeature):
@@ -1155,7 +1402,6 @@ class RecentHoursPhysFit(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursROCTrain(abstract.OfficerFeature):
@@ -1170,7 +1416,6 @@ class CareerHoursROCTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursROCTrain(abstract.OfficerFeature):
@@ -1187,7 +1432,6 @@ class RecentHoursROCTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursProfTrain(abstract.OfficerFeature):
@@ -1202,7 +1446,6 @@ class CareerHoursProfTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursProfTrain(abstract.OfficerFeature):
@@ -1219,7 +1462,6 @@ class RecentHoursProfTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursDomViolTrain(abstract.OfficerFeature):
@@ -1234,7 +1476,6 @@ class CareerHoursDomViolTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursDomViolTrain(abstract.OfficerFeature):
@@ -1251,7 +1492,6 @@ class RecentHoursDomViolTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursMilitaryReturn(abstract.OfficerFeature):
@@ -1266,7 +1506,6 @@ class CareerHoursMilitaryReturn(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursMilitaryReturn(abstract.OfficerFeature):
@@ -1283,7 +1522,6 @@ class RecentHoursMilitaryReturn(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursTaserTrain(abstract.OfficerFeature):
@@ -1299,7 +1537,6 @@ class CareerHoursTaserTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursTaserTrain(abstract.OfficerFeature):
@@ -1317,7 +1554,6 @@ class RecentHoursTaserTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursBiasTrain(abstract.OfficerFeature):
@@ -1332,7 +1568,6 @@ class CareerHoursBiasTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursBiasTrain(abstract.OfficerFeature):
@@ -1349,7 +1584,6 @@ class RecentHoursBiasTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 
 class CareerHoursForceTrain(abstract.OfficerFeature):
@@ -1364,7 +1598,6 @@ class CareerHoursForceTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date)
-        self.type_of_imputation = "zero"
 
 
 class RecentHoursForceTrain(abstract.OfficerFeature):
@@ -1381,7 +1614,6 @@ class RecentHoursForceTrain(abstract.OfficerFeature):
                       " group by newid").format(
                       tables["plateau_table"],
                       self.end_date, self.start_date)
-        self.type_of_imputation = "zero"
 
 ## Investigations
 
@@ -1406,8 +1638,5 @@ class RecentHoursForceTrain(abstract.OfficerFeature):
 class IAHistory(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.time_bound = kwargs["time_bound"]
-        self.num_features = 2
-        self.type_of_features = "float"
         self.name_of_features = ["weight", "height"]
         self.query = ()

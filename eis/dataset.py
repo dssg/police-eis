@@ -93,13 +93,10 @@ def convert_categorical(df):
 
 def lookup(feature, **kwargs):
 
-    arg_lookup = {'1yrtrafstopsearch': {'feat_time_window': 1},
-                  'careertrafstopsearch': {'feat_time_window': 100}}
-
-    if feature in arg_lookup.keys():
-        feat_dict = arg_lookup[feature]
-        for element in feat_dict.keys():
-            kwargs[element] = feat_dict[element]
+    if feature[1:3] == "yr":
+        kwargs["feat_time_window"] = int(feature[0])
+    else:
+        kwargs["feat_time_window"] = 15
 
     dict_lookup = {'height_weight': featoff.OfficerHeightWeight(**kwargs),
                     'education': featoff.OfficerEducation(**kwargs),
@@ -180,10 +177,28 @@ def lookup(feature, **kwargs):
                     'recentforcetraffic': featoff.RecentNumTrafficStopsForce(**kwargs),
                     'careertsblackdaynight': featoff.CareerTSPercBlackDayNight(**kwargs),
                     'recenttsblackdaynight': featoff.RecentTSPercBlackDayNight(**kwargs),
-                    'careerresistts': featoff.CareerNumTrafficStopsResist(**kwargs),
-                    'recentresistts': featoff.RecentNumTrafficStopsResist(**kwargs),
+                    'careertrafstopresist': featoff.NumTrafficStopsResist(**kwargs),
+                    '1yrtrafstopresist': featoff.NumTrafficStopsResist(**kwargs),
                     '1yrtrafstopsearch': featoff.TrafficStopsSearch(**kwargs),
-                    'careertrafstopsearch': featoff.TrafficStopsSearch(**kwargs)}
+                    'careertrafstopsearch': featoff.TrafficStopsSearch(**kwargs),
+                    '1yrtrafstopsearchreason': featoff.TrafficStopSearchReason(**kwargs),
+                    'careertrafstopsearchreason': featoff.TrafficStopSearchReason(**kwargs),
+                    '1yrtrafstopruntagreason': featoff.TrafficStopRunTagReason(**kwargs),
+                    'careertrafstopruntagreason': featoff.TrafficStopRunTagReason(**kwargs),
+                    '1yrtrafstopresult': featoff.TrafficStopResult(**kwargs),
+                    'careertrafstopresult': featoff.TrafficStopResult(**kwargs),
+                    '1yrtrafstopbyrace': featoff.TrafficStopFracRace(**kwargs),
+                    'careertrafstopbyrace': featoff.TrafficStopFracRace(**kwargs),
+                    '1yrtrafstopbygender': featoff.TrafficStopFracGender(**kwargs),
+                    'careertrafstopbygender': featoff.TrafficStopFracGender(**kwargs),
+                    'trafficstoptimeseries': featoff.TrafficStopTimeSeries(**kwargs),
+                    '1yreiswarnings': featoff.EISWarningsCount(**kwargs),
+                    '5yreiswarnings': featoff.EISWarningsCount(**kwargs),
+                    'careereiswarnings': featoff.EISWarningsCount(**kwargs),
+                    '1yreiswarningtypes': featoff.EISWarningByTypeFrac(**kwargs),
+                    'careereiswarningtypes': featoff.EISWarningByTypeFrac(**kwargs),
+                    '1yreiswarninginterventions': featoff.EISWarningInterventionFrac(**kwargs),
+                    'careereiswarninginterventions': featoff.EISWarningInterventionFrac(**kwargs)}
 
     if feature not in dict_lookup.keys():
         raise UnknownFeatureError(feature)
@@ -305,8 +320,12 @@ class FeatureLoader():
                                                       features_to_load,
                                                       drop_duplicates=True)
                 featurenames = featurenames + feature.name_of_features
-                results = results.join(each_resu, how='left', on='newid')
 
+                if len(results) == 0:
+                    results = ea_resu
+                    results['newid'] = ea_resu.index
+                else:   
+                    results = results.join(ea_resu, how='left', on='newid')
 
         if feature.type_of_features == "categorical":
             results, featurenames = convert_categorical(results)

@@ -2,6 +2,7 @@
 import pdb
 import logging
 import yaml
+import datetime
 
 from eis import setup_environment
 
@@ -18,5 +19,23 @@ class OfficerFeature():
         self.end_date = kwargs["time_bound"]
         self.query = None
         self.name_of_features = ""
-        self.type_of_imputation = ""
+        self.type_of_imputation = "zero"
         self.feat_time_window = None
+
+
+class OfficerTimeBoundedFeature(OfficerFeature):
+    def __init__(self, **kwargs):
+        OfficerFeature.__init__(self, **kwargs)
+        self.feat_time_window = kwargs["feat_time_window"] * 365
+        self.start_date = self.end_date - datetime.timedelta(
+            days=self.feat_time_window)
+        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.type_of_imputation = "zero"
+
+
+class DispatchFeature():
+    pass
+
+
+class DispatchTimeBoundedFeature(DispatchFeature):
+    pass
