@@ -125,14 +125,24 @@ def feature_summary(features):
                       'careertsuofarr', 'recenttsuofarr', 'careerforcetraffic',
                       'recentforcetraffic', 'careertsblackdaynight',
                       'recenttsblackdaynight', 'careertrafstopresist', '1yrtrafstopresist',
-                      '1yrtrafstopsearch', 'careertrafstopsearch', '1yrtrafstopsearchreason',
+                      '3yrtrafstopresist', '5yrtrafstopresist',
+                      '1yrtrafstopsearch', '3yrtrafstopsearch', 
+                      '5yrtrafstopsearch', 'careertrafstopsearch', '1yrtrafstopsearchreason',
+                      '3yrtrafstopsearchreason', '5yrtrafstopsearchreason',
                       'careertrafstopsearchreason', '1yrtrafstopruntagreason',
-                      'careertrafstopruntagreason', '1yrtrafstopresult', 'careertrafstopresult',
-                      '1yrtrafstopbyrace', 'careertrafstopbyrace', '1yrtrafstopbygender',
+                      '3yrtrafstopruntagreason', '5yrtrafstopruntagreason',
+                      'careertrafstopruntagreason', '1yrtrafstopresult',
+                      '3yrtrafstopresult', '5yrtrafstopresult', 'careertrafstopresult',
+                      '1yrtrafstopbyrace', '3yrtrafstopbyrace', '5yrtrafstopbyrace',
+                      'careertrafstopbyrace', '1yrtrafstopbygender',
+                      '3yrtrafstopbygender', '5yrtrafstopbygender',
                       'careertrafstopbygender', 'trafficstoptimeseries', '1yreiswarnings', 
                       '5yreiswarnings', 'careereiswarnings', '1yreiswarningtypes',
                       'careereiswarningtypes', '1yreiswarninginterventions',
-                      'careereiswarninginterventions']
+                      'careereiswarninginterventions', '1yrextradutyhours', 'careerextradutyhours',
+                      '1yrextradutyneighb1', 'careerextradutyneighb1', '1yrextradutyneighb2',
+                      'careerextradutyneighb2', '1yrneighb1', 'careerneighb1',
+                      '1yrneighb2', 'careerneighb2']
 
 
     used_features = [key for key, val in features.items() if val == True]

@@ -1633,10 +1633,132 @@ class RecentHoursForceTrain(abstract.OfficerFeature):
 #                    ).format(self.tables["si_table"],
 #                             self.start_date, self.end_date)
 
-### Internal Affairs allegations
+## Internal Affairs allegations
 
 class IAHistory(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.name_of_features = ["weight", "height"]
         self.query = ()
+
+## Neighborhood features
+
+neighb_feats1 = ["Population_Density_2013", "Age_of_Residents_2013", "Black_Population_2010", "311_Calls_2013",
+                 "Household_Income_2013", "Employment_Rate_2013", "Vacant_Land_Area_2013", "Voter_Participation_2012",
+                 "Household_Income_Log_2013", "Vacant_Land_Area_Log_2013"]
+neighb_feats2 = ["Age_of_Death_2012", "Housing_Density_2013", "Nuisance_Violations_Total_2013",
+                 "Violent_Crime_Rate_2013", "Property_Crime_Rate_2013",
+                 "Sidewalk_Availability_2013", "Foreclosures_2013", "Disorder_Call_Rate_Log_2013"]
+
+class AvgNeighborhoodFeatures1(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Average neighborhood features where an officer makes their arrests"
+        all_featnames, all_queries = [], []
+        for each_feat in neighb_feats1:
+            this_feature = "avg_{}_{}yr".format(
+            each_feat.lower(), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, avg(\"{}\") as {} "
+            "from (select newid, npa, arrest_date from {}) a "
+            "left join "
+            "(select * from {}) b "
+            "on a.npa = b.\"NPA\" "
+            "where arrest_date <= '{}'::date "
+            "and arrest_date >= '{}'::date "
+            "group by newid").format(each_feat, this_feature,
+            tables["arrest_charges_table"], tables["city_neigh_1"],
+            self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class AvgNeighborhoodFeatures2(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Average neighborhood features where an officer makes their arrests"
+        all_featnames, all_queries = [], []
+        for each_feat in neighb_feats2:
+            this_feature = "avg_{}_{}yr".format(
+            each_feat.lower(), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, avg(\"{}\") as {} "
+            "from (select newid, npa, arrest_date from {}) a "
+            "left join "
+            "(select * from {}) b "
+            "on a.npa = b.\"NPA\" "
+            "where arrest_date <= '{}'::date "
+            "and arrest_date >= '{}'::date "
+            "group by newid").format(each_feat, this_feature,
+            tables["arrest_charges_table"], tables["city_neigh_2"],
+            self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+### xtraduty
+
+class ExtraDutyNeighborhoodFeatures1(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Average neighborhood features in extra duty areas"
+        all_featnames, all_queries = [], []
+        for each_feat in neighb_feats1:
+            this_feature = "extraduty_avg_{}_{}yr".format(
+            each_feat.lower(), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, avg(\"{}\") as {} "
+            "from (select newid, npa, jobdate from {}) a "
+            "left join "
+            "(select * from {}) b "
+            "on a.npa = b.\"NPA\" "
+            "where jobdate <= '{}'::date "
+            "and jobdate >= '{}'::date "
+            "group by newid").format(each_feat, this_feature,
+            tables["extra_duty_geocoded"], tables["city_neigh_1"],
+            self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class ExtraDutyNeighborhoodFeatures2(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Average neighborhood features in extra duty areas"
+        all_featnames, all_queries = [], []
+        for each_feat in neighb_feats2:
+            this_feature = "extraduty_avg_{}_{}yr".format(
+            each_feat.lower(), ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, avg(\"{}\") as {} "
+            "from (select newid, npa, jobdate from {}) a "
+            "left join "
+            "(select * from {}) b "
+            "on a.npa = b.\"NPA\" "
+            "where jobdate <= '{}'::date "
+            "and jobdate >= '{}'::date "
+            "group by newid").format(each_feat, this_feature,
+            tables["extra_duty_geocoded"], tables["city_neigh_2"],
+            self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
+
+
+class ExtraDutyHours(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Count of extra duty hours worked"
+        self.name_of_features = ["extra_duty_hours_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(extract(hour from corrected_actualendtime - corrected_actualstarttime)) "
+                      "as {}, newid from {} "
+                      "where (corrected_actualendtime - corrected_actualstarttime) > '0' "
+                      "and jobdate <= '{}'::date " 
+                      "and jobdate >= '{}'::date "
+                      "group by newid").format(self.name_of_features[0],
+                      tables["extra_duty_table"],
+                      self.end_date, self.start_date)
+

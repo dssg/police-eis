@@ -33,6 +33,7 @@ features:
     officerage: True  # Age of officers
     officerageathire: True  # Officer age when hired
     maritalstatus: True  # Officer marital status
+
     careerarrests: True  # Career arrests of officer
     numrecentarrests: True  # Number arrests in last year
     careerNPCarrests: True  # Number of no probable cause (NPC) arrests in career
@@ -45,10 +46,12 @@ features:
     arrestratedelta: False  # Arrest rate delta
     arresttimeseries: True  # Arrest time series
     arrestcentroids: False  # Subbeats
+
     careernpccitations: True  # Career NPC citations
     recentnpccitations: True  # Recent NPC citations
     careercitations: True  # Career citations
     recentcitations: True  # Recent citations
+
     numsuicides: True  # Number of suicide incidents for officer in last year
     numjuveniles: True  # Number of incidents involving juveniles for officer in last year
     numdomesticviolence: True  # Number of domestic violence incidents in last year
@@ -59,6 +62,7 @@ features:
     numpersweaps: True # Number of incidents involving hands, feet, teeth used as weapons in last year
     avgagevictims: True  # Average age of victims in last year
     minagevictims: True  # Minimum age of victims in last year
+
     careerficount: True  # Number of field interviews in career
     recentficount: True  # Number of field interviews in last year
     careernontrafficficount: True  # Number of non-traffic field interviews in career
@@ -72,8 +76,10 @@ features:
     avgsuspectagefi: True  # Average age of suspects in field interviews
     avgtimeofdayfi: True  # Average time of day for field interviews
     fitimeseries: True  # Field interviews timeseries
+
     careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
     recentcadstats: False  # Slow # CAD statistics in last year
+
     careerelectivetrain: True  # Number of elective hours of training in career
     recentelectivetrain: True  # Number of elective hours of training in last year
     careerhourstrain: True  # Number of hours of training in career
@@ -94,35 +100,73 @@ features:
     recentforcetrain: True  # Number of hours spent in use of force training in last year
     careermilitarytrain: True  # Number of hours spent in return from military training
     recentmilitarytrain: True  # Number of hours spent in return from military training in last year
+
     careertsuofarr: True  # Number of traffic stops in career where tags were run and then force was used or an arrest was made
     recenttsuofarr: True  # Number of traffic stops in last year where tags were run and then force was used or an arrest was made
     careerforcetraffic: True  # Number of traffic stops in career where force is used
     recentforcetraffic: True  # Number of traffic stops in last year where force is used
     careertsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in career
     recenttsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in last year
+
     careertrafstopresist: True  # Number of traffic stops where physical resistance is encountered in career
     1yrtrafstopresist: True  # Number of traffic stops where physical resistance is encountered in last year
+    3yrtrafstopresist: True  # Number of traffic stops where physical resistance is encountered in last year
+    5yrtrafstopresist: True  # Number of traffic stops where physical resistance is encountered in last year
+
     1yrtrafstopsearch: True  # Traffic stops where search was requested in the last year
+    3yrtrafstopsearch: True  # Traffic stops where search was requested in the last year
+    5yrtrafstopsearch: True  # Traffic stops where search was requested in the last year
     careertrafstopsearch: True  # Traffic stops where search was requested in career
+
     1yrtrafstopsearchreason: True  # Traffic stop search reasons in last year
+    3yrtrafstopsearchreason: True  # Traffic stop search reasons in last year
+    5yrtrafstopsearchreason: True  # Traffic stop search reasons in last year
     careertrafstopsearchreason: True  # Traffic stop search reasons in career
+
     1yrtrafstopruntagreason: True  # Traffic stop run tag reasons in last year
+    3yrtrafstopruntagreason: True  # Traffic stop run tag reasons in last year
+    5yrtrafstopruntagreason: True  # Traffic stop run tag reasons in last year
     careertrafstopruntagreason: True  # Traffic stop run tag reasons in career
+
     1yrtrafstopresult: True  # Traffic stop results in last year
+    3yrtrafstopresult: True  # Traffic stop results in last year
+    5yrtrafstopresult: True  # Traffic stop results in last year
     careertrafstopresult: True   # Traffic stop results in career
+
     1yrtrafstopbyrace: True  # Traffic stops by race in last year
+    3yrtrafstopbyrace: True  # Traffic stops by race in last year
+    5yrtrafstopbyrace: True  # Traffic stops by race in last year
     careertrafstopbyrace: True  # Traffic stops by race in career
+
     1yrtrafstopbygender: True  # Traffic stops by gender in last year
+    3yrtrafstopbygender: True  # Traffic stops by gender in last year
+    5yrtrafstopbygender: True  # Traffic stops by gender in last year
     careertrafstopbygender: True  # Traffic stops by gender in career
+
     trafficstoptimeseries: True  # Time series of traffic stops
+
     1yreiswarnings: True  # EIS warnings in last year
     5yreiswarnings: True  # EIS warnings in last five years
-    careereiswarnings: True  # EIS warnings in first 
+    careereiswarnings: True  # EIS warnings in career
+
     1yreiswarningtypes: True  # Frac of EIS warnings by type in last year
     careereiswarningtypes: True  # Frac of EIS warnings by type in career
+
     1yreiswarninginterventions: True  # Frac of EIS warning interventions by type in last year
     careereiswarninginterventions: True  # Frac of EIS warning interventions by type in career
 
+    1yrextradutyhours: True  # Number of extra duty hours in last year
+    careerextradutyhours: True  # Number of extra duty hours in career
+
+    1yrextradutyneighb1: True  # avg neighborhood features in extra duty hours places in last year
+    careerextradutyneighb1: True  # avg neighborhood features in extra duty hours places in career
+    1yrextradutyneighb2: True  # avg neighborhood features in extra duty hours places in last year
+    careerextradutyneighb2: True  # avg neighborhood features in extra duty hours places in career
+
+    1yrneighb1: True  # avg neighborhood features in where officer made their arrests in last year
+    careerneighb1: True  # avg neighborhood features in where officer made their arrests in career
+    1yrneighb2: True  # avg neighborhood features in where officer made their arrests in last year
+    careerneighb2: True  # avg neighborhood features in where officer made their arrests in career
 
 ########################
 # Model selection      #
