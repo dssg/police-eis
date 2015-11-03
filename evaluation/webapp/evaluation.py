@@ -39,12 +39,71 @@ def plot_normalized_confusion_matrix(labels, predictions):
     return fig
 
 
+def plot_confusion_matrix_at_x_percent(labels, predictions, x_percent):
+
+    cutoff_index = int(len(predictions) * x_percent)
+    cutoff_index = min(cutoff_index, len(predictions) - 1)
+
+    sorted_by_probability = np.sort(predictions)[::-1]
+    cutoff_probability = sorted_by_probability[cutoff_index]
+
+    predictions_binary = np.copy(predictions)
+    predictions_binary[predictions_binary >= cutoff_probability] = 1
+    predictions_binary[predictions_binary < cutoff_probability] = 0
+
+    cm = metrics.confusion_matrix(labels, predictions_binary)
+    np.set_printoptions(precision=2)
+    fig = plt.figure()
+
+    target_names = ["No adverse inc.", "Adverse inc."]
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title("Confusion Matrix")
+    plt.colorbar()
+    tick_marks = np.arange(len(target_names))
+    plt.xticks(tick_marks, target_names, rotation=45)
+    plt.yticks(tick_marks, target_names)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    return fig
+
+
+def plot_normalized_confusion_matrix_at_x_percent(labels, predictions, x_percent):
+
+    cutoff_index = int(len(predictions) * x_percent)
+    cutoff_index = min(cutoff_index, len(predictions) - 1)
+
+    sorted_by_probability = np.sort(predictions)[::-1]
+    cutoff_probability = sorted_by_probability[cutoff_index]
+
+    predictions_binary = np.copy(predictions)
+    predictions_binary[predictions_binary >= cutoff_probability] = 1
+    predictions_binary[predictions_binary < cutoff_probability] = 0
+
+    cm = metrics.confusion_matrix(labels, predictions_binary)
+    np.set_printoptions(precision=2)
+    fig = plt.figure()
+    cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    target_names = ["No adverse inc.", "Adverse inc."]
+    plt.imshow(cm_normalized, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title("Normalized Confusion Matrix")
+    plt.colorbar()
+    tick_marks = np.arange(len(target_names))
+    plt.xticks(tick_marks, target_names, rotation=45)
+    plt.yticks(tick_marks, target_names)
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    return fig
+
+
 def plot_feature_importances(feature_names, feature_importances):
     importances = list(zip(feature_names, list(feature_importances)))
     importances = pd.DataFrame(importances, columns=["Feature", "Importance"])
     importances = importances.set_index("Feature")
     importances = importances.sort(columns="Importance", ascending=False)
-    importances = importances[0:30]
+    importances = importances[0:20]
     with plt.style.context(('ggplot')):
         fig, ax = plt.subplots()
         importances.plot(kind="barh", legend=False, ax=ax)
@@ -69,6 +128,20 @@ def plot_growth(results):
     plt.tight_layout()
     ax.set_ylim(0.5, 1.0)
     return fig
+
+
+def fpr_tpr(labels, predictions, x_percent):
+    cutoff_index = int(len(predictions) * x_percent)
+    cutoff_index = min(cutoff_index, len(predictions) - 1)
+
+    sorted_by_probability = np.sort(predictions)[::-1]
+    cutoff_probability = sorted_by_probability[cutoff_index]
+
+    predictions_binary = np.copy(predictions)
+    predictions_binary[predictions_binary >= cutoff_probability] = 1
+    predictions_binary[predictions_binary < cutoff_probability] = 0
+
+    return metrics.confusion_matrix(labels, predictions_binary)
 
 
 def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01,

@@ -42,10 +42,12 @@
       <div class="row header">
         <div class="col-sm-1">Time</div>
         <div class="col-sm-2">Features</div>
-        <div class="col-sm-2">Training Time Window</div>
-        <div class="col-sm-2">Testing Time Window</div>
+        <div class="col-sm-2">Time Windows</div>
         <div class="col-sm-2">Model</div>
         <div class="col-sm-1">{{score_name}}</div>
+        <div class="col-sm-1">False Positives Top 10/15/20%</div>
+        <div class="col-sm-1">True Positives Top 10/15/20%</div>
+        <div class="col-sm-1">False Negatives Top 10/15/20%</div>
       </div>
     {% for date, date_experiments in experiments %}
       <div class="row date">
@@ -55,10 +57,13 @@
           <div class="row">
             <div class="col-sm-1"><a href="/{{experiment.timestamp.isoformat()}}">{{experiment.timestamp.strftime('%H:%M')}}</a></div>
             <div class="col-sm-2"><span title="{{', '.join(experiment.config.features)}}">{{experiment.config.feature_summary}}</span></div>
-            <div class="col-sm-2">{{experiment.config.train_start_date}} - {{experiment.config.fake_today}}</div>
-            <div class="col-sm-2">{{experiment.config.fake_today}} - {{experiment.config.test_end_date}}</div>
+            <div class="col-sm-2">Train: {{experiment.config.train_start_date}} - {{experiment.config.fake_today}} <br>
+            Test: {{experiment.config.fake_today}} - {{experiment.config.test_end_date}}</div>
             <div class="col-sm-2">{{experiment.config.model}}<br/>{{experiment.config.parameters}} </div>
             <div class="col-sm-1">{{experiment.score|round(2)}}</div>
+            <div class="col-sm-1">{{experiment.fpr}}</div>
+            <div class="col-sm-1">{{experiment.tpr}}</div>
+            <div class="col-sm-1">{{experiment.fnr}}</div>
           </div>
       {% endfor %}
 

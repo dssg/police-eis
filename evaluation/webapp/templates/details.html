@@ -17,7 +17,6 @@
   <body>
 
 
-
     <div class="container">
       <br/>
       <div class="row">
@@ -27,6 +26,16 @@
       <div class="row">
         <div class="col-sm-6"><img src="/{{timestamp}}/precision-recall" height="250"/> </div>
         <div class="col-sm-6"><img src="/{{timestamp}}/precision-cutoff" height="250"/> </div>
+      </div>
+      <div class="row">
+        <div><p>At 10 percent</p></div>
+        <div class="col-sm-6"><img src="/{{timestamp}}/confusion_at_x" height="250"/> </div>
+        <div class="col-sm-6"><img src="/{{timestamp}}/normalized_confusion_at_x" height="250"/> </div>
+      </div>
+      <div class="row">
+        <div><p>At 1 percent</p></div>
+        <div class="col-sm-6"><img src="/{{timestamp}}/top_confusion_at_x" height="250"/> </div>
+        <div class="col-sm-6"><img src="/{{timestamp}}/top_normalized_confusion_at_x" height="250"/> </div>
       </div>
     </div> <!-- /container -->
 

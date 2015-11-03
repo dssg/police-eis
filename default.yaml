@@ -12,7 +12,7 @@ unit: 'officer'  # or 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2009'
+fake_today: '01Jan2013'
 prediction_interval: 365  # days, used for officer-level prediction
 testing_interval_days: 365  # days, used for dispatch-level prediction
 training_interval_days: 1460  # days, used for dispatch-level prediction
@@ -34,34 +34,34 @@ features:
     maritalstatus: True  # Officer marital status
 
     1yrprioralladverse: True  # adverse incidents in past year
-    careerprioralladverse: True  # adverse incidents in career
+    careerprioralladverse: False  # adverse incidents in career
     1yrprioraccident: True  # preventable accidents in last year
-    careerprioraccident: True  # preventable accidents in career
+    careerprioraccident: False  # preventable accidents in career
     1yrnumfilteredadverse: True  # filtered adverse incidents in past year
-    careernumfilteredadverse: True  # filtered adverse incidents in career
+    careernumfilteredadverse: False  # filtered adverse incidents in career
     1yrroccoc: True  # rules of conduct COC violations in last year
-    careerroccoc: True  # rules of conduct COC violations in career
+    careerroccoc: False  # rules of conduct COC violations in career
     1yrrocia: True  # rules of conduct IA violations in last year
-    careerrocia: True  # rules of conduct IA violations in career
+    careerrocia: False  # rules of conduct IA violations in career
     1yrpreventable: True  # number of preventable allegations in last year
-    careerpreventable: True  # number of preventable allegations in career
+    careerpreventable: False  # number of preventable allegations in career
     1yrunjustified: True  # number of unjustified allegations in last year
-    careerunjustified: True  # number of unjustified allegations in career
+    careerunjustified: False  # number of unjustified allegations in career
     1yrsustaincompl: True  # number of sustained complaints in last year
-    careersustaincompl: True  # number of sustained complaints in career
+    careersustaincompl: False  # number of sustained complaints in career
     1yriaconcerns: True  # ia concerns in last year
     careeriaconcerns: True  # ia concerns in career
     1yrinterventions: True  # Number and types of interventions (e.g. counseling, suspensions, etc.) in last year
-    careerinterventions: True  # Number and types of interventions (e.g. counseling, suspensions, etc.) in career
+    careerinterventions: False  # Number and types of interventions (e.g. counseling, suspensions, etc.) in career
     1yrweaponsuse: True  # Weapon types used and frequencies in last year
-    careerweaponsuse: True  # Weapon types used and frequencies in career
+    careerweaponsuse: False  # Weapon types used and frequencies in career
     careeriarate: True  # Rate of IA allegations in career
     1yrdofcounts: True  # DOF type counts in last year
-    careerdofcounts: True  # DOF type counts in career
+    careerdofcounts: False  # DOF type counts in career
     1yrdirectivecounts: True  # Directive violated counts in last year
-    careerdirectivecounts: True  # Directive violated counts in career
+    careerdirectivecounts: False  # Directive violated counts in career
     1yriaeventtypes: True  # IA event types in last year
-    careeriaeventtypes: True  # IA event types in career
+    careeriaeventtypes: False  # IA event types in career
 
     1yrdivisionhistory: True  # Division history in last year
     careerdivisionhistory: True  # Division history in career
@@ -81,9 +81,9 @@ features:
     arresttimeseries: True  # Arrest time series
     arrestcentroids: False  # Subbeats
 
-    careernpccitations: True  # Career NPC citations
+    careernpccitations: False  # Career NPC citations
     1yrnpccitations: True  # Recent NPC citations
-    careercitations: True  # Career citations
+    careercitations: False  # Career citations
     1yrcitations: True  # Recent citations
 
     numsuicides: True  # Number of suicide incidents for officer in last year
@@ -97,11 +97,11 @@ features:
     avgagevictims: True  # Average age of victims in last year
     minagevictims: True  # Minimum age of victims in last year
 
-    careerficount: True  # Number of field interviews in career
+    careerficount: False  # Number of field interviews in career
     recentficount: True  # Number of field interviews in last year
-    careernontrafficficount: True  # Number of non-traffic field interviews in career
+    careernontrafficficount: False  # Number of non-traffic field interviews in career
     recentnontrafficficount: True  # Number of non-traffic field interviews in last year
-    careerhighcrimefi: True  # Number of field interviews in high crime areas in career
+    careerhighcrimefi: False  # Number of field interviews in high crime areas in career
     recenthighcrimefi: True  # Number of field interviews in high crime areas in last year
     1yrloiterfi: True  # Number of field interviews of people loitering without call for service in last year
     careerloiterfi: True  # Number of field interviews of people loitering without call for service in career
@@ -113,6 +113,8 @@ features:
 
     careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
     1yrcadstats: False  # Slow # CAD statistics in last year
+    careercadterms: False  # CAD termination types in career
+    1yrcadterms: False  # CAD termination types in last year
 
     careerelectivetrain: True  # Number of elective hours of training in career
     recentelectivetrain: True  # Number of elective hours of training in last year
@@ -142,7 +144,7 @@ features:
     careertsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in career
     recenttsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in last year
 
-    careertrafstopresist: True  # Number of traffic stops where physical resistance is encountered in career
+    careertrafstopresist: False  # Number of traffic stops where physical resistance is encountered in career
     1yrtrafstopresist: True  # Number of traffic stops where physical resistance is encountered in last year
     3yrtrafstopresist: True  # Number of traffic stops where physical resistance is encountered in last year
     5yrtrafstopresist: True  # Number of traffic stops where physical resistance is encountered in last year
@@ -150,27 +152,27 @@ features:
     1yrtrafstopsearch: True  # Traffic stops where search was requested in the last year
     3yrtrafstopsearch: True  # Traffic stops where search was requested in the last year
     5yrtrafstopsearch: True  # Traffic stops where search was requested in the last year
-    careertrafstopsearch: True  # Traffic stops where search was requested in career
+    careertrafstopsearch: False  # Traffic stops where search was requested in career
 
     1yrtrafstopsearchreason: True  # Traffic stop search reasons in last year
     3yrtrafstopsearchreason: True  # Traffic stop search reasons in last year
     5yrtrafstopsearchreason: True  # Traffic stop search reasons in last year
-    careertrafstopsearchreason: True  # Traffic stop search reasons in career
+    careertrafstopsearchreason: False  # Traffic stop search reasons in career
 
     1yrtrafstopruntagreason: True  # Traffic stop run tag reasons in last year
     3yrtrafstopruntagreason: True  # Traffic stop run tag reasons in last year
     5yrtrafstopruntagreason: True  # Traffic stop run tag reasons in last year
-    careertrafstopruntagreason: True  # Traffic stop run tag reasons in career
+    careertrafstopruntagreason: False  # Traffic stop run tag reasons in career
 
     1yrtrafstopresult: True  # Traffic stop results in last year
     3yrtrafstopresult: True  # Traffic stop results in last year
     5yrtrafstopresult: True  # Traffic stop results in last year
-    careertrafstopresult: True   # Traffic stop results in career
+    careertrafstopresult: False   # Traffic stop results in career
 
     1yrtrafstopbyrace: True  # Traffic stops by race in last year
     3yrtrafstopbyrace: True  # Traffic stops by race in last year
     5yrtrafstopbyrace: True  # Traffic stops by race in last year
-    careertrafstopbyrace: True  # Traffic stops by race in career
+    careertrafstopbyrace: False  # Traffic stops by race in career
 
     1yrtrafstopbygender: True  # Traffic stops by gender in last year
     3yrtrafstopbygender: True  # Traffic stops by gender in last year
@@ -179,15 +181,15 @@ features:
 
     trafficstoptimeseries: True  # Time series of traffic stops
 
-    1yreiswarnings: True  # EIS warnings in last year
-    5yreiswarnings: True  # EIS warnings in last five years
-    careereiswarnings: True  # EIS warnings in career
+    1yreiswarnings: False  # EIS warnings in last year
+    5yreiswarnings: False  # EIS warnings in last five years
+    careereiswarnings: False  # EIS warnings in career
 
-    1yreiswarningtypes: True  # Frac of EIS warnings by type in last year
-    careereiswarningtypes: True  # Frac of EIS warnings by type in career
+    1yreiswarningtypes: False  # Frac of EIS warnings by type in last year
+    careereiswarningtypes: False  # Frac of EIS warnings by type in career
 
-    1yreiswarninginterventions: True  # Frac of EIS warning interventions by type in last year
-    careereiswarninginterventions: True  # Frac of EIS warning interventions by type in career
+    1yreiswarninginterventions: False  # Frac of EIS warning interventions by type in last year
+    careereiswarninginterventions: False  # Frac of EIS warning interventions by type in career
 
     1yrextradutyhours: True  # Number of extra duty hours in last year
     careerextradutyhours: True  # Number of extra duty hours in career

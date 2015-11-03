@@ -181,6 +181,8 @@ def lookup(feature, **kwargs):
                     'fitimeseries': featoff.FITimeseries(**kwargs),
                     'careercadstats': featoff.CADStatistics(**kwargs),
                     '1yrcadstats': featoff.CADStatistics(**kwargs),
+                    'careercadterms': featoff.CountCADTerminationTypes(**kwargs),
+                    '1yrcadterms': featoff.CountCADTerminationTypes(**kwargs),
                     'careerelectivetrain': featoff.CareerElectHoursTrain(**kwargs),
                     'recentelectivetrain': featoff.RecentElectHoursTrain(**kwargs),
                     'careerhourstrain': featoff.CareerHoursTrain(**kwargs),
@@ -449,7 +451,7 @@ def grab_officer_data(features, start_date, end_date, time_bound):
     end_date = end_date.strftime('%Y-%m-%d')
     data = FeatureLoader(start_date, end_date, time_bound)
 
-    officers = data.officer_labeller(accidents=False, noinvest=True)
+    officers = data.officer_labeller(accidents=False, noinvest=False)
     # officers.set_index(["newid"])
 
     dataset = officers

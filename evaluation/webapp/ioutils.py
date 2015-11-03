@@ -8,7 +8,7 @@ from threading import Lock
 
 from flask import abort
 
-from webapp.evaluation import precision_at_x_percent, compute_AUC
+from webapp.evaluation import precision_at_x_percent, compute_AUC, fpr_tpr
 from webapp import config
 
 
@@ -23,7 +23,8 @@ def timestamp_from_path(pkl_path):
     return ts
 
 
-Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data"])
+Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data", 
+                                       "fpr", "tpr", "fnr"])
 
 
 def experiment_summary(pkl_file):
@@ -46,10 +47,17 @@ def experiment_summary(pkl_file):
         data["test_labels"], data["test_predictions"],
         x_percent=0.01)
     auc_model = compute_AUC(data["test_labels"], data["test_predictions"])
+    num_units = len(data["test_labels"])
+    cm_1 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.10)
+    cm_2 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.15)
+    cm_3 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.20)
+    fpr = [cm_1[0, 1], cm_2[0, 1], cm_3[0, 1]]
+    tpr = [cm_1[1, 1], cm_2[1, 1], cm_3[1, 1]]
+    fnr = [cm_1[1, 0], cm_2[1, 0], cm_3[1, 0]]
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config,
                       auc_model,
-                      data)
+                      data, fpr, tpr, fnr)
 
 
 def update_experiments_cache():
@@ -94,7 +102,7 @@ def get_experiments_list():
     update_experiments_cache()
     # risk of dirty reads here because outside of lock
     experiments_copy = [Experiment(e.timestamp, e.config,
-                                   e.score, None) for e in cache.values()]
+                                   e.score, None, e.fpr, e.tpr, e.fnr) for e in cache.values()]
     return experiments_copy
 
 
@@ -153,7 +161,7 @@ def feature_summary(features):
                       '1yrdofcounts', 'careerdofcounts', '1yrdirectivecounts',
                       'careerdirectivecounts', '1yriaeventtypes', 'careeriaeventtypes',
                       '1yrunithistory', 'careerunithistory', '1yrdivisionhistory',
-                      'careerdivisionhistory']
+                      'careerdivisionhistory', '1yrcadterms', 'careercadterms']
 
 
     used_features = [key for key, val in features.items() if val == True]

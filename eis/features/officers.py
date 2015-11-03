@@ -403,11 +403,31 @@ class CADStatistics(abstract.OfficerTimeBoundedFeature):
                       date1=self.end_date, date2=self.start_date)
         self.type_of_imputation = "mean"
 
+termination_types = ["CANCOMM", "FTC", "UNKNOWN", "CANCCOMP", "CANCOFC", "DUPNCAN",
+                     "CANCALRM", "ASSTUNIT", "UL", "CITE_NMV", "CITE_MV", "ACCIDENT", 
+                     "WARNING", "OO/CASE", "MI"]
 
-termination_types = ['CANCOMM', 'FTC', 'UNKNOWN', 'CANCCOMP', 'CANCOFC', 'DUPNCAN',
-              'CANCALRM', 'ASSTUNIT', 'UL', 'CITE_NMV', 'CITE_MV', 'ACCIDENT', 'WARNING', 'OO/CASE',
-              "MI"]
 
+class CountCADTerminationTypes(abstract.OfficerTimeBoundedFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Normalized number of shifts spent in certain divisions"
+        all_featnames, all_queries = [], []
+        for term in termination_types:
+            this_feature = "in_division_{}_{}yr".format(
+            term, ceil(self.feat_time_window/365))
+            all_featnames.append(this_feature)
+            this_query = ("select newid, "
+            "count(case when div='{}' then 1 else null end)::float "
+            "as {} from {} "
+            "WHERE date_add >= '{}'::date "
+            "AND date_add <= '{}'::date "
+            "group by newid").format(term, this_feature,
+            tables["dispatch_table"],
+            self.end_date, self.start_date)
+            all_queries.append(this_query)
+        self.name_of_features = all_featnames
+        self.query = all_queries
 
 ## Former EIS
 
