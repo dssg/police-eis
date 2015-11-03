@@ -25,7 +25,6 @@ loop_over_feature_sets: False  # if set will loop through the features set to Tr
 features:
     height_weight: True  # Height, weight of the officer
     education: True  # Education level of officer
-    ia_history: False  # History of their investigations in IA (e.g. are there safety concerns?)
     yearsexperience: True  # Experience level of officer (number of years)
     daysexperience: True  # Experience level of officer (number of days)
     malefemale: True  # Is officer male or female
@@ -34,12 +33,47 @@ features:
     officerageathire: True  # Officer age when hired
     maritalstatus: True  # Officer marital status
 
+    1yrprioralladverse: True  # adverse incidents in past year
+    careerprioralladverse: True  # adverse incidents in career
+    1yrprioraccident: True  # preventable accidents in last year
+    careerprioraccident: True  # preventable accidents in career
+    1yrnumfilteredadverse: True  # filtered adverse incidents in past year
+    careernumfilteredadverse: True  # filtered adverse incidents in career
+    1yrroccoc: True  # rules of conduct COC violations in last year
+    careerroccoc: True  # rules of conduct COC violations in career
+    1yrrocia: True  # rules of conduct IA violations in last year
+    careerrocia: True  # rules of conduct IA violations in career
+    1yrpreventable: True  # number of preventable allegations in last year
+    careerpreventable: True  # number of preventable allegations in career
+    1yrunjustified: True  # number of unjustified allegations in last year
+    careerunjustified: True  # number of unjustified allegations in career
+    1yrsustaincompl: True  # number of sustained complaints in last year
+    careersustaincompl: True  # number of sustained complaints in career
+    1yriaconcerns: True  # ia concerns in last year
+    careeriaconcerns: True  # ia concerns in career
+    1yrinterventions: True  # Number and types of interventions (e.g. counseling, suspensions, etc.) in last year
+    careerinterventions: True  # Number and types of interventions (e.g. counseling, suspensions, etc.) in career
+    1yrweaponsuse: True  # Weapon types used and frequencies in last year
+    careerweaponsuse: True  # Weapon types used and frequencies in career
+    careeriarate: True  # Rate of IA allegations in career
+    1yrdofcounts: True  # DOF type counts in last year
+    careerdofcounts: True  # DOF type counts in career
+    1yrdirectivecounts: True  # Directive violated counts in last year
+    careerdirectivecounts: True  # Directive violated counts in career
+    1yriaeventtypes: True  # IA event types in last year
+    careeriaeventtypes: True  # IA event types in career
+
+    1yrdivisionhistory: True  # Division history in last year
+    careerdivisionhistory: True  # Division history in career
+    1yrunithistory: True  # Unit type history in last year
+    careerunithistory: True  # Unit type history in career
+
     careerarrests: True  # Career arrests of officer
     numrecentarrests: True  # Number arrests in last year
     careerNPCarrests: True  # Number of no probable cause (NPC) arrests in career
-    recentNPCarrests: True  # Last year number of NPC arrests
+    1yrNPCarrests: True  # Last year number of NPC arrests
     careerdiscarrests: True  # Number of discretionary arrests in career
-    recentdiscarrests: True  # Number of discretionary arrests in last year
+    1yrdiscarrests: True  # Number of discretionary arrests in last year
     arresttod: True  # Average arrest time of day
     arresteeage: True  # Average arrestee age
     disconlyarrests: True  # Number of disconly arrests
@@ -48,9 +82,9 @@ features:
     arrestcentroids: False  # Subbeats
 
     careernpccitations: True  # Career NPC citations
-    recentnpccitations: True  # Recent NPC citations
+    1yrnpccitations: True  # Recent NPC citations
     careercitations: True  # Career citations
-    recentcitations: True  # Recent citations
+    1yrcitations: True  # Recent citations
 
     numsuicides: True  # Number of suicide incidents for officer in last year
     numjuveniles: True  # Number of incidents involving juveniles for officer in last year
@@ -69,7 +103,7 @@ features:
     recentnontrafficficount: True  # Number of non-traffic field interviews in last year
     careerhighcrimefi: True  # Number of field interviews in high crime areas in career
     recenthighcrimefi: True  # Number of field interviews in high crime areas in last year
-    recentloiterfi: True  # Number of field interviews of people loitering without call for service in last year
+    1yrloiterfi: True  # Number of field interviews of people loitering without call for service in last year
     careerloiterfi: True  # Number of field interviews of people loitering without call for service in career
     careerblackfi: True  # Fraction of field interviews where suspects are black
     careerwhitefi: True  # Fraction of field interviews where suspects are white
@@ -78,7 +112,7 @@ features:
     fitimeseries: True  # Field interviews timeseries
 
     careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
-    recentcadstats: False  # Slow # CAD statistics in last year
+    1yrcadstats: False  # Slow # CAD statistics in last year
 
     careerelectivetrain: True  # Number of elective hours of training in career
     recentelectivetrain: True  # Number of elective hours of training in last year

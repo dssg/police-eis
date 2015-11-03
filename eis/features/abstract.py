@@ -29,7 +29,6 @@ class OfficerTimeBoundedFeature(OfficerFeature):
         self.feat_time_window = kwargs["feat_time_window"] * 365
         self.start_date = self.end_date - datetime.timedelta(
             days=self.feat_time_window)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.type_of_imputation = "zero"
 
 

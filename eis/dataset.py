@@ -100,7 +100,39 @@ def lookup(feature, **kwargs):
 
     dict_lookup = {'height_weight': featoff.OfficerHeightWeight(**kwargs),
                     'education': featoff.OfficerEducation(**kwargs),
-                    'ia_history': featoff.IAHistory(**kwargs),
+                    '1yrprioralladverse': featoff.CountPriorAdverse(**kwargs),
+                    'careerprioralladverse': featoff.CountPriorAdverse(**kwargs),
+                    '1yrprioraccident': featoff.CountPriorAccident(**kwargs),
+                    'careerprioraccident': featoff.CountPriorAccident(**kwargs),
+                    '1yrnumfilteredadverse': featoff.CountPriorFilteredAdverse(**kwargs),
+                    'careernumfilteredadverse': featoff.CountPriorFilteredAdverse(**kwargs),
+                    '1yrroccoc': featoff.CountRocCOC(**kwargs),
+                    'careerroccoc': featoff.CountRocCOC(**kwargs),
+                    '1yrrocia': featoff.CountRocIA(**kwargs),
+                    'careerrocia': featoff.CountRocIA(**kwargs),
+                    '1yrpreventable': featoff.CountPreventable(**kwargs),
+                    'careerpreventable': featoff.CountPreventable(**kwargs),
+                    '1yrunjustified': featoff.CountUnjustified(**kwargs),
+                    'careerunjustified': featoff.CountUnjustified(**kwargs),
+                    '1yrsustaincompl': featoff.CountSustainedComplaints(**kwargs),
+                    'careersustaincompl': featoff.CountSustainedComplaints(**kwargs),
+                    '1yriaconcerns': featoff.IAConcerns(**kwargs),
+                    'careeriaconcerns': featoff.IAConcerns(**kwargs),
+                    'careeriarate': featoff.IARate(**kwargs),
+                    '1yrdofcounts': featoff.DOFTypeCounts(**kwargs),
+                    'careerdofcounts': featoff.DOFTypeCounts(**kwargs),
+                    '1yrdirectivecounts': featoff.DirectiveViolCounts(**kwargs),
+                    'careerdirectivecounts': featoff.DirectiveViolCounts(**kwargs),
+                    '1yriaeventtypes': featoff.IAEventTypeCounts(**kwargs),
+                    'careeriaeventtypes': featoff.IAEventTypeCounts(**kwargs),
+                    '1yrinterventions': featoff.SuspensionCounselingTime(**kwargs),
+                    'careerinterventions': featoff.SuspensionCounselingTime(**kwargs),
+                    '1yrweaponsuse': featoff.NormalizedCountsWeaponsUse(**kwargs),
+                    'careerweaponsuse': featoff.NormalizedCountsWeaponsUse(**kwargs),
+                    '1yrunithistory': featoff.CountUnit(**kwargs),
+                    'careerunithistory': featoff.CountUnit(**kwargs),
+                    '1yrdivisionhistory': featoff.CountDivision(**kwargs),
+                    'careerdivisionhistory': featoff.CountDivision(**kwargs),
                     'yearsexperience': featoff.OfficerYrsExperience(**kwargs),
                     'daysexperience': featoff.OfficerDaysExperience(**kwargs),
                     'malefemale': featoff.OfficerMaleFemale(**kwargs),
@@ -110,20 +142,20 @@ def lookup(feature, **kwargs):
                     'maritalstatus': featoff.OfficerMaritalStatus(**kwargs),
                     'careerarrests': featoff.OfficerCareerArrests(**kwargs),
                     'numrecentarrests': featoff.NumRecentArrests(**kwargs),
-                    'careerNPCarrests': featoff.CareerNPCArrests(**kwargs),
-                    'recentNPCarrests': featoff.RecentNPCArrests(**kwargs),
-                    'careerdiscarrests': featoff.CareerDiscArrests(**kwargs),
-                    'recentdiscarrests': featoff.RecentDiscArrests(**kwargs),
+                    'careerNPCarrests': featoff.NPCArrests(**kwargs),
+                    '1yrNPCarrests': featoff.NPCArrests(**kwargs),
+                    'careerdiscarrests': featoff.DiscArrests(**kwargs),
+                    '1yrdiscarrests': featoff.DiscArrests(**kwargs),
                     'arresttod': featoff.OfficerAvgTimeOfDayArrests(**kwargs),
                     'arresteeage': featoff.OfficerAvgAgeArrests(**kwargs),
                     'disconlyarrests': featoff.DiscOnlyArrestsCount(**kwargs),
                     'arrestratedelta': featoff.ArrestRateDelta(**kwargs),
                     'arresttimeseries': featoff.OfficerArrestTimeSeries(**kwargs),
                     'arrestcentroids': featoff.ArrestCentroids(**kwargs),
-                    'careernpccitations': featoff.CareerNPCCitations(**kwargs),
-                    'recentnpccitations': featoff.RecentNPCCitations(**kwargs),
-                    'careercitations': featoff.CareerCitations(**kwargs),
-                    'recentcitations': featoff.RecentCitations(**kwargs),
+                    'careernpccitations': featoff.NPCCitations(**kwargs),
+                    '1yrnpccitations': featoff.NPCCitations(**kwargs),
+                    'careercitations': featoff.Citations(**kwargs),
+                    '1yrcitations': featoff.Citations(**kwargs),
                     'numsuicides': featoff.YearNumSuicides(**kwargs),
                     'numjuveniles': featoff.YearNumJuvenileVictim(**kwargs),
                     'numdomesticviolence': featoff.YearNumDomesticViolence(**kwargs),
@@ -140,15 +172,15 @@ def lookup(feature, **kwargs):
                     'recentnontrafficficount': featoff.RecentNonTrafficFICount(**kwargs),
                     'careerhighcrimefi': featoff.CareerHighCrimeAreaFI(**kwargs),
                     'recenthighcrimefi': featoff.RecentHighCrimeAreaFI(**kwargs),
-                    'recentloiterfi': featoff.RecentLoiterFI(**kwargs),
-                    'careerloiterfi': featoff.CareerLoiterFI(**kwargs),
+                    '1yrloiterfi': featoff.LoiterFI(**kwargs),
+                    'careerloiterfi': featoff.LoiterFI(**kwargs),
                     'careerblackfi': featoff.CareerBlackFI(**kwargs),
                     'careerwhitefi': featoff.CareerWhiteFI(**kwargs),
                     'avgsuspectagefi': featoff.FIAvgSuspectAge(**kwargs),
                     'avgtimeofdayfi': featoff.FIAvgTimeOfDay(**kwargs),
                     'fitimeseries': featoff.FITimeseries(**kwargs),
-                    'careercadstats': featoff.CareerCADStatistics(**kwargs),
-                    'recentcadstats': featoff.RecentCADStatistics(**kwargs),
+                    'careercadstats': featoff.CADStatistics(**kwargs),
+                    '1yrcadstats': featoff.CADStatistics(**kwargs),
                     'careerelectivetrain': featoff.CareerElectHoursTrain(**kwargs),
                     'recentelectivetrain': featoff.RecentElectHoursTrain(**kwargs),
                     'careerhourstrain': featoff.CareerHoursTrain(**kwargs),
@@ -253,10 +285,16 @@ class FeatureLoader():
         self.tables = config  # Dict of tables
         self.schema = config['schema']
 
-    def officer_labeller(self):
+    def officer_labeller(self, accidents, noinvest):
         """
         Load the IDs for a set of officers investigated between
         two dates and the outcomes
+
+        Inputs:
+        accidents: Bool representing if accidents should be included
+        noinvest: Bool representing how officers with no investigations 
+        should be treated - True means they are included as "0", False means they
+        are excluded
 
         Returns:
         labels: pandas dataframe with two columns:
@@ -265,31 +303,42 @@ class FeatureLoader():
 
         log.info("Loading labels...")
 
-        qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
-                  "WHERE dateoccured >= '{}'::date "
-                  "AND dateoccured <= '{}'::date "
-                  "group by newid "
-                  ).format(self.tables["si_table"],
-                           self.start_date, self.end_date)
+        if noinvest == True:
+            qinvest = "SELECT newid from {}".format(self.tables["active_officers"])
+        else:
+            qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
+                      "WHERE dateoccured >= '{}'::date "
+                      "AND dateoccured <= '{}'::date "
+                      "group by newid "
+                      ).format(self.tables["si_table"],
+                               self.start_date, self.end_date)
 
-        qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
-                    "WHERE adverse_by_ourdef = 1 "
-                    "AND dateoccured >= '{}'::date "
-                    "AND dateoccured <= '{}'::date "
-                    "group by newid "
-                    ).format(self.tables["si_table"],
-                             self.start_date, self.end_date)
+        if accidents == False:
+            qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
+                        "WHERE adverse_by_ourdef = 1 "
+                        "AND eventtype != 'Accident' "
+                        "AND dateoccured >= '{}'::date "
+                        "AND dateoccured <= '{}'::date "
+                        "group by newid "
+                        ).format(self.tables["si_table"],
+                                 self.start_date, self.end_date)
+        else:     
+            qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
+                        "WHERE adverse_by_ourdef = 1 "
+                        "AND dateoccured >= '{}'::date "
+                        "AND dateoccured <= '{}'::date "
+                        "group by newid "
+                        ).format(self.tables["si_table"],
+                                 self.start_date, self.end_date)
 
         invest = pd.read_sql(qinvest, con=self.con)
         adverse = pd.read_sql(qadverse, con=self.con)
         adverse["adverse_by_ourdef"] = 1
         adverse = adverse.drop(["count"], axis=1)
-        invest = invest.drop(["count"], axis=1)
+        if noinvest == False:
+            invest = invest.drop(["count"], axis=1)
         outcomes = adverse.merge(invest, how='right', on='newid')
         outcomes = outcomes.fillna(0)
-
-        # Now also label those not sampled
-        noinvest = ""
 
         # labels = labels.set_index(["newid"])
 
@@ -400,7 +449,7 @@ def grab_officer_data(features, start_date, end_date, time_bound):
     end_date = end_date.strftime('%Y-%m-%d')
     data = FeatureLoader(start_date, end_date, time_bound)
 
-    officers = data.officer_labeller()
+    officers = data.officer_labeller(accidents=False, noinvest=True)
     # officers.set_index(["newid"])
 
     dataset = officers
