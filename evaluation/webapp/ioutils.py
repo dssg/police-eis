@@ -9,6 +9,7 @@ from threading import Lock
 from flask import abort
 
 from webapp.evaluation import precision_at_x_percent, compute_AUC, fpr_tpr
+from webapp.evaluation import recall_at_x_percent
 from webapp import config
 
 
@@ -54,6 +55,16 @@ def experiment_summary(pkl_file):
     fpr = [cm_1[0, 1], cm_2[0, 1], cm_3[0, 1]]
     tpr = [cm_1[1, 1], cm_2[1, 1], cm_3[1, 1]]
     fnr = [cm_1[1, 0], cm_2[1, 0], cm_3[1, 0]]
+    #rec_1 = recall_at_x_percent(
+    #    data["test_labels"], data["test_predictions"],
+    #    x_percent=0.10)
+    #rec_2 = recall_at_x_percent(
+    #    data["test_labels"], data["test_predictions"],
+    #    x_percent=0.15)
+    #rec_3 = recall_at_x_percent(
+    #    data["test_labels"], data["test_predictions"],
+    #    x_percent=0.20)
+    #recall = [rec_1, rec_2, rec_3]
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config,
                       auc_model,
@@ -118,21 +129,21 @@ def feature_summary(features):
                       'numsuicides', 'numjuveniles', 'numdomesticviolence',
                       'numhate', 'numnarcotics', 'numgang', 'numpersweaps',
                       'numgunknife', 'avgagevictims', 'minagevictims',
-                      'careerficount', 'recentficount', 'careernontrafficficount',
-                      'recentnontrafficficount', 'careerhighcrimefi',
-                      'recenthighcrimefi', '1yrloiterfi', 'careerloiterfi',
+                      'careerficount', '1yrficount', 'careernontrafficficount',
+                      '1yrnontrafficficount', 'careerhighcrimefi',
+                      '1yrhighcrimefi', '1yrloiterfi', 'careerloiterfi',
                       'careerblackfi', 'careerwhitefi', 'avgsuspectagefi',
                       'avgtimeofdayfi', 'fitimeseries', 'careercadstats',
-                      '1yrcadstats', 'careerelectivetrain', 'recentelectivetrain',
-                      'careerhourstrain', 'recenthourstrain', 'careerworkouthours',
-                      'recentworkouthours', 'careerrochours', 'recentrochours',
-                      'careerproftrain', 'recentproftrain', 'careerdomvioltrain',
-                      'recentdomvioltrain', 'careermilitarytrain', 'recentmilitarytrain',
-                      'careertasertrain', 'recenttasertrain', 'careerbiastrain',
-                      'recentbiastrain', 'careerforcetrain', 'recentforcetrain',
-                      'careertsuofarr', 'recenttsuofarr', 'careerforcetraffic',
-                      'recentforcetraffic', 'careertsblackdaynight',
-                      'recenttsblackdaynight', 'careertrafstopresist', '1yrtrafstopresist',
+                      '1yrcadstats', 'careerelectivetrain', '1yrelectivetrain',
+                      'careerhourstrain', '1yrhourstrain', 'careerworkouthours',
+                      '1yrworkouthours', 'careerrochours', '1yrrochours',
+                      'careerproftrain', '1yrproftrain', 'careerdomvioltrain',
+                      '1yrdomvioltrain', 'careermilitarytrain', '1yrmilitarytrain',
+                      'careertasertrain', '1yrtasertrain', 'careerbiastrain',
+                      '1yrbiastrain', 'careerforcetrain', '1yrforcetrain',
+                      'careertsuofarr', '1yrtsuofarr', 'careerforcetraffic',
+                      '1yrforcetraffic', 'careertsblackdaynight',
+                      '1yrtsblackdaynight', 'careertrafstopresist', '1yrtrafstopresist',
                       '3yrtrafstopresist', '5yrtrafstopresist',
                       '1yrtrafstopsearch', '3yrtrafstopsearch', 
                       '5yrtrafstopsearch', 'careertrafstopsearch', '1yrtrafstopsearchreason',
@@ -161,7 +172,8 @@ def feature_summary(features):
                       '1yrdofcounts', 'careerdofcounts', '1yrdirectivecounts',
                       'careerdirectivecounts', '1yriaeventtypes', 'careeriaeventtypes',
                       '1yrunithistory', 'careerunithistory', '1yrdivisionhistory',
-                      'careerdivisionhistory', '1yrcadterms', 'careercadterms']
+                      'careerdivisionhistory', '1yrcadterms', 'careercadterms',
+                      'careertrafficstopnum', '1yrtrafficstopnum']
 
 
     used_features = [key for key, val in features.items() if val == True]

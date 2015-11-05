@@ -12,8 +12,8 @@ unit: 'officer'  # or 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2013'
-prediction_interval: 365  # days, used for officer-level prediction
+fake_today: '01Jan2009'
+prediction_interval: 730  # days, used for officer-level prediction
 testing_interval_days: 365  # days, used for dispatch-level prediction
 training_interval_days: 1460  # days, used for dispatch-level prediction
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
@@ -98,11 +98,11 @@ features:
     minagevictims: True  # Minimum age of victims in last year
 
     careerficount: False  # Number of field interviews in career
-    recentficount: True  # Number of field interviews in last year
+    1yrficount: True  # Number of field interviews in last year
     careernontrafficficount: False  # Number of non-traffic field interviews in career
-    recentnontrafficficount: True  # Number of non-traffic field interviews in last year
+    1yrnontrafficficount: True  # Number of non-traffic field interviews in last year
     careerhighcrimefi: False  # Number of field interviews in high crime areas in career
-    recenthighcrimefi: True  # Number of field interviews in high crime areas in last year
+    1yrhighcrimefi: True  # Number of field interviews in high crime areas in last year
     1yrloiterfi: True  # Number of field interviews of people loitering without call for service in last year
     careerloiterfi: True  # Number of field interviews of people loitering without call for service in career
     careerblackfi: True  # Fraction of field interviews where suspects are black
@@ -117,32 +117,35 @@ features:
     1yrcadterms: False  # CAD termination types in last year
 
     careerelectivetrain: True  # Number of elective hours of training in career
-    recentelectivetrain: True  # Number of elective hours of training in last year
+    1yrelectivetrain: True  # Number of elective hours of training in last year
     careerhourstrain: True  # Number of hours of training in career
-    recenthourstrain: True  # Number of hours of training in last year
+    1yrhourstrain: True  # Number of hours of training in last year
     careerworkouthours: True  # Number of hours working out in career
-    recentworkouthours: True  # Number of hours working out in last year
+    1yrworkouthours: True  # Number of hours working out in last year
     careerrochours: True  # Number of hours in rules of conduct training in career
-    recentrochours: True  # Number of hours in rules of conduct training in last year
+    1yrrochours: True  # Number of hours in rules of conduct training in last year
     careerproftrain: True  # Number of hours in profiling training in career
-    recentproftrain: True  # Number of hours in profiling training in last year
+    1yrproftrain: True  # Number of hours in profiling training in last year
     careerdomvioltrain: True  # Number of hours of domestic violence training in career
-    recentdomvioltrain: True  # Number of hours of domestic violence training in last year
+    1yrdomvioltrain: True  # Number of hours of domestic violence training in last year
     careertasertrain: True  # Number of hours spent training with Tasers in career
-    recenttasertrain: True  # Number of hours spent training with Tasers in last year
+    1yrtasertrain: True  # Number of hours spent training with Tasers in last year
     careerbiastrain: True  # Number of hours spent in bias training in career
-    recentbiastrain: True  # Number of hours spent in bias training in last year
+    1yrbiastrain: True  # Number of hours spent in bias training in last year
     careerforcetrain: True  # Number of hours spent in use of force training in career
-    recentforcetrain: True  # Number of hours spent in use of force training in last year
+    1yrforcetrain: True  # Number of hours spent in use of force training in last year
     careermilitarytrain: True  # Number of hours spent in return from military training
-    recentmilitarytrain: True  # Number of hours spent in return from military training in last year
+    1yrmilitarytrain: True  # Number of hours spent in return from military training in last year
 
     careertsuofarr: True  # Number of traffic stops in career where tags were run and then force was used or an arrest was made
-    recenttsuofarr: True  # Number of traffic stops in last year where tags were run and then force was used or an arrest was made
+    1yrtsuofarr: True  # Number of traffic stops in last year where tags were run and then force was used or an arrest was made
     careerforcetraffic: True  # Number of traffic stops in career where force is used
-    recentforcetraffic: True  # Number of traffic stops in last year where force is used
+    1yrforcetraffic: True  # Number of traffic stops in last year where force is used
     careertsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in career
-    recenttsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in last year
+    1yrtsblackdaynight: True  # Ratio of traffic stops of black people in day vs night in last year
+
+    careertrafficstopnum: True  # Number of traffic stops overall in career
+    1yrtrafficstopnum: True  # Number of traffic stops in last year
 
     careertrafstopresist: False  # Number of traffic stops where physical resistance is encountered in career
     1yrtrafstopresist: True  # Number of traffic stops where physical resistance is encountered in last year

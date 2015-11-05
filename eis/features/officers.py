@@ -557,88 +557,53 @@ class EISInterventionByTypeCount(abstract.OfficerTimeBoundedFeature):
 
 ## Field interviews
 
-class CareerFICount(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of field interviews in career"
-        self.name_of_features = ["career_fi_count"]
-        self.query = ("select count(*) as all_fi_count, newid "
-                      "from {} "
-                      "where corrected_interview_date <= '{}'::date "
-                      " group by newid").format(
-                      tables["field_int_table"],
-                      self.end_date)
 
-
-class RecentFICount(abstract.OfficerFeature):
+class FICount(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of field interviews in last year"
-        self.name_of_features = ["recent_fi_count"]
-        self.query = ("select count(*) as recent_fi_count, newid "
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of field interviews"
+        self.name_of_features = ["fi_count_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select count(*) as {}, newid "
                       "from {} "
                       "where corrected_interview_date <= '{}'::date "
                       "and corrected_interview_date >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["field_int_table"],
                       self.end_date, self.start_date)
 
 
-class CareerNonTrafficFICount(abstract.OfficerFeature):
+class NonTrafficFICount(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of non-traffic field interviews in career"
-        self.name_of_features = ["career_fi_nontraffic_count"]
-        self.query = ("select count(*) as career_fi_count_nontraffic, newid "
-                      "from {} where traffic_stop_yn = 'N' "
-                      "and corrected_interview_date <= '{}'::date "
-                      " group by newid").format(
-                      tables["field_int_table"],
-                      self.end_date)
-
-
-class RecentNonTrafficFICount(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of non-traffic field interviews in last year"
-        self.name_of_features = ["recent_fi_nontraffic_count"]
-        self.query = ("select count(*) as recent_fi_count_nontraffic, newid "
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of non-traffic field interviews"
+        self.name_of_features = ["fi_nontraffic_count_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select count(*) as {}, newid "
                       "from {} where traffic_stop_yn = 'N' "
                       "and corrected_interview_date <= '{}'::date "
                       "and corrected_interview_date >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["field_int_table"],
                       self.end_date, self.start_date)
 
 
-class RecentHighCrimeAreaFI(abstract.OfficerFeature):
+class HighCrimeAreaFI(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of field interviews in last year in high crime area"
-        self.name_of_features = ["recent_fi_highcrime_count"]
-        self.query = ("select count(*) as recent_fi_count_highcrime, newid "
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of field interviews in high crime area"
+        self.name_of_features = ["fi_highcrime_count_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select count(*) as {}, newid "
                       "from {} where narrative like '%high crime area%' "
                       "and corrected_interview_date <= '{}'::date "
                       "and corrected_interview_date >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["field_int_table"],
                       self.end_date, self.start_date)
-
-
-class CareerHighCrimeAreaFI(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of field interviews in career in high crime area"
-        self.name_of_features = ["career_fi_highcrime_count"]
-        self.query = ("select count(*) as career_fi_count_highcrime, newid "
-                      "from {} where narrative like '%high crime area%' "
-                      "and corrected_interview_date <= '{}'::date "
-                      " group by newid").format(
-                      tables["field_int_table"],
-                      self.end_date)
 
 
 loiter_sleep_sit = """ (narrative like '%loiter%' or narrative like '%sleep%'
@@ -1064,130 +1029,74 @@ class TrafficStopTimeSeries(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class CareerNumTrafficStops(abstract.OfficerFeature):
+class NumTrafficStops(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of traffic stops in career"
-        self.name_of_features = ["career_num_traffic_stops"]
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description =  "Number of traffic stops"
+        self.name_of_features = ["num_traffic_stops_{}yr".format(
+            ceil(self.feat_time_window/365)))]
         self.query = ("select newid, count(distinct inc_key) as "
-                      "career_trf_count from {} "
-                      "and date_time_action <= '{}'::date "
-                      " group by newid").format(
-                      tables["stops_table"],
-                      self.end_date)
-
-
-class RecentNumTrafficStops(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description =  "Number of traffic stops in last year"
-        self.name_of_features = ["recent_num_traffic_stops"]
-        self.query = ("select newid, count(distinct inc_key) as "
-                      "recent_trf_count from {} "
+                      "{} from {} "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
 
 
-class CareerNumTStopRunTagUOFOrArrest(abstract.OfficerFeature):
+class NumTStopRunTagUOFOrArrest(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description =  ("Number of traffic stops in career where the tag was "
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description =  ("Number of traffic stops where the tag was "
                             "run and then force was used or an arrest was made")
-        self.name_of_features = ["career_num_traffic_stops"]
-        self.query = ("select newid, count(*) as career_ts_uof_or_arrest "
-                      "from {} where run_tag='Y' and (uof='Y' or "
-                      "arrest_driver='Y' or arrest_pass='Y') "
-                      "and date_time_action <= '{}'::date "
-                      " group by newid").format(
-                      tables["stops_table"],
-                      self.end_date)
-
-
-class RecentNumTStopRunTagUOFOrArrest(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description =  ("Number of traffic stops in last year where the tag was "
-                            "run and then force was used or an arrest was made")
-        self.name_of_features = ["recent_num_traffic_stops"]
-        self.query = ("select newid, count(*) as recent_ts_uof_or_arrest "
+        self.name_of_features = ["num_traffic_stops_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select newid, count(*) as {} "
                       "from {} where run_tag='Y' and (uof='Y' or "
                       "arrest_driver='Y' or arrest_pass='Y') "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
 
 
-class CareerNumTrafficStopsForce(abstract.OfficerFeature):
+class NumTrafficStopsForce(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of traffic stops in career where force is used"
-        self.name_of_features = ["career_num_traffic_stops_uof"]
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description =  "Number of traffic stops where force is used"
+        self.name_of_features = ["num_traffic_stops_uof_{}yr".format(
+            ceil(self.feat_time_window/365))]
         self.query = ("select newid, count(distinct inc_key) as "
-                      "career_trf_uof_count from {} where uof='Y' "
-                      "and date_time_action <= '{}'::date "
-                      " group by newid").format(
-                      tables["stops_table"],
-                      self.end_date)
-
-
-class RecentNumTrafficStopsForce(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description =  "Number of traffic stops in last year where force is used"
-        self.name_of_features = ["recent_num_traffic_stops_uof"]
-        self.query = ("select newid, count(distinct inc_key) as "
-                      "recent_trf_uof_count from {} where uof='Y' "
+                      "{} from {} where uof='Y' "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
 
 
-class CareerTSPercBlackDayNight(abstract.OfficerFeature):
+class TSPercBlackDayNight(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Ratio of times officer stops a black person at night vs during the day in career"
-        self.name_of_features = ["career_ratio_bl_night_day"]
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Ratio of times officer stops a black person at night vs during the day"
+        self.name_of_features = ["ratio_bl_night_day_{}yr".format(
+            ceil(self.feat_time_window/365)))]
         self.query = ("select newid, "
                       "(SUM(CASE WHEN (extract(hour from date_time_action) "
                       "> 21 or extract(hour from date_time_action) < 5 ) "
                       "then 1 else 0 end )+1)::float/ "
                       "(SUM(CASE WHEN (extract(hour from date_time_action) "
                       "> 21 or extract(hour from date_time_action) < 5 ) "
-                      "then 0 else 1 end )+1) as career_ratio_bl_night_day "
-                      "from {} where race='B' "
-                      "and date_time_action <= '{}'::date "
-                      "group by newid").format(
-                      tables["stops_table"],
-                      self.end_date)
-
-
-class RecentTSPercBlackDayNight(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Ratio of times officer stops a black person at night vs during the day in last year"
-        self.name_of_features = ["recent_ratio_bl_night_day"]
-        self.query = ("select newid, "
-                      "(SUM(CASE WHEN (extract(hour from date_time_action) "
-                      "> 21 or extract(hour from date_time_action) < 5 ) "
-                      "then 1 else 0 end )+1)::float/ "
-                      "(SUM(CASE WHEN (extract(hour from date_time_action) "
-                      "> 21 or extract(hour from date_time_action) < 5 ) "
-                      "then 0 else 1 end )+1) as recent_ratio_bl_night_day "
+                      "then 0 else 1 end )+1) as {} "
                       "from {} where race='B' "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
                       "group by newid").format(
+                      self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
 
@@ -1242,300 +1151,172 @@ class NumTrafficStopsResist(abstract.OfficerTimeBoundedFeature):
 
 ## Training
 
-class CareerElectHoursTrain(abstract.OfficerFeature):
+
+class ElectHoursTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of elective hours of training"
-        self.name_of_features = ["career_elect_hrs_train"]
-        self.query = ("select sum(credit_hrs) as career_elec_training_hrs,"
-                      "newid from {} where rtyp_id = 'ELECTIVE' "
-                      "and compl_dte <= '{}'::date "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentElectHoursTrain(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of elective hours of training in last year"
-        self.name_of_features = ["recent_elect_hrs_train"]
-        self.query = ("select sum(credit_hrs) as recent_elec_training_hrs,"
+        self.name_of_features = ["elect_hrs_train_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} where rtyp_id = 'ELECTIVE' "
                       "and compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursTrain(abstract.OfficerFeature):
+class HoursTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours of training in career"
-        self.name_of_features = ["career_hrs_train"]
-        self.query = ("select sum(credit_hrs) as career_training_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursTrain(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours of training in last year"
-        self.name_of_features = ["recent_hrs_train"]
-        self.query = ("select sum(credit_hrs) as recent_training_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours of training"
+        self.name_of_features = ["hrs_train_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursPhysFit(abstract.OfficerFeature):
+class HoursPhysFit(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours working out in career"
-        self.name_of_features = ["career_hrs_physfit"]
-        self.query = ("select sum(credit_hrs) as career_workout_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      "and cpnt_typ_id = 'PHYS TEST' "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursPhysFit(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours working out in last year"
-        self.name_of_features = ["recent_hrs_physfit"]
-        self.query = ("select sum(credit_hrs) as recent_workout_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours working out"
+        self.name_of_features = ["hrs_physfit_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_typ_id = 'PHYS TEST' "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursROCTrain(abstract.OfficerFeature):
+class HoursROCTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours in Rules of Conduct training in career"
-        self.name_of_features = ["career_hrs_roc"]
-        self.query = ("select sum(credit_hrs) as career_roc_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      "and cpnt_id like '%Rules of Conduct%' "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursROCTrain(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours in Rules of Conduct training in last year"
-        self.name_of_features = ["recent_hrs_roc"]
-        self.query = ("select sum(credit_hrs) as recent_roc_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours in Rules of Conduct training"
+        self.name_of_features = ["hrs_roc_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Rules of Conduct%' "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursProfTrain(abstract.OfficerFeature):
+class HoursProfTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours in profiling training in career"
-        self.name_of_features = ["career_hrs_proftrain"]
-        self.query = ("select sum(credit_hrs) as career_proftrain_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      "and cpnt_id like '%Profil%' "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursProfTrain(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours in profiling training in last year"
-        self.name_of_features = ["recent_hrs_proftrain"]
-        self.query = ("select sum(credit_hrs) as recent_proftrain_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours in profiling training"
+        self.name_of_features = ["hrs_proftrain_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Profil%' "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursDomViolTrain(abstract.OfficerFeature):
+class HoursDomViolTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours in domestic violence training in career"
-        self.name_of_features = ["career_hrs_proftrain"]
-        self.query = ("select sum(credit_hrs) as career_domvioltrain_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      "and cpnt_id like '%DOMESTIC_VIOLENCE%' "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursDomViolTrain(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours in domestic violence training in last year"
-        self.name_of_features = ["recent_hrs_domestic_violence_train"]
-        self.query = ("select sum(credit_hrs) as recent_domvioltrain_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours in domestic violence training"
+        self.name_of_features = ["hrs_domestic_violence_train_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%DOMESTIC_VIOLENCE%' "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursMilitaryReturn(abstract.OfficerFeature):
+class HoursMilitaryReturn(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours in military training in career"
-        self.name_of_features = ["career_hrs_military_train"]
-        self.query = ("select sum(credit_hrs) as career_military_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      "and cpnt_id like '%ilitary%' "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursMilitaryReturn(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours in military training in last year"
-        self.name_of_features = ["recent_hrs_military_train"]
-        self.query = ("select sum(credit_hrs) as recent_military_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours in military training"
+        self.name_of_features = ["hrs_military_train".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%ilitary%' "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursTaserTrain(abstract.OfficerFeature):
+class HoursTaserTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours in taser training in career"
-        self.name_of_features = ["career_hrs_taser_train"]
-        self.query = ("select sum(credit_hrs) as career_taser_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      "and cpnt_id like '%Taser%' "
-                      "or cpnt_id like '%TASER%'"
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursTaserTrain(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours in taser training in last year"
-        self.name_of_features = ["recent_hrs_taser_train"]
-        self.query = ("select sum(credit_hrs) as recent_taser_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours in taser training"
+        self.name_of_features = ["hrs_taser_train".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Taser%' "
                       "or cpnt_id like '%TASER%'"
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursBiasTrain(abstract.OfficerFeature):
+class HoursBiasTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours in bias training in career"
-        self.name_of_features = ["career_hrs_bias_train"]
-        self.query = ("select sum(credit_hrs) as career_bias_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      "and cpnt_id like '%Bias%' "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursBiasTrain(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours in bias training in last year"
-        self.name_of_features = ["recent_hrs_bias_train"]
-        self.query = ("select sum(credit_hrs) as recent_bias_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours in bias training"
+        self.name_of_features = ["hrs_bias_train_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Bias%' "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-class CareerHoursForceTrain(abstract.OfficerFeature):
+class HoursForceTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of hours in use of force training in career"
-        self.name_of_features = ["career_hrs_force_train"]
-        self.query = ("select sum(credit_hrs) as career_force_hrs,"
-                      "newid from {} "
-                      "where compl_dte <= '{}'::date "
-                      "and cpnt_id like '%Force%' "
-                      " group by newid").format(
-                      tables["plateau_table"],
-                      self.end_date)
-
-
-class RecentHoursForceTrain(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.description = "Number of hours in use of force training in last year"
-        self.name_of_features = ["recent_hrs_force_train"]
-        self.query = ("select sum(credit_hrs) as recent_force_hrs,"
+        abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
+        self.description = "Number of hours in use of force training"
+        self.name_of_features = ["hrs_force_train_{}yr".format(
+            ceil(self.feat_time_window/365))]
+        self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Force%' "
                       " group by newid").format(
+                      self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
@@ -1907,9 +1688,6 @@ class SuspensionCounselingTime(abstract.OfficerTimeBoundedFeature):
                       "group by newid").format(
                       x=self.name_of_features, table=tables["si_table"],
                       date1=self.start_date, date2=self.end_date)
-
-
-
 
 
 ## Neighborhood features
