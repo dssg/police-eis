@@ -7,8 +7,7 @@ import sys
 import datetime
 
 from eis import setup_environment
-from eis.features import officers as featoff
-
+from eis.features import class_map
 
 log = logging.getLogger(__name__)
 
@@ -76,201 +75,14 @@ def convert_categorical(df):
 
     # Set up new features
     featnames = []
-    if len(categories) == 2:
-        newfeatstr = 'is_' + categories[0]
-        featnames.append(newfeatstr)
-        df[newfeatstr] = df[onecol] == categories[0]
-    else:
-        for i in range(len(categories)):
-            if type(categories[i]) is str:
-                newfeatstr = 'is_' + categories[i]
-                featnames.append(newfeatstr)
-                df[newfeatstr] = df[onecol] == categories[i]
+    for i in range(len(categories)):
+        if type(categories[i]) is str:
+            newfeatstr = 'is_' + categories[i]
+            featnames.append(newfeatstr)
+            df[newfeatstr] = df[onecol] == categories[i]
 
     df = df.drop(onecol, axis=1)
     return df.astype(int), list(df.columns)
-
-
-def lookup(feature, **kwargs):
-
-    if feature[1:3] == "yr":
-        kwargs["feat_time_window"] = int(feature[0])
-    else:
-        kwargs["feat_time_window"] = 15
-
-    dict_lookup = {'height_weight': featoff.OfficerHeightWeight(**kwargs),
-                    'education': featoff.OfficerEducation(**kwargs),
-                    '1yrprioralladverse': featoff.CountPriorAdverse(**kwargs),
-                    'careerprioralladverse': featoff.CountPriorAdverse(**kwargs),
-                    '1yrprioraccident': featoff.CountPriorAccident(**kwargs),
-                    'careerprioraccident': featoff.CountPriorAccident(**kwargs),
-                    '1yrnumfilteredadverse': featoff.CountPriorFilteredAdverse(**kwargs),
-                    'careernumfilteredadverse': featoff.CountPriorFilteredAdverse(**kwargs),
-                    '1yrroccoc': featoff.CountRocCOC(**kwargs),
-                    'careerroccoc': featoff.CountRocCOC(**kwargs),
-                    '1yrrocia': featoff.CountRocIA(**kwargs),
-                    'careerrocia': featoff.CountRocIA(**kwargs),
-                    '1yrpreventable': featoff.CountPreventable(**kwargs),
-                    'careerpreventable': featoff.CountPreventable(**kwargs),
-                    '1yrunjustified': featoff.CountUnjustified(**kwargs),
-                    'careerunjustified': featoff.CountUnjustified(**kwargs),
-                    '1yrsustaincompl': featoff.CountSustainedComplaints(**kwargs),
-                    'careersustaincompl': featoff.CountSustainedComplaints(**kwargs),
-                    '1yriaconcerns': featoff.IAConcerns(**kwargs),
-                    'careeriaconcerns': featoff.IAConcerns(**kwargs),
-                    'careeriarate': featoff.IARate(**kwargs),
-                    '1yrdofcounts': featoff.DOFTypeCounts(**kwargs),
-                    'careerdofcounts': featoff.DOFTypeCounts(**kwargs),
-                    '1yrdirectivecounts': featoff.DirectiveViolCounts(**kwargs),
-                    'careerdirectivecounts': featoff.DirectiveViolCounts(**kwargs),
-                    '1yriaeventtypes': featoff.IAEventTypeCounts(**kwargs),
-                    'careeriaeventtypes': featoff.IAEventTypeCounts(**kwargs),
-                    '1yrinterventions': featoff.SuspensionCounselingTime(**kwargs),
-                    'careerinterventions': featoff.SuspensionCounselingTime(**kwargs),
-                    '1yrweaponsuse': featoff.NormalizedCountsWeaponsUse(**kwargs),
-                    'careerweaponsuse': featoff.NormalizedCountsWeaponsUse(**kwargs),
-                    '1yrunithistory': featoff.CountUnit(**kwargs),
-                    'careerunithistory': featoff.CountUnit(**kwargs),
-                    '1yrdivisionhistory': featoff.CountDivision(**kwargs),
-                    'careerdivisionhistory': featoff.CountDivision(**kwargs),
-                    'yearsexperience': featoff.OfficerYrsExperience(**kwargs),
-                    'daysexperience': featoff.OfficerDaysExperience(**kwargs),
-                    'malefemale': featoff.OfficerMaleFemale(**kwargs),
-                    'race': featoff.OfficerRace(**kwargs),
-                    'officerage': featoff.OfficerAge(**kwargs),
-                    'officerageathire': featoff.OfficerAgeAtHire(**kwargs),
-                    'maritalstatus': featoff.OfficerMaritalStatus(**kwargs),
-                    'careerarrests': featoff.OfficerCareerArrests(**kwargs),
-                    'numrecentarrests': featoff.NumRecentArrests(**kwargs),
-                    'careerNPCarrests': featoff.NPCArrests(**kwargs),
-                    '1yrNPCarrests': featoff.NPCArrests(**kwargs),
-                    'careerdiscarrests': featoff.DiscArrests(**kwargs),
-                    '1yrdiscarrests': featoff.DiscArrests(**kwargs),
-                    'arresttod': featoff.OfficerAvgTimeOfDayArrests(**kwargs),
-                    'arresteeage': featoff.OfficerAvgAgeArrests(**kwargs),
-                    'disconlyarrests': featoff.DiscOnlyArrestsCount(**kwargs),
-                    'arrestratedelta': featoff.ArrestRateDelta(**kwargs),
-                    'arresttimeseries': featoff.OfficerArrestTimeSeries(**kwargs),
-                    'arrestcentroids': featoff.ArrestCentroids(**kwargs),
-                    'careernpccitations': featoff.NPCCitations(**kwargs),
-                    '1yrnpccitations': featoff.NPCCitations(**kwargs),
-                    'careercitations': featoff.Citations(**kwargs),
-                    '1yrcitations': featoff.Citations(**kwargs),
-                    'numsuicides': featoff.YearNumSuicides(**kwargs),
-                    'numjuveniles': featoff.YearNumJuvenileVictim(**kwargs),
-                    'numdomesticviolence': featoff.YearNumDomesticViolence(**kwargs),
-                    'numhate': featoff.YearNumHate(**kwargs),
-                    'numnarcotics': featoff.YearNumNarcotics(**kwargs),
-                    'numgang': featoff.YearNumGang(**kwargs),
-                    'numgunknife': featoff.YearNumGunKnife(**kwargs),
-                    'numpersweaps': featoff.YearNumPersWeaps(**kwargs),
-                    'avgagevictims': featoff.AvgAgeVictims(**kwargs),
-                    'minagevictims': featoff.MinAgeVictims(**kwargs),
-                    'careerficount': featoff.FICount(**kwargs),
-                    '1yrficount': featoff.FICount(**kwargs),
-                    'careernontrafficficount': featoff.NonTrafficFICount(**kwargs),
-                    '1yrnontrafficficount': featoff.NonTrafficFICount(**kwargs),
-                    'careerhighcrimefi': featoff.HighCrimeAreaFI(**kwargs),
-                    '1yrhighcrimefi': featoff.HighCrimeAreaFI(**kwargs),
-                    '1yrloiterfi': featoff.LoiterFI(**kwargs),
-                    'careerloiterfi': featoff.LoiterFI(**kwargs),
-                    'careerblackfi': featoff.CareerBlackFI(**kwargs),
-                    'careerwhitefi': featoff.CareerWhiteFI(**kwargs),
-                    'avgsuspectagefi': featoff.FIAvgSuspectAge(**kwargs),
-                    'avgtimeofdayfi': featoff.FIAvgTimeOfDay(**kwargs),
-                    'fitimeseries': featoff.FITimeseries(**kwargs),
-                    'careercadstats': featoff.CADStatistics(**kwargs),
-                    '1yrcadstats': featoff.CADStatistics(**kwargs),
-                    'careercadterms': featoff.CountCADTerminationTypes(**kwargs),
-                    '1yrcadterms': featoff.CountCADTerminationTypes(**kwargs),
-                    'careerelectivetrain': featoff.ElectHoursTrain(**kwargs),
-                    '1yrelectivetrain': featoff.ElectHoursTrain(**kwargs),
-                    'careerhourstrain': featoff.HoursTrain(**kwargs),
-                    '1yrhourstrain': featoff.HoursTrain(**kwargs),
-                    'careerworkouthours': featoff.HoursPhysFit(**kwargs),
-                    '1yrworkouthours': featoff.HoursPhysFit(**kwargs),
-                    'careerrochours': featoff.HoursROCTrain(**kwargs),
-                    '1yrrochours': featoff.HoursROCTrain(**kwargs),
-                    'careerproftrain': featoff.HoursProfTrain(**kwargs),
-                    '1yrproftrain': featoff.HoursProfTrain(**kwargs),
-                    'careertrafficstopnum': featoff.NumTrafficStops(**kwargs),
-                    '1yrtrafficstopnum': featoff.NumTrafficStops(**kwargs),
-                    'careerdomvioltrain': featoff.HoursDomViolTrain(**kwargs),
-                    '1yrdomvioltrain': featoff.HoursDomViolTrain(**kwargs),
-                    'careermilitarytrain': featoff.HoursMilitaryReturn(**kwargs),
-                    '1yrmilitarytrain': featoff.HoursMilitaryReturn(**kwargs),
-                    'careertasertrain': featoff.HoursTaserTrain(**kwargs),
-                    '1yrtasertrain': featoff.HoursTaserTrain(**kwargs),
-                    'careerbiastrain': featoff.HoursBiasTrain(**kwargs),
-                    '1yrbiastrain': featoff.HoursBiasTrain(**kwargs),
-                    'careerforcetrain': featoff.HoursForceTrain(**kwargs),
-                    '1yrforcetrain': featoff.HoursForceTrain(**kwargs),
-                    'careertsuofarr': featoff.NumTStopRunTagUOFOrArrest(**kwargs),
-                    '1yrtsuofarr': featoff.NumTStopRunTagUOFOrArrest(**kwargs),
-                    'careerforcetraffic': featoff.NumTrafficStopsForce(**kwargs),
-                    '1yrforcetraffic': featoff.NumTrafficStopsForce(**kwargs),
-                    'careertsblackdaynight': featoff.TSPercBlackDayNight(**kwargs),
-                    '1yrtsblackdaynight': featoff.TSPercBlackDayNight(**kwargs),
-                    '1yrtrafstopresist': featoff.NumTrafficStopsResist(**kwargs),
-                    '3yrtrafstopresist': featoff.NumTrafficStopsResist(**kwargs),
-                    '5yrtrafstopresist': featoff.NumTrafficStopsResist(**kwargs),
-                    'careertrafstopresist': featoff.NumTrafficStopsResist(**kwargs),
-                    '1yrtrafstopsearch': featoff.TrafficStopsSearch(**kwargs),
-                    '3yrtrafstopsearch': featoff.TrafficStopsSearch(**kwargs),
-                    '5yrtrafstopsearch': featoff.TrafficStopsSearch(**kwargs),
-                    'careertrafstopsearch': featoff.TrafficStopsSearch(**kwargs),
-                    '1yrtrafstopsearchreason': featoff.TrafficStopSearchReason(**kwargs),
-                    '3yrtrafstopsearchreason': featoff.TrafficStopSearchReason(**kwargs),
-                    '5yrtrafstopsearchreason': featoff.TrafficStopSearchReason(**kwargs),
-                    'careertrafstopsearchreason': featoff.TrafficStopSearchReason(**kwargs),
-                    '1yrtrafstopruntagreason': featoff.TrafficStopRunTagReason(**kwargs),
-                    '3yrtrafstopruntagreason': featoff.TrafficStopRunTagReason(**kwargs),
-                    '5yrtrafstopruntagreason': featoff.TrafficStopRunTagReason(**kwargs),
-                    'careertrafstopruntagreason': featoff.TrafficStopRunTagReason(**kwargs),
-                    '1yrtrafstopresult': featoff.TrafficStopResult(**kwargs),
-                    '3yrtrafstopresult': featoff.TrafficStopResult(**kwargs),
-                    '5yrtrafstopresult': featoff.TrafficStopResult(**kwargs),
-                    'careertrafstopresult': featoff.TrafficStopResult(**kwargs),
-                    '1yrtrafstopbyrace': featoff.TrafficStopFracRace(**kwargs),
-                    '3yrtrafstopbyrace': featoff.TrafficStopFracRace(**kwargs),
-                    '5yrtrafstopbyrace': featoff.TrafficStopFracRace(**kwargs),
-                    'careertrafstopbyrace': featoff.TrafficStopFracRace(**kwargs),
-                    '1yrtrafstopbygender': featoff.TrafficStopFracGender(**kwargs),
-                    '3yrtrafstopbygender': featoff.TrafficStopFracGender(**kwargs),
-                    '5yrtrafstopbygender': featoff.TrafficStopFracGender(**kwargs),
-                    'careertrafstopbygender': featoff.TrafficStopFracGender(**kwargs),
-                    'trafficstoptimeseries': featoff.TrafficStopTimeSeries(**kwargs),
-                    '1yreiswarnings': featoff.EISWarningsCount(**kwargs),
-                    '5yreiswarnings': featoff.EISWarningsCount(**kwargs),
-                    'careereiswarnings': featoff.EISWarningsCount(**kwargs),
-                    '1yreiswarningtypes': featoff.EISWarningByTypeFrac(**kwargs),
-                    'careereiswarningtypes': featoff.EISWarningByTypeFrac(**kwargs),
-                    '1yreiswarninginterventions': featoff.EISWarningInterventionFrac(**kwargs),
-                    'careereiswarninginterventions': featoff.EISWarningInterventionFrac(**kwargs),
-                    '1yrextradutyhours': featoff.ExtraDutyHours(**kwargs),
-                    'careerextradutyhours': featoff.ExtraDutyHours(**kwargs),
-                    '1yrextradutyneighb1': featoff.ExtraDutyNeighborhoodFeatures1(**kwargs),
-                    'careerextradutyneighb1': featoff.ExtraDutyNeighborhoodFeatures1(**kwargs),
-                    '1yrextradutyneighb2': featoff.ExtraDutyNeighborhoodFeatures2(**kwargs),
-                    'careerextradutyneighb2': featoff.ExtraDutyNeighborhoodFeatures2(**kwargs),
-                    '1yrneighb1': featoff.AvgNeighborhoodFeatures1(**kwargs),
-                    'careerneighb1': featoff.AvgNeighborhoodFeatures1(**kwargs),
-                    '1yrneighb2': featoff.AvgNeighborhoodFeatures2(**kwargs),
-                    'careerneighb2': featoff.AvgNeighborhoodFeatures2(**kwargs)}
-
-
-    if feature not in dict_lookup.keys():
-        raise UnknownFeatureError(feature)
-
-    return dict_lookup[feature]
-
-
-class UnknownFeatureError(Exception):
-    def __init__(self, feature):
-        self.feature = feature
-
-    def __str__(self):
-        return "Unknown feature: {}".format(self.feature)
 
 
 class FeatureLoader():
@@ -344,8 +156,6 @@ class FeatureLoader():
 
         # labels = labels.set_index(["newid"])
 
-        # should be no duplicates
-
         return outcomes
 
     def dispatch_labeller(self):
@@ -381,7 +191,7 @@ class FeatureLoader():
     def loader(self, features_to_load, ids):
         kwargs = {"time_bound": self.fake_today,
                   "feat_time_window": 0}
-        feature = lookup(features_to_load, **kwargs)
+        feature = class_map.lookup(features_to_load, **kwargs)
 
         if type(feature.query) == str:
             results = self.__read_feature_from_db(feature.query,
@@ -474,8 +284,6 @@ def grab_officer_data(features, start_date, end_date, time_bound):
     labels = dataset["adverse_by_ourdef"].values
     feats = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
     ids = dataset.index.values
-
-    # Imputation will go here
 
     log.debug("Dataset has {} rows and {} features".format(
        len(labels), len(feats.columns)))

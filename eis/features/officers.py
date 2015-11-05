@@ -15,7 +15,7 @@ time_format = "%Y-%m-%d %X"
 
 ### Basic Officer Features
 
-class OfficerHeightWeight(abstract.OfficerFeature):
+class HeightWeight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Officer height and weight, calculated as "
@@ -29,7 +29,7 @@ class OfficerHeightWeight(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerEducation(abstract.OfficerFeature):
+class Education(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer education level"
@@ -41,7 +41,7 @@ class OfficerEducation(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerMaritalStatus(abstract.OfficerFeature):
+class MaritalStatus(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.type_of_features = "categorical"
@@ -51,7 +51,7 @@ class OfficerMaritalStatus(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerYrsExperience(abstract.OfficerFeature):
+class YrsExperience(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of years of experience for police officer"
@@ -64,7 +64,7 @@ class OfficerYrsExperience(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerDaysExperience(abstract.OfficerFeature):
+class DaysExperience(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of days of experience for police officer"
@@ -78,7 +78,7 @@ class OfficerDaysExperience(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerMaleFemale(abstract.OfficerFeature):
+class MaleFemale(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Is officer male or female"
@@ -88,7 +88,7 @@ class OfficerMaleFemale(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerRace(abstract.OfficerFeature):
+class Race(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer race"
@@ -98,7 +98,7 @@ class OfficerRace(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerAge(abstract.OfficerFeature):
+class Age(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer age"
@@ -110,7 +110,7 @@ class OfficerAge(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerAgeAtHire(abstract.OfficerFeature):
+class AgeAtHire(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer age at hire"
@@ -137,11 +137,11 @@ class NumRecentArrests(abstract.OfficerFeature):
                           self.end_date, self.start_date)
 
 
-class OfficerFractionMaleFemale(abstract.OfficerFeature):
+class FractionMaleFemale(abstract.OfficerFeature):
     pass
 
 
-class OfficerArrestTimeSeries(abstract.OfficerFeature):
+class ArrestTimeSeries(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Timeseries of arrest counts (1 yr agg) for officer"
@@ -228,7 +228,7 @@ class DiscOnlyArrestsCount(abstract.OfficerFeature):
                           self.end_date)
 
 
-class OfficerAvgAgeArrests(abstract.OfficerFeature):
+class AvgAgeArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Average age of arrestees for officer"
@@ -242,7 +242,7 @@ class OfficerAvgAgeArrests(abstract.OfficerFeature):
         self.type_of_imputation = "mean"
 
 
-class OfficerAvgTimeOfDayArrests(abstract.OfficerFeature):
+class AvgTimeOfDayArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Average arrest time of day for officer"
@@ -277,7 +277,7 @@ class DiscArrests(abstract.OfficerTimeBoundedFeature):
                           self.end_date, self.start_date)
 
 
-class OfficerCareerArrests(abstract.OfficerFeature):
+class CareerArrests(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career arrests for officer"
@@ -1034,10 +1034,10 @@ class NumTrafficStops(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description =  "Number of traffic stops"
         self.name_of_features = ["num_traffic_stops_{}yr".format(
-            ceil(self.feat_time_window/365)))]
+            ceil(self.feat_time_window/365))]
         self.query = ("select newid, count(distinct inc_key) as "
                       "{} from {} "
-                      "and date_time_action <= '{}'::date "
+                      "where date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
                       " group by newid").format(
                       self.name_of_features[0],
@@ -1050,7 +1050,7 @@ class NumTStopRunTagUOFOrArrest(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description =  ("Number of traffic stops where the tag was "
                             "run and then force was used or an arrest was made")
-        self.name_of_features = ["num_traffic_stops_{}yr".format(
+        self.name_of_features = ["num_traffic_stops_taguofarrest_{}yr".format(
             ceil(self.feat_time_window/365))]
         self.query = ("select newid, count(*) as {} "
                       "from {} where run_tag='Y' and (uof='Y' or "
@@ -1084,7 +1084,7 @@ class TSPercBlackDayNight(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Ratio of times officer stops a black person at night vs during the day"
         self.name_of_features = ["ratio_bl_night_day_{}yr".format(
-            ceil(self.feat_time_window/365)))]
+            ceil(self.feat_time_window/365))]
         self.query = ("select newid, "
                       "(SUM(CASE WHEN (extract(hour from date_time_action) "
                       "> 21 or extract(hour from date_time_action) < 5 ) "
@@ -1150,7 +1150,6 @@ class NumTrafficStopsResist(abstract.OfficerTimeBoundedFeature):
                       self.end_date, self.start_date)
 
 ## Training
-
 
 class ElectHoursTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
@@ -1256,7 +1255,7 @@ class HoursMilitaryReturn(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in military training"
-        self.name_of_features = ["hrs_military_train".format(
+        self.name_of_features = ["hrs_military_train_{}yr".format(
             ceil(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
@@ -1273,7 +1272,7 @@ class HoursTaserTrain(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in taser training"
-        self.name_of_features = ["hrs_taser_train".format(
+        self.name_of_features = ["hrs_taser_train_{}yr".format(
             ceil(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
@@ -1465,7 +1464,6 @@ class DirectiveViolCounts(abstract.OfficerTimeBoundedFeature):
         self.query = all_queries
 
 
-
 class IAEventTypeCounts(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
@@ -1487,8 +1485,6 @@ class IAEventTypeCounts(abstract.OfficerTimeBoundedFeature):
             all_queries.append(this_query)
         self.name_of_features = all_featnames
         self.query = all_queries
-
-
 
 
 class IARate(abstract.OfficerTimeBoundedFeature):
