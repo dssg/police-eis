@@ -25,7 +25,7 @@ def timestamp_from_path(pkl_path):
 
 
 Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data", 
-                                       "fpr", "tpr", "fnr"])
+                                       "fpr", "tpr", "fnr", "recall"])
 
 
 def experiment_summary(pkl_file):
@@ -55,20 +55,20 @@ def experiment_summary(pkl_file):
     fpr = [cm_1[0, 1], cm_2[0, 1], cm_3[0, 1]]
     tpr = [cm_1[1, 1], cm_2[1, 1], cm_3[1, 1]]
     fnr = [cm_1[1, 0], cm_2[1, 0], cm_3[1, 0]]
-    #rec_1 = recall_at_x_percent(
-    #    data["test_labels"], data["test_predictions"],
-    #    x_percent=0.10)
-    #rec_2 = recall_at_x_percent(
-    #    data["test_labels"], data["test_predictions"],
-    #    x_percent=0.15)
-    #rec_3 = recall_at_x_percent(
-    #    data["test_labels"], data["test_predictions"],
-    #    x_percent=0.20)
-    #recall = [rec_1, rec_2, rec_3]
+    rec_1 = recall_at_x_percent(
+        data["test_labels"], data["test_predictions"],
+        x_percent=0.10)
+    rec_2 = recall_at_x_percent(
+        data["test_labels"], data["test_predictions"],
+        x_percent=0.15)
+    rec_3 = recall_at_x_percent(
+        data["test_labels"], data["test_predictions"],
+        x_percent=0.20)
+    recall = "[{}, {}, {}]".format(rec_1.round(2), rec_2.round(2), rec_3.round(2))
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config,
                       auc_model,
-                      data, fpr, tpr, fnr)
+                      data, fpr, tpr, fnr, recall)
 
 
 def update_experiments_cache():
@@ -113,7 +113,7 @@ def get_experiments_list():
     update_experiments_cache()
     # risk of dirty reads here because outside of lock
     experiments_copy = [Experiment(e.timestamp, e.config,
-                                   e.score, None, e.fpr, e.tpr, e.fnr) for e in cache.values()]
+                                   e.score, None, e.fpr, e.tpr, e.fnr, e.recall) for e in cache.values()]
     return experiments_copy
 
 

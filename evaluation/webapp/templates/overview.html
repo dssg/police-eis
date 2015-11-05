@@ -44,7 +44,8 @@
         <div class="col-sm-2">Features</div>
         <div class="col-sm-2">Time Windows</div>
         <div class="col-sm-2">Model</div>
-        <div class="col-sm-1">{{score_name}}</div>
+        <div class="col-sm-1">AUC</div>
+        <div class="col-sm-1">Recall in Top 10/15/20%</div>
         <div class="col-sm-1">False Positives Top 10/15/20%</div>
         <div class="col-sm-1">True Positives Top 10/15/20%</div>
         <div class="col-sm-1">False Negatives Top 10/15/20%</div>
@@ -61,6 +62,7 @@
             Test: {{experiment.config.fake_today}} - {{experiment.config.test_end_date}}</div>
             <div class="col-sm-2">{{experiment.config.model}}<br/>{{experiment.config.parameters}} </div>
             <div class="col-sm-1">{{experiment.score|round(2)}}</div>
+            <div class="col-sm-1">{{experiment.recall}}</div>
             <div class="col-sm-1">{{experiment.fpr}}</div>
             <div class="col-sm-1">{{experiment.tpr}}</div>
             <div class="col-sm-1">{{experiment.fnr}}</div>

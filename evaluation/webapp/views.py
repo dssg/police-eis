@@ -27,8 +27,7 @@ def index():
     experiments = [(date, sorted(items, key=lambda r: r.score, reverse=True))
                    for date, items in experiments]
 
-    return render_template('overview.html', experiments=experiments,
-                           score_name=config.score_name)
+    return render_template('overview.html', experiments=experiments)
 
 
 @app.route('/<timestamp>')
