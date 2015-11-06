@@ -1,7 +1,6 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: osx-64
-binstar=0.12=2
 certifi=14.05.14=py34_0
 conda=3.18.1=py34_0
 conda-env=2.4.2=py34_0
@@ -20,7 +19,6 @@ jupyter_core=4.0.4=py34_0
 libpng=1.6.17=0
 libsodium=0.4.5=0
 markupsafe=0.23=py34_0
-matplotlib=1.4.3=np19py34_3
 mistune=0.7.1=py34_0
 nbconvert=4.0.0=py34_0
 nbformat=4.0.0=py34_0
