@@ -2,8 +2,6 @@
 # $ conda create --name <env> --file <this file>
 # platform: osx-64
 certifi=14.05.14=py34_0
-conda=3.18.1=py34_0
-conda-env=2.4.2=py34_0
 decorator=4.0.2=py34_0
 flask=0.10.1=py34_1
 freetype=2.5.2=2
