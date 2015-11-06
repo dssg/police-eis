@@ -11,10 +11,12 @@ install:
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
   - hash -r
+  - conda update --yes conda
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
   - conda info -a
   - conda create -q -n test-environment --yes --file requirements.conda python=$TRAVIS_PYTHON_VERSION
+  - conda update --yes conda
   - source activate test-environment
 script:
 - "nosetests -v"
