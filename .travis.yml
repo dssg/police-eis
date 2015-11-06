@@ -2,14 +2,20 @@ language: python
 python:
   - "3.4"
 install:
-  # Install conda
-  - sudo pip install conda
-  # install deps
-  - sudo conda init
-  - conda create -p $HOME/py --yes --file requirements.conda "python=$TRAVIS_PYTHON_VERSION"
-  - export PATH=$HOME/py/bin:$PATH
-  # install your own package into the environment
-  #- python setup.py install
+  - sudo apt-get update
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+  - conda info -a
+  - conda create -q -n test-environment --yes --file requirements.conda python=$TRAVIS_PYTHON_VERSION
+  - source activate test-environment
 script:
 - "nosetests -v"
-- pep8 police-eis/eis
+# - pep8 police-eis/eis
