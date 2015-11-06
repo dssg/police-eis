@@ -25,7 +25,7 @@ def get_database():
     return engine, config
 
 
-def get_connection_from_profile(config_file_name="default_profile"):
+def get_connection_from_profile(config_file_name="default_profile.yaml"):
     """
     Sets up database connection from config file.
 

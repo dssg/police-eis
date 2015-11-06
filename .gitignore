@@ -3,7 +3,7 @@
 .ipynb_checkpoints
 
 # Committing credentials is A Bad Thing 
-default_profile
+default_profile*
 
 # Committing the trained models is A Bad Thing
 *.pkl
