@@ -245,7 +245,8 @@ class FeatureLoader():
         return results
 
 
-def grab_officer_data(features, start_date, end_date, time_bound):
+def grab_officer_data(features, start_date, end_date, time_bound, accidents,
+                      noinvest):
     """
     Function that defines the dataset.
 
@@ -255,13 +256,17 @@ def grab_officer_data(features, start_date, end_date, time_bound):
     start_date: start date for selecting officers
     end_date: end date for selecting officers
     time_bound: build features with respect to this date
+    accidents: if True, include accidents, if False exclude accidents
+    noinvest: if True, then all officers included those not investigated
+    by IA should be labelled, if False then only those investigated will
+    be labelled
     """
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
     data = FeatureLoader(start_date, end_date, time_bound)
 
-    officers = data.officer_labeller(accidents=False, noinvest=False)
+    officers = data.officer_labeller(accidents, noinvest)
     # officers.set_index(["newid"])
 
     dataset = officers

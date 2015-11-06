@@ -10,7 +10,6 @@ from eis import dataset
 
 log = logging.getLogger(__name__)
 
-
 def setup(config):
     fake_today = datetime.datetime.strptime(config["fake_today"], "%d%b%Y")
     train_start_date = datetime.datetime.strptime(config["fake_today"],
@@ -27,11 +26,13 @@ def setup(config):
 
     log.info("Loading officers and features to use as training...")
     train_x, train_y, train_id, names = dataset.grab_officer_data(
-        config["features"], train_start_date, fake_today, train_start_date)
+        config["features"], train_start_date, fake_today, train_start_date,
+        config["accidents"], config["noinvest"])
 
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id, names = dataset.grab_officer_data(
-        config["features"], fake_today, test_end_date, fake_today)
+        config["features"], fake_today, test_end_date, fake_today,
+        config["accidents"], config["noinvest"])
 
     return {"train_x": train_x,
             "train_y": train_y,
