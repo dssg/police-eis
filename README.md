@@ -1,6 +1,6 @@
 # Police Early Intervention System (EIS) 
 
-![Build Status](https://magnum.travis-ci.com/dssg/police-eis.svg)
+![Build Status](https://travis-ci.org/dssg/police-eis.svg)
 
 This is a data-driven Early Intervention System (EIS) for police departments. The system uses a police department's data to predict which officers are likely to have an adverse interaction with the public. This is done such that additional training, counseling and other resources can be provided to the officer _before_ any adverse interactions occur. 
 

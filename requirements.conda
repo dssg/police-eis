@@ -39,7 +39,6 @@ pyparsing=2.0.3=py34_0
 pyqt=4.11.3=py34_0
 python=3.4.3=0
 python-dateutil=2.4.2=py34_0
-python.app=1.2=py34_4
 pytz=2015.4=py34_0
 pyyaml=3.11=py34_1
 pyzmq=14.7.0=py34_0
