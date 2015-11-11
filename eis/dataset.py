@@ -70,6 +70,9 @@ def convert_categorical(df):
     except:
         pass
 
+    # Get rid of tricksy unicode strings
+    categories = [str(x) for x in categories]
+
     # Get rid of capitalization differences
     categories = list(set([str.lower(x) for x in categories]))
 
