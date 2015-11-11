@@ -3,7 +3,6 @@ import pdb
 import logging
 import yaml
 import datetime
-from math import ceil
 
 from eis import setup_environment
 from eis.features import abstract
@@ -261,7 +260,7 @@ class DiscArrests(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of discretionary arrests for officer"
         self.name_of_features = ["disc_arrest_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, newid "
                       "from ( select count(*) as c, newid, string_agg("
                       "charge_desc::text, '    ') as charges from "
@@ -295,7 +294,7 @@ class NPCArrests(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of no probable cause arrests for officer"
         self.name_of_features = ["npc_arrest_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(distinct aa_id) as {}, "
                       "newid from {} where magistrate_action_mlov = 'MA03' "
                       "and arrest_date <= '{}'::date "
@@ -337,7 +336,7 @@ class NPCCitations(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of no probable cause citations"
         self.name_of_features = ["npc_citations_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select newid,count(*) as {} "
                       "from {} where type = 'NPC' "
                       "and datet <= '{}'::date "
@@ -353,7 +352,7 @@ class Citations(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of citations"
         self.name_of_features = ["citations_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select newid,count(*) as {} "
                       "from {} where type = 'NPC' "
                       "and datet <= '{}'::date "
@@ -382,7 +381,7 @@ class CADStatistics(abstract.OfficerTimeBoundedFeature):
                          'priority_diff_']
         all_featnames = []
         for prefix in feat_prefixes:
-            all_featnames.append('{}_{}yr'.format(prefix, ceil(self.feat_time_window/365)))
+            all_featnames.append('{}_{}yr'.format(prefix, int(self.feat_time_window/365)))
         self.name_of_features = all_featnames
         self.query = ("select avg(seq_assigned) as {x[0]}, "
                       "avg(seq_arrived-seq_assigned) as {x[1]}, "
@@ -415,7 +414,7 @@ class CountCADTerminationTypes(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for term in termination_types:
             this_feature = "in_division_{}_{}yr".format(
-            term, ceil(self.feat_time_window/365))
+            term, int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when div='{}' then 1 else null end)::float "
@@ -454,7 +453,7 @@ class EISWarningsCount(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Count of EIS warnings"
         self.name_of_features = ["eis_warning_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(distinct eisno) as {}, newid "
                       "from {} where "
                       "datecreated <= '{}'::date " 
@@ -472,7 +471,7 @@ class EISWarningByTypeFrac(abstract.OfficerTimeBoundedFeature):
         for warning_type in list(eis_warning_types_name_map.keys()):
             this_feature = "eis_frac_warnings_{}_{}yr".format(
             eis_warning_types_name_map[warning_type],
-            ceil(self.feat_time_window/365))
+            int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when eventtype LIKE '%{}%' then 1 else null end)"
@@ -495,7 +494,7 @@ class EISWarningByTypeCount(abstract.OfficerTimeBoundedFeature):
         for warning_type in list(eis_warning_types_name_map.keys()):
             this_feature = "eis_count_warnings_{}_{}yr".format(
             eis_warning_types_name_map[warning_type],
-            ceil(self.feat_time_window/365))
+            int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(distinct eisno) as {} "
@@ -518,7 +517,7 @@ class EISWarningInterventionFrac(abstract.OfficerTimeBoundedFeature):
         for intervention_type in list(eis_intervention_types_name_map.keys()):
             this_feature = "eis_frac_intervention_{}_{}yr".format(
             eis_intervention_types_name_map[intervention_type],
-            ceil(self.feat_time_window/365))
+            int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when intervention LIKE '%{}%' then 1 else null end)"
@@ -541,7 +540,7 @@ class EISInterventionByTypeCount(abstract.OfficerTimeBoundedFeature):
         for intervention_type in list(eis_intervention_types_name_map.keys()):
             this_feature = "eis_count_interventions_{}_{}yr".format(
             eis_warning_types_name_map[intervention_type],
-            ceil(self.feat_time_window/365))
+            int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(distinct eisno) as {} "
@@ -563,7 +562,7 @@ class FICount(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of field interviews"
         self.name_of_features = ["fi_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, newid "
                       "from {} "
                       "where corrected_interview_date <= '{}'::date "
@@ -579,7 +578,7 @@ class NonTrafficFICount(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of non-traffic field interviews"
         self.name_of_features = ["fi_nontraffic_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, newid "
                       "from {} where traffic_stop_yn = 'N' "
                       "and corrected_interview_date <= '{}'::date "
@@ -595,7 +594,7 @@ class HighCrimeAreaFI(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of field interviews in high crime area"
         self.name_of_features = ["fi_highcrime_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, newid "
                       "from {} where narrative like '%high crime area%' "
                       "and corrected_interview_date <= '{}'::date "
@@ -616,7 +615,7 @@ class LoiterFI(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of field interviews of loiterers"
         self.name_of_features = ["fi_loiter_count_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, newid "
                       "from {} where {} "
                       "and corrected_interview_date <= '{}'::date "
@@ -879,7 +878,7 @@ class TrafficStopsSearch(abstract.OfficerTimeBoundedFeature):
         self.description = ("Number of times officer asks for "
                             "consent to search in traffic stop")
         self.name_of_features = ["traffic_stops_search_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select newid,count(*) as {} "
                       "from {} where consent_search='Y' "
                       "and date_time_action <= '{}'::date "
@@ -897,7 +896,7 @@ class TrafficStopSearchReason(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for reason in search_reasons:
             this_feature = "traffic_stops_search_reason_{}_{}yr".format(
-            reason.replace(" ", ""), ceil(self.feat_time_window/365))
+            reason.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when search_reason LIKE '%{}%' then 1 else null end)"
@@ -919,7 +918,7 @@ class TrafficStopRunTagReason(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for reason in runtag_reasons:
             this_feature = "traffic_stops_runtag_reason_{}_{}yr".format(
-            reason.replace(" ", ""), ceil(self.feat_time_window/365))
+            reason.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when runtag_reason LIKE '%{}%' then 1 else null end)"
@@ -941,7 +940,7 @@ class TrafficStopResult(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for reason in stop_results:
             this_feature = "traffic_stops_result_{}_{}yr".format(
-            reason.replace(" ", ""), ceil(self.feat_time_window/365))
+            reason.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when resultofstop='{}' then 1 else null end)::float/"
@@ -962,7 +961,7 @@ class TrafficStopFracRace(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for race in races:
             this_feature = "traffic_stops_byrace_{}_{}yr".format(
-            race.replace(" ", ""), ceil(self.feat_time_window/365))
+            race.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when race = '{}' then 1 else null end)"
@@ -984,7 +983,7 @@ class TrafficStopFracGender(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for gender in genders:
             this_feature = "traffic_stops_bygender_{}_{}yr".format(
-            gender.replace(" ", ""), ceil(self.feat_time_window/365))
+            gender.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when race = '{}' then 1 else null end)"
@@ -1034,7 +1033,7 @@ class NumTrafficStops(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description =  "Number of traffic stops"
         self.name_of_features = ["num_traffic_stops_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select newid, count(distinct inc_key) as "
                       "{} from {} "
                       "where date_time_action <= '{}'::date "
@@ -1051,7 +1050,7 @@ class NumTStopRunTagUOFOrArrest(abstract.OfficerTimeBoundedFeature):
         self.description =  ("Number of traffic stops where the tag was "
                             "run and then force was used or an arrest was made")
         self.name_of_features = ["num_traffic_stops_taguofarrest_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select newid, count(*) as {} "
                       "from {} where run_tag='Y' and (uof='Y' or "
                       "arrest_driver='Y' or arrest_pass='Y') "
@@ -1068,7 +1067,7 @@ class NumTrafficStopsForce(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description =  "Number of traffic stops where force is used"
         self.name_of_features = ["num_traffic_stops_uof_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select newid, count(distinct inc_key) as "
                       "{} from {} where uof='Y' "
                       "and date_time_action <= '{}'::date "
@@ -1084,7 +1083,7 @@ class TSPercBlackDayNight(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Ratio of times officer stops a black person at night vs during the day"
         self.name_of_features = ["ratio_bl_night_day_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select newid, "
                       "(SUM(CASE WHEN (extract(hour from date_time_action) "
                       "> 21 or extract(hour from date_time_action) < 5 ) "
@@ -1138,7 +1137,7 @@ class NumTrafficStopsResist(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.name_of_features = ["trafficstop_physresist_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.description = "Number of traffic stops where resistance is encountered"
         self.query = ("select newid, count(distinct inc_key) as "
                       "{} from {} where physical_resist='Y' "
@@ -1156,7 +1155,7 @@ class ElectHoursTrain(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of elective hours of training"
         self.name_of_features = ["elect_hrs_train_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} where rtyp_id = 'ELECTIVE' "
                       "and compl_dte <= '{}'::date "
@@ -1172,7 +1171,7 @@ class HoursTrain(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours of training"
         self.name_of_features = ["hrs_train_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1188,7 +1187,7 @@ class HoursPhysFit(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours working out"
         self.name_of_features = ["hrs_physfit_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1205,7 +1204,7 @@ class HoursROCTrain(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in Rules of Conduct training"
         self.name_of_features = ["hrs_roc_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1222,7 +1221,7 @@ class HoursProfTrain(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in profiling training"
         self.name_of_features = ["hrs_proftrain_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1239,7 +1238,7 @@ class HoursDomViolTrain(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in domestic violence training"
         self.name_of_features = ["hrs_domestic_violence_train_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1256,7 +1255,7 @@ class HoursMilitaryReturn(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in military training"
         self.name_of_features = ["hrs_military_train_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1273,7 +1272,7 @@ class HoursTaserTrain(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in taser training"
         self.name_of_features = ["hrs_taser_train_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1291,7 +1290,7 @@ class HoursBiasTrain(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in bias training"
         self.name_of_features = ["hrs_bias_train_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1308,7 +1307,7 @@ class HoursForceTrain(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of hours in use of force training"
         self.name_of_features = ["hrs_force_train_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
                       "newid from {} "
                       "where compl_dte <= '{}'::date "
@@ -1329,7 +1328,7 @@ class CountDivision(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for division in tables["divisions"]:
             this_feature = "in_division_{}_{}yr".format(
-            division, ceil(self.feat_time_window/365))
+            division, int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when div='{}' then 1 else null end)::float/"
@@ -1352,7 +1351,7 @@ class CountUnit(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for division in tables["units"]:
             this_feature = "in_unittype_{}_{}yr".format(
-            division, ceil(self.feat_time_window/365))
+            division, int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when unityp='{}' then 1 else null end)::float/"
@@ -1402,7 +1401,7 @@ class NormalizedCountsWeaponsUse(abstract.OfficerTimeBoundedFeature):
         for weapon in weapons_use:
             this_feature = "avg_{}_{}yr".format(
             weapon.replace(" ", "").lower().replace('/',''),
-            ceil(self.feat_time_window/365))
+            int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, "
             "count(case when empweapons='{}' then 1 else null end)::float/"
@@ -1426,7 +1425,7 @@ class DOFTypeCounts(abstract.OfficerTimeBoundedFeature):
         for dof in dof_types:
             this_feature = "dofcount_{}_{}yr".format(
             dof.lower().replace(" ", "").replace("-", ""),
-            ceil(self.feat_time_window/365))
+            int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, count(alleg_doflevel || "
             "alleg_doftype = '{}')::float as {} "
@@ -1449,7 +1448,7 @@ class DirectiveViolCounts(abstract.OfficerTimeBoundedFeature):
         for directive in directives:
             this_feature = "directive_viol_count_{}_{}yr".format(
             directive.lower().replace(" ", ""),
-            ceil(self.feat_time_window/365))
+            int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, count( "
             "rocdesc_cleaned = '{}')::float as {} "
@@ -1472,7 +1471,7 @@ class IAEventTypeCounts(abstract.OfficerTimeBoundedFeature):
         for event in event_types:
             this_feature = "ia_eventtype_{}_{}yr".format(
             event.lower().replace(" ", ""),
-            ceil(self.feat_time_window/365))
+            int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, count( "
             "eventtype = '{}')::float as {} "
@@ -1491,7 +1490,7 @@ class IARate(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Career IA rate of allegations"
-        self.name_of_features = ["ia_rate_{}yr".format(ceil(self.feat_time_window/365))]
+        self.name_of_features = ["ia_rate_{}yr".format(int(self.feat_time_window/365))]
         self.query = ("select "
                       "a.newid, a.iacount/extract(day from '{date}' - b.startdate)*365 as {name} "
                       "from "
@@ -1511,7 +1510,7 @@ class CountPriorAdverse(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of prior adverse incidents"
         self.name_of_features = ["num_prior_adverse_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(distinct silogno) as {}, "
                       "newid from {} "
                       "where {} "
@@ -1529,7 +1528,7 @@ class CountPriorAccident(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of prior preventable accidents"
         self.name_of_features = ["num_prior_accidents_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(distinct silogno) as {}, "
                       "newid from {} "
                       "where {} "
@@ -1547,7 +1546,7 @@ class CountPriorFilteredAdverse(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of prior filtered adverse incidents"
         self.name_of_features = ["num_prior_filtered_adverse_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(distinct silogno) as {}, "
                       "newid from {} "
                       "where {} "
@@ -1564,7 +1563,7 @@ class CountRocCOC(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of rules of conduct COC violations"
         self.name_of_features = ["num_roc_coc_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
                       "newid from {} "
                       "where roc is not null and rlevel = 'COC' "
@@ -1580,7 +1579,7 @@ class CountRocIA(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of rules of conduct IA violations"
         self.name_of_features = ["num_roc_ia_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
                       "newid from {} "
                       "where roc is not null and rlevel = 'IA' "
@@ -1596,7 +1595,7 @@ class CountPreventable(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of preventable allegations"
         self.name_of_features = ["num_preventable_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
                       "newid from {} "
                       "where finalsidisposition = 'Preventable' "
@@ -1612,7 +1611,7 @@ class CountUnjustified(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of unjustified allegations"
         self.name_of_features = ["num_unjustified_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
                       "newid from {} "
                       "where finalsidisposition = 'Not Justified' "
@@ -1628,7 +1627,7 @@ class CountSustainedComplaints(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Number of sustained complaints"
         self.name_of_features = ["num_sustained_complaints_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
                       "newid from {} "
                       "where internaldisposition = 'Sustained' "
@@ -1646,7 +1645,7 @@ class IAConcerns(abstract.OfficerTimeBoundedFeature):
         feat_prefixes = ['si_safety_concerns', 'si_comm_concerns', 'si_tactics_concerns']
         all_featnames = []
         for prefix in feat_prefixes:
-            all_featnames.append('{}_{}yr'.format(prefix, ceil(self.feat_time_window/365)))
+            all_featnames.append('{}_{}yr'.format(prefix, int(self.feat_time_window/365)))
         self.name_of_features = all_featnames
         self.query = ("select sum(has_safety_concerns) as {x[0]}, "
                       "       sum(has_comm_concerns) as {x[1]}, "
@@ -1669,7 +1668,7 @@ class SuspensionCounselingTime(abstract.OfficerTimeBoundedFeature):
                          "injury_count"]
         all_featnames = []
         for prefix in feat_prefixes:
-            all_featnames.append('{}_{}yr'.format(prefix, ceil(self.feat_time_window/365)))
+            all_featnames.append('{}_{}yr'.format(prefix, int(self.feat_time_window/365)))
         self.name_of_features = all_featnames
         self.query = ("select sum(suspensionactive) as {x[0]}, "
                       "       sum(suspensioninactive) as {x[1]}, "
@@ -1702,7 +1701,7 @@ class AvgNeighborhoodFeatures1(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for each_feat in neighb_feats1:
             this_feature = "avg_{}_{}yr".format(
-            each_feat.lower(), ceil(self.feat_time_window/365))
+            each_feat.lower(), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, avg(\"{}\") as {} "
             "from (select newid, npa, arrest_date from {}) a "
@@ -1726,7 +1725,7 @@ class AvgNeighborhoodFeatures2(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for each_feat in neighb_feats2:
             this_feature = "avg_{}_{}yr".format(
-            each_feat.lower(), ceil(self.feat_time_window/365))
+            each_feat.lower(), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, avg(\"{}\") as {} "
             "from (select newid, npa, arrest_date from {}) a "
@@ -1751,7 +1750,7 @@ class ExtraDutyNeighborhoodFeatures1(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for each_feat in neighb_feats1:
             this_feature = "extraduty_avg_{}_{}yr".format(
-            each_feat.lower(), ceil(self.feat_time_window/365))
+            each_feat.lower(), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, avg(\"{}\") as {} "
             "from (select newid, npa, jobdate from {}) a "
@@ -1775,7 +1774,7 @@ class ExtraDutyNeighborhoodFeatures2(abstract.OfficerTimeBoundedFeature):
         all_featnames, all_queries = [], []
         for each_feat in neighb_feats2:
             this_feature = "extraduty_avg_{}_{}yr".format(
-            each_feat.lower(), ceil(self.feat_time_window/365))
+            each_feat.lower(), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
             this_query = ("select newid, avg(\"{}\") as {} "
             "from (select newid, npa, jobdate from {}) a "
@@ -1797,7 +1796,7 @@ class ExtraDutyHours(abstract.OfficerTimeBoundedFeature):
         abstract.OfficerTimeBoundedFeature.__init__(self, **kwargs)
         self.description = "Count of extra duty hours worked"
         self.name_of_features = ["extra_duty_hours_{}yr".format(
-            ceil(self.feat_time_window/365))]
+            int(self.feat_time_window/365))]
         self.query = ("select sum(extract(hour from corrected_actualendtime - corrected_actualstarttime)) "
                       "as {}, newid from {} "
                       "where (corrected_actualendtime - corrected_actualstarttime) > '0' "
