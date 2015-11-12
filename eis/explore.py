@@ -37,7 +37,7 @@ def generate_feat_plot(class0, class1, name):
     ax.set_ylabel('Number of Officers in bin')
     ax.legend()
 
-    fig.savefig('dists/{}_logdistribution_{}.png'.format(name, timestamp))
+    fig.savefig('dists/{}_logdistribution_{}.png'.format(name.replace('/',''), timestamp))
     plt.close(fig)
 
 
