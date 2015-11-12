@@ -832,7 +832,7 @@ class AvgAgeVictims(abstract.OfficerFeature):
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.description = "Average age of victims in last year"
         self.name_of_features = ["avg_victim_age"]
-        self.query = ("select avg(cast(victim1_age as float)), newid as victim_age,"
+        self.query = ("select avg(cast(victim1_age as float)) as victim_age, "
                       "newid from {} "
                       "where date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
