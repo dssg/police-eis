@@ -3,6 +3,9 @@
 #              Model experiments               #       
 ################################################
 
+make_feat_dists: True  # Whether you would like distributions of 1 / 0 classes made of training set features
+distdir: dists  # Where to put them
+
 ########################
 # Type of Experiment   #
 ########################
@@ -191,14 +194,14 @@ features:
 
     trafficstoptimeseries: True  # Time series of traffic stops
 
-    1yreiswarnings: False  # EIS warnings in last year
-    5yreiswarnings: False  # EIS warnings in last five years
+    1yreiswarnings: True  # EIS warnings in last year
+    5yreiswarnings: True  # EIS warnings in last five years
     careereiswarnings: False  # EIS warnings in career
 
-    1yreiswarningtypes: False  # Frac of EIS warnings by type in last year
+    1yreiswarningtypes: True  # Frac of EIS warnings by type in last year
     careereiswarningtypes: False  # Frac of EIS warnings by type in career
 
-    1yreiswarninginterventions: False  # Frac of EIS warning interventions by type in last year
+    1yreiswarninginterventions: True  # Frac of EIS warning interventions by type in last year
     careereiswarninginterventions: False  # Frac of EIS warning interventions by type in career
 
     1yrextradutyhours: True  # Number of extra duty hours in last year

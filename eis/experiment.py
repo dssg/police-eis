@@ -9,7 +9,7 @@ import pdb
 import datetime
 from itertools import product
 
-from eis import setup_environment, models, officer, dispatch
+from eis import setup_environment, models, officer, dispatch, explore
 
 
 def main(config_file_name="default.yaml"):
@@ -37,6 +37,9 @@ def main(config_file_name="default.yaml"):
     elif config["unit"] == "dispatch":
         exp_data = dispatch.setup(config)
 
+    if config["make_feat_dists"] == True:
+        explore.make_all_dists(exp_data)
+
     log.info("Training data: {} rows. Testing data: {} rows.".format(
         len(exp_data["train_y"]), len(exp_data["test_x"])))
 
@@ -61,6 +64,7 @@ def main(config_file_name="default.yaml"):
 
         config["parameters"] = parameters
         log.info("Saving pickled results...")
+        pdb.set_trace()
         to_save = {"test_labels": exp_data["test_y"],
                    "test_predictions": result_y,
                    "config": config,
