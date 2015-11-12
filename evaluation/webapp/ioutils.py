@@ -118,7 +118,7 @@ def get_experiments_list():
 
 
 def feature_summary(features):
-    known_features = ['height_weight', 'ia_history', 'education', 'daysexperience',
+    known_features = ['height_weight', 'education', 'daysexperience',
                       'yearsexperience', 'malefemale', 'race', 'officerage',
                       'officerageathire', 'maritalstatus', 'careerarrests',
                       'numrecentarrests', 'careerNPCarrests', '1yrNPCarrests',
@@ -134,10 +134,13 @@ def feature_summary(features):
                       '1yrhighcrimefi', '1yrloiterfi', 'careerloiterfi',
                       'careerblackfi', 'careerwhitefi', 'avgsuspectagefi',
                       'avgtimeofdayfi', 'fitimeseries', 'careercadstats',
-                      '1yrcadstats', 'careerelectivetrain', '1yrelectivetrain',
+                      '1yrcadstats', '1yrcadterms', 'careercadterms', 
+                      'careerelectivetrain', '1yrelectivetrain',
                       'careerhourstrain', '1yrhourstrain', 'careerworkouthours',
                       '1yrworkouthours', 'careerrochours', '1yrrochours',
-                      'careerproftrain', '1yrproftrain', 'careerdomvioltrain',
+                      'careerproftrain', '1yrproftrain', 
+                      'careertrafficstopnum', '1yrtrafficstopnum',
+                      'careerdomvioltrain',
                       '1yrdomvioltrain', 'careermilitarytrain', '1yrmilitarytrain',
                       'careertasertrain', '1yrtasertrain', 'careerbiastrain',
                       '1yrbiastrain', 'careerforcetrain', '1yrforcetrain',
@@ -167,13 +170,14 @@ def feature_summary(features):
                       'careerrocia', '1yrpreventable', 'careerpreventable',
                       '1yrunjustified', 'careerunjustified', '1yrsustaincompl',
                       'careersustaincompl', '1yriaconcerns', 
-                      'careeriaconcerns', '1yrinterventions', 'careerinterventions',
-                      '1yrweaponsuse', 'careerweaponsuse', 'careeriarate',
-                      '1yrdofcounts', 'careerdofcounts', '1yrdirectivecounts',
+                      'careeriaconcerns', 'careeriarate',
+                      '1yrdofcounts', 'careerdofcounts', 
+                      '1yrdirectivecounts',
                       'careerdirectivecounts', '1yriaeventtypes', 'careeriaeventtypes',
+                      '1yrinterventions', 'careerinterventions',
+                      '1yrweaponsuse', 'careerweaponsuse', 
                       '1yrunithistory', 'careerunithistory', '1yrdivisionhistory',
-                      'careerdivisionhistory', '1yrcadterms', 'careercadterms',
-                      'careertrafficstopnum', '1yrtrafficstopnum']
+                      'careerdivisionhistory']
 
 
     used_features = [key for key, val in features.items() if val == True]
