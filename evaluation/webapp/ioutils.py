@@ -106,7 +106,7 @@ def get_feature_importances(timestamp):
     if timestamp not in cache:
         abort(404)
     exp = cache[timestamp]
-    return exp.data["features"], exp.data["feature_importances"]
+    return exp.data["feature_importances_names"], exp.data["feature_importances"]
 
 
 def get_experiments_list():

@@ -64,7 +64,6 @@ def main(config_file_name="default.yaml"):
 
         config["parameters"] = parameters
         log.info("Saving pickled results...")
-        pdb.set_trace()
         to_save = {"test_labels": exp_data["test_y"],
                    "test_predictions": result_y,
                    "config": config,
@@ -73,7 +72,8 @@ def main(config_file_name="default.yaml"):
                    "parameters": parameters,
                    "train_start_date": exp_data["train_start_date"],
                    "test_end_date": exp_data["test_end_date"],
-                   "feature_importances": importances}
+                   "feature_importances": importances,
+                   "feature_importances_names": exp_data["train_x"].columns.values}
 
         pkl_file = "{}{}_{}.pkl".format(
             config['directory'], config['pkl_prefix'], timestamp)
