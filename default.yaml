@@ -92,7 +92,7 @@ features:
         disconlyarrests: True  # Number of disconly arrests
         arrestratedelta: True  # Arrest rate delta
         arresttimeseries: True  # Arrest time series
-        arrestcentroids: True  # Subbeats
+        arrestcentroids: False  # Subbeats
 
     citations:
         careernpccitations: True  # Career NPC citations
