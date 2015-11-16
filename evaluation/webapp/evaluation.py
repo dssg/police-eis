@@ -103,9 +103,10 @@ def plot_feature_importances(feature_names, feature_importances):
     importances = pd.DataFrame(importances, columns=["Feature", "Importance"])
     importances = importances.set_index("Feature")
     importances = importances.sort(columns="Importance", ascending=False)
-    importances = importances[0:20]
+    importances = importances[0:30]
     with plt.style.context(('ggplot')):
         fig, ax = plt.subplots()
+        ax.tick_params(labelsize=8)
         importances.plot(kind="barh", legend=False, ax=ax)
     plt.tight_layout()
     plt.title("Top Feature importances")
