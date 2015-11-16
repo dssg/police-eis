@@ -102,7 +102,7 @@ def plot_feature_importances(feature_names, feature_importances):
     importances = list(zip(feature_names, list(feature_importances)))
     importances = pd.DataFrame(importances, columns=["Feature", "Importance"])
     importances = importances.set_index("Feature")
-    importances = importances.sort(columns="Importance", ascending=True)
+    importances = importances.sort(columns="Importance", ascending=False)
     importances = importances[0:20]
     with plt.style.context(('ggplot')):
         fig, ax = plt.subplots()
