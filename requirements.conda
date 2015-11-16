@@ -9,7 +9,7 @@ libxml2=2.9.2=0
 matplotlib=1.4.3=np110py35_2
 numpy=1.10.1=py35_0
 openblas=0.2.14=3
-openssl=1.0.1k=0
+openssl=1.0.1k=1
 pandas=0.17.0=np110py35_0
 pip=7.1.2=py35_0
 psycopg2=2.6.1=py35_0
