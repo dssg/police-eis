@@ -1,21 +1,31 @@
 # This file may be used to create an environment using:
 # $ conda create --name <env> --file <this file>
 # platform: linux-64
+fontconfig=2.11.1=5
+freetype=2.5.5=0
 libgfortran=1.0=0
+libpng=1.6.17=0
+libxml2=2.9.2=0
+matplotlib=1.4.3=np110py35_2
 numpy=1.10.1=py35_0
 openblas=0.2.14=3
-openssl=1.0.1k=1
+openssl=1.0.2d=0
 pandas=0.17.0=np110py35_0
 pip=7.1.2=py35_0
 psycopg2=2.6.1=py35_0
-python=3.5.0=0
+pyparsing=2.0.3=py35_0
+pyqt=4.11.4=py35_0
+python=3.5.0=1
 python-dateutil=2.4.2=py35_0
 pytz=2015.7=py35_0
 pyyaml=3.11=py35_1
+qt=4.8.7=1
 readline=6.2=2
 scikit-learn=0.17=np110py35_1
 scipy=0.16.0=np110py35_1
+seaborn=0.6.0=np110py35_0
 setuptools=18.4=py35_0
+sip=4.16.9=py35_0
 six=1.10.0=py35_0
 sqlalchemy=1.0.9=py35_0
 sqlite=3.8.4.1=1
