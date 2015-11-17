@@ -2,7 +2,7 @@
 import logging
 import pdb
 
-from sklearn import svm, preprocessing, ensemble
+from sklearn import svm, preprocessing, ensemble, linear_model
 
 log = logging.getLogger(__name__)
 
