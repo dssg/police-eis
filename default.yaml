@@ -15,7 +15,7 @@ unit: 'officer'  # or 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2009'
+fake_today: '01Jan2008'
 prediction_interval: 365  # days, used for officer-level prediction
 testing_interval_days: 365  # days, used for dispatch-level prediction
 training_interval_days: 1460  # days, used for dispatch-level prediction
@@ -130,8 +130,8 @@ features:
     cad:
         careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
         1yrcadstats: False  # Slow # CAD statistics in last year
-        careercadterms: True  # CAD termination types in career
-        1yrcadterms: True  # CAD termination types in last year
+        careercadterms: False  # CAD termination types in career
+        1yrcadterms: False  # CAD termination types in last year
 
     training:
         careerelectivetrain: True  # Number of elective hours of training in career
@@ -220,25 +220,25 @@ features:
 ########################
 # Model selection      #
 ########################
-model: 'RandomForest'
+#model: 'RandomForest'
 # parameters:
 #    n_estimators: [10]
 #    depth: [10]
 
-parameters:  # search ranges for RandomForest
-    n_estimators:  [1, 10, 25, 50, 100]
-    depth: [3, 5, 10, 20]
+#parameters:  # search ranges for RandomForest
+#    n_estimators:  [1, 10, 25, 50, 100]
+#    depth: [3, 5, 10, 20]
     # max_features: [2, 4, 8, 16, "auto"]
-    criterion: ["gini", "entropy"]
+#    criterion: ["gini", "entropy"]
 
 # model: 'SVM'
 # parameters:
 #     C_reg: [100.0]
 #     kernel: 'linear'
 
-# model: 'LogisticRegression'
-# parameters:
-#     C_reg: [0.01, 0.1, 1.0, 10.0, 100.0]
+model: 'LogisticRegression'
+parameters:
+    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
 
 # model: 'AdaBoost'
 # parameters:

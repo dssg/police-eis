@@ -13,10 +13,9 @@ install:
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  - conda info -a
   - conda create -q -n test-environment --yes --file requirements.conda python=$TRAVIS_PYTHON_VERSION
-  - conda info -a
   - source activate test-environment
+  - conda info -a
 script:
 - "nosetests -v"
 # - pep8 police-eis/eis
