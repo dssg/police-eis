@@ -15,6 +15,7 @@ install:
   - conda update -q conda
   - conda info -a
   - conda create -q -n test-environment --yes --file requirements.conda python=$TRAVIS_PYTHON_VERSION
+  - conda info -a
   - source activate test-environment
 script:
 - "nosetests -v"
