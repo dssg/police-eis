@@ -11,6 +11,7 @@ distdir: dists  # Where to put them
 ########################
 
 unit: 'officer'  # or 'dispatch'
+unit: 'officer'  # other options: 'dispatch', 'group-unit', 'group-division', 'group-age'
 
 ########################
 # Temporal parameters  #
