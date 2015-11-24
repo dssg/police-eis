@@ -1,6 +1,6 @@
 numpy
 pandas
-yaml
+pyyaml
 sqlalchemy
 pickle
 datetime
