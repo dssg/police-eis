@@ -4,7 +4,7 @@ python:
   - "3.5"
 sudo: required
 install:
-  - "sudo apt-get install python-liblas libblas-dev liblapack-dev libatlas-dev"
+  - "sudo apt-get install gfortran python-liblas libblas-dev liblapack-dev libatlas-dev"
   - "pip install -r pre-requirements.txt"
   - "pip install -r requirements.txt"
 script:
