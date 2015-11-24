@@ -8,7 +8,11 @@ from eis import setup_environment
 from eis.features import abstract
 
 log = logging.getLogger(__name__)
-_, tables = setup_environment.get_database()
+try:
+    _, tables = setup_environment.get_database()
+except:
+    pass
+
 time_format = "%Y-%m-%d %X"
 
 
