@@ -1,2 +1,7 @@
 numpy
 pandas
+yaml
+sqlalchemy
+pickle
+datetime
+sklearn
