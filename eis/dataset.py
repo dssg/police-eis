@@ -23,15 +23,17 @@ def imputation_zero(df, ids):
     return newdf
 
 
-def imputation_mean(df):
+def imputation_mean(df, featurenames):
     try:
         newdf = df.set_index("newid")
     except:
         newdf = df
     for i in range(len(newdf.columns)):
         this_col = newdf.columns[i]
+        imp_dummy_name = "imputation_{}".format(this_col)
+        newdf[imp_dummy_name] = newdf[this_col].isnull().map(lambda x: 1 if x == True else 0)
         newdf[this_col] = newdf[this_col].fillna(np.mean(newdf[this_col]))
-    return newdf
+    return newdf, newdf.columns.values
 
 
 def convert_series(df):
@@ -224,7 +226,7 @@ class FeatureLoader():
         if feature.type_of_imputation == "zero":
                 results = imputation_zero(results, ids)
         elif feature.type_of_imputation == "mean":
-                results = imputation_mean(results)
+                results, featurenames = imputation_mean(results, featurenames)
 
         return results, featurenames
 
@@ -280,7 +282,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, accidents,
                                             dataset["newid"])
             log.info("Loaded feature {} with {} rows".format(
                 featnames, len(feature_df)))
-            featnames = featnames + names
+            featnames = list(featnames) + list(names)
             dataset = dataset.join(feature_df, how='left', on='newid')
 
     dataset = dataset.reset_index()

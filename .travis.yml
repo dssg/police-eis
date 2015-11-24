@@ -16,6 +16,7 @@ install:
   - conda create -q -n test-environment --yes --file requirements.conda python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - conda info -a
+  - sudo apt-get install pandas
 script:
 - "nosetests -v"
 # - pep8 police-eis/eis
