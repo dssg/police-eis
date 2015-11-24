@@ -5,7 +5,7 @@ python:
 sudo: required
 install:
   - "sudo apt-get install gfortran python-liblas libblas-dev liblapack-dev libatlas-dev"
-  - "pip install -r pre-requirements.txt"
+  - "travis_wait pip install -r pre-requirements.txt"
   - "pip install -r requirements.txt"
 script:
 - "nosetests"
