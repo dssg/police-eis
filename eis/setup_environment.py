@@ -13,7 +13,6 @@ def get_database():
         log.info("Connected to PostgreSQL database!")
     except IOError:
         log.exception("Failed to get database connection!")
-        sys.exit(1)
 
     try:
         with open(dbconf, 'r') as f:
