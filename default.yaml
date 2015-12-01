@@ -255,3 +255,9 @@ n_cpus: 1
 ########################
 directory: 'results/'
 pkl_prefix: 'police_eis_results'
+
+########################
+# Auditing hooks       #
+########################
+auditing: True  # Turn off if you do not want auditing performed
+audits: 'audits/'
