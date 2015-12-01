@@ -98,6 +98,15 @@ def main(config_file_name="default.yaml"):
                 this_config['directory'], this_config['pkl_prefix'], timestamp)
             pickle_results(pkl_file, to_save)
 
+            if cfg['auditing'] == True:
+                audit_outputs = {"train_x": exp_data["train_x"],
+                                 "train_y": exp_data["train_y"],
+                                 "result_y": result_y,
+                                 "test_y": exp_data["test_y"],
+                                 "test_x": exp_data["test_x"]}
+                audit_file = "{}audit_{}.pkl".format(this_config['audits'], timestamp)
+                pickle_results(audit_file, audit_outputs)
+
     log.info("Done!")
     return None
 
