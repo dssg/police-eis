@@ -10,7 +10,7 @@ import datetime
 from itertools import product
 import copy
 
-from eis import setup_environment, models, officer, dispatch, explore
+from eis import setup_environment, models, officer, dispatch, explore, groups
 
 
 def main(config_file_name="default.yaml"):
@@ -83,16 +83,24 @@ def main(config_file_name="default.yaml"):
 
             this_config["parameters"] = parameters
             log.info("Saving pickled results...")
+
+            if config["aggregation"] == True:
+                groupscores = groups.aggregate(exp_data["test_x"].index,
+                                                         result_y, this_config["fake_today"])
+
             to_save = {"test_labels": exp_data["test_y"],
                        "test_predictions": result_y,
                        "config": this_config,
+                       "officer_id_train": exp_data["train_x"].index,
+                       "officer_id_test": exp_data["test_x"].index,
                        "features": exp_data["names"],
                        "timestamp": timestamp,
                        "parameters": parameters,
                        "train_start_date": exp_data["train_start_date"],
                        "test_end_date": exp_data["test_end_date"],
                        "feature_importances": importances,
-                       "feature_importances_names": exp_data["train_x"].columns.values}
+                       "feature_importances_names": exp_data["train_x"].columns.values,
+                       "aggregation": groupscores}
 
             pkl_file = "{}{}_{}.pkl".format(
                 this_config['directory'], this_config['pkl_prefix'], timestamp)
@@ -101,7 +109,9 @@ def main(config_file_name="default.yaml"):
             if config["auditing"] == True:
                 audit_outputs = {"train_x": exp_data["train_x"],
                                  "train_y": exp_data["train_y"],
-                                 "result_y": result_y,
+                                 "officer_id_train": exp_data["train_x"].index,
+                                 "officer_id_test": exp_data["test_x"].index,
+                                 "test_predictions": result_y,
                                  "test_y": exp_data["test_y"],
                                  "test_x": exp_data["test_x"]}
                 audit_file = "{}audit_{}.pkl".format(this_config['audits'], timestamp)
