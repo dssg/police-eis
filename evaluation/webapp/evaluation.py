@@ -102,8 +102,15 @@ def plot_feature_importances(feature_names, feature_importances):
     importances = list(zip(feature_names, list(feature_importances)))
     importances = pd.DataFrame(importances, columns=["Feature", "Importance"])
     importances = importances.set_index("Feature")
-    importances = importances.sort(columns="Importance", ascending=False)
+
+    # Sort by the absolute value of the importance of the feature
+    importances["sort"] = abs(importances["Importance"])
+    importances = importances.sort(columns="sort", ascending=False).drop("sort", axis=1)
     importances = importances[0:30]
+
+    # Show the most important positive feature at the top of the graph
+    importances = importances.sort(columns="Importance",ascending=True)
+
     with plt.style.context(('ggplot')):
         fig, ax = plt.subplots()
         ax.tick_params(labelsize=8)
