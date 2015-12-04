@@ -59,11 +59,15 @@ def group_predictions(group_type, ids, predictions, fake_today):
     group_pred = dict.fromkeys(config[group_type])
     for each_group in config[group_type]:
         try:
-            officers_in_group = labelled_df[labelled_df[column_name] == each_group]
+            officers_in_group = labelled_df[labelled_df[column_name[0]] == each_group]
             group_pred[each_group] = {"number": len(officers_in_group),
-                                      "risk": np.mean(officers_in_group["predictions"])}
+                                      "risk": np.mean(officers_in_group["predictions"]),
+                                      "min": np.min(officers_in_group["predictions"]),
+                                      "max": np.max(officers_in_group["predictions"])}
         except:
             group_pred[each_group] = {"number": 0,
-                                      "risk": 0}
+                                      "risk": 0,
+                                      "min": 0,
+                                      "max": 0}
 
     return group_pred

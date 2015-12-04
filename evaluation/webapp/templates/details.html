@@ -18,7 +18,7 @@
 
 
     <div class="container">
-      <br/>
+      <h1>Model Performance <small>Feature importances, ROC, and precision-recall</small></h1>
       <div class="row">
         <div class="col-sm-6"><img src="/{{timestamp}}/importances" height="250"/> </div>
         <div class="col-sm-6"><img src="/{{timestamp}}/ROC" height="250"/> </div>
@@ -27,16 +27,100 @@
         <div class="col-sm-6"><img src="/{{timestamp}}/precision-recall" height="250"/> </div>
         <div class="col-sm-6"><img src="/{{timestamp}}/precision-cutoff" height="250"/> </div>
       </div>
+
+      <h1>Group Level <small>Aggregate Risk Scores</small></h1>
       <div class="row">
-        <div><p>At 10 percent</p></div>
+      <div><h2>Division Level</h2></div>
+      <table class="table table-striped">
+          <thead>
+              <tr>
+                  <th>Division</th>
+                  <th>Number of Officers</th>
+                  <th>Lowest Risk in Division</th>
+                  <th>Average Risk</th>
+                  <th>Highest Risk in Division</th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for division in groups["divisions"] %}
+              <tr>
+                  <th>{{division}}
+                  <th>{{groups["divisions"][division]['number']}}</th>
+                  <th>{% if groups["divisions"][division]['min'] >= 0 %}
+                      {{groups["divisions"][division]['min'].round(3)}}
+                      {% else %}
+                      -
+                      {% endif %}
+                  </th>
+                  <th>{% if groups["divisions"][division]['risk'] >= 0 %}
+                      {{groups["divisions"][division]['risk'].round(3)}}
+                      {% else %}
+                      -
+                      {% endif %}
+                  </th>
+                  <th>{% if groups["divisions"][division]['max'] >= 0 %}
+                      {{groups["divisions"][division]['max'].round(3)}}
+                      {% else %}
+                      -
+                      {% endif %}
+                  </th>                 
+              </tr>
+          {% endfor %}
+          </tbody>
+      </table>
+      <div><h2>Unit Level</h2></div>
+      <table class="table table-striped">
+          <thead>
+              <tr>
+                  <th>Unit</th>
+                  <th>Number of Officers</th>
+                  <th>Lowest Risk in Unit</th>
+                  <th>Average Risk</th>
+                  <th>Highest Risk in Unit</th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for unit in groups["units"] %}
+              <tr>
+                  <th>{{unit}}
+                  <th>{{groups["units"][unit]['number']}}</th>
+                  <th>{% if groups["units"][unit]['min'] >= 0 %}
+                      {{groups["units"][unit]['min'].round(3)}}
+                      {% else %}
+                      -
+                      {% endif %}
+                  </th>
+                  <th>{% if groups["units"][unit]['risk'] >= 0 %}
+                      {{groups["units"][unit]['risk'].round(3)}}
+                      {% else %}
+                      -
+                      {% endif %}
+                  </th>
+                  <th>{% if groups["units"][unit]['max'] >= 0 %}
+                      {{groups["units"][unit]['max'].round(3)}}
+                      {% else %}
+                      -
+                      {% endif %}
+                  </th>
+              </tr>
+          {% endfor %}
+          </tbody>
+      </table>
+      </div>
+
+      <h1>Confusion Matrices <small>at 10 and 1 percent</small></h1>
+      <div class="row">
+        <div><h3>At 10 percent</h3></div>
         <div class="col-sm-6"><img src="/{{timestamp}}/confusion_at_x" height="250"/> </div>
         <div class="col-sm-6"><img src="/{{timestamp}}/normalized_confusion_at_x" height="250"/> </div>
       </div>
       <div class="row">
-        <div><p>At 1 percent</p></div>
+        <div><h3>At 1 percent</h3></div>
         <div class="col-sm-6"><img src="/{{timestamp}}/top_confusion_at_x" height="250"/> </div>
         <div class="col-sm-6"><img src="/{{timestamp}}/top_normalized_confusion_at_x" height="250"/> </div>
       </div>
+      
+
     </div> <!-- /container -->
 
 

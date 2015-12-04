@@ -34,7 +34,8 @@ def index():
 def details(timestamp):
     # will fail with 404 if exp not known
     get_labels_predictions(timestamp)
-    return render_template('details.html', timestamp=timestamp)
+    groups = get_aggregate_scores(timestamp)
+    return render_template('details.html', timestamp=timestamp, groups=groups)
 
 
 @app.route("/<timestamp>/norm_confusions")
