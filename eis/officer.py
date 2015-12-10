@@ -63,10 +63,11 @@ def setup(config):
         config["features"], train_start_date, fake_today, train_start_date,
         config["accidents"], config["noinvest"])
 
+    # Testing data should include ALL officers, ignoring "noinvest" keyword
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id, names = dataset.grab_officer_data(
         config["features"], fake_today, test_end_date, fake_today,
-        config["accidents"], config["noinvest"])
+        config["accidents"], True)
     test_baseline = dataset.get_baseline(test_id, fake_today, test_end_date)
     eis_baseline = compute_baseline(test_baseline, test_id, test_y)
 
