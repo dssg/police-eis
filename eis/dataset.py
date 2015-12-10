@@ -10,6 +10,29 @@ from eis import setup_environment
 from eis.features import class_map
 
 log = logging.getLogger(__name__)
+engine, config = setup_environment.get_database()
+con = engine.raw_connection()
+con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
+
+
+def get_baseline(ids, start_date, end_date):
+    """
+    Gets EIS baseline - whether or not an officer is flagged 
+    by the EIS at any point in the labelling window. 
+
+    Returns dataframe with ids and boolean value corresponding to if
+    an officer was flagged or not.
+    """
+
+    flagged_officers = ("select distinct newid from {} "
+                        "WHERE datecreated >= '{}'::date "
+                        "AND datecreated <='{}'::date").format(
+                            config["eis_table"],
+                            start_date, end_date)
+
+    labels = pd.read_sql(flagged_officers, con=con) 
+
+    return labels
 
 
 def imputation_zero(df, ids):
@@ -94,10 +117,6 @@ class FeatureLoader():
 
     def __init__(self, start_date, end_date, fake_today):
 
-        engine, config = setup_environment.get_database()
-
-        self.con = engine.raw_connection()
-        self.con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
         self.start_date = start_date
         self.end_date = end_date
         self.fake_today = fake_today
@@ -150,8 +169,8 @@ class FeatureLoader():
                         ).format(self.tables["si_table"],
                                  self.start_date, self.end_date)
 
-        invest = pd.read_sql(qinvest, con=self.con)
-        adverse = pd.read_sql(qadverse, con=self.con)
+        invest = pd.read_sql(qinvest, con=con)
+        adverse = pd.read_sql(qadverse, con=con)
         adverse["adverse_by_ourdef"] = 1
         adverse = adverse.drop(["count"], axis=1)
         if noinvest == False:
@@ -183,7 +202,7 @@ class FeatureLoader():
                  ).format(self.schema, self.tables["si_table"],
                           self.start_date, self.end_date)
 
-        labels = pd.read_sql(query, con=self.con)
+        labels = pd.read_sql(query, con=con)
 
         # Now also label those not sampled
         # Grab all dispatch events and filter out the ones
@@ -237,7 +256,7 @@ class FeatureLoader():
                   "%(start_date)s to %(end_date)s".format(
                         self.start_date, self.end_date))
 
-        results = pd.read_sql(query, con=self.con)
+        results = pd.read_sql(query, con=con)
 
         if drop_duplicates:
             results = results.drop_duplicates(subset=["newid"])

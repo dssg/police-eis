@@ -86,7 +86,7 @@ def main(config_file_name="default.yaml"):
 
             if config["aggregation"] == True:
                 groupscores = groups.aggregate(exp_data["test_x"].index,
-                                                         result_y, this_config["fake_today"])
+                                               result_y, this_config["fake_today"])
 
             to_save = {"test_labels": exp_data["test_y"],
                        "test_predictions": result_y,
@@ -100,7 +100,8 @@ def main(config_file_name="default.yaml"):
                        "test_end_date": exp_data["test_end_date"],
                        "feature_importances": importances,
                        "feature_importances_names": exp_data["train_x"].columns.values,
-                       "aggregation": groupscores}
+                       "aggregation": groupscores,
+                       "eis_baseline": exp_data["eis_baseline"]}
 
             pkl_file = "{}{}_{}.pkl".format(
                 this_config['directory'], this_config['pkl_prefix'], timestamp)
