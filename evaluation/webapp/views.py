@@ -35,9 +35,9 @@ def details(timestamp):
     # will fail with 404 if exp not known
     get_labels_predictions(timestamp)
     groups = get_aggregate_scores(timestamp)
-    eis_baseline, fpr, tpr, fnr = get_baselines(timestamp)
+    eis_baseline, fpr, tpr, fnr, tnr = get_baselines(timestamp)
     return render_template('details.html', timestamp=timestamp, groups=groups,
-                           eis_baseline=eis_baseline, fpr=fpr, tpr=tpr, fnr=fnr)
+                           eis_baseline=eis_baseline, fpr=fpr, tpr=tpr, fnr=fnr, tnr=tnr)
 
 
 @app.route("/<timestamp>/norm_confusions")

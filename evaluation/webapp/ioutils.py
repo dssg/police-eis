@@ -25,7 +25,7 @@ def timestamp_from_path(pkl_path):
 
 
 Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data", 
-                                       "fpr", "tpr", "fnr", "recall", "aggregation",
+                                       "fpr", "tpr", "fnr", "tnr", "recall", "aggregation",
                                        "eis_baseline"])
 
 
@@ -53,9 +53,14 @@ def experiment_summary(pkl_file):
     cm_1 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.10)
     cm_2 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.15)
     cm_3 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.20)
-    fpr = [cm_1[0, 1], cm_2[0, 1], cm_3[0, 1]]
-    tpr = [cm_1[1, 1], cm_2[1, 1], cm_3[1, 1]]
-    fnr = [cm_1[1, 0], cm_2[1, 0], cm_3[1, 0]]
+    cm_4 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.25)
+    cm_5 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.30)
+
+    fpr = [cm_1[0, 1], cm_2[0, 1], cm_3[0, 1], cm_4[0, 1], cm_5[0, 1]]
+    tpr = [cm_1[1, 1], cm_2[1, 1], cm_3[1, 1], cm_4[1, 1], cm_5[1, 1]]
+    fnr = [cm_1[1, 0], cm_2[1, 0], cm_3[1, 0], cm_4[1, 0], cm_5[1, 0]]
+    tnr = [cm_1[0, 0], cm_2[0, 0], cm_3[0, 0], cm_4[0, 0], cm_5[0, 0]]
+
     rec_1 = recall_at_x_percent(
         data["test_labels"], data["test_predictions"],
         x_percent=0.10)
@@ -79,7 +84,7 @@ def experiment_summary(pkl_file):
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config,
                       auc_model,
-                      data, fpr, tpr, fnr, recall, aggregation, eis_baseline)
+                      data, fpr, tpr, fnr, tnr, recall, aggregation, eis_baseline)
 
 
 def update_experiments_cache():
@@ -126,7 +131,7 @@ def get_baselines(timestamp):
     if timestamp not in cache:
         abort(404)
     exp = cache[timestamp]
-    return exp.eis_baseline, exp.fpr, exp.tpr, exp.fnr
+    return exp.eis_baseline, exp.fpr, exp.tpr, exp.fnr, exp.tnr
 
 
 def get_feature_importances(timestamp):
@@ -143,7 +148,7 @@ def get_experiments_list():
     # risk of dirty reads here because outside of lock
     experiments_copy = [Experiment(e.timestamp, e.config,
                                    e.score, None, e.fpr, 
-                                   e.tpr, e.fnr, e.recall, e.aggregation,
+                                   e.tpr, e.fnr, e.tnr, e.recall, e.aggregation,
                                    e.eis_baseline) for e in cache.values()]
     return experiments_copy
 
