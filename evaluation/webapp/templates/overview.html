@@ -15,14 +15,6 @@
           .row {
           margin-bottom: 10px;
           }
-          .date {
-          background-color: #2456DF;
-          border: 1px solid #ddd;
-          border: 1px solid rgba(86,61,124,.2);
-          margin-right:30px;
-          margin-left:0px;
-          color: white;
-          }
           .header {
           font-weight: bold; 
           }
@@ -51,12 +43,9 @@
         <div class="col-sm-1">False Negatives Top 10/15/20%</div>
       </div>
     {% for date, date_experiments in experiments %}
-      <div class="row date">
-          <div class="col-sm-9">{{date.strftime('%d %b %Y')}}</div>
-      </div>
       {% for experiment in date_experiments %}
           <div class="row">
-            <div class="col-sm-1"><a href="/{{experiment.timestamp.isoformat()}}">{{experiment.timestamp.strftime('%H:%M')}}</a></div>
+            <div class="col-sm-1"><a href="/{{experiment.timestamp.isoformat()}}">{{experiment.timestamp.strftime('%d %b %Y %H:%M')}}</a></div>
             <div class="col-sm-2"><span title="{{', '.join(experiment.config.features)}}">{{experiment.config.feature_summary}}</span></div>
             <div class="col-sm-2">Train: {{experiment.config.train_start_date}} - {{experiment.config.fake_today}} <br>
             Test: {{experiment.config.fake_today}} - {{experiment.config.test_end_date}}</div>

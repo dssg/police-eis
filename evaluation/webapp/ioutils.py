@@ -25,7 +25,8 @@ def timestamp_from_path(pkl_path):
 
 
 Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data", 
-                                       "fpr", "tpr", "fnr", "recall", "aggregation"])
+                                       "fpr", "tpr", "fnr", "recall", "aggregation",
+                                       "eis_baseline"])
 
 
 def experiment_summary(pkl_file):
@@ -69,11 +70,16 @@ def experiment_summary(pkl_file):
     except:
         aggregation = "No aggregated data stored"
 
+    try:
+        eis_baseline = data["eis_baseline"]
+    except:
+        eis_baseline = "No baseline stored"
+
     recall = "[{}, {}, {}]".format(rec_1.round(2), rec_2.round(2), rec_3.round(2))
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config,
                       auc_model,
-                      data, fpr, tpr, fnr, recall, aggregation)
+                      data, fpr, tpr, fnr, recall, aggregation, eis_baseline)
 
 
 def update_experiments_cache():
@@ -114,6 +120,15 @@ def get_aggregate_scores(timestamp):
     return exp.aggregation
 
 
+def get_baselines(timestamp):
+    update_experiments_cache()
+    # risk of dirty reads here because outside of lock
+    if timestamp not in cache:
+        abort(404)
+    exp = cache[timestamp]
+    return exp.eis_baseline, exp.fpr, exp.tpr, exp.fnr
+
+
 def get_feature_importances(timestamp):
     update_experiments_cache()
     # risk of dirty reads here because outside of lock
@@ -128,7 +143,8 @@ def get_experiments_list():
     # risk of dirty reads here because outside of lock
     experiments_copy = [Experiment(e.timestamp, e.config,
                                    e.score, None, e.fpr, 
-                                   e.tpr, e.fnr, e.recall, e.aggregation) for e in cache.values()]
+                                   e.tpr, e.fnr, e.recall, e.aggregation,
+                                   e.eis_baseline) for e in cache.values()]
     return experiments_copy
 
 
