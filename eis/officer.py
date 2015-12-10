@@ -68,7 +68,7 @@ def setup(config):
         config["features"], fake_today, test_end_date, fake_today,
         config["accidents"], config["noinvest"])
     test_baseline = dataset.get_baseline(test_id, fake_today, test_end_date)
-    eis_baseline = dataset.compute_baseline(test_baseline, test_id, test_y)
+    eis_baseline = compute_baseline(test_baseline, test_id, test_y)
 
     return {"train_x": train_x,
             "train_y": train_y,
