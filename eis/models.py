@@ -18,14 +18,18 @@ def get_individual_importances(model, model_name, test_x):
     """
     Generate list of most important features for dashboard
     """
+
     if model_name == 'LogisticRegression': 
-        coefficients = model.coef_[0]
+        coefficients = get_feature_importances(model)
         importances = np.copy(test_x)
 
         for person in range(test_x.shape[0]):
             one_individual = test_x[person]
             single_importances = one_individual * coefficients
-            importances[person] = single_importances[0]
+            if len(single_importances) == 1:
+                importances[person] = single_importances[0]
+            else:
+                importances[person] = single_importances
         return importances
 
     elif model_name == 'RandomForest':
