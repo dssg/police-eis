@@ -23,7 +23,7 @@ def get_individual_importances(model, model_name, test_x):
         importances = np.copy(test_x)
 
         for person in range(test_x.shape[0]):
-            one_invididual = test_x[person]
+            one_individual = test_x[person]
             single_importances = one_individual * coefficients
             importances[person] = single_importances[0]
         return importances
