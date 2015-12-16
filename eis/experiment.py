@@ -75,7 +75,7 @@ def main(config_file_name="default.yaml"):
                           in zip(parameter_names, each_param)}
             log.info("Training model: {} with {}".format(this_config["model"],
                      parameters))
-            result_y, importances = models.run(exp_data["train_x"],
+            result_y, importances, modelobj, individual_imps = models.run(exp_data["train_x"],
                                                exp_data["train_y"],
                                                exp_data["test_x"],
                                                this_config["model"],
@@ -101,7 +101,9 @@ def main(config_file_name="default.yaml"):
                        "feature_importances": importances,
                        "feature_importances_names": exp_data["train_x"].columns.values,
                        "aggregation": groupscores,
-                       "eis_baseline": exp_data["eis_baseline"]}
+                       "eis_baseline": exp_data["eis_baseline"],
+                       "modelobj": modelobj,
+                       "individual_importances": individual_imps}
 
             pkl_file = "{}{}_{}.pkl".format(
                 this_config['directory'], this_config['pkl_prefix'], timestamp)

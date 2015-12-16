@@ -1,14 +1,40 @@
 #!/usr/bin/env python
 import logging
 import pdb
+import numpy as np
 
 from sklearn import svm, preprocessing, ensemble, linear_model
+from sklearn.feature_selection import SelectKBest
+from treeinterpreter import treeinterpreter as ti
+
 
 log = logging.getLogger(__name__)
 
 
 class ConfigError():
     pass
+
+
+def get_individual_importances(model, model_name, test_x):
+    """
+    Generate list of most important features for dashboard
+    """
+    if model_name == 'LogisticRegression': 
+        coefficients = model.coef_[0]
+        importances = np.copy(test_x)
+
+        for person in range(test_x.shape[0]):
+            one_invididual = test_x[person]
+            single_importances = one_individual * coefficients
+            importances[person] = single_importances[0]
+        return importances
+
+    elif model_name == 'RandomForest':
+        prediction, bias, contributions = ti.predict(model, test_x) 
+        pdb.set_trace()
+        return contributions
+    else:
+        return None
 
 
 def run(train_x, train_y, test_x, model, parameters):
@@ -18,19 +44,22 @@ def run(train_x, train_y, test_x, model, parameters):
     train_x = scaler.transform(train_x)
     test_x = scaler.transform(test_x)
 
-    results, importances = gen_model(train_x, train_y, test_x, model,
+    results, importances, modelobj, individual_imp = gen_model(train_x, train_y, test_x, model,
                                      parameters)
 
-    return results, importances
+    return results, importances, modelobj, individual_imp
 
 
 def gen_model(train_x, train_y, test_x, model, parameters):
     log.info("Training {} with {}".format(model, parameters))
-    model = define_model(model, parameters)
-    model.fit(train_x, train_y)
-    result_y = model.predict_proba(test_x)
-    importances = get_feature_importances(model)
-    return result_y[:, 1], importances
+    modelobj = define_model(model, parameters)
+    modelobj.fit(train_x, train_y)
+    result_y = modelobj.predict_proba(test_x)
+
+    individual_imp = get_individual_importances(modelobj, model, test_x)
+
+    importances = get_feature_importances(modelobj)
+    return result_y[:, 1], importances, modelobj, individual_imp
 
 
 def get_feature_importances(model):
