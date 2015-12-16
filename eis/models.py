@@ -5,7 +5,6 @@ import numpy as np
 
 from sklearn import svm, preprocessing, ensemble, linear_model
 from sklearn.feature_selection import SelectKBest
-from treeinterpreter import treeinterpreter as ti
 
 
 log = logging.getLogger(__name__)
@@ -30,9 +29,7 @@ def get_individual_importances(model, model_name, test_x):
         return importances
 
     elif model_name == 'RandomForest':
-        prediction, bias, contributions = ti.predict(model, test_x) 
-        pdb.set_trace()
-        return contributions
+        return None
     else:
         return None
 
