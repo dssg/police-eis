@@ -2,9 +2,28 @@
 
 ![Build Status](https://travis-ci.org/dssg/police-eis.svg)
 
-This is a data-driven Early Intervention System (EIS) for police departments. The system uses a police department's data to predict which officers are likely to have an adverse interaction with the public. This is done such that additional training, counseling and other resources can be provided to the officer _before_ any adverse interactions occur. 
+This is a data-driven Early Intervention System (EIS) for police departments. The system uses a police department's data to predict which officers are likely to have an adverse interaction with the public. An adverse incident can be defined on a department by department basis, but typically includes unjustified uses of force, officer injuries, preventable accidents and sustained complaints. This is done such that additional training, counseling and other resources can be provided to the officer _before_ any adverse interactions occur. 
 
 Authors: Samuel Carton, Kenneth Joseph, Ayesha Mahmud, Youngsoo Park, Joe Walsh, Lauren Haynes, Jennifer Helsby. 
+
+## Components
+
+### Individual Level Prediction
+
+The individual level prediction predicts on an officer by officer basis the risk that the officer will have an adverse incident in the next time period. Individual feature weights are produced for each officer, allowing an analyst to understand why an officer has been assigned a given risk score. 
+
+Individual feature importances for officers with high risk scores (for example data): 
+
+![](images/example_individual_feature_importances.png)
+
+
+### Group Level Aggregation
+
+Group-level aggregation enables an analyst to examine the average risk of individual divisions and units. The evaluation webapp enables an analyst to see whether there are officers within a unit or division with unusually low or high risk scores. 
+
+Group prediction table (for example data): 
+
+![](images/group_level.png)
 
 ## Installation
 
@@ -24,7 +43,7 @@ DBCONFIG: "example_police_dept.yaml"
 * `DBCONFIG` refers to a configuration file containing details of the individual police department, such as unit/district names and what data sources exist for feature generation `example_police_dept.yaml`. 
 
 
-## Using the EIS
+## Generating models
 
 Details of experiments, e.g. ranges of hyperparameters as well as features to be included, are stored in a YAML file - example in `default.yaml`. Configure your experiments as you wish and then:
 
