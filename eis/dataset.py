@@ -20,7 +20,12 @@ def get_baseline(ids, start_date, end_date):
     Gets EIS baseline - whether or not an officer is flagged 
     by the EIS at any point in the labelling window. 
 
-    Returns dataframe with ids and boolean value corresponding to if
+    Inputs:
+    ids: officer ids
+    start_date: beginning of training period
+    end_date: end of training period
+
+    Returns: dataframe with ids and boolean value corresponding to if
     an officer was flagged or not.
     """
 
