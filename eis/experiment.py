@@ -104,7 +104,7 @@ def main(config_file_name="default.yaml"):
                               "officer_id_train": pilot_data["train_x"].index,
                               "officer_id_test": pilot_data["test_x"].index,
                               "train_x": pilot_data["train_x"],
-                              "train_y": pilot["train_y"],
+                              "train_y": pilot_data["train_y"],
                               "test_x": pilot_data["test_x"]}
                 pilot_file = "{}_pilot_experiment_{}.pkl".format(this_config["pilot_dir"], timestamp)
                 pickle_results(pilot_file, pilot_save)
