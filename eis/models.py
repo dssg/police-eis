@@ -94,12 +94,6 @@ def get_feature_importances(model):
 
 def define_model(model, parameters):
     if model == "RandomForest":
-        defaults = {"n_estimators": 10,
-                    "depth": 10,
-                    "max_features": "auto",
-                    "criterion": "gini"}
-        parameters = {name: parameters.get(name, defaults.get(name))
-                      for name in defaults.keys()}
         return ensemble.RandomForestClassifier(
             n_estimators=parameters['n_estimators'],
             max_features=parameters['max_features'],
