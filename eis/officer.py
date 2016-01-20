@@ -44,6 +44,41 @@ def compute_baseline(baseline, testid, testadverse):
     return eis_baseline
 
 
+def pilot_setup(config):
+    pilot_today = datetime.datetime.strptime(config["pilot_today"], "%d%b%Y")
+    train_start_date = datetime.datetime.strptime(config["pilot_today"],
+                                                  "%d%b%Y") - \
+        datetime.timedelta(days=config["prediction_interval"])
+    test_end_date = datetime.datetime.strptime(config["pilot_today"],
+                                               "%d%b%Y") + \
+        datetime.timedelta(days=config["prediction_interval"])
+
+    log.info("Train label window start for pilot: {}".format(train_start_date))
+    log.info("Train label window stop for pilot: {}".format(pilot_today))
+    log.info("Test label window start for pilot: {}".format(pilot_today))
+    log.info("Test label window stop for pilot: {}".format(test_end_date))
+
+    log.info("Loading officers and features to use as training...")
+    train_x, train_y, train_id, names = dataset.grab_officer_data(
+        config["features"], train_start_date, pilot_today, train_start_date,
+        config["accidents"], config["noinvest"])
+
+    # Testing data should include ALL officers, ignoring "noinvest" keyword
+    log.info("Loading officers and features to use as testing...")
+    test_x, __, test_id, names = dataset.grab_officer_data(
+        config["features"], pilot_today, test_end_date, pilot_today,
+        config["accidents"], True)
+
+    return {"train_x": train_x,
+            "train_y": train_y,
+            "train_id": train_id,
+            "test_x": test_x,
+            "test_id": test_id,
+            "names": names,
+            "train_start_date": train_start_date,
+            "test_end_date": test_end_date}
+
+
 def setup(config):
     fake_today = datetime.datetime.strptime(config["fake_today"], "%d%b%Y")
     train_start_date = datetime.datetime.strptime(config["fake_today"],
