@@ -12,11 +12,14 @@ distdir: dists  # Where to put them
 
 unit: 'officer'  # other options: 'dispatch'
 aggregation: True  # Also produce unit and division level risk scores
+pilot: True  # Turn on pilot experiment
+pilot_today: '01May2015'  # Do pilot beginning date
+pilot_dir: 'pilot/'
 
 ########################
 # Temporal parameters  #
 ########################
-fake_today: '01Jan2008'
+fake_today: '01May2014'
 prediction_interval: 365  # days, used for officer-level prediction
 testing_interval_days: 365  # days, used for dispatch-level prediction
 training_interval_days: 1460  # days, used for dispatch-level prediction
@@ -239,7 +242,7 @@ features:
 
 model: 'LogisticRegression'
 parameters:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1]
 
 # model: 'AdaBoost'
 # parameters:
