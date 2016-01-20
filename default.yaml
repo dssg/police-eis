@@ -224,23 +224,23 @@ features:
 ########################
 # Model selection      #
 ########################
-#model: 'RandomForest'
+#model: ['RandomForest']
 # parameters:
+#   RandomForest:
 #    n_estimators: [10]
 #    depth: [10]
 
-#parameters:  # search ranges for RandomForest
-#    n_estimators:  [1, 10, 25, 50, 100]
-#    depth: [3, 5, 10, 20]
-    # max_features: [2, 4, 8, 16, "auto"]
-#    criterion: ["gini", "entropy"]
-
-# model: 'SVM'
+# model: ['SVM']
 # parameters:
+#   SVM:
 #     C_reg: [100.0]
-#     kernel: 'linear'
+#     kernel: ['linear']
 
-model: 'LogisticRegression'
+#model: ['RandomForest', 'ExtraTrees', 'AdaBoost', 
+#        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
+#        'GaussianNB', 'DecisionTreeClassifier',
+#        'SGDClassifier', 'KNeighborsClassifier']
+model: ['RandomForest', 'LogisticRegression']
 parameters:
   RandomForest:
     n_estimators: [1, 10, 25, 50, 100]  # [1000, 10000]
@@ -283,9 +283,6 @@ parameters:
     weights: ['uniform', 'distance']
     algorithm: ['auto', 'ball', 'kd_tree']
 
-# model: 'AdaBoost'
-# parameters:
-#     learning_rate: [0.01, 0.1, 1, 10, 100]
 
 ########################
 # Parallelization      #
