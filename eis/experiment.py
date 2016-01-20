@@ -56,6 +56,9 @@ def main(config_file_name="default.yaml"):
         elif config["unit"] == "dispatch":
             exp_data = dispatch.setup(this_config)
 
+        if config["pilot"] == True:
+            pilot_data = officer.pilot_setup(this_config)
+
         if config["make_feat_dists"] == True:
             explore.make_all_dists(exp_data)
 
@@ -87,6 +90,25 @@ def main(config_file_name="default.yaml"):
             if config["aggregation"] == True:
                 groupscores = groups.aggregate(exp_data["test_x"].index,
                                                result_y, this_config["fake_today"])
+
+            if config["pilot"] == True:
+                log.info("Generating pilot")
+                pilot_y, pilot_importances, __, pilot_individual_imps = models.run(
+                    pilot_data["train_x"], pilot_data["train_y"],
+                    pilot_data["test_x"], this_config["model"],
+                    parameters)
+                pilot_save = {"test_predictions": pilot_y,
+                              "feature_importances": pilot_importances,
+                              "individual_imporatnces": pilot_individual_imps,
+                              "features": pilot_data["names"],
+                              "officer_id_train": pilot_data["train_x"].index,
+                              "officer_id_test": pilot_data["test_x"].index,
+                              "train_x": pilot_data["train_x"],
+                              "train_y": pilot["train_y"],
+                              "test_x": pilot_data["test_x"]}
+                pilot_file = "{}_pilot_experiment_{}.pkl".format(this_config["pilot_dir"], timestamp)
+                pickle_results(pilot_file, pilot_save)
+
 
             to_save = {"test_labels": exp_data["test_y"],
                        "test_predictions": result_y,
