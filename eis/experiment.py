@@ -58,7 +58,8 @@ def main(config_file_name="default.yaml"):
             elif config["unit"] == "dispatch":
                 exp_data = dispatch.setup(this_config)
 
-            this_config["parameters"] = this_config["parameters"][model]
+            this_config["parameters"] = config["parameters"][model]
+            this_config["model"] = model
 
             if config["pilot"] == True:
                 pilot_data = officer.pilot_setup(this_config)
