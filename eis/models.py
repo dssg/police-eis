@@ -3,7 +3,8 @@ import logging
 import pdb
 import numpy as np
 
-from sklearn import svm, preprocessing, ensemble, linear_model
+from sklearn import (svm, preprocessing, ensemble, tree,
+                     linear_model, neighbors, naive_bayes)
 from sklearn.feature_selection import SelectKBest
 
 
@@ -64,6 +65,18 @@ def gen_model(train_x, train_y, test_x, model, parameters):
 
 
 def get_feature_importances(model):
+    """
+    Get feature importances (from scikit-learn) of trained model.
+
+    Input:
+    ------ 
+    model: Trained model
+
+    Returns:
+    --------
+    Feature importances, or failing that, None
+    """
+
     try:
         return model.feature_importances_
     except:
@@ -91,17 +104,59 @@ def define_model(model, parameters):
             n_estimators=parameters['n_estimators'],
             max_features=parameters['max_features'],
             criterion=parameters['criterion'],
-            max_depth=parameters['depth'])
+            max_depth=parameters['max_depth'],
+            min_samples_split=parameters['min_samples_split'])
 
     elif model == 'SVM':
-        return svm.SVC(C=parameters['C_reg'], kernel=parameters['kernel'])
+        return svm.SVC(C=parameters['C_reg'],
+                       kernel=parameters['kernel'])
 
     elif model == 'LogisticRegression':
-        return linear_model.LogisticRegression(C=parameters['C_reg'])
+        return linear_model.LogisticRegression(
+            C=parameters['C_reg'],
+            penalty=parameters['penalty'])
 
     elif model == 'AdaBoost':
         return ensemble.AdaBoostClassifier(
-            learning_rate=parameters['learning_rate'])
+            learning_rate=parameters['learning_rate'],
+            algorithm=parameters['algorithm'],
+            n_estimators=parameters['n_estimators'])
+
+    elif model == 'ExtraTrees':
+        return ensemble.ExtraTreesClassifier(
+            n_estimators=parameters['n_estimators'],
+            max_features=parameters['max_features'],
+            criterion=parameters['criterion'],
+            max_depth=parameters['max_depth'],
+            min_samples_split=parameters['min_samples_split'])
+
+    elif model == 'GradientBoostingClassifier':
+        return ensemble.GradientBoostingClassifier(
+            n_estimators=parameters['n_estimators'],
+            learning_rate=parameters['learning_rate'],
+            subsample=parameters['subsample'],
+            max_depth=parameters['max_depth'])
+
+    elif model == 'GaussianNB':
+        return naive_bayes.GaussianNB()
+
+    elif model == 'DecisionTreeClassifier':
+        return tree.DecisionTreeClassifier(
+            max_features=parameters['max_features'],
+            criterion=parameters['criterion'],
+            max_depth=parameters['max_depth'],
+            min_samples_split=parameters['min_samples_split'])
+
+    elif model == 'SGDClassifier':
+        return linear_model.SGDClassifier(
+            loss=parameters['loss'],
+            penalty=parameters['penalty'])
+
+    elif model == 'KNeighborsClassifier':
+        return neighbors.KNeighborsClassifier(
+            n_neighbors=parameters['n_neighbors'],
+            weights=parameters['weights'],
+            algorithm=parameters['algorithm'])
 
     else:
         raise ConfigError("Unsupported model {}".format(model))
