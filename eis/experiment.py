@@ -87,7 +87,8 @@ def main(config_file_name="default.yaml"):
                                                    exp_data["train_y"],
                                                    exp_data["test_x"],
                                                    this_config["model"],
-                                                   parameters)
+                                                   parameters,
+                                                   this_config["n_cpus"])
 
                 this_config["parameters"] = parameters
                 log.info("Saving pickled results...")
@@ -101,7 +102,7 @@ def main(config_file_name="default.yaml"):
                     pilot_y, pilot_importances, __, pilot_individual_imps = models.run(
                         pilot_data["train_x"], pilot_data["train_y"],
                         pilot_data["test_x"], this_config["model"],
-                        parameters)
+                        parameters, this_config["n_cpus"])
                     pilot_save = {"test_predictions": pilot_y,
                                   "feature_importances": pilot_importances,
                                   "individual_imporatnces": pilot_individual_imps,

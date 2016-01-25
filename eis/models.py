@@ -39,7 +39,7 @@ def get_individual_importances(model, model_name, test_x):
         return None
 
 
-def run(train_x, train_y, test_x, model, parameters):
+def run(train_x, train_y, test_x, model, parameters, n_cores):
 
     # Feature scaling
     scaler = preprocessing.StandardScaler().fit(train_x)
@@ -47,14 +47,14 @@ def run(train_x, train_y, test_x, model, parameters):
     test_x = scaler.transform(test_x)
 
     results, importances, modelobj, individual_imp = gen_model(train_x, train_y, test_x, model,
-                                     parameters)
+                                     parameters, n_cores)
 
     return results, importances, modelobj, individual_imp
 
 
-def gen_model(train_x, train_y, test_x, model, parameters):
+def gen_model(train_x, train_y, test_x, model, parameters, n_cores):
     log.info("Training {} with {}".format(model, parameters))
-    modelobj = define_model(model, parameters)
+    modelobj = define_model(model, parameters, n_cores)
     modelobj.fit(train_x, train_y)
     result_y = modelobj.predict_proba(test_x)
 
@@ -92,14 +92,15 @@ def get_feature_importances(model):
     return None
 
 
-def define_model(model, parameters):
+def define_model(model, parameters, n_cores):
     if model == "RandomForest":
         return ensemble.RandomForestClassifier(
             n_estimators=parameters['n_estimators'],
             max_features=parameters['max_features'],
             criterion=parameters['criterion'],
             max_depth=parameters['max_depth'],
-            min_samples_split=parameters['min_samples_split'])
+            min_samples_split=parameters['min_samples_split'],
+            n_jobs=n_cores)
 
     elif model == 'SVM':
         return svm.SVC(C=parameters['C_reg'],
@@ -114,7 +115,8 @@ def define_model(model, parameters):
         return ensemble.AdaBoostClassifier(
             learning_rate=parameters['learning_rate'],
             algorithm=parameters['algorithm'],
-            n_estimators=parameters['n_estimators'])
+            n_estimators=parameters['n_estimators'],
+            n_jobs=n_cores)
 
     elif model == 'ExtraTrees':
         return ensemble.ExtraTreesClassifier(
@@ -122,7 +124,8 @@ def define_model(model, parameters):
             max_features=parameters['max_features'],
             criterion=parameters['criterion'],
             max_depth=parameters['max_depth'],
-            min_samples_split=parameters['min_samples_split'])
+            min_samples_split=parameters['min_samples_split'],
+            n_jobs=n_cores)
 
     elif model == 'GradientBoostingClassifier':
         return ensemble.GradientBoostingClassifier(
@@ -144,13 +147,15 @@ def define_model(model, parameters):
     elif model == 'SGDClassifier':
         return linear_model.SGDClassifier(
             loss=parameters['loss'],
-            penalty=parameters['penalty'])
+            penalty=parameters['penalty'],
+            n_jobs=n_cores)
 
     elif model == 'KNeighborsClassifier':
         return neighbors.KNeighborsClassifier(
             n_neighbors=parameters['n_neighbors'],
             weights=parameters['weights'],
-            algorithm=parameters['algorithm'])
+            algorithm=parameters['algorithm'],
+            n_jobs=n_cores)
 
     else:
         raise ConfigError("Unsupported model {}".format(model))
