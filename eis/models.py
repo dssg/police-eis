@@ -115,8 +115,7 @@ def define_model(model, parameters, n_cores):
         return ensemble.AdaBoostClassifier(
             learning_rate=parameters['learning_rate'],
             algorithm=parameters['algorithm'],
-            n_estimators=parameters['n_estimators'],
-            n_jobs=n_cores)
+            n_estimators=parameters['n_estimators'])
 
     elif model == 'ExtraTrees':
         return ensemble.ExtraTreesClassifier(
