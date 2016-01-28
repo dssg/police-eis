@@ -135,7 +135,7 @@ def get_baselines(timestamp):
     if timestamp not in cache:
         abort(404)
     exp = cache[timestamp]
-    return exp.eis_baseline, exp.fpr, exp.tpr, exp.fnr, exp.tnr
+    return exp.eis_baseline, exp.fpr, exp.tpr, exp.fnr, exp.tnr, exp.config
 
 
 def get_feature_importances(timestamp):

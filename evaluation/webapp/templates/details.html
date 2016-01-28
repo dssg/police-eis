@@ -38,6 +38,7 @@
         <li><a href="#baseline">EIS Baseline</a></li>
         <li><a href="#groups">Group Prediction</a></li>
         <li><a href="#confusion">Confusion Matrices</a></li>
+        <li><a href="#config">Model Settings</a></li>
       </ul>
     </div>
   </div>
@@ -222,6 +223,18 @@
         <div class="col-sm-6"><img src="/{{timestamp}}/top_normalized_confusion_at_x" height="250"/> </div>
       </div>
       
+
+      <div class="page-header" id="config">
+      <div class="row">
+      </div>
+      <h1  style="padding-top: 70px; margin-top: -70px;">Model Settings <small>Raw configuration file</small></h1>
+      </div>
+      <div class="row">
+      <code>
+      {{ config }}
+      </code>
+      </div>
+
 
     </div> <!-- /container -->
   </div>
