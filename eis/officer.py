@@ -70,6 +70,10 @@ def pilot_setup(config):
         config["features"], pilot_today, test_end_date, pilot_today,
         config["accidents"], True)
 
+    train_x_index = train_x.index
+    test_x_index = test_x.index
+    features = train_x.columns.values
+
     # Feature scaling
     scaler = preprocessing.StandardScaler().fit(train_x)
     train_x = scaler.transform(train_x)
@@ -82,7 +86,10 @@ def pilot_setup(config):
             "test_id": test_id,
             "names": names,
             "train_start_date": train_start_date,
-            "test_end_date": test_end_date}
+            "test_end_date": test_end_date,
+            "train_x_index": train_x_index,
+            "test_x_index": test_x_index,
+            "features": features}
 
 
 def setup(config):
@@ -110,6 +117,10 @@ def setup(config):
         config["features"], fake_today, test_end_date, fake_today,
         config["accidents"], True)
 
+    train_x_index = train_x.index
+    test_x_index = test_x.index
+    features = train_x.columns.values
+
     # Feature scaling
     scaler = preprocessing.StandardScaler().fit(train_x)
     train_x = scaler.transform(train_x)
@@ -127,4 +138,7 @@ def setup(config):
             "names": names,
             "train_start_date": train_start_date,
             "test_end_date": test_end_date,
-            "eis_baseline": eis_baseline}
+            "eis_baseline": eis_baseline,
+            "train_x_index": train_x_index,
+            "test_x_index": test_x_index,
+            "features": features}

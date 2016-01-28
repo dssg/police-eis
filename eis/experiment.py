@@ -94,7 +94,7 @@ def main(config_file_name="default.yaml"):
                 log.info("Saving pickled results...")
 
                 if config["aggregation"] == True:
-                    groupscores = groups.aggregate(exp_data["test_x"].index,
+                    groupscores = groups.aggregate(exp_data["test_x_index"],
                                                    result_y, this_config["fake_today"])
 
                 if config["pilot"] == True:
@@ -107,8 +107,8 @@ def main(config_file_name="default.yaml"):
                                   "feature_importances": pilot_importances,
                                   "individual_imporatnces": pilot_individual_imps,
                                   "features": pilot_data["names"],
-                                  "officer_id_train": pilot_data["train_x"].index,
-                                  "officer_id_test": pilot_data["test_x"].index,
+                                  "officer_id_train": pilot_data["train_x_index"],
+                                  "officer_id_test": pilot_data["test_x_index"],
                                   "train_x": pilot_data["train_x"],
                                   "train_y": pilot_data["train_y"],
                                   "test_x": pilot_data["test_x"]}
@@ -119,15 +119,15 @@ def main(config_file_name="default.yaml"):
                 to_save = {"test_labels": exp_data["test_y"],
                            "test_predictions": result_y,
                            "config": this_config,
-                           "officer_id_train": exp_data["train_x"].index,
-                           "officer_id_test": exp_data["test_x"].index,
+                           "officer_id_train": exp_data["train_x_index"],
+                           "officer_id_test": exp_data["test_x_index"],
                            "features": exp_data["names"],
                            "timestamp": timestamp,
                            "parameters": parameters,
                            "train_start_date": exp_data["train_start_date"],
                            "test_end_date": exp_data["test_end_date"],
                            "feature_importances": importances,
-                           "feature_importances_names": exp_data["train_x"].columns.values,
+                           "feature_importances_names": exp_data["features"],
                            "aggregation": groupscores,
                            "eis_baseline": exp_data["eis_baseline"],
                            "modelobj": modelobj,
@@ -140,8 +140,8 @@ def main(config_file_name="default.yaml"):
                 if config["auditing"] == True:
                     audit_outputs = {"train_x": exp_data["train_x"],
                                      "train_y": exp_data["train_y"],
-                                     "officer_id_train": exp_data["train_x"].index,
-                                     "officer_id_test": exp_data["test_x"].index,
+                                     "officer_id_train": exp_data["train_x_index"],
+                                     "officer_id_test": exp_data["test_x_index"],
                                      "test_predictions": result_y,
                                      "test_y": exp_data["test_y"],
                                      "test_x": exp_data["test_x"]}
