@@ -3,7 +3,7 @@ import logging
 import pdb
 import numpy as np
 
-from sklearn import (svm, preprocessing, ensemble, tree,
+from sklearn import (svm, ensemble, tree,
                      linear_model, neighbors, naive_bayes)
 from sklearn.feature_selection import SelectKBest
 
@@ -40,11 +40,6 @@ def get_individual_importances(model, model_name, test_x):
 
 
 def run(train_x, train_y, test_x, model, parameters, n_cores):
-
-    # Feature scaling
-    scaler = preprocessing.StandardScaler().fit(train_x)
-    train_x = scaler.transform(train_x)
-    test_x = scaler.transform(test_x)
 
     results, importances, modelobj, individual_imp = gen_model(train_x, train_y, test_x, model,
                                      parameters, n_cores)

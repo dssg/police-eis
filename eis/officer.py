@@ -5,6 +5,7 @@ import sys
 import pickle
 import pdb
 import datetime
+from sklearn import preprocessing
 
 from eis import dataset
 
@@ -69,6 +70,11 @@ def pilot_setup(config):
         config["features"], pilot_today, test_end_date, pilot_today,
         config["accidents"], True)
 
+    # Feature scaling
+    scaler = preprocessing.StandardScaler().fit(train_x)
+    train_x = scaler.transform(train_x)
+    test_x = scaler.transform(test_x)
+
     return {"train_x": train_x,
             "train_y": train_y,
             "train_id": train_id,
@@ -103,6 +109,12 @@ def setup(config):
     test_x, test_y, test_id, names = dataset.grab_officer_data(
         config["features"], fake_today, test_end_date, fake_today,
         config["accidents"], True)
+
+    # Feature scaling
+    scaler = preprocessing.StandardScaler().fit(train_x)
+    train_x = scaler.transform(train_x)
+    test_x = scaler.transform(test_x)
+
     test_baseline = dataset.get_baseline(test_id, fake_today, test_end_date)
     eis_baseline = compute_baseline(test_baseline, test_id, test_y)
 
