@@ -15,6 +15,12 @@ con = engine.raw_connection()
 con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
 
 
+def format_officer_ids(ids):
+    formatted = ["{}".format(each_id) for each_id in ids]
+    formatted = ", ".join(formatted)
+    return formatted
+
+
 def get_baseline(ids, start_date, end_date):
     """
     Gets EIS baseline - whether or not an officer is flagged 
@@ -25,8 +31,7 @@ def get_baseline(ids, start_date, end_date):
     start_date: beginning of training period
     end_date: end of training period
 
-    Returns: dataframe with ids and boolean value corresponding to if
-    an officer was flagged or not.
+    Returns: dataframe with ids of those officers flagged by EIS
     """
 
     flagged_officers = ("select distinct newid from {} "
@@ -35,9 +40,81 @@ def get_baseline(ids, start_date, end_date):
                             config["eis_table"],
                             start_date, end_date)
 
-    labels = pd.read_sql(flagged_officers, con=con) 
+    df_eis_baseline = pd.read_sql(flagged_officers, con=con) 
 
-    return labels
+    return df_eis_baseline.dropna()
+
+
+def get_interventions(ids, start_date, end_date):
+    """
+    Gets whether or not an officer has an intervention after
+    the EIS flags them.
+
+    Inputs:
+    ids: officer ids
+    start_date: beginning of testing period
+    end_date: end of testing period
+
+    Returns: dataframe with ids and boolean value corresponding to if an 
+    officer was intervened on or not in the time period. 
+    """
+
+    intervened_officers = ("select distinct newid from {} "
+                        "WHERE intervention != 'No Intervention Required' "
+                        "AND datecreated >= '{}'::date "
+                        "AND datecreated <='{}'::date "
+                        "AND newid in ({}) ").format(
+                            config["eis_table"],
+                            start_date, end_date,
+                            format_officer_ids(ids))
+
+    no_intervention_officers = ("select distinct newid from {} "
+                        "WHERE intervention = 'No Intervention Required' "
+                        "AND datecreated >= '{}'::date "
+                        "AND datecreated <='{}'::date "
+                        "AND newid in ({}) ").format(
+                            config["eis_table"],
+                            start_date, end_date,
+                            format_officer_ids(ids))
+
+    df_intervention = pd.read_sql(intervened_officers, con=con)
+    df_no_intervention = pd.read_sql(no_intervention_officers, con=con)
+    df_intervention["intervention"] = 1
+    df_action = df_intervention.merge(df_no_intervention, how='right', on='newid')
+    df_action = df_action.fillna(0)
+
+    return df_action
+
+
+def get_labels_for_ids(ids, start_date, end_date):
+    qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
+                  "WHERE dateoccured >= '{}'::date "
+                  "AND dateoccured <= '{}'::date "
+                  "AND newid in ({}) "
+                  "group by newid "
+                  ).format(config["si_table"],
+                           start_date, end_date,
+                           format_officer_ids(ids))
+
+    qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
+                    "WHERE adverse_by_ourdef = 1 "
+                    "AND dateoccured >= '{}'::date "
+                    "AND dateoccured <= '{}'::date "
+                    "AND newid in ({}) "
+                    "group by newid "
+                    ).format(config["si_table"],
+                             start_date, end_date,
+                             format_officer_ids(ids))
+
+    invest = pd.read_sql(qinvest, con=con)
+    adverse = pd.read_sql(qadverse, con=con)
+    adverse["adverse_by_ourdef"] = 1
+    adverse = adverse.drop(["count"], axis=1)
+    invest = invest.drop(["count"], axis=1)
+    outcomes = adverse.merge(invest, how='right', on='newid')
+    outcomes = outcomes.fillna(0)
+
+    return outcomes
 
 
 def imputation_zero(df, ids):
