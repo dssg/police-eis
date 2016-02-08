@@ -10,7 +10,8 @@ import datetime
 from itertools import product
 import copy
 
-from eis import setup_environment, models, officer, dispatch, explore, groups
+from eis import (setup_environment, models, officer,
+                 dispatch, explore, groups, metrics)
 
 
 def main(config_file_name="default.yaml"):
@@ -136,6 +137,9 @@ def main(config_file_name="default.yaml"):
                 pkl_file = "{}{}_{}.pkl".format(
                     this_config['directory'], this_config['pkl_prefix'], timestamp)
                 pickle_results(pkl_file, to_save)
+
+                auc = metrics.compute_AUC(exp_data["test_y"], result_y)
+                dataset.enter_into_db(timestamp, this_config, auc)
 
                 if config["auditing"] == True:
                     audit_outputs = {"train_x": exp_data["train_x"],
