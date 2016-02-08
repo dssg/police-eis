@@ -5,6 +5,7 @@ import yaml
 import logging
 import sys
 import datetime
+import json
 
 from eis import setup_environment
 from eis.features import class_map
@@ -13,6 +14,14 @@ log = logging.getLogger(__name__)
 engine, config = setup_environment.get_database()
 con = engine.raw_connection()
 con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
+
+
+def enter_into_db(timestamp, config, auc):
+    con.cursor().execute("SET SCHEMA '{}'".format('models'))
+    df = pd.DataFrame({'id_timestamp': timestamp, 'config': json.dumps(config), 'auc': auc})
+    df.to_sql('full', con=con, if_exists='append')
+    con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
+    return None
 
 
 def format_officer_ids(ids):
