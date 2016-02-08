@@ -86,9 +86,8 @@ def experiment_summary(pkl_file):
 
     recall = "[{}, {}, {}]".format(rec_1.round(2), rec_2.round(2), rec_3.round(2))
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
-                      model_config,
-                      auc_model,
-                      data, fpr, tpr, fnr, tnr, recall, aggregation, eis_baseline)
+                      model_config, auc_model, data, fpr, tpr, fnr, tnr,
+                      recall, aggregation, eis_baseline)
 
 
 def update_experiments_cache():
