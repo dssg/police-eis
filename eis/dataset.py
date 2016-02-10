@@ -13,14 +13,18 @@ from eis.features import class_map
 log = logging.getLogger(__name__)
 engine, config = setup_environment.get_database()
 con = engine.raw_connection()
-con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
+change_schema(config['schema'])
+
+
+def change_schema(schema):
+    con.cursor().execute("SET SCHEMA '{}'".format(schema))
+    return None
 
 
 def enter_into_db(timestamp, config, auc):
-    con.cursor().execute("SET SCHEMA '{}'".format('models'))
-    df = pd.DataFrame({'id_timestamp': timestamp, 'config': json.dumps(config), 'auc': auc}, index=[0])
-    df.to_sql('full', con=con, if_exists='append')
-    con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
+    query = ("INSERT INTO models.full (id_timestamp, config, auc)"
+             "VALUES ('{}', '{}', {})".format(timestamp, json.dumps(config), auc))
+    con.cursor().execute(query)
     return None
 
 
