@@ -22,9 +22,12 @@ def change_schema(schema):
 
 
 def enter_into_db(timestamp, config, auc):
-    query = ("INSERT INTO models.full (id_timestamp, config, auc)"
-             "VALUES ('{}', '{}', {})".format(timestamp, json.dumps(config), auc))
+    change_schema('models')
+    query = ("INSERT INTO \"full\" (id_timestamp, config, auc) "
+             "VALUES ('{}', '{}', {}) ".format(timestamp, json.dumps(config), auc))
     con.cursor().execute(query)
+    con.commit()
+    change_schema('dssg')
     return None
 
 
