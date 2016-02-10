@@ -11,7 +11,8 @@ from itertools import product
 import copy
 
 from eis import (setup_environment, models, officer,
-                 dispatch, explore, groups, metrics)
+                 dispatch, explore, groups, metrics,
+                 dataset)
 
 
 def main(config_file_name="default.yaml"):
