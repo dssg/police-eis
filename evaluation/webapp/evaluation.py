@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn import metrics
 
 from webapp import config
+from feature_strings import mapping
 
 
 def weighted_f1(scores):
@@ -98,8 +99,22 @@ def plot_normalized_confusion_matrix_at_x_percent(labels, predictions, x_percent
     return fig
 
 
+def humanize_names(feature_names):
+    human_readable = []
+
+    for name in feature_names:
+        try:
+            human_readable.append(mapping[name])
+        except:
+            human.readable.append(name)
+
+    return human_readable
+
+
 def plot_feature_importances(feature_names, feature_importances):
-    importances = list(zip(feature_names, list(feature_importances)))
+    humanized_featnames = humanize_names(feature_names)
+
+    importances = list(zip(humanized_featnames, list(feature_importances)))
     importances = pd.DataFrame(importances, columns=["Feature", "Importance"])
     importances = importances.set_index("Feature")
 
