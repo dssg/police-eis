@@ -9,6 +9,9 @@ from sklearn import metrics
 from webapp import config
 from feature_strings import mapping
 
+plt.rc('font', family='sans-serif') 
+plt.rc('font', serif='Helvetica Neue') 
+
 
 def weighted_f1(scores):
     f1_0 = scores["f1"][0] * scores["support"][0]
@@ -124,14 +127,17 @@ def plot_feature_importances(feature_names, feature_importances):
     importances = importances[0:30]
 
     # Show the most important positive feature at the top of the graph
-    importances = importances.sort(columns="Importance",ascending=True)
+    importances = importances.sort(columns="Importance", ascending=True)
 
     with plt.style.context(('ggplot')):
-        fig, ax = plt.subplots()
-        ax.tick_params(labelsize=8)
+        fig, ax = plt.subplots(figsize=(16,12))
+        ax.tick_params(labelsize=16)
         importances.plot(kind="barh", legend=False, ax=ax)
+        ax.set_frame_on(False)
+        ax.set_xlabel("Importance", fontsize=20)
+        ax.set_ylabel("Feature", fontsize=20)
     plt.tight_layout()
-    plt.title("Top Feature importances")
+    plt.title("Top Feature Importances", fontsize=20)
     return fig
 
 
