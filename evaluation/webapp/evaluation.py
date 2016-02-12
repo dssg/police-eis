@@ -6,8 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import metrics
 
-from webapp import config
-from feature_strings import mapping
+from webapp import config, feature_strings
 
 plt.rc('font', family='sans-serif') 
 plt.rc('font', serif='Helvetica Neue') 
@@ -107,7 +106,7 @@ def humanize_names(feature_names):
 
     for name in feature_names:
         try:
-            human_readable.append(mapping[name])
+            human_readable.append(feature_strings.mapping[name])
         except:
             human.readable.append(name)
 
@@ -115,7 +114,8 @@ def humanize_names(feature_names):
 
 
 def plot_feature_importances(feature_names, feature_importances):
-    humanized_featnames = humanize_names(feature_names)
+    #humanized_featnames = humanize_names(feature_names)
+    humanized_featnames = feature_names
 
     importances = list(zip(humanized_featnames, list(feature_importances)))
     importances = pd.DataFrame(importances, columns=["Feature", "Importance"])
