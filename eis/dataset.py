@@ -37,9 +37,9 @@ def format_officer_ids(ids):
     return formatted
 
 
-def get_baseline(ids, start_date, end_date):
+def get_baseline(start_date, end_date):
     """
-    Gets EIS baseline - whether or not an officer is flagged 
+    Gets EIS baseline - get officers that are flagged 
     by the EIS at any point in the labelling window. 
 
     Inputs:
@@ -48,6 +48,9 @@ def get_baseline(ids, start_date, end_date):
     end_date: end of training period
 
     Returns: dataframe with ids of those officers flagged by EIS
+
+    Example:
+    df_comparison = get_baseline('2010-01-01', '2011-01-01')
     """
 
     flagged_officers = ("select distinct newid from {} "

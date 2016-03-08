@@ -11,7 +11,7 @@ from eis import dataset
 
 log = logging.getLogger(__name__)
 
-def compute_baseline(baseline, testid, testadverse):
+def compute_confusion(baseline, testid, testadverse):
     
     df_eis = pd.DataFrame(baseline)
     df_eis = df_eis.dropna()
@@ -126,8 +126,8 @@ def setup(config):
     train_x = scaler.transform(train_x)
     test_x = scaler.transform(test_x)
 
-    test_baseline = dataset.get_baseline(test_id, fake_today, test_end_date)
-    eis_baseline = compute_baseline(test_baseline, test_id, test_y)
+    test_baseline = dataset.get_baseline(fake_today, test_end_date)
+    eis_baseline = compute_confusion(test_baseline, test_id, test_y)
 
     return {"train_x": train_x,
             "train_y": train_y,
