@@ -7,42 +7,9 @@ import pdb
 import datetime
 from sklearn import preprocessing
 
-from eis import dataset
+from eis import dataset, compare_eis
 
 log = logging.getLogger(__name__)
-
-def compute_confusion(baseline, testid, testadverse):
-    
-    df_eis = pd.DataFrame(baseline)
-    df_eis = df_eis.dropna()
-    df_eis["eisflag"] = 1
-
-    df_dsapp = pd.DataFrame({"newid": testid, "adverse": testadverse})
-
-    ## What does the EIS flag?
-    df = df_eis.merge(df_dsapp, how='left', on='newid')
-    # can fill NaNs with 0 because those that have NaN for adverse or not
-    # were not investigated
-    df = df.fillna(0)  
-
-    true_positives = len(df[df['adverse'] == 1])
-    false_positives = len(df[df['adverse'] == 0])
-
-    ## What does the EIS not flag?
-    df2 = df_eis.merge(df_dsapp, how='right', on='newid')
-    # can fill NaNs with 0 because those that have NaN for EIS were not flagged
-    # by the old system
-    df2 = df2.fillna(0) 
-    all_unflagged = df2[df2['eisflag'] == 0]
-    false_negatives = len(all_unflagged[all_unflagged['adverse'] == 1])
-    true_negatives = len(all_unflagged[all_unflagged['adverse'] == 0])
-
-    eis_baseline = {'tp': true_positives,
-                    'fp': false_positives,
-                    'fn': false_negatives,
-                    'tn': true_negatives}
-
-    return eis_baseline
 
 
 def pilot_setup(config):
@@ -125,10 +92,7 @@ def setup(config):
     scaler = preprocessing.StandardScaler().fit(train_x)
     train_x = scaler.transform(train_x)
     test_x = scaler.transform(test_x)
-
-    test_baseline = dataset.get_baseline(fake_today, test_end_date)
-    eis_baseline = compute_confusion(test_baseline, test_id, test_y)
-
+ 
     return {"train_x": train_x,
             "train_y": train_y,
             "train_id": train_id,
@@ -138,7 +102,6 @@ def setup(config):
             "names": names,
             "train_start_date": train_start_date,
             "test_end_date": test_end_date,
-            "eis_baseline": eis_baseline,
             "train_x_index": train_x_index,
             "test_x_index": test_x_index,
             "features": features}
