@@ -16,7 +16,7 @@ try:
     con = engine.raw_connection()
     con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
 except:
-    pass
+    log.warning('Could not connect to database')
 
 
 def aggregate(ids, predictions, fake_today):

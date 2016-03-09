@@ -12,8 +12,11 @@ from eis.features import class_map
 
 log = logging.getLogger(__name__)
 engine, config = setup_environment.get_database()
-con = engine.raw_connection()
-con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
+try:
+    con = engine.raw_connection()
+    con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
+except:
+    log.warning('Could not connect to database')
 
 
 def change_schema(schema):
