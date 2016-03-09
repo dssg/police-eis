@@ -13,7 +13,7 @@ def get_database():
         log.info("Connected to PostgreSQL database!")
     except IOError:
         log.exception("Failed to get database connection!")
-        return None
+        return None, 'fail'
 
     try:
         with open(dbconf, 'r') as f:
@@ -21,7 +21,7 @@ def get_database():
             log.info("Loaded experiment file")
     except:
         log.exception("Failed to get experiment configuration file!")
-        return None
+        return None, 'fail'
 
     return engine, config
 
