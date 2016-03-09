@@ -7,7 +7,7 @@ import pdb
 import datetime
 from sklearn import preprocessing
 
-from eis import dataset, compare_eis
+from eis import dataset, scoring
 
 log = logging.getLogger(__name__)
 
@@ -16,9 +16,11 @@ def run_traintest(config):
     result = setup(config, config["fake_today"])
     return result
 
+
 def run_pilot(config):
     result = setup(config, config["pilot_today"])
     return result
+
 
 def setup(config, today):
     """

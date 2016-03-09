@@ -11,7 +11,7 @@ from itertools import product
 import copy
 
 from eis import (setup_environment, models, officer,
-                 dispatch, explore, groups, metrics,
+                 dispatch, explore, groups, scoring,
                  dataset)
 
 
@@ -139,7 +139,7 @@ def main(config_file_name="default.yaml"):
                     this_config['directory'], this_config['pkl_prefix'], timestamp)
                 pickle_results(pkl_file, to_save)
 
-                auc = metrics.compute_AUC(exp_data["test_y"], result_y)
+                auc = scoring.compute_AUC(exp_data["test_y"], result_y)
                 dataset.enter_into_db(timestamp, this_config, auc)
 
                 if config["auditing"] == True:
