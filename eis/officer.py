@@ -12,76 +12,43 @@ from eis import dataset, compare_eis
 log = logging.getLogger(__name__)
 
 
-def pilot_setup(config):
-    pilot_today = datetime.datetime.strptime(config["pilot_today"], "%d%b%Y")
-    train_start_date = datetime.datetime.strptime(config["pilot_today"],
-                                                  "%d%b%Y") - \
+def run_traintest(config):
+    result = setup(config, config["fake_today"])
+    return result
+
+def run_pilot(config):
+    result = setup(config, config["pilot_today"])
+    return result
+
+def setup(config, today):
+    """
+    Sets up officer-level experiment
+
+    Args:
+    config: dict with config file
+    today: string containing the date to split on for temporal cross-validation
+    """
+
+    today_to_use = datetime.datetime.strptime(today, "%d%b%Y")
+    train_start_date = datetime.datetime.strptime(today, "%d%b%Y") - \
         datetime.timedelta(days=config["prediction_interval"])
-    test_end_date = datetime.datetime.strptime(config["pilot_today"],
-                                               "%d%b%Y") + \
-        datetime.timedelta(days=config["prediction_interval"])
-
-    log.info("Train label window start for pilot: {}".format(train_start_date))
-    log.info("Train label window stop for pilot: {}".format(pilot_today))
-    log.info("Test label window start for pilot: {}".format(pilot_today))
-    log.info("Test label window stop for pilot: {}".format(test_end_date))
-
-    log.info("Loading officers and features to use as training...")
-    train_x, train_y, train_id, names = dataset.grab_officer_data(
-        config["features"], train_start_date, pilot_today, train_start_date,
-        config["accidents"], config["noinvest"])
-
-    # Testing data should include ALL officers, ignoring "noinvest" keyword
-    log.info("Loading officers and features to use as testing...")
-    test_x, __, test_id, names = dataset.grab_officer_data(
-        config["features"], pilot_today, test_end_date, pilot_today,
-        config["accidents"], True)
-
-    train_x_index = train_x.index
-    test_x_index = test_x.index
-    features = train_x.columns.values
-
-    # Feature scaling
-    scaler = preprocessing.StandardScaler().fit(train_x)
-    train_x = scaler.transform(train_x)
-    test_x = scaler.transform(test_x)
-
-    return {"train_x": train_x,
-            "train_y": train_y,
-            "train_id": train_id,
-            "test_x": test_x,
-            "test_id": test_id,
-            "names": names,
-            "train_start_date": train_start_date,
-            "test_end_date": test_end_date,
-            "train_x_index": train_x_index,
-            "test_x_index": test_x_index,
-            "features": features}
-
-
-def setup(config):
-    fake_today = datetime.datetime.strptime(config["fake_today"], "%d%b%Y")
-    train_start_date = datetime.datetime.strptime(config["fake_today"],
-                                                  "%d%b%Y") - \
-        datetime.timedelta(days=config["prediction_interval"])
-    test_end_date = datetime.datetime.strptime(config["fake_today"],
-                                               "%d%b%Y") + \
+    test_end_date = datetime.datetime.strptime(today, "%d%b%Y") + \
         datetime.timedelta(days=config["prediction_interval"])
 
     log.info("Train label window start: {}".format(train_start_date))
-    log.info("Train label window stop: {}".format(fake_today))
-    log.info("Test label window start: {}".format(fake_today))
+    log.info("Train label window stop: {}".format(today))
+    log.info("Test label window start: {}".format(today))
     log.info("Test label window stop: {}".format(test_end_date))
 
     log.info("Loading officers and features to use as training...")
     train_x, train_y, train_id, names = dataset.grab_officer_data(
-        config["features"], train_start_date, fake_today, train_start_date,
+        config["features"], train_start_date, today, train_start_date,
         config["accidents"], config["noinvest"])
 
     # Testing data should include ALL officers, ignoring "noinvest" keyword
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id, names = dataset.grab_officer_data(
-        config["features"], fake_today, test_end_date, fake_today,
+        config["features"], today, test_end_date, today,
         config["accidents"], True)
 
     train_x_index = train_x.index
@@ -92,12 +59,12 @@ def setup(config):
     scaler = preprocessing.StandardScaler().fit(train_x)
     train_x = scaler.transform(train_x)
     test_x = scaler.transform(test_x)
- 
+
     return {"train_x": train_x,
             "train_y": train_y,
             "train_id": train_id,
             "test_x": test_x,
-            "test_y": test_y,
+            "test_y": test_y,  # For pilot test_y will not be used
             "test_id": test_id,
             "names": names,
             "train_start_date": train_start_date,

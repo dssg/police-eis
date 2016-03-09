@@ -56,7 +56,7 @@ def main(config_file_name="default.yaml"):
 
         for model in config["model"]:
             if config["unit"] == "officer":
-                exp_data = officer.setup(this_config)
+                exp_data = officer.run_traintest(this_config)
             elif config["unit"] == "dispatch":
                 exp_data = dispatch.setup(this_config)
 
@@ -64,7 +64,7 @@ def main(config_file_name="default.yaml"):
             this_config["model"] = model
 
             if config["pilot"] == True:
-                pilot_data = officer.pilot_setup(this_config)
+                pilot_data = officer.run_pilot(this_config)
 
             if config["make_feat_dists"] == True:
                 explore.make_all_dists(exp_data)
