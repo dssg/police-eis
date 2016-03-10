@@ -12,9 +12,25 @@ def compute_AUC(test_labels, test_predictions):
     return metrics.auc(fpr, tpr)
 
 
+def test_thresholds(testid, testprobs, start_date, end_date):
+    """
+    Compute confusion matrices for a range of thresholds for the DSaPP model
+    """
+
+    perc_thresholds = [x/100. for x in range(10, 70, 5)]
+    confusion_matrices = {}
+    for each_threshold in perc_threshold:
+        cm_eis, cm_dsapp = compute_confusion(testid, testprobs, each_threshold,
+                                             start_date, end_date)
+        confusion_matrices.update({each_threshold: {'eis': cm_eis, 
+                                                    'dsapp': cm_dsapp}})
+
+    return confusion_matrices
+
+
 def compute_confusion(testid, testprobs, at_x_perc, start_date, end_date):
     """
-    compute confusion matrices for baseline EIS performance during this time period
+    Compute confusion matrices for baseline EIS performance during this time period
     as well as DSaPP model at x percent during this time period
 
     Args:

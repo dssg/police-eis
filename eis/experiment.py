@@ -117,6 +117,8 @@ def main(config_file_name="default.yaml"):
                     pilot_file = "{}pilot_experiment_{}.pkl".format(this_config["pilot_dir"], timestamp)
                     pickle_results(pilot_file, pilot_save)
 
+                confusion_matrices = scoring.test_thresholds(exp_data["test_x_index"], result_y, 
+                                                             this_config['fake_today'], exp_data["test_end_date"])
 
                 to_save = {"test_labels": exp_data["test_y"],
                            "test_predictions": result_y,
