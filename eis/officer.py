@@ -31,7 +31,7 @@ def setup(config, today):
     today: string containing the date to split on for temporal cross-validation
     """
 
-    today_to_use = datetime.datetime.strptime(today, "%d%b%Y")
+    today = datetime.datetime.strptime(today, "%d%b%Y")
     train_start_date = datetime.datetime.strptime(today, "%d%b%Y") - \
         datetime.timedelta(days=config["prediction_interval"])
     test_end_date = datetime.datetime.strptime(today, "%d%b%Y") + \
