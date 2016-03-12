@@ -19,7 +19,7 @@ def test_thresholds(testid, testprobs, start_date, end_date):
 
     perc_thresholds = [x/100. for x in range(10, 70, 5)]
     confusion_matrices = {}
-    for each_threshold in perc_threshold:
+    for each_threshold in perc_thresholds:
         cm_eis, cm_dsapp = compute_confusion(testid, testprobs, each_threshold,
                                              start_date, end_date)
         confusion_matrices.update({each_threshold: {'eis': cm_eis, 
