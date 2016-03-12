@@ -252,8 +252,15 @@ class FeatureLoader():
                       "UNION "
                       "SELECT DISTINCT newid FROM {ia} "
                       "WHERE dateoccured >= '{start}'::date "
-                      "AND dateoccured <= '{end}'::date").format(eis=self.tables["eis_table"], 
-                          start=self.start_date, end=self.end_date, ia=self.tables["si_table"])
+                      "AND dateoccured <= '{end}'::date "
+                      "UNION "
+                      "SELECT DISTINCT newid FROM {officers} "
+                      "WHERE date_employed <= '{start}' AND "
+                      "(terminationdate >= '{end}' OR "
+                      "terminationdate is Null) AND "
+                      "classification = 'S'").format(eis=self.tables["eis_table"], 
+                          start=self.start_date, end=self.end_date,
+                          ia=self.tables["si_table"], officers=self.tables["officer_table"])
         else:
             qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
                       "WHERE dateoccured >= '{}'::date "
