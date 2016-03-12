@@ -133,7 +133,7 @@ def main(config_file_name="default.yaml"):
                            "feature_importances": importances,
                            "feature_importances_names": exp_data["features"],
                            "aggregation": groupscores,
-                           "eis_baseline": exp_data["eis_baseline"],
+                           "eis_baseline": confusion_matrices,
                            "modelobj": modelobj,
                            "individual_importances": individual_imps}
 
