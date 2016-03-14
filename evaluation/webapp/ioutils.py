@@ -26,7 +26,7 @@ def timestamp_from_path(pkl_path):
 
 Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data", 
                                        "fpr", "tpr", "fnr", "tnr", "recall", "aggregation",
-                                       "eis_baseline"])
+                                       "eis_baseline", "threshold_levels"])
 
 
 def experiment_summary(pkl_file):
@@ -50,44 +50,31 @@ def experiment_summary(pkl_file):
         x_percent=0.01)
     auc_model = compute_AUC(data["test_labels"], data["test_predictions"])
     num_units = len(data["test_labels"])
-    cm_1 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.10)
-    cm_2 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.15)
-    cm_3 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.20)
-    cm_4 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.25)
-    cm_5 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.30)
-    cm_6 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.40)
-    cm_7 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.50)
-    cm_8 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.60)
-    cm_9 = fpr_tpr(data["test_labels"], data["test_predictions"], 0.70)
 
-    fpr = [cm_1[0, 1], cm_2[0, 1], cm_3[0, 1], cm_4[0, 1], cm_5[0, 1], cm_6[0, 1], cm_7[0, 1], cm_8[0, 1], cm_9[0, 1]]
-    tpr = [cm_1[1, 1], cm_2[1, 1], cm_3[1, 1], cm_4[1, 1], cm_5[1, 1], cm_6[1, 1], cm_7[1, 1], cm_8[1, 1], cm_9[1, 1]]
-    fnr = [cm_1[1, 0], cm_2[1, 0], cm_3[1, 0], cm_4[1, 0], cm_5[1, 0], cm_6[1, 0], cm_7[1, 0], cm_8[1, 0], cm_9[1, 0]]
-    tnr = [cm_1[0, 0], cm_2[0, 0], cm_3[0, 0], cm_4[0, 0], cm_5[0, 0], cm_6[0, 0], cm_7[0, 0], cm_8[0, 0], cm_9[0, 0]]
+    threshold_levels = []
+    fpr, tpr, fnr, tnr = {}, {}, {}, {}
+    for each_threshold in sorted(list(data["eis_baseline"].keys())):
+        threshold_levels.append(each_threshold)
+        fpr.update({each_threshold: data["eis_baseline"][each_threshold]["dsapp"][0, 1]})
+        tpr.update({each_threshold: data["eis_baseline"][each_threshold]["dsapp"][1, 1]})
+        fnr.update({each_threshold: data["eis_baseline"][each_threshold]["dsapp"][1, 0]})
+        tnr.update({each_threshold: data["eis_baseline"][each_threshold]["dsapp"][0, 0]})
+        eis_baseline = data["eis_baseline"][each_threshold]["eis"]
 
-    rec_1 = recall_at_x_percent(
-        data["test_labels"], data["test_predictions"],
-        x_percent=0.10)
-    rec_2 = recall_at_x_percent(
-        data["test_labels"], data["test_predictions"],
-        x_percent=0.15)
-    rec_3 = recall_at_x_percent(
-        data["test_labels"], data["test_predictions"],
-        x_percent=0.20)
+    rec_list = []
+    for rec_threshold in [10., 15., 20.]:
+        rec_list.append(recall_at_x_percent(data["test_labels"],
+            data["test_predictions"], x_percent=rec_threshold/100.)
+
     try:
         aggregation = data["aggregation"]
     except:
         aggregation = "No aggregated data stored"
 
-    try:
-        eis_baseline = data["eis_baseline"]
-    except:
-        eis_baseline = "No baseline stored"
-
-    recall = "[{}, {}, {}]".format(rec_1.round(2), rec_2.round(2), rec_3.round(2))
+    recall = "[{}, {}, {}]".format(rec[0].round(2), rec[1].round(2), rec[2].round(2))
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config, auc_model, data, fpr, tpr, fnr, tnr,
-                      recall, aggregation, eis_baseline)
+                      recall, aggregation, eis_baseline, threshold_levels)
 
 
 def update_experiments_cache():
@@ -134,7 +121,7 @@ def get_baselines(timestamp):
     if timestamp not in cache:
         abort(404)
     exp = cache[timestamp]
-    return exp.eis_baseline, exp.fpr, exp.tpr, exp.fnr, exp.tnr, exp.config
+    return exp.eis_baseline, exp.fpr, exp.tpr, exp.fnr, exp.tnr, exp.threshold_levels, exp.config
 
 
 def get_feature_importances(timestamp):
@@ -152,7 +139,7 @@ def get_experiments_list():
     experiments_copy = [Experiment(e.timestamp, e.config,
                                    e.score, None, e.fpr, 
                                    e.tpr, e.fnr, e.tnr, e.recall, e.aggregation,
-                                   e.eis_baseline) for e in cache.values()]
+                                   e.eis_baseline, e.threshold_levels) for e in cache.values()]
     return experiments_copy
 
 

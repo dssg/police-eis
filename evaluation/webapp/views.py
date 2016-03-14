@@ -38,7 +38,7 @@ def details(timestamp):
     eis_baseline, fpr, tpr, fnr, tnr, config = get_baselines(timestamp)
     return render_template('details.html', timestamp=timestamp, groups=groups,
                            eis_baseline=eis_baseline, fpr=fpr, tpr=tpr, fnr=fnr, tnr=tnr,
-                           config=config)
+                           config=config, threshold_levels=threshold_levels)
 
 
 @app.route("/<timestamp>/norm_confusions")

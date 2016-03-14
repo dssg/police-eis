@@ -64,65 +64,19 @@
       <h1 style="padding-top: 70px; margin-top: -70px;">EIS Baseline <small>How prediction compares to old EIS</small></h1>
       </div>
 
-      <h2>DSaPP EIS at 70%</h2>
-      <h3>{{ tpr[8] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[8] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[8] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[8] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-
-      <h2>DSaPP EIS at 60%</h2>
-      <h3>{{ tpr[7] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[7] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[7] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[7] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-
-      <h2>DSaPP EIS at 50%</h2>
-      <h3>{{ tpr[6] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[6] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[6] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[6] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-
-      <h2>DSaPP EIS at 40%</h2>
-      <h3>{{ tpr[5] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[5] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[5] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[5] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-
-      <h2>DSaPP EIS at 30%</h2>
-      <h3>{{ tpr[4] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[4] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[4] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[4] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-
-      <h2>DSaPP EIS at 25%</h2>
-      <h3>{{ tpr[3] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[3] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[3] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[3] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-
-      <h2>DSaPP EIS at 20%</h2>
-      <h3>{{ tpr[2] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[2] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[2] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[2] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-
-      <h2>DSaPP EIS at 15%</h2>
-      <h3>{{ tpr[1] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[1] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[1] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[1] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-
-      <h2>DSaPP EIS at 10%</h2>
-      <h3>{{ tpr[0] }} <small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ fpr[0] }} <small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ fnr[0] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ tnr[0] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
+      {% for level in threshold_levels %} 
+      <h2>DSaPP EIS at {{level * 100}}%</h2>
+      <h3>{{ tpr[level] }} <small> officers flagged correctly (true positives)</small></h3>
+      <h3>{{ fpr[level] }} <small> officers flagged incorrectly (false positives)</small></h3>
+      <h3>{{ fnr[level] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
+      <h3>{{ tnr[level] }} <small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
+      {% endfor %}
 
       <h2>Old EIS</h2>
-      <h3>{{ eis_baseline["tp"] }}<small> officers flagged correctly (true positives)</small></h3>
-      <h3>{{ eis_baseline["fp"] }}<small> officers flagged incorrectly (false positives)</small></h3>
-      <h3>{{ eis_baseline["fn"] }}<small> officers not flagged by EIS that should have been (false negatives)</small></h3>
-      <h3>{{ eis_baseline["tn"] }}<small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
+      <h3>{{ eis_baseline[1, 1] }}<small> officers flagged correctly (true positives)</small></h3>
+      <h3>{{ eis_baseline[0, 1] }}<small> officers flagged incorrectly (false positives)</small></h3>
+      <h3>{{ eis_baseline[1, 0] }}<small> officers not flagged by EIS that should have been (false negatives)</small></h3>
+      <h3>{{ eis_baseline[0, 0] }}<small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
       </div>
 
       <div class="page-header" id="groups">
