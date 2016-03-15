@@ -35,7 +35,7 @@ def details(timestamp):
     # will fail with 404 if exp not known
     get_labels_predictions(timestamp)
     groups = get_aggregate_scores(timestamp)
-    eis_baseline, fpr, tpr, fnr, tnr, config = get_baselines(timestamp)
+    eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
     return render_template('details.html', timestamp=timestamp, groups=groups,
                            eis_baseline=eis_baseline, fpr=fpr, tpr=tpr, fnr=fnr, tnr=tnr,
                            config=config, threshold_levels=threshold_levels)
