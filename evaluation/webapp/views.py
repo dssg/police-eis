@@ -13,6 +13,11 @@ from webapp.ioutils import *
 from webapp import config
 
 
+class SortedDisplayDict(dict):
+   def __str__(self):
+       return "{" + ", ".join("%r: %r" % (key, self[key]) for key in sorted(self)) + "}"
+
+
 @app.route('/')
 def index():
     experiments = get_experiments_list()
@@ -36,8 +41,13 @@ def details(timestamp):
     get_labels_predictions(timestamp)
     groups = get_aggregate_scores(timestamp)
     eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
+    fpr_dict = SortedDisplayDict(fpr)
+    tpr_dict = SortedDisplayDict(tpr)
+    fnr_dict = SortedDisplayDict(fnr)
+    tnr_dict = SortedDisplayDict(tnr)
     return render_template('details.html', timestamp=timestamp, groups=groups,
-                           eis_baseline=eis_baseline, fpr=fpr, tpr=tpr, fnr=fnr, tnr=tnr,
+                           eis_baseline=eis_baseline, fpr=fpr_dict, tpr=tpr_dict, 
+                           fnr=fnr_dict, tnr=tnr_dict,
                            config=config, threshold_levels=threshold_levels)
 
 
