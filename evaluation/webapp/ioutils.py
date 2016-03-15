@@ -71,7 +71,7 @@ def experiment_summary(pkl_file):
     except:
         aggregation = "No aggregated data stored"
 
-    recall = "[{}, {}, {}]".format(rec[0].round(2), rec[1].round(2), rec[2].round(2))
+    recall = "[{}, {}, {}]".format(rec_list[0].round(2), rec_list[1].round(2), rec_list[2].round(2))
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config, auc_model, data, fpr, tpr, fnr, tnr,
                       recall, aggregation, eis_baseline, threshold_levels)
