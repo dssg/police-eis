@@ -64,7 +64,7 @@ def experiment_summary(pkl_file):
     rec_list = []
     for rec_threshold in [10., 15., 20.]:
         rec_list.append(recall_at_x_percent(data["test_labels"],
-            data["test_predictions"], x_percent=rec_threshold/100.)
+            data["test_predictions"], x_percent=rec_threshold/100.))
 
     try:
         aggregation = data["aggregation"]
