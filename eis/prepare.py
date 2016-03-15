@@ -35,7 +35,8 @@ def prepare_webapp_display(ids, src_dir, dest_dir):
     return None
 
 
-if __name__='__main__':
+if __name__=='__main__':
+    print("[*] Updating model list...")
     ids = get_best_models()
     raw_outputs_dir = '/mnt/data4/jhelsby/newpilot/'
     webapp_display_dir = '/mnt/data4/jhelsby/currentdisplay/'
