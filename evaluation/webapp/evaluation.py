@@ -18,6 +18,58 @@ def weighted_f1(scores):
     return (f1_0 + f1_1) / (scores["support"][0] + scores["support"][1])
 
 
+def plot_fp_tp_percent(eis_baseline, fpr, tpr, threshold_levels):
+
+    fpr_plot, tpr_plot, threshold_plot = [], [], []
+
+    false_pos_eis = eis_baseline[0, 1]
+    true_pos_eis = eis_baseline[1, 1]
+
+    for each_threshold in threshold_levels:
+        threshold_plot.append(each_threshold * 100.)
+        fpr_plot.append((fpr[each_threshold] - false_pos_eis)/false_pos_eis * 100.)
+        tpr_plot.append((tpr[each_threshold] - true_pos_eis)/true_pos_eis * 100.)
+
+    with plt.style.context(('ggplot')):
+        plt.clf()
+        fig, ax1 = plt.subplots()
+        ax1.plot(threshold_plot, fpr_plot, "#000099")
+        ax1.set_xlabel('threshold percent')
+        ax1.set_ylabel('percent change in false positives', color="#000099")
+        #plt.ylim([0.0, 100.0])
+        ax2 = ax1.twinx()
+        ax2.plot(threshold_plot, tpr_plot, "#CC0000")
+        ax2.set_ylabel('percent change in true positives ', color="#CC0000")
+        #plt.ylim([0.0, 100.0])
+    plt.title("percent change in false and true positives for top x%")
+    return fig
+
+
+def plot_fp_tp_absolute(eis_baseline, fpr, tpr, threshold_levels):
+
+    fpr_plot, tpr_plot, threshold_plot = [], [], []
+
+    false_pos_eis = eis_baseline[0, 1]
+    true_pos_eis = eis_baseline[1, 1]
+
+    for each_threshold in threshold_levels:
+        threshold_plot.append(each_threshold * 100.)
+        fpr_plot.append(fpr[each_threshold] - false_pos_eis)
+        tpr_plot.append(tpr[each_threshold] - true_pos_eis)
+
+    with plt.style.context(('ggplot')):
+        plt.clf()
+        fig, ax1 = plt.subplots()
+        ax1.plot(threshold_plot, fpr_plot, "#000099")
+        ax1.set_xlabel('threshold percent')
+        ax1.set_ylabel('change in number of false positives', color="#000099")
+        ax2 = ax1.twinx()
+        ax2.plot(threshold_plot, tpr_plot, "#CC0000")
+        ax2.set_ylabel('change in number of true positives ', color="#CC0000")
+    plt.title("absolute change in false and true positives for top x%")
+    return fig
+
+
 def plot_normalized_confusion_matrix(labels, predictions):
     cutoff = 0.5
     predictions_binary = np.copy(predictions)
