@@ -73,7 +73,7 @@
       </div>
 
       {% for level in threshold_levels %} 
-      <h2>DSaPP EIS at {{level * 100}}%</h2>
+      <h2>DSaPP EIS at {{(level * 100)|round(2)}}%</h2>
       <h3>{{ tpr[level] }} <small> officers flagged correctly (true positives)</small></h3>
       <h3>{{ fpr[level] }} <small> officers flagged incorrectly (false positives)</small></h3>
       <h3>{{ fnr[level] }} <small> officers not flagged by EIS that should have been (false negatives)</small></h3>
