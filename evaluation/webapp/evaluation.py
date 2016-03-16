@@ -86,8 +86,9 @@ def plot_fp_tp_absolute_nothresh(eis_baseline, fpr, tpr, threshold_levels):
         plt.clf()
         fig, ax1 = plt.subplots()
         ax1.plot(tpr_plot, fpr_plot)
+        ax1.plot(tpr_plot, fpr_plot, 'o-')
         for ind, label in enumerate(threshold_levels):
-            ax1.annotate('top {}\%'.format(int(label*100)), xy=(tpr_plot[ind], fpr_plot[ind]))
+            ax1.annotate('top {}%'.format(int(label*100)), xy=(tpr_plot[ind], fpr_plot[ind]))
         ax1.set_xlabel('change in number of true positives')
         ax1.set_ylabel('change in number of false positives')
     plt.title("tradeoff in absolute change in false and true positives")
@@ -109,9 +110,9 @@ def plot_fp_tp_percent_nothresh(eis_baseline, fpr, tpr, threshold_levels):
     with plt.style.context(('ggplot')):
         plt.clf()
         fig, ax1 = plt.subplots()
-        ax1.plot(tpr_plot, fpr_plot)
+        ax1.plot(tpr_plot, fpr_plot, 'o-')
         for ind, label in enumerate(threshold_levels):
-            ax1.annotate('top {}\%'.format(int(label*100)), xy=(tpr_plot[ind], fpr_plot[ind]))
+            ax1.annotate('top {}%'.format(int(label*100)), xy=(tpr_plot[ind], fpr_plot[ind]))
         ax1.set_xlabel('percent change in true positives')
         ax1.set_ylabel('percent change in false positives')
     plt.title("tradeoff in percent change in false and true positives")
