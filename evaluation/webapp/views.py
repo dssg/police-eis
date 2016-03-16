@@ -97,10 +97,25 @@ def improvement_over_baseline(timestamp):
     improve_fig = plot_fp_tp_percent(eis_baseline, fpr, tpr, threshold_levels)
     return serve_matplotlib_fig(improve_fig)
 
+
 @app.route("/<timestamp>/improvement_over_baseline_abs")
 def improvement_over_baseline_abs(timestamp):
     eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
     improve_fig = plot_fp_tp_absolute(eis_baseline, fpr, tpr, threshold_levels)
+    return serve_matplotlib_fig(improve_fig)
+
+
+@app.route("/<timestamp>/improvement_over_baseline_abs_nothresh")
+def improvement_over_baseline_abs_nothresh(timestamp):
+    eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
+    improve_fig = plot_fp_tp_absolute_nothresh(eis_baseline, fpr, tpr, threshold_levels)
+    return serve_matplotlib_fig(improve_fig)
+
+
+@app.route("/<timestamp>/improvement_over_baseline_nothresh")
+def improvement_over_baseline_nothresh(timestamp):
+    eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
+    improve_fig = plot_fp_tp_percent_nothresh(eis_baseline, fpr, tpr, threshold_levels)
     return serve_matplotlib_fig(improve_fig)
 
 

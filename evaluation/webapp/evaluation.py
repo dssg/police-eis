@@ -70,6 +70,54 @@ def plot_fp_tp_absolute(eis_baseline, fpr, tpr, threshold_levels):
     return fig
 
 
+def plot_fp_tp_absolute_nothresh(eis_baseline, fpr, tpr, threshold_levels):
+
+    fpr_plot, tpr_plot, threshold_plot = [], [], []
+
+    false_pos_eis = eis_baseline[0, 1]
+    true_pos_eis = eis_baseline[1, 1]
+
+    for each_threshold in threshold_levels:
+        threshold_plot.append(each_threshold * 100.)
+        fpr_plot.append(fpr[each_threshold] - false_pos_eis)
+        tpr_plot.append(tpr[each_threshold] - true_pos_eis)
+
+    with plt.style.context(('ggplot')):
+        plt.clf()
+        fig, ax1 = plt.subplots()
+        ax1.plot(tpr_plot, fpr_plot)
+        for ind, label in enumerate(threshold_levels):
+            ax1.annotate('top {}\%'.format(int(label*100)), xy=(tpr_plot[ind], fpr_plot[ind]))
+        ax1.set_xlabel('change in number of true positives')
+        ax1.set_ylabel('change in number of false positives')
+    plt.title("tradeoff in absolute change in false and true positives")
+    return fig
+
+
+def plot_fp_tp_percent_nothresh(eis_baseline, fpr, tpr, threshold_levels):
+
+    fpr_plot, tpr_plot, threshold_plot = [], [], []
+
+    false_pos_eis = eis_baseline[0, 1]
+    true_pos_eis = eis_baseline[1, 1]
+
+    for each_threshold in threshold_levels:
+        threshold_plot.append(each_threshold * 100.)
+        fpr_plot.append((fpr[each_threshold] - false_pos_eis)/false_pos_eis * 100.)
+        tpr_plot.append((tpr[each_threshold] - true_pos_eis)/true_pos_eis * 100.)
+
+    with plt.style.context(('ggplot')):
+        plt.clf()
+        fig, ax1 = plt.subplots()
+        ax1.plot(tpr_plot, fpr_plot)
+        for ind, label in enumerate(threshold_levels):
+            ax1.annotate('top {}\%'.format(int(label*100)), xy=(tpr_plot[ind], fpr_plot[ind]))
+        ax1.set_xlabel('percent change in true positives')
+        ax1.set_ylabel('percent change in false positives')
+    plt.title("tradeoff in percent change in false and true positives")
+    return fig
+
+
 def plot_normalized_confusion_matrix(labels, predictions):
     cutoff = 0.5
     predictions_binary = np.copy(predictions)
