@@ -17,7 +17,7 @@ def test_thresholds(testid, testprobs, start_date, end_date):
     Compute confusion matrices for a range of thresholds for the DSaPP model
     """
 
-    perc_thresholds = [x/100. for x in range(10, 70, 5)]
+    perc_thresholds = [x/100. for x in range(10, 85, 5)]
     confusion_matrices = {}
     for each_threshold in perc_thresholds:
         cm_eis, cm_dsapp = compute_confusion(testid, testprobs, each_threshold,
