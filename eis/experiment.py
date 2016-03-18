@@ -35,10 +35,13 @@ def main(config_file_name="default.yaml"):
     except:
         log.exception("Failed to get experiment configuration file!")
 
-    feature_groups = ["basic", "ia", "unit_div", "arrests",
-                      "citations", "incidents", "field_interviews",
-                      "cad", "training", "traffic_stops", "eis",
-                      "extraduty", "neighborhood"]
+    if config['try_feature_sets_by_group'] == True:
+        feature_groups = ["basic", "ia", "unit_div", "arrests",
+                          "citations", "incidents", "field_interviews",
+                          "cad", "training", "traffic_stops", "eis",
+                          "extraduty", "neighborhood"]
+    else:
+        feature_groups = ["all"]
 
     for group in feature_groups:
         log.info("Running models without feature set {}!".format(
@@ -47,7 +50,9 @@ def main(config_file_name="default.yaml"):
         # leave out features related to the selected group
         features_to_use = {}
         feature_groups_to_use = copy.copy(feature_groups)
-        feature_groups_to_use.remove(group)
+        if config['try_feature_sets_by_group'] == True:
+            feature_groups_to_use.remove(group)
+
         for features in feature_groups_to_use:
             features_to_use.update(config["features"][features])
 

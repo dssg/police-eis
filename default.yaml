@@ -47,6 +47,8 @@ noinvest: True  # include officers that have not been investigated in the traini
 ########################
 # Feature selection    #
 ########################
+try_feature_sets_by_group: False  # Turn on if you want the code to try removing each feature set in turn
+
 features:
     basic:
         height_weight: True  # Height, weight of the officer
