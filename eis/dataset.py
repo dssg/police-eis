@@ -133,7 +133,7 @@ def get_labels_for_ids(ids, start_date, end_date):
     adverse["adverse_by_ourdef"] = 1
     adverse = adverse.drop(["count"], axis=1)
     invest = invest.drop(["count"], axis=1)
-    outcomes = adverse.merge(invest, how='right', on='newid')
+    outcomes = adverse.merge(invest, how='outer', on='newid')
     outcomes = outcomes.fillna(0)
 
     return outcomes
@@ -298,7 +298,7 @@ class FeatureLoader():
         adverse = adverse.drop(["count"], axis=1)
         if noinvest == False:
             invest = invest.drop(["count"], axis=1)
-        outcomes = adverse.merge(invest, how='right', on='newid')
+        outcomes = adverse.merge(invest, how='outer', on='newid')
         outcomes = outcomes.fillna(0)
 
         # labels = labels.set_index(["newid"])
