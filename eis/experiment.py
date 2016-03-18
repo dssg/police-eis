@@ -46,14 +46,14 @@ def main(config_file_name="default.yaml"):
         feature_groups = ["all"]
 
     for group in feature_groups:
-        log.info("Running models without feature set {}!".format(
-            group))
 
         # leave out features related to the selected group
         features_to_use = {}
         if config["try_feature_sets_by_group"] == True:
             feature_groups_to_use = copy.copy(feature_groups)
             feature_groups_to_use.remove(group)
+            log.info("Running models without feature set {}!".format(
+            group))
         else:
             feature_groups_to_use = copy.copy(master_feature_groups)
 
