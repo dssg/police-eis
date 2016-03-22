@@ -448,7 +448,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, accidents,
     dataset = dataset.reindex(np.random.permutation(dataset.index))
     dataset = dataset.set_index(["newid"])
 
-    dataset = dataset.dropna()
+    dataset = dataset.fillna(0)
 
     labels = dataset["adverse_by_ourdef"].values
     feats = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
