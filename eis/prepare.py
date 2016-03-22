@@ -2,9 +2,20 @@ import sys
 import os
 import pandas as pd
 import subprocess
+import argparse
 
 from eis import setup_environment
 
+
+"""
+Code to take top performing recent models and 
+put them in the evaluation webapp for further
+examination.
+
+Example:
+--------
+python prepare.py '2016-03-22'
+"""
 
 engine, config = setup_environment.get_database()
 try:
@@ -12,6 +23,15 @@ try:
     con.cursor().execute("SET SCHEMA '{}'".format('models'))
 except:
     pass
+
+
+def get_best_recent_models(timestamp):
+    """
+    Grab the identifiers of the best recent models by AUC
+    """
+    query = "SELECT id_timestamp FROM models.full WHERE id_timestamp >= '{}' ORDER BY auc DESC LIMIT 25".format(timestamp)
+    df_models = pd.read_sql(query, con=con)
+    return df_models['id_timestamp'].apply(lambda x: str(x).replace(' ', 'T')).values 
 
 
 def get_best_models():
@@ -36,8 +56,12 @@ def prepare_webapp_display(ids, src_dir, dest_dir):
 
 
 if __name__=='__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("timestamp", type=str, help="show models more recent than a given timestamp")
+    args = parser.parse_args()
+
     print("[*] Updating model list...")
-    ids = get_best_models()
+    ids = get_best_recent_models(args.timestamp)
     raw_outputs_dir = '/mnt/data4/jhelsby/newpilot/'
     webapp_display_dir = '/mnt/data4/jhelsby/currentdisplay/'
     prepare_webapp_display(ids, raw_outputs_dir, webapp_display_dir)   
