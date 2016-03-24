@@ -43,13 +43,16 @@ def setup(config, today):
     log.info("Loading officers and features to use as training...")
     train_x, train_y, train_id, names = dataset.grab_officer_data(
         config["features"], train_start_date, today, train_start_date,
-        config["accidents"], config["noinvest"])
+        config["def_adverse"], config["labelling"])
 
     # Testing data should include ALL officers, ignoring "noinvest" keyword
+    testing_labelling_config = config["def_adverse"].copy()
+    testing_labelling_config["noinvest"] = True
+
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id, names = dataset.grab_officer_data(
         config["features"], today, test_end_date, today,
-        config["accidents"], True)
+        config["def_adverse"], testing_labelling_config)
 
     train_x_index = train_x.index
     test_x_index = test_x.index

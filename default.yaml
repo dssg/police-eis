@@ -31,18 +31,22 @@ training_interval_days: 1460  # days, used for dispatch-level prediction
 
 # Select which events you want the model to use as adverse incidents (class 1)
 
-accidents: False  # preventable accidents
-useofforce: True  # unjustified use of force
-injury: True  # preventable officer injuries
-icd: True  # preventable in custody deaths
-tdd: True  # unjustified use of tire deflation device
-nfsi: True  # unjustified no force subject injury
-dof: True  # unjustified discharge of firearm
-raid: True  # unjustified raid and search
-pursuit: True  # unjustified pursuit
-complaint: True  # sustained complaints 
+def_adverse:
+    accidents: False  # preventable accidents
+    useofforce: True  # unjustified use of force
+    injury: True  # preventable officer injuries
+    icd: True  # preventable in custody deaths
+    tdd: True  # unjustified use of tire deflation device
+    nfsi: True  # unjustified no force subject injury
+    dof: True  # unjustified discharge of firearm
+    raid: True  # unjustified raid and search
+    pursuit: True  # unjustified pursuit
+    complaint: True  # sustained complaints 
 
-noinvest: True  # include officers that have not been investigated in the training
+
+labelling: 
+    noinvest: True  # include officers that have not been investigated in the training
+    filter_by_active: True
 
 ########################
 # Feature selection    #

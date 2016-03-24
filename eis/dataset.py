@@ -227,16 +227,18 @@ class FeatureLoader():
         self.tables = config  # Dict of tables
         self.schema = config['schema']
 
-    def officer_labeller(self, accidents, noinvest):
+    def officer_labeller(self, labelling, def_adverse):
         """
         Load the IDs for a set of officers investigated between
         two dates and the outcomes
 
         Inputs:
-        accidents: Bool representing if accidents should be included
-        noinvest: Bool representing how officers with no investigations 
+        labelling: dict of Bools representing how officers should be selected
+              e.g. labelling['noinvest'] represents how officers with no investigations 
         should be treated - True means they are included as "0", False means they
         are excluded
+        def_adverse: dict of Bools representing which IA are considered adverse for 
+              the purposes of prediction
 
         Returns:
         labels: pandas dataframe with two columns:
@@ -245,8 +247,7 @@ class FeatureLoader():
 
         log.info("Loading labels...")
 
-        filter_by_active = True
-        if noinvest == True and filter_by_active == False:
+        if labelling['noinvest'] == True and labelling['filter_by_active'] == False:
             qinvest = ("SELECT DISTINCT newid FROM {eis} "
                       "WHERE datecreated >= '{start}'::date "
                       "AND datecreated <= '{end}'::date "
@@ -267,7 +268,7 @@ class FeatureLoader():
                           start=self.start_date, end=self.end_date,
                           ia=self.tables["si_table"], officers=self.tables["officer_table"],
                           arrests=self.tables["arrest_charges_table"])
-        elif noinvest == True and filter_by_active == True:
+        elif labelling['noinvest'] == True and labelling['filter_by_active'] == True:
             qinvest = ("SELECT DISTINCT newid FROM {eis} "
                       "WHERE datecreated >= '{start}'::date "
                       "AND datecreated <= '{end}'::date "
@@ -291,7 +292,7 @@ class FeatureLoader():
                       ).format(self.tables["si_table"],
                                self.start_date, self.end_date)
 
-        if accidents == False:
+        if def_adverse['accidents'] == False:
             qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
                         "WHERE adverse_by_ourdef = 1 "
                         "AND eventtype != 'Accident' "
@@ -409,8 +410,7 @@ class FeatureLoader():
         return results
 
 
-def grab_officer_data(features, start_date, end_date, time_bound, accidents,
-                      noinvest):
+def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling):
     """
     Function that defines the dataset.
 
@@ -420,8 +420,8 @@ def grab_officer_data(features, start_date, end_date, time_bound, accidents,
     start_date: start date for selecting officers
     end_date: end date for selecting officers
     time_bound: build features with respect to this date
-    accidents: if True, include accidents, if False exclude accidents
-    noinvest: if True, then all officers included those not investigated
+    def_adverse: dict containing options for adverse incident definitions
+    labelling: dict containing options to label officers
     by IA should be labelled, if False then only those investigated will
     be labelled
     """
@@ -430,7 +430,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, accidents,
     end_date = end_date.strftime('%Y-%m-%d')
     data = FeatureLoader(start_date, end_date, time_bound)
 
-    officers = data.officer_labeller(accidents, noinvest)
+    officers = data.officer_labeller(labelling, def_adverse)
     # officers.set_index(["newid"])
 
     dataset = officers
