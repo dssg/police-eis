@@ -32,8 +32,8 @@ def setup(config, today):
     """
 
     today = datetime.datetime.strptime(today, "%d%b%Y")
-    train_start_date = today - datetime.timedelta(days=config["prediction_interval"])
-    test_end_date = today + datetime.timedelta(days=config["prediction_interval"])
+    train_start_date = today - datetime.timedelta(days=config["prediction_window"])
+    test_end_date = today + datetime.timedelta(days=config["prediction_window"])
 
     log.info("Train label window start: {}".format(train_start_date))
     log.info("Train label window stop: {}".format(today))
