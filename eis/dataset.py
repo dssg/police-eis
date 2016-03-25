@@ -247,7 +247,24 @@ class FeatureLoader():
 
         log.info("Loading labels...")
 
-        if labelling['noinvest'] == True and labelling['filter_by_active'] == False:
+        if labelling['noinvest'] == True and labelling['use_officer_activity'] == True:
+            qinvest = ("SELECT DISTINCT newid FROM {officers} "
+                      "WHERE date_employed <= '{start}' AND "
+                      "(terminationdate >= '{end}' OR "
+                      "terminationdate is Null) AND "
+                      "classification = 'S' and active = 'Y'"
+                      "UNION "
+                      "SELECT DISTINCT newid FROM {arrests} "
+                      "WHERE arrest_date >= '{start}' AND "
+                      "arrest_date <= '{end}'"
+                      "UNION"
+                      "SELECT DISTINCT newid FROM {stops} "
+                      "WHERE date_time_action >= '{start}' AND"
+                      "date_time_action <= '{end}'").format(stops=self.tables["stops_table"], 
+                          start=self.start_date, end=self.end_date,
+                          officers=self.tables["officer_table"],
+                          arrests=self.tables["arrest_charges_table"])
+        elif labelling['noinvest'] == True and labelling['filter_by_active'] == False and labelling['use_officer_activity'] == False:
             qinvest = ("SELECT DISTINCT newid FROM {eis} "
                       "WHERE datecreated >= '{start}'::date "
                       "AND datecreated <= '{end}'::date "
@@ -268,7 +285,7 @@ class FeatureLoader():
                           start=self.start_date, end=self.end_date,
                           ia=self.tables["si_table"], officers=self.tables["officer_table"],
                           arrests=self.tables["arrest_charges_table"])
-        elif labelling['noinvest'] == True and labelling['filter_by_active'] == True:
+        elif labelling['noinvest'] == True and labelling['filter_by_active'] == True and labelling['use_officer_activity'] == False:
             qinvest = ("SELECT DISTINCT newid FROM {eis} "
                       "WHERE datecreated >= '{start}'::date "
                       "AND datecreated <= '{end}'::date "
@@ -314,9 +331,12 @@ class FeatureLoader():
         adverse = pd.read_sql(qadverse, con=con)
         adverse["adverse_by_ourdef"] = 1
         adverse = adverse.drop(["count"], axis=1)
-        if noinvest == False:
+        if labelling['noinvest'] == False:
             invest = invest.drop(["count"], axis=1)
-        outcomes = adverse.merge(invest, how='outer', on='newid')
+        if labelling['use_officer_activity'] == True:
+            outcomes = adverse.merge(invest, how='right', on='newid')
+        else:
+            outcomes = adverse.merge(invest, how='outer', on='newid')
         outcomes = outcomes.fillna(0)
 
         # labels = labels.set_index(["newid"])

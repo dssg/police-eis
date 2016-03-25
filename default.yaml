@@ -47,6 +47,7 @@ def_adverse:
 labelling: 
     noinvest: True  # include officers that have not been investigated in the training
     filter_by_active: True
+    use_officer_activity: True  # use officers with arrests/traffic stops for training
 
 ########################
 # Feature selection    #
