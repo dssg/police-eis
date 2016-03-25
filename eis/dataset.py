@@ -259,7 +259,7 @@ class FeatureLoader():
                       "arrest_date <= '{end}' "
                       "UNION "
                       "SELECT DISTINCT newid FROM {stops} "
-                      "WHERE date_time_action >= '{start}' AND"
+                      "WHERE date_time_action >= '{start}' AND "
                       "date_time_action <= '{end}'").format(stops=self.tables["stops_table"], 
                           start=self.start_date, end=self.end_date,
                           officers=self.tables["officer_table"],
