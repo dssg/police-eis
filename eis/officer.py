@@ -46,7 +46,7 @@ def setup(config, today):
         config["def_adverse"], config["labelling"])
 
     # Testing data should include ALL officers, ignoring "noinvest" keyword
-    testing_labelling_config = config["def_adverse"].copy()
+    testing_labelling_config = config["labelling"].copy()
     testing_labelling_config["noinvest"] = True
 
     log.info("Loading officers and features to use as testing...")
