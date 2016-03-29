@@ -99,7 +99,8 @@ def define_model(model, parameters, n_cores):
 
     elif model == 'SVM':
         return svm.SVC(C=parameters['C_reg'],
-                       kernel=parameters['kernel'])
+                       kernel=parameters['kernel'],
+                       probability=True)
 
     elif model == 'LogisticRegression':
         return linear_model.LogisticRegression(
