@@ -5,6 +5,7 @@ python:
 sudo: required
 install:
   - "sudo apt-get install gfortran python-liblas libblas-dev liblapack-dev libatlas-dev"
+  - "sudo apt-get install python3-scipy"
   - "travis_wait pip install -r requirements.txt"
 #  - "pip install -r requirements.txt"
 script:
