@@ -3,4 +3,5 @@ pandas
 pyyaml
 sqlalchemy
 datetime
+scipy
 sklearn
