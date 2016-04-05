@@ -1,0 +1,7 @@
+# Include license
+include LICENSE.md
+
+# Include the default data files
+include example_default_profile.yaml
+include example_police_dept.yaml
+include default.yaml
