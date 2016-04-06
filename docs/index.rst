@@ -6,17 +6,23 @@
 Welcome to police-eis's documentation!
 ======================================
 
-Contents:
+police-eis is a data-driven early intervention system for police departments to use to predict adverse incidents with the public and other events of interest for a police force.
+
+Contents
+========
+
+* :doc:`intro`: An intro to the features of the software
+* :doc:`quickstart`: Getting started from installation to integration to model generation
 
 .. toctree::
    :maxdepth: 2
-
+   intro
+   quickstart
 
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
