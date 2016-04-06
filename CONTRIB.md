@@ -1,10 +1,8 @@
 # Contributing
 
-This is written for DSaPP members that want to contribute to this project. 
-
 ## Making Changes
 
-If you want to make changes, please first make a branch (alternatively fork the repo), make the minimal changes necessary to implement the new feature, then run the test suite. If everything looks okay then submit a PR. 
+If you want to make changes, please first make a branch (alternatively fork the repo), make the minimal changes necessary to implement the new feature, then run the test suite with `nosetests -v`. Travis CI will also run your tests when your submit your PR so please make sure these pass. For style, use [Google's Python docstring style](https://sphinxcontrib-napoleon.readthedocs.org/en/latest/example_google.html) for documenting your code. If everything looks okay then submit a PR. 
 
 ## Adding a feature
 
