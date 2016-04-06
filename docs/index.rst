@@ -6,16 +6,18 @@
 Welcome to police-eis's documentation!
 ======================================
 
-police-eis is a data-driven early intervention system for police departments to use to predict adverse incidents with the public and other events of interest for a police force.
+police-eis is a data-driven Early Intervention System (EIS) for police departments. The system uses a police department's data to predict which officers are likely to have an adverse interaction with the public. An adverse incident can be defined on a department by department basis, but typically includes unjustified uses of force, officer injuries, preventable accidents and sustained complaints. This is done such that additional training, counseling and other resources can be provided to the officer *before* any adverse interactions occur.
+
+This is a project of the University of Chicago's `Center for Data Science and Public Policy <http://dsapp.org>`__. 
 
 Contents
 ========
 
-* :doc:`intro`: An intro to the features of the software
-* :doc:`quickstart`: Getting started from installation to integration to model generation
-
 .. toctree::
+   :caption: Basics
+   :name: basics
    :maxdepth: 2
+
    intro
    quickstart
 
