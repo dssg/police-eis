@@ -44,32 +44,46 @@ def run(train_x, train_y, test_x, model, parameters, n_cores):
     results, importances, modelobj, individual_imp = gen_model(train_x, train_y, test_x, model,
                                      parameters, n_cores)
 
+    # Model interpretability
+    individual_imp = get_individual_importances(modelobj, model, test_x) 
+    importances = get_feature_importances(modelobj)
+
     return results, importances, modelobj, individual_imp
 
 
 def gen_model(train_x, train_y, test_x, model, parameters, n_cores):
+    """Trains a model and generates risk scores.
+
+    Args:
+        train_x: training features
+        train_y: training target variable
+        test_x: testing features
+        model (str): model type
+        parameters: hyperparameters for model
+        n_cores (Optional[int]): number of cores to us
+
+    Returns:
+        result_y: predictions on test set
+        modelobj: trained model object 
+    """
+
     log.info("Training {} with {}".format(model, parameters))
     modelobj = define_model(model, parameters, n_cores)
     modelobj.fit(train_x, train_y)
     result_y = modelobj.predict_proba(test_x)
 
-    individual_imp = get_individual_importances(modelobj, model, test_x)
-
-    importances = get_feature_importances(modelobj)
-    return result_y[:, 1], importances, modelobj, individual_imp
+    return result_y[:, 1], modelobj
 
 
 def get_feature_importances(model):
     """
     Get feature importances (from scikit-learn) of trained model.
 
-    Input:
-    ------ 
-    model: Trained model
+    Args:
+        model: Trained model
 
     Returns:
-    --------
-    Feature importances, or failing that, None
+        Feature importances, or failing that, None
     """
 
     try:
