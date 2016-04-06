@@ -3,7 +3,7 @@ Introduction
 
 This document describes the main functions of the software *without* going into detail into the technical details of how to set up the software. Please refer to :doc:`quickstart` for that information. 
 
-Predicting Police Misconduct
+Predicting Adverse Incidents
 ----------------------------
 
 The goal of the system is to provide a data-driven way for police departments to monitor their officers.
