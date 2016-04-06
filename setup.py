@@ -40,6 +40,7 @@ setup(
 
     packages=find_packages(exclude=['images', 'docs', 'tests*']),
 
+    setup_requires=['numpy', 'scipy'],
     install_requires=['numpy', 'pyyaml', 'pandas', 'scikit-learn',
                       'sqlalchemy', 'datetime', 'scipy',
                       'psycopg2'],
