@@ -1,0 +1,39 @@
+digraph G {
+Data->ETL
+Data [shape="box" label="Data"]
+
+subgraph cluster0 {
+    ETL [label="Data cleaning", style="filled", color="white"]
+    Database [shape="box", label="Put into database", style="filled", color="white"]
+    ETL->Database
+    style=filled
+    color=lightgrey
+    label="ETL"
+    labeljust="l"
+}
+
+
+FeatureGen [shape="box", label="Feature generation"]
+Database->FeatureGen
+FeatureGen->FeatureSets
+
+subgraph cluster1 {
+    FeatureSets [shape="box", label="Try various combinations of features", style="filled", color="white"]
+    ModelTypes [shape="box", width=5, label="Try various model types for each feature set", style="filled", color="white"]
+    Hyperparams [shape="box", width=6, label="Try various hyperparameters for each model type", style="filled", color="white"]
+
+    style=filled
+    color=lightgrey
+    label="Model generation"
+    labeljust="l"
+
+    FeatureSets->ModelTypes
+    ModelTypes->Hyperparams
+}
+
+Hyperparams->SelectBestModel
+SelectBestModel [label="Select best performing model"]
+Frontend [label="Display in frontend"]
+SelectBestModel->Frontend
+
+}
