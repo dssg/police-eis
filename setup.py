@@ -43,7 +43,7 @@ setup(
     setup_requires=['numpy', 'scipy'],
     install_requires=['numpy', 'pyyaml', 'pandas', 'scikit-learn',
                       'sqlalchemy', 'datetime', 'scipy',
-                      'psycopg2'],
+                      'psycopg2', 'seaborn'],
 
     # Dev package requirements
     # $ pip install -e .[dev,test]
