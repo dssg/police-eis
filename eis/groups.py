@@ -7,7 +7,7 @@ import pickle
 import pdb
 import datetime
 
-from eis import dataset, setup_environment
+import dataset, setup_environment
 
 log = logging.getLogger(__name__)
 

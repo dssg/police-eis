@@ -7,8 +7,8 @@ import sys
 import datetime
 import json
 
-from eis import setup_environment
-from eis.features import class_map
+import setup_environment
+from features import class_map
 
 log = logging.getLogger(__name__)
 engine, config = setup_environment.get_database()

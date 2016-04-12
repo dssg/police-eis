@@ -6,13 +6,14 @@ import sys
 import argparse
 import pickle
 import pdb
+import datetime
 
-from eis import (setup_environment, models, officer,
-                 dispatch, explore, groups, scoring,
-                 dataset, experiment)
+sys.path.insert(0, "eis")
+import setup_environment, models, scoring
+import dataset, experiment, groups
 
 
-def main(config_file_name="default.yaml"):
+def main(config_file_name):
     logging.basicConfig(format="%(asctime)s %(message)s",
                         filename="default.log", level=logging.INFO)
     log = logging.getLogger("Police EIS")
@@ -119,5 +120,10 @@ def pickle_results(pkl_file, to_save):
 
     return None
 
+
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config", type=str, help="pass your config",
+                        default="default.yaml")
+    args = parser.parse_args()
+    main(args.config)

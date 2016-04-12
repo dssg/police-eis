@@ -4,8 +4,7 @@ from itertools import product
 import datetime
 import logging
 
-
-from eis import officer, dispatch, explore
+import officer, dispatch, explore
 
 # Potential data sources in the police dept to draw from
 MASTER_FEATURE_GROUPS = ["basic", "ia", "unit_div", "arrests",
@@ -32,7 +31,7 @@ class EISExperiment(object):
 
 
 
-def generate_models_to_run(config):
+def generate_models_to_run(config, query_db=True):
     """Generates a list of experiments with the various options
     that we want to test, e.g. different temporal cross-validation
     train/test splits, model types, hyperparameters, features, etc.
@@ -40,6 +39,9 @@ def generate_models_to_run(config):
     Args:
         config: Python dict read in from YAML config file containing
                 user-supplied details of the experiments to be run
+        query_db [optional (bool)]: keyword arg describing if we should
+                                    get the data from the db or just generate
+                                    the configs
 
     Returns: 
         experiment_list: list of EISExperiment objects to be run
@@ -71,10 +73,13 @@ def generate_models_to_run(config):
         this_config["features"] = features_to_use
 
         for model in config["model"]:
-            if config["unit"] == "officer":
-                exp_data = officer.run_traintest(this_config)
-            elif config["unit"] == "dispatch":
-                exp_data = dispatch.setup(this_config)
+            if query_db:
+                if config["unit"] == "officer":
+                    exp_data = officer.run_traintest(this_config)
+                elif config["unit"] == "dispatch":
+                    exp_data = dispatch.setup(this_config)
+            else:
+                exp_data = {"test_x": None, "train_y": None}
 
             this_config["parameters"] = config["parameters"][model]
             this_config["model"] = model
@@ -84,9 +89,6 @@ def generate_models_to_run(config):
 
             if config["make_feat_dists"]:
                 explore.make_all_dists(exp_data)
-
-            log.info("Training data: {} rows. Testing data: {} rows.".format(
-                len(exp_data["train_y"]), len(exp_data["test_x"])))
 
             parameter_names = sorted(this_config["parameters"])
             parameter_values = [this_config["parameters"][p] for p in parameter_names]

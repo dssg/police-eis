@@ -7,7 +7,7 @@ import pdb
 import datetime
 from sklearn import preprocessing
 
-from eis import dataset
+import dataset
 
 log = logging.getLogger(__name__)
 

@@ -4,8 +4,6 @@ import logging
 import yaml
 import datetime
 
-from eis import setup_environment
-
 log = logging.getLogger(__name__)
 
 
