@@ -83,6 +83,14 @@ eis.prepare module
     :undoc-members:
     :show-inheritance:
 
+eis.run module
+--------------
+
+.. automodule:: eis.run
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 eis.scoring module
 ------------------
 
