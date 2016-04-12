@@ -48,6 +48,8 @@ The following flowchart describes the process of model generation in relation to
 
 .. image:: ../images/pipeline.png
 
+The model code takes a config file with lists of window sizes, dates to use as "fake todays" for temporal cross validation, model types, and lists of hyperparameters (to search), feature groups, and runs every possible combination. 
+
 At the moment, some of the feature generation work must be done by hand in adapting the SQL queries to the schema used for a given police department's dataset. In addition, new features can be added as described in the following section. 
 
 .. note:: This pipeline covers the steps from when the data is dumped into a centralized database for analysis. 
