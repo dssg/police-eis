@@ -42,19 +42,7 @@ Running Models
 To run models on this new dataset, edit ``default.yaml``.
 
 Details of experiments, e.g. ranges of hyperparameters as well as features to be included, are stored in a YAML file - example in ``default.yaml``. Configure your experiments as you wish and then::
-
-    In [1]: from eis import experiment
-
-    In [2]: experiment.main()
-    2015-11-05 14:53:11,853 - Police EIS: Loaded experiment file
-    ...things happen...
-    2015-11-05 15:22:52,702 - Police EIS: Training model: RandomForest with {'depth': 20, 'n_estimators': 50, 'criterion': 'entropy'}
-    2015-11-05 15:22:53,037 - Police EIS: Saving pickled results...
-    2015-11-05 15:22:53,038 - Police EIS: Training model: RandomForest with {'depth': 20, 'n_estimators': 100, 'criterion': 'entropy'}
-    2015-11-05 15:22:53,616 - Police EIS: Saving pickled results...
-    2015-11-05 15:22:53,617 - Police EIS: Done!
-
-    In [3]:
+    python -m eis.run default.yaml
 
 The following flowchart describes the process of model generation in relation to the ETL and feature generation work: 
 
