@@ -1,47 +1,54 @@
-import numpy as np
-import pandas as pd
-import yaml
-import sqlalchemy
-import logging
-import sys
-import pickle
 import pdb
-import datetime
-from itertools import product
 import copy
+from itertools import product
+import datetime
+import logging
 
-from eis import (setup_environment, models, officer,
-                 dispatch, explore, groups, scoring,
-                 dataset)
+
+from eis import officer, dispatch, explore
+
+# Potential data sources in the police dept to draw from
+MASTER_FEATURE_GROUPS = ["basic", "ia", "unit_div", "arrests",
+                         "citations", "incidents", "field_interviews",
+                         "cad", "training", "traffic_stops", "eis",
+                         "extraduty", "neighborhood"]
 
 
-def main(config_file_name="default.yaml"):
-    logging.basicConfig(format="%(asctime)s %(message)s",
-                        filename="default.log", level=logging.INFO)
-    log = logging.getLogger("Police EIS")
+log = logging.getLogger("Police EIS")
 
-    screenlog = logging.StreamHandler(sys.stdout)
-    screenlog.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
-    screenlog.setFormatter(formatter)
-    log.addHandler(screenlog)
+class EISExperiment(object):
+   """The EISExperiment class defines each individual experiment
 
-    timestamp = datetime.datetime.now().isoformat()
+   Attributes:
+       config: dict containing configuration
+       exp_data: dict containing data   
+       pilot_data: dict containing data for pilot if defined
+   """
 
-    try:
-        with open(config_file_name, 'r') as f:
-            config = yaml.load(f)
-        log.info("Loaded experiment file")
-    except:
-        log.exception("Failed to get experiment configuration file!")
+   def __init__(self, config):
+       self.config = config.copy()
+       self.exp_data = None
+       self.pilot_data = None
 
-    master_feature_groups = ["basic", "ia", "unit_div", "arrests",
-                      "citations", "incidents", "field_interviews",
-                      "cad", "training", "traffic_stops", "eis",
-                      "extraduty", "neighborhood"]
+
+
+def generate_models_to_run(config):
+    """Generates a list of experiments with the various options
+    that we want to test, e.g. different temporal cross-validation
+    train/test splits, model types, hyperparameters, features, etc.
+
+    Args:
+        config: Python dict read in from YAML config file containing
+                user-supplied details of the experiments to be run
+
+    Returns: 
+        experiment_list: list of EISExperiment objects to be run
+    """
+
+    experiment_list = []
 
     if config["try_feature_sets_by_group"] == True:
-        feature_groups = master_feature_groups
+        feature_groups = MASTER_FEATURE_GROUPS 
     else:
         feature_groups = ["all"]
 
@@ -55,7 +62,7 @@ def main(config_file_name="default.yaml"):
             log.info("Running models without feature set {}!".format(
             group))
         else:
-            feature_groups_to_use = copy.copy(master_feature_groups)
+            feature_groups_to_use = copy.copy(MASTER_FEATURE_GROUPS)
 
         for features in feature_groups_to_use:
             features_to_use.update(config["features"][features])
@@ -72,16 +79,14 @@ def main(config_file_name="default.yaml"):
             this_config["parameters"] = config["parameters"][model]
             this_config["model"] = model
 
-            if config["pilot"] == True:
+            if config["pilot"]:
                 pilot_data = officer.run_pilot(this_config)
 
-            if config["make_feat_dists"] == True:
+            if config["make_feat_dists"]:
                 explore.make_all_dists(exp_data)
 
             log.info("Training data: {} rows. Testing data: {} rows.".format(
                 len(exp_data["train_y"]), len(exp_data["test_x"])))
-
-            log.info("Running models on dataset...")
 
             parameter_names = sorted(this_config["parameters"])
             parameter_values = [this_config["parameters"][p] for p in parameter_names]
@@ -94,89 +99,12 @@ def main(config_file_name="default.yaml"):
                               in zip(parameter_names, each_param)}
                 log.info("Training model: {} with {}".format(this_config["model"],
                          parameters))
-                result_y, importances, modelobj, individual_imps = models.run(exp_data["train_x"],
-                                                   exp_data["train_y"],
-                                                   exp_data["test_x"],
-                                                   this_config["model"],
-                                                   parameters,
-                                                   this_config["n_cpus"])
 
                 this_config["parameters"] = parameters
-                log.info("Saving pickled results...")
+                new_experiment = EISExperiment(this_config)
+                new_experiment.exp_data = exp_data
+                if config["pilot"]:
+                    new_experiment.pilot_data = pilot_data
+                experiment_list.append(new_experiment)
 
-                if config["aggregation"] == True:
-                    groupscores = groups.aggregate(exp_data["test_x_index"],
-                                                   result_y, this_config["fake_today"])
-
-                if config["pilot"] == True:
-                    log.info("Generating pilot")
-                    pilot_y, pilot_importances, __, pilot_individual_imps = models.run(
-                        pilot_data["train_x"], pilot_data["train_y"],
-                        pilot_data["test_x"], this_config["model"],
-                        parameters, this_config["n_cpus"])
-                    pilot_save = {"test_predictions": pilot_y,
-                                  "feature_importances": pilot_importances,
-                                  "individual_imporatnces": pilot_individual_imps,
-                                  "features": pilot_data["names"],
-                                  "officer_id_train": pilot_data["train_x_index"],
-                                  "officer_id_test": pilot_data["test_x_index"],
-                                  "train_x": pilot_data["train_x"],
-                                  "train_y": pilot_data["train_y"],
-                                  "test_x": pilot_data["test_x"]}
-                    pilot_file = "{}pilot_experiment_{}.pkl".format(this_config["pilot_dir"], timestamp)
-                    pickle_results(pilot_file, pilot_save)
-
-                confusion_matrices = scoring.test_thresholds(exp_data["test_x_index"], result_y, 
-                                                             this_config['fake_today'], exp_data["test_end_date"])
-
-                to_save = {"test_labels": exp_data["test_y"],
-                           "test_predictions": result_y,
-                           "config": this_config,
-                           "officer_id_train": exp_data["train_x_index"],
-                           "officer_id_test": exp_data["test_x_index"],
-                           "features": exp_data["names"],
-                           "timestamp": timestamp,
-                           "parameters": parameters,
-                           "train_start_date": exp_data["train_start_date"],
-                           "test_end_date": exp_data["test_end_date"],
-                           "feature_importances": importances,
-                           "feature_importances_names": exp_data["features"],
-                           "aggregation": groupscores,
-                           "eis_baseline": confusion_matrices,
-                           "modelobj": modelobj,
-                           "individual_importances": individual_imps}
-
-                pkl_file = "{}{}_{}.pkl".format(
-                    this_config['directory'], this_config['pkl_prefix'], timestamp)
-                pickle_results(pkl_file, to_save)
-
-                auc = scoring.compute_AUC(exp_data["test_y"], result_y)
-                dataset.enter_into_db(timestamp, this_config, auc)
-
-                if config["auditing"] == True:
-                    audit_outputs = {"train_x": exp_data["train_x"],
-                                     "train_y": exp_data["train_y"],
-                                     "officer_id_train": exp_data["train_x_index"],
-                                     "officer_id_test": exp_data["test_x_index"],
-                                     "test_predictions": result_y,
-                                     "test_y": exp_data["test_y"],
-                                     "test_x": exp_data["test_x"]}
-                    audit_file = "{}audit_{}.pkl".format(this_config['audits'], timestamp)
-                    pickle_results(audit_file, audit_outputs)
-
-    log.info("Done!")
-    return None
-
-
-def pickle_results(pkl_file, to_save):
-    """
-    Save contents of experiment to pickle file for later use
-    """
-
-    with open(pkl_file, 'wb') as f:
-        pickle.dump(to_save, f, protocol=pickle.HIGHEST_PROTOCOL)
-
-    return None
-
-if __name__ == "__main__":
-    main()
+    return experiment_list

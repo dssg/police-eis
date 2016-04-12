@@ -41,8 +41,8 @@ def get_individual_importances(model, model_name, test_x):
 
 def run(train_x, train_y, test_x, model, parameters, n_cores):
 
-    results, importances, modelobj, individual_imp = gen_model(train_x, train_y, test_x, model,
-                                     parameters, n_cores)
+    results, modelobj = gen_model(train_x, train_y, test_x, model,
+                                  parameters, n_cores=n_cores)
 
     # Model interpretability
     individual_imp = get_individual_importances(modelobj, model, test_x) 
@@ -51,7 +51,7 @@ def run(train_x, train_y, test_x, model, parameters, n_cores):
     return results, importances, modelobj, individual_imp
 
 
-def gen_model(train_x, train_y, test_x, model, parameters, n_cores):
+def gen_model(train_x, train_y, test_x, model, parameters, n_cores=1):
     """Trains a model and generates risk scores.
 
     Args:
