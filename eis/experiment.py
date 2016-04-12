@@ -4,7 +4,7 @@ from itertools import product
 import datetime
 import logging
 
-import officer, dispatch, explore
+from . import officer, dispatch, explore
 
 # Potential data sources in the police dept to draw from
 MASTER_FEATURE_GROUPS = ["basic", "ia", "unit_div", "arrests",

@@ -6,7 +6,7 @@ import logging
 import sys
 import datetime
 
-from features import officers
+from . import officers
 
 log = logging.getLogger(__name__)
 

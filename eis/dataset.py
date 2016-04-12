@@ -7,8 +7,8 @@ import sys
 import datetime
 import json
 
-import setup_environment
-from features import class_map
+from . import setup_environment
+from .features import class_map
 
 log = logging.getLogger(__name__)
 engine, config = setup_environment.get_database()

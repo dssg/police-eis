@@ -7,7 +7,7 @@ import pickle
 import pdb
 import datetime
 
-import dataset, setup_environment
+from . import dataset, setup_environment
 
 log = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ import pandas as pd
 import subprocess
 import argparse
 
-import setup_environment
+from . import setup_environment
 
 
 """

@@ -8,9 +8,8 @@ import pickle
 import pdb
 import datetime
 
-sys.path.insert(0, "eis")
-import setup_environment, models, scoring
-import dataset, experiment, groups
+from . import setup_environment, models, scoring
+from . import dataset, experiment, groups
 
 
 def main(config_file_name):

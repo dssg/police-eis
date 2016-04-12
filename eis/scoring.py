@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from sklearn import metrics
 
-import dataset
+from . import dataset
 
 
 def compute_AUC(test_labels, test_predictions):
