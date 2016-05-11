@@ -23,8 +23,6 @@ def main(config_file_name):
     screenlog.setFormatter(formatter)
     log.addHandler(screenlog)
 
-    timestamp = datetime.datetime.now().isoformat()
-
     try:
         with open(config_file_name, 'r') as f:
             config = yaml.load(f)
@@ -36,6 +34,8 @@ def main(config_file_name):
 
     log.info("Running models on dataset...")
     for my_exp in all_experiments:
+        timestamp = datetime.datetime.now().isoformat()
+
         result_y, importances, modelobj, individual_imps = models.run(
             my_exp.exp_data["train_x"],
             my_exp.exp_data["train_y"],
