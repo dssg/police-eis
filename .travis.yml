@@ -9,5 +9,5 @@ install:
 #  - "travis_wait cat requirements.txt | xargs -n 1 -L 1 pip install"
   - "travis_wait python setup.py install" 
 script:
-- "nosetests"
+- "travis_wait nosetests"
 # - pep8 police-eis/eis
