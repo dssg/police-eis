@@ -56,7 +56,7 @@ def main(config_file_name):
                 my_exp.config["parameters"], my_exp.config["n_cpus"])
             pilot_save = {"test_predictions": pilot_y,
                           "feature_importances": pilot_importances,
-                          "individual_imporatnces": pilot_individual_imps,
+                          "individual_importances": pilot_individual_imps,
                           "features": my_exp.pilot_data["names"],
                           "officer_id_train": my_exp.pilot_data["train_x_index"],
                           "officer_id_test": my_exp.pilot_data["test_x_index"],
