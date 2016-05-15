@@ -9,5 +9,6 @@ install:
 #  - "travis_wait cat requirements.txt | xargs -n 1 -L 1 pip install"
   - "travis_wait python setup.py install" 
 script:
-- "travis_wait nosetests --verbosity=3"
+- nosetests --verbosity=3 tests/tests_experiment.py
+- nosetests --verbosity=3 tests/tests_dataset.py
 # - pep8 police-eis/eis
