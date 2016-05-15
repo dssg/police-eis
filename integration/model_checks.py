@@ -13,8 +13,8 @@ with open('default.yaml', 'r') as f:
     config = yaml.load(f)
 
 # Generate some dummy data
-train_x, train_y = datasets.make_classification(n_samples=2, n_features=4)
-test_x, test_y = datasets.make_classification(n_samples=2, n_features=4)
+train_x, train_y = datasets.make_classification(n_samples=100, n_features=4)
+test_x, test_y = datasets.make_classification(n_samples=100, n_features=4)
 
 def try_model(config, model_name):
     test_config = config.copy() 
@@ -26,6 +26,7 @@ def try_model(config, model_name):
         result_y, imp, modelobj, indiv_imps = models.run(train_x, train_y,
             test_x, exp.config['model'], exp.config['parameters'],
             n_cores=1)
+        print('Experiment success!')
     return result_y
 
 
