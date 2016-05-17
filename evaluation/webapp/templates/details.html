@@ -103,7 +103,7 @@
               </tr>
           </thead>
           <tbody>
-          {% for division in groups["divisions"] %}
+          {% for division in groups["division_order"] %}
               <tr>
                   <th>{{division}}
                   <th>{{groups["divisions"][division]['number']}}</th>
@@ -141,7 +141,7 @@
               </tr>
           </thead>
           <tbody>
-          {% for unit in groups["units"] %}
+          {% for unit in groups["unit_order"] %}
               <tr>
                   <th>{{unit}}
                   <th>{{groups["units"][unit]['number']}}</th>

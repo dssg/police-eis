@@ -40,6 +40,8 @@ def details(timestamp):
     # will fail with 404 if exp not known
     get_labels_predictions(timestamp)
     groups = get_aggregate_scores(timestamp)
+    groups["division_order"] = sorted(groups["divisions"].keys())
+    groups["unit_order"] = sorted(groups["units"].keys())
     eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
     fpr_dict = SortedDisplayDict(fpr)
     tpr_dict = SortedDisplayDict(tpr)
