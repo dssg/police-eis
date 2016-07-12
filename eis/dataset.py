@@ -66,9 +66,8 @@ def get_baseline(start_date, end_date):
     """
 
     query_flagged_officers = ("SELECT DISTINCT officer_id from {} "
-                                "WHERE datecreated >= '{}'::date "
-                                "AND datecreated <='{}'::date")
-                                .format(
+                                "WHERE date_created >= '{}'::date "
+                                "AND date_created <='{}'::date".format(
                                     db_config["eis_table"],
                                     start_date, 
                                     end_date))
@@ -145,12 +144,18 @@ def get_labels_for_ids(ids, start_date, end_date):
                              start_date, end_date,
                              format_officer_ids(ids))
 
-    # query to get officer_id for all officers who were flagged by the old EIS system in the specified time period
-    # TODO: add in time period limiting
-    query_investigated_officers = ("SELECT DISTINCT officer_id FROM {} "
-                                    "WHERE officer_id in ({}) "
-                                    "AND date_created >= '{}'::date "
-                                    "AND date_created <= '{}'::date "
+    # query to get officer_id for all officers who were invstigated in the specified time period
+    # TODO: add in time period limiting, appropriate table querying
+    query_investigated_officers = "SELECT DISTINCT officer_id FROM staging.officers_hub"
+#                                   ("SELECT DISTINCT officer_id FROM {} "
+#                                   "WHERE officer_id in ({}) "
+#                                   "AND date_created >= '{}'::date "
+#                                   "AND date_created <= '{}'::date "
+#                                   .format(
+#                                       db_config['si_table'],
+#                                       format_officer_ids(ids),
+#                                       start_date,
+#                                       end_date))
 
     # query to get counts of adverse incidents for all active officers in the specified time period
     # TODO: add in time period limiting
@@ -368,11 +373,13 @@ class FeatureLoader():
 
         # query to get officer_id for all officers who were active in the specified time period
         # TODO: add in time period limiting
-        query_investigated_officers = "SELECT officer_id FROM officers_hub"
+        query_investigated_officers = ("SELECT DISTINCT events_hub.officer_id "
+                                        "FROM "
+                                        "events_hub as events_hub ")
 
         # query to get counts of adverse incidents for all active officers in the specified time period
         # TODO: add in time period limiting
-        query_adverse_officers = (  "SELECT events_hub.officer_id "
+        query_adverse_officers = (  "SELECT DISTINCT events_hub.officer_id "
                                     "FROM "
                                     "events_hub as events_hub "
                                     "LEFT JOIN "
@@ -516,7 +523,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
             feature_df, names = data.loader(each_feat,
                                             dataset["officer_id"])
             log.info("Loaded feature {} with {} rows".format(
-                features[each_feat], len(feature_df)))
+                each_feat, len(feature_df)))
             featnames = list(featnames) + list(names)
             dataset = dataset.join(feature_df, how='left', on='officer_id')
 
