@@ -10,27 +10,36 @@ import json
 from . import setup_environment
 from .features import class_map
 
+# inherit format from root level logger (specified in eis/run.py)
 log = logging.getLogger(__name__)
-engine, config = setup_environment.get_database()
+
 try:
+    engine, db_config = setup_environment.get_database()
     con = engine.raw_connection()
-    con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
+    log.debug('Connected to the database')
 except:
-    log.warning('Could not connect to database')
+    log.warning('Could not connect to the database')
+    raise
+
+try:
+    con.cursor().execute("SET SCHEMA '{}'".format(db_config['schema']))
+    log.debug('Changed the schema to ', db_config['schema'])
+except:
+    log.warning('Could not set the database schema')
+    raise
 
 
 def change_schema(schema):
     con.cursor().execute("SET SCHEMA '{}'".format(schema))
+    log.debug('Changed the schema to {}'.format(schema))
     return None
 
 
 def enter_into_db(timestamp, config, auc):
-    change_schema('models')
-    query = ("INSERT INTO \"full\" (id_timestamp, config, auc) "
+    query = ("INSERT INTO models.\"full\" (id_timestamp, config, auc) "
              "VALUES ('{}', '{}', {}) ".format(timestamp, json.dumps(config), auc))
     con.cursor().execute(query)
     con.commit()
-    change_schema('dssg')
     return None
 
 
@@ -56,13 +65,19 @@ def get_baseline(start_date, end_date):
     df_comparison = get_baseline('2010-01-01', '2011-01-01')
     """
 
-    flagged_officers = ("select distinct newid from {} "
-                        "WHERE datecreated >= '{}'::date "
-                        "AND datecreated <='{}'::date").format(
-                            config["eis_table"],
-                            start_date, end_date)
+    query_flagged_officers = ("SELECT DISTINCT officer_id from {} "
+                                "WHERE datecreated >= '{}'::date "
+                                "AND datecreated <='{}'::date")
+                                .format(
+                                    db_config["eis_table"],
+                                    start_date, 
+                                    end_date))
 
-    df_eis_baseline = pd.read_sql(flagged_officers, con=con) 
+    # TODO: have this check the actual 2016 EIS table
+    #query_flagged_officers = (  "SELECT DISTINCT officer_id "
+    #                            "FROM officers_hub" )
+
+    df_eis_baseline = pd.read_sql(query_flagged_officers, con=con) 
 
     return df_eis_baseline.dropna()
 
@@ -86,7 +101,7 @@ def get_interventions(ids, start_date, end_date):
                         "AND datecreated >= '{}'::date "
                         "AND datecreated <='{}'::date "
                         "AND newid in ({}) ").format(
-                            config["eis_table"],
+                            db_config["eis_table"],
                             start_date, end_date,
                             format_officer_ids(ids))
 
@@ -95,12 +110,14 @@ def get_interventions(ids, start_date, end_date):
                         "AND datecreated >= '{}'::date "
                         "AND datecreated <='{}'::date "
                         "AND newid in ({}) ").format(
-                            config["eis_table"],
+                            db_config["eis_table"],
                             start_date, end_date,
                             format_officer_ids(ids))
 
+    # read the data from the database
     df_intervention = pd.read_sql(intervened_officers, con=con)
     df_no_intervention = pd.read_sql(no_intervention_officers, con=con)
+
     df_intervention["intervention"] = 1
     df_action = df_intervention.merge(df_no_intervention, how='right', on='newid')
     df_action = df_action.fillna(0)
@@ -114,7 +131,7 @@ def get_labels_for_ids(ids, start_date, end_date):
                   "AND dateoccured <= '{}'::date "
                   "AND newid in ({}) "
                   "group by newid "
-                  ).format(config["si_table"],
+                  ).format(db_config["si_table"],
                            start_date, end_date,
                            format_officer_ids(ids))
 
@@ -124,16 +141,36 @@ def get_labels_for_ids(ids, start_date, end_date):
                     "AND dateoccured <= '{}'::date "
                     "AND newid in ({}) "
                     "group by newid "
-                    ).format(config["si_table"],
+                    ).format(db_config["si_table"],
                              start_date, end_date,
                              format_officer_ids(ids))
 
-    invest = pd.read_sql(qinvest, con=con)
-    adverse = pd.read_sql(qadverse, con=con)
+    # query to get officer_id for all officers who were flagged by the old EIS system in the specified time period
+    # TODO: add in time period limiting
+    query_investigated_officers = ("SELECT DISTINCT officer_id FROM {} "
+                                    "WHERE officer_id in ({}) "
+                                    "AND date_created >= '{}'::date "
+                                    "AND date_created <= '{}'::date "
+
+    # query to get counts of adverse incidents for all active officers in the specified time period
+    # TODO: add in time period limiting
+    query_adverse_officers = (  "SELECT events_hub.officer_id "
+                                "FROM "
+                                "events_hub as events_hub "
+                                "LEFT JOIN "
+                                "internal_affairs_investigations_fake_data as ia_table " 
+                                "ON "
+                                "events_hub.event_id = ia_table.event_id "
+                                "WHERE ia_table.final_ruling LIKE '%Preventable%' ")
+
+    #invest = pd.read_sql(qinvest, con=con)
+    #adverse = pd.read_sql(qadverse, con=con)
+    invest = pd.read_sql(query_investigated_officers, con=con)
+    adverse = pd.read_sql(query_adverse_officers, con=con)
+
     adverse["adverse_by_ourdef"] = 1
-    adverse = adverse.drop(["count"], axis=1)
-    invest = invest.drop(["count"], axis=1)
-    outcomes = adverse.merge(invest, how='outer', on='newid')
+
+    outcomes = adverse.merge(invest, how='outer', on='officer_id')
     outcomes = outcomes.fillna(0)
 
     return outcomes
@@ -224,8 +261,10 @@ class FeatureLoader():
         self.start_date = start_date
         self.end_date = end_date
         self.fake_today = fake_today
-        self.tables = config  # Dict of tables
-        self.schema = config['schema']
+        self.tables = db_config  # Dict of tables
+        self.schema = db_config['schema']
+
+        change_schema(self.schema)
 
     def officer_labeller(self, labelling, def_adverse):
         """
@@ -234,15 +273,15 @@ class FeatureLoader():
 
         Inputs:
         labelling: dict of Bools representing how officers should be selected
-              e.g. labelling['noinvest'] represents how officers with no investigations 
-        should be treated - True means they are included as "0", False means they
-        are excluded
+                   e.g. labelling['noinvest'] represents how officers with no investigations 
+                   should be treated - True means they are included as "0", False means they
+                   are excluded
         def_adverse: dict of Bools representing which IA are considered adverse for 
-              the purposes of prediction
+                     the purposes of prediction
 
         Returns:
         labels: pandas dataframe with two columns:
-        newid and adverse_by_ourdef
+                officer_id and adverse_by_ourdef
         """
 
         log.info("Loading labels...")
@@ -252,7 +291,7 @@ class FeatureLoader():
                       "WHERE date_employed <= '{start}' AND "
                       "(terminationdate >= '{end}' OR "
                       "terminationdate is Null) AND "
-                      "classification = 'S' and active = 'Y'"
+                      "classification = 'S' and active = 'Y' "
                       "UNION "
                       "SELECT DISTINCT newid FROM {arrests} "
                       "WHERE arrest_date >= '{start}' AND "
@@ -327,16 +366,34 @@ class FeatureLoader():
                         ).format(self.tables["si_table"],
                                  self.start_date, self.end_date)
 
-        invest = pd.read_sql(qinvest, con=con)
-        adverse = pd.read_sql(qadverse, con=con)
+        # query to get officer_id for all officers who were active in the specified time period
+        # TODO: add in time period limiting
+        query_investigated_officers = "SELECT officer_id FROM officers_hub"
+
+        # query to get counts of adverse incidents for all active officers in the specified time period
+        # TODO: add in time period limiting
+        query_adverse_officers = (  "SELECT events_hub.officer_id "
+                                    "FROM "
+                                    "events_hub as events_hub "
+                                    "LEFT JOIN "
+                                    "internal_affairs_investigations_fake_data as ia_table " 
+                                    "ON "
+                                    "events_hub.event_id = ia_table.event_id "
+                                    "WHERE ia_table.final_ruling LIKE '%Preventable%' ")
+
+        #invest = pd.read_sql(qinvest, con=con)
+        #adverse = pd.read_sql(qadverse, con=con)
+        invest = pd.read_sql(query_investigated_officers, con=con)
+        adverse = pd.read_sql(query_adverse_officers, con=con)
+
         adverse["adverse_by_ourdef"] = 1
-        adverse = adverse.drop(["count"], axis=1)
+        #adverse = adverse.drop(["count"], axis=1)
         if labelling['noinvest'] == False:
             invest = invest.drop(["count"], axis=1)
         if labelling['use_officer_activity'] == True:
-            outcomes = adverse.merge(invest, how='right', on='newid')
+            outcomes = adverse.merge(invest, how='right', on='officer_id')
         else:
-            outcomes = adverse.merge(invest, how='outer', on='newid')
+            outcomes = adverse.merge(invest, how='outer', on='officer_id')
         outcomes = outcomes.fillna(0)
 
         # labels = labels.set_index(["newid"])
@@ -413,16 +470,15 @@ class FeatureLoader():
     def __read_feature_from_db(self, query, features_to_load,
                                drop_duplicates=True):
 
-        log.debug("Loading features for events from "
-                  "%(start_date)s to %(end_date)s".format(
+        log.debug("Loading features for events from {} to {}".format(
                         self.start_date, self.end_date))
 
         results = pd.read_sql(query, con=con)
 
         if drop_duplicates:
-            results = results.drop_duplicates(subset=["newid"])
+            results = results.drop_duplicates(subset=["officer_id"])
 
-        results = results.set_index(["newid"])
+        results = results.set_index(["officer_id"])
         # features = features[features_to_load]
 
         log.debug("... {} rows, {} features".format(len(results),
@@ -458,15 +514,15 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     for each_feat in features:
         if features[each_feat] == True:
             feature_df, names = data.loader(each_feat,
-                                            dataset["newid"])
+                                            dataset["officer_id"])
             log.info("Loaded feature {} with {} rows".format(
-                featnames, len(feature_df)))
+                features[each_feat], len(feature_df)))
             featnames = list(featnames) + list(names)
-            dataset = dataset.join(feature_df, how='left', on='newid')
+            dataset = dataset.join(feature_df, how='left', on='officer_id')
 
     dataset = dataset.reset_index()
     dataset = dataset.reindex(np.random.permutation(dataset.index))
-    dataset = dataset.set_index(["newid"])
+    dataset = dataset.set_index(["officer_id"])
 
     dataset = dataset.fillna(0)
 

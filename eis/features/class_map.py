@@ -26,7 +26,8 @@ def lookup(feature, **kwargs):
     else:
         kwargs["feat_time_window"] = 15
 
-    dict_lookup = {'height_weight': officers.HeightWeight(**kwargs),
+    dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
+                    'height_weight': officers.HeightWeight(**kwargs),
                     'education': officers.Education(**kwargs),
                     'daysexperience': officers.DaysExperience(**kwargs),
                     'yearsexperience': officers.YrsExperience(**kwargs),

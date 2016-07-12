@@ -18,9 +18,9 @@ def get_database():
     try:
         with open(dbconf, 'r') as f:
             config = yaml.load(f)
-            log.info("Loaded experiment file")
+            log.info("Loaded department information file")
     except:
-        log.exception("Failed to get experiment configuration file!")
+        log.exception("Failed to get department infomration file!")
         return None, 'fail'
 
     return engine, config

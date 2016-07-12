@@ -1,16 +1,10 @@
-import numpy as np
-import pandas as pd
 import logging
-import sys
-import pickle
-import pdb
 import datetime
 from sklearn import preprocessing
 
 from . import dataset
 
 log = logging.getLogger(__name__)
-
 
 def run_traintest(config):
     result = setup(config, config["fake_today"])
@@ -42,8 +36,12 @@ def setup(config, today):
 
     log.info("Loading officers and features to use as training...")
     train_x, train_y, train_id, names = dataset.grab_officer_data(
-        config["features"], train_start_date, today, train_start_date,
-        config["def_adverse"], config["labelling"])
+        config["features"],
+        train_start_date,
+        today,
+        train_start_date,
+        config["def_adverse"],
+        config["labelling"])
 
     # Testing data should include ALL officers, ignoring "noinvest" keyword
     testing_labelling_config = config["labelling"].copy()
@@ -51,8 +49,12 @@ def setup(config, today):
 
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id, names = dataset.grab_officer_data(
-        config["features"], today, test_end_date, today,
-        config["def_adverse"], testing_labelling_config)
+        config["features"],
+        today,
+        test_end_date,
+        today,
+        config["def_adverse"],
+        testing_labelling_config)
 
     train_x_index = train_x.index
     test_x_index = test_x.index

@@ -54,14 +54,14 @@ def compute_confusion(testid, testprobs, at_x_perc, start_date, end_date):
     df_dsapp = assign_classes(testid, testprobs, at_x_perc)
 
     # Combine the old EIS and DSaPP EIS dataframes
-    df_combined = df.merge(df_dsapp, on='newid', how='outer')
+    df_combined = df.merge(df_dsapp, on='officer_id', how='outer')
     df_combined['eisflag'] = df_combined['eisflag'].fillna(0)
 
     # Get whether these officers had adverse incidents or not
-    df_adverse = dataset.get_labels_for_ids(df_combined['newid'], start_date, end_date)
+    df_adverse = dataset.get_labels_for_ids(df_combined['officer_id'], start_date, end_date)
 
     # Add the new column
-    df_final = df_combined.merge(df_adverse, on='newid', how='outer').fillna(0)
+    df_final = df_combined.merge(df_adverse, on='officer_id', how='outer').fillna(0)
 
     cm_eis = metrics.confusion_matrix(df_final['adverse_by_ourdef'].values, df_final['eisflag'].values)
     cm_dsapp = metrics.confusion_matrix(df_final['adverse_by_ourdef'].values, df_final['ourflag'].values)
@@ -89,6 +89,6 @@ def assign_classes(testid, predictions, x_percent):
     predictions_binary[predictions_binary >= cutoff_probability] = 1
     predictions_binary[predictions_binary < cutoff_probability] = 0
 
-    df = pd.DataFrame({'newid': testid, 'ourflag': predictions_binary})
+    df = pd.DataFrame({'officer_id': testid, 'ourflag': predictions_binary})
 
     return df

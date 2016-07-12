@@ -12,11 +12,15 @@ from . import dataset, setup_environment
 log = logging.getLogger(__name__)
 
 try:
-    engine, config = setup_environment.get_database()
+    engine, db_config = setup_environment.get_database()
     con = engine.raw_connection()
-    con.cursor().execute("SET SCHEMA '{}'".format(config['schema']))
 except:
-    log.warning('Could not connect to database')
+    log.warning('Could not connect to the database')
+
+try:
+    con.cursor().execute("SET SCHEMA '{}'".format(db_config['schema']))
+except:
+    log.warning('Could not set the database schema')
 
 
 def aggregate(ids, predictions, fake_today):
@@ -40,7 +44,7 @@ def make_aggregate_query(group_type, fake_today):
                    "(select g.newid, max(g.date_ln) as maxdate from {table} g "
                    "where date_ln <= '{date}'::date group by g.newid) AS g "
                    "on f.newid=g.newid and f.date_ln=maxdate").format(
-                       group=group_columns[group_type], table=config["logonoff"],
+                       group=group_columns[group_type], table=db_config["logonoff"],
                        date=fake_today)
     return query_group
 
@@ -56,8 +60,8 @@ def group_predictions(group_type, ids, predictions, fake_today):
     column_name = list(df.columns)
     column_name.remove('newid')
 
-    group_pred = dict.fromkeys(config[group_type])
-    for each_group in config[group_type]:
+    group_pred = dict.fromkeys(db_config[group_type])
+    for each_group in db_config[group_type]:
         try:
             officers_in_group = labelled_df[labelled_df[column_name[0]] == each_group]
             group_pred[each_group] = {"number": len(officers_in_group),
