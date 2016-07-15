@@ -86,20 +86,20 @@ def get_interventions(ids, start_date, end_date):
     officer was intervened on or not in the time period.
     """
 
-    intervened_officers = ("select distinct newid from {} "
+    intervened_officers = ("select distinct officer_id from {} "
                         "WHERE intervention != 'No Intervention Required' "
                         "AND datecreated >= '{}'::date "
                         "AND datecreated <='{}'::date "
-                        "AND newid in ({}) ").format(
+                        "AND officer_id in ({}) ").format(
                             config["eis_table"],
                             start_date, end_date,
                             format_officer_ids(ids))
 
-    no_intervention_officers = ("select distinct newid from {} "
+    no_intervention_officers = ("select distinct officer_id from {} "
                         "WHERE intervention = 'No Intervention Required' "
                         "AND datecreated >= '{}'::date "
                         "AND datecreated <='{}'::date "
-                        "AND newid in ({}) ").format(
+                        "AND officer_id in ({}) ").format(
                             config["eis_table"],
                             start_date, end_date,
                             format_officer_ids(ids))
@@ -107,28 +107,28 @@ def get_interventions(ids, start_date, end_date):
     df_intervention = pd.read_sql(intervened_officers, con=con)
     df_no_intervention = pd.read_sql(no_intervention_officers, con=con)
     df_intervention["intervention"] = 1
-    df_action = df_intervention.merge(df_no_intervention, how='right', on='newid')
+    df_action = df_intervention.merge(df_no_intervention, how='right', on='officer_id')
     df_action = df_action.fillna(0)
 
     return df_action
 
 
 def get_labels_for_ids(ids, start_date, end_date):
-    qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
+    qinvest = ("SELECT officer_id, count(adverse_by_ourdef) from {} "
                   "WHERE dateoccured >= '{}'::date "
                   "AND dateoccured <= '{}'::date "
-                  "AND newid in ({}) "
-                  "group by newid "
+                  "AND officer_id in ({}) "
+                  "group by officer_id "
                   ).format(config["si_table"],
                            start_date, end_date,
                            format_officer_ids(ids))
 
-    qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
+    qadverse = ("SELECT officer_id, count(adverse_by_ourdef) from {} "
                     "WHERE adverse_by_ourdef = 1 "
                     "AND dateoccured >= '{}'::date "
                     "AND dateoccured <= '{}'::date "
-                    "AND newid in ({}) "
-                    "group by newid "
+                    "AND officer_id in ({}) "
+                    "group by officer_id "
                     ).format(config["si_table"],
                              start_date, end_date,
                              format_officer_ids(ids))
@@ -164,26 +164,26 @@ def get_labels_for_ids(ids, start_date, end_date):
     adverse["adverse_by_ourdef"] = 1
     adverse = adverse.drop(["count"], axis=1)
     invest = invest.drop(["count"], axis=1)
-    outcomes = adverse.merge(invest, how='outer', on='newid')
+    outcomes = adverse.merge(invest, how='outer', on='officer_id')
     outcomes = outcomes.fillna(0)
 
     return outcomes
 
 
 def imputation_zero(df, ids):
-    fulldf = pd.DataFrame(ids, columns=["newid"] + [df.columns[0]])
-    df["newid"] = df.index
-    newdf = df.merge(fulldf, how="right", on="newid")
+    fulldf = pd.DataFrame(ids, columns=["officer_id"] + [df.columns[0]])
+    df["officer_id"] = df.index
+    newdf = df.merge(fulldf, how="right", on="officer_id")
     newdf = newdf.fillna(0)
     newdf[df.columns[0]] = newdf[df.columns[0] + "_x"] + newdf[df.columns[0] + "_y"]
     newdf = newdf.drop([df.columns[0] + "_x", df.columns[0] + "_y"], axis=1)
-    newdf = newdf.set_index("newid")
+    newdf = newdf.set_index("officer_id")
     return newdf
 
 
 def imputation_mean(df, featurenames):
     try:
-        newdf = df.set_index("newid")
+        newdf = df.set_index("officer_id")
     except:
         newdf = df
     for i in range(len(newdf.columns)):
@@ -272,59 +272,59 @@ class FeatureLoader():
                      the purposes of prediction
         Returns:
         labels: pandas dataframe with two columns:
-        newid and adverse_by_ourdef
+        officer_id and adverse_by_ourdef
         """
 
         log.info("Loading labels...")
 
         if labelling['noinvest'] == True and labelling['use_officer_activity'] == True:
-            qinvest = ("SELECT DISTINCT newid FROM {officers} "
+            qinvest = ("SELECT DISTINCT officer_id FROM {officers} "
                       "WHERE date_employed <= '{start}' AND "
                       "(terminationdate >= '{end}' OR "
                       "terminationdate is Null) AND "
                       "classification = 'S' and active = 'Y'"
                       "UNION "
-                      "SELECT DISTINCT newid FROM {arrests} "
+                      "SELECT DISTINCT officer_id FROM {arrests} "
                       "WHERE arrest_date >= '{start}' AND "
                       "arrest_date <= '{end}' "
                       "UNION "
-                      "SELECT DISTINCT newid FROM {stops} "
+                      "SELECT DISTINCT officer_id FROM {stops} "
                       "WHERE date_time_action >= '{start}' AND "
                       "date_time_action <= '{end}'").format(stops=self.tables["stops_table"],
                           start=self.start_date, end=self.end_date,
                           officers=self.tables["officer_table"],
                           arrests=self.tables["arrest_charges_table"])
         elif labelling['noinvest'] == True and labelling['filter_by_active'] == False and labelling['use_officer_activity'] == False:
-            qinvest = ("SELECT DISTINCT newid FROM {eis} "
+            qinvest = ("SELECT DISTINCT officer_id FROM {eis} "
                       "WHERE datecreated >= '{start}'::date "
                       "AND datecreated <= '{end}'::date "
                       "UNION "
-                      "SELECT DISTINCT newid FROM {ia} "
+                      "SELECT DISTINCT officer_id FROM {ia} "
                       "WHERE dateoccured >= '{start}'::date "
                       "AND dateoccured <= '{end}'::date "
                       "UNION "
-                      "SELECT DISTINCT newid FROM {officers} "
+                      "SELECT DISTINCT officer_id FROM {officers} "
                       "WHERE date_employed <= '{start}' AND "
                       "(terminationdate >= '{end}' OR "
                       "terminationdate is Null) AND "
                       "classification = 'S' "
                       "UNION "
-                      "SELECT DISTINCT newid FROM {arrests} "
+                      "SELECT DISTINCT officer_id FROM {arrests} "
                       "WHERE arrest_date >= '{start}' AND "
                       "arrest_date <= '{end}'").format(eis=self.tables["eis_table"],
                           start=self.start_date, end=self.end_date,
                           ia=self.tables["si_table"], officers=self.tables["officer_table"],
                           arrests=self.tables["arrest_charges_table"])
         elif labelling['noinvest'] == True and labelling['filter_by_active'] == True and labelling['use_officer_activity'] == False:
-            qinvest = ("SELECT DISTINCT newid FROM {eis} "
+            qinvest = ("SELECT DISTINCT officer_id FROM {eis} "
                       "WHERE datecreated >= '{start}'::date "
                       "AND datecreated <= '{end}'::date "
                       "UNION "
-                      "SELECT DISTINCT newid FROM {ia} "
+                      "SELECT DISTINCT officer_id FROM {ia} "
                       "WHERE dateoccured >= '{start}'::date "
                       "AND dateoccured <= '{end}'::date "
                       "UNION "
-                      "SELECT DISTINCT newid FROM {officers} "
+                      "SELECT DISTINCT officer_id FROM {officers} "
                       "WHERE date_employed <= '{start}' AND "
                       "(terminationdate >= '{end}' OR "
                       "terminationdate is Null) AND "
@@ -332,28 +332,28 @@ class FeatureLoader():
                           start=self.start_date, end=self.end_date,
                           ia=self.tables["si_table"], officers=self.tables["officer_table"])
         else:
-            qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
+            qinvest = ("SELECT officer_id, count(adverse_by_ourdef) from {} "
                       "WHERE dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid "
+                      "group by officer_id "
                       ).format(self.tables["si_table"],
                                self.start_date, self.end_date)
 
         if def_adverse['accidents'] == False:
-            qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
+            qadverse = ("SELECT officer_id, count(adverse_by_ourdef) from {} "
                         "WHERE adverse_by_ourdef = 1 "
                         "AND eventtype != 'Accident' "
                         "AND dateoccured >= '{}'::date "
                         "AND dateoccured <= '{}'::date "
-                        "group by newid "
+                        "group by officer_id "
                         ).format(self.tables["si_table"],
                                  self.start_date, self.end_date)
         else:
-            qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
+            qadverse = ("SELECT officer_id, count(adverse_by_ourdef) from {} "
                         "WHERE adverse_by_ourdef = 1 "
                         "AND dateoccured >= '{}'::date "
                         "AND dateoccured <= '{}'::date "
-                        "group by newid "
+                        "group by officer_id "
                         ).format(self.tables["si_table"],
                                  self.start_date, self.end_date)
 
@@ -384,12 +384,12 @@ class FeatureLoader():
         #if labelling['noinvest'] == False:
             #invest = invest.drop(["count"], axis=1)
         if labelling['use_officer_activity'] == True:
-            outcomes = adverse.merge(invest, how='right', on='newid')
+            outcomes = adverse.merge(invest, how='right', on='officer_id')
         else:
-            outcomes = adverse.merge(invest, how='outer', on='newid')
+            outcomes = adverse.merge(invest, how='outer', on='officer_id')
         outcomes = outcomes.fillna(0)
 
-        # labels = labels.set_index(["newid"])
+        # labels = labels.set_index(["officer_id"])
 
         return outcomes
 
@@ -400,13 +400,13 @@ class FeatureLoader():
 
         Returns:
         labels: pandas dataframe with two columns:
-        newid, adverse_by_ourdef, dateoccured
+        officer_id, adverse_by_ourdef, dateoccured
         """
 
         log.info("Loading labels...")
 
         # These are the objects flagged as ones and twos
-        query = ("SELECT newid, adverse_by_ourdef, "
+        query = ("SELECT officer_id, adverse_by_ourdef, "
                  "dateoccured from {}.{} "
                  "WHERE dateoccured >= '{}'::date "
                  "AND dateoccured <= '{}'::date"
@@ -444,9 +444,9 @@ class FeatureLoader():
 
                 if len(results) == 0:
                     results = ea_resu
-                    results['newid'] = ea_resu.index
+                    results['officer_id'] = ea_resu.index
                 else:
-                    results = results.join(ea_resu, how='left', on='newid')
+                    results = results.join(ea_resu, how='left', on='officer_id')
 
         if feature.type_of_features == "categorical":
             results, featurenames = convert_categorical(results)
@@ -470,9 +470,9 @@ class FeatureLoader():
         results = pd.read_sql(query, con=con)
 
         if drop_duplicates:
-            results = results.drop_duplicates(subset=["newid"])
+            results = results.drop_duplicates(subset=["officer_id"])
 
-        results = results.set_index(["newid"])
+        results = results.set_index(["officer_id"])
         # features = features[features_to_load]
 
         log.debug("... {} rows, {} features".format(len(results),
@@ -501,22 +501,22 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     data = FeatureLoader(start_date, end_date, time_bound)
 
     officers = data.officer_labeller(labelling, def_adverse)
-    # officers.set_index(["newid"])
+    # officers.set_index(["officer_id"])
 
     dataset = officers
     featnames = []
     for each_feat in features:
         if features[each_feat] == True:
             feature_df, names = data.loader(each_feat,
-                                            dataset["newid"])
+                                            dataset["officer_id"])
             log.info("Loaded feature {} with {} rows".format(
                 featnames, len(feature_df)))
             featnames = list(featnames) + list(names)
-            dataset = dataset.join(feature_df, how='left', on='newid')
+            dataset = dataset.join(feature_df, how='left', on='officer_id')
 
     dataset = dataset.reset_index()
     dataset = dataset.reindex(np.random.permutation(dataset.index))
-    dataset = dataset.set_index(["newid"])
+    dataset = dataset.set_index(["officer_id"])
 
     dataset = dataset.fillna(0)
 

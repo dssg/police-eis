@@ -35,11 +35,11 @@ def aggregate(ids, predictions, fake_today):
 def make_aggregate_query(group_type, fake_today):
     group_columns = {"divisions": "div",
                      "units": "unityp"}
-    query_group = ("select distinct f.newid, f.{group} from {table} AS f "
+    query_group = ("select distinct f.officer_id, f.{group} from {table} AS f "
                    "join "
-                   "(select g.newid, max(g.date_ln) as maxdate from {table} g "
-                   "where date_ln <= '{date}'::date group by g.newid) AS g "
-                   "on f.newid=g.newid and f.date_ln=maxdate").format(
+                   "(select g.officer_id, max(g.date_ln) as maxdate from {table} g "
+                   "where date_ln <= '{date}'::date group by g.officer_id) AS g "
+                   "on f.officer_id=g.officer_id and f.date_ln=maxdate").format(
                        group=group_columns[group_type], table=config["logonoff"],
                        date=fake_today)
     return query_group
@@ -48,13 +48,13 @@ def make_aggregate_query(group_type, fake_today):
 def group_predictions(group_type, ids, predictions, fake_today):
     query = make_aggregate_query(group_type, fake_today)
     df = pd.read_sql(query, con=con)
-    predf = pd.DataFrame({"newid": list(ids), "predictions": predictions})
+    predf = pd.DataFrame({"officer_id": list(ids), "predictions": predictions})
 
-    labelled_df = pd.merge(predf, df, on="newid", how="left")
+    labelled_df = pd.merge(predf, df, on="officer_id", how="left")
     labelled_df = labelled_df.dropna()
 
     column_name = list(df.columns)
-    column_name.remove('newid')
+    column_name.remove('officer_id')
 
     group_pred = dict.fromkeys(config[group_type])
     for each_group in config[group_type]:
