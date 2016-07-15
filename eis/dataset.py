@@ -42,8 +42,8 @@ def format_officer_ids(ids):
 
 def get_baseline(start_date, end_date):
     """
-    Gets EIS baseline - get officers that are flagged 
-    by the EIS at any point in the labelling window. 
+    Gets EIS baseline - get officers that are flagged
+    by the EIS at any point in the labelling window.
 
     Inputs:
     ids: officer ids
@@ -56,6 +56,7 @@ def get_baseline(start_date, end_date):
     df_comparison = get_baseline('2010-01-01', '2011-01-01')
     """
 
+<<<<<<< Updated upstream
     flagged_officers = ("select distinct newid from {} "
                         "WHERE datecreated >= '{}'::date "
                         "AND datecreated <='{}'::date").format(
@@ -63,6 +64,20 @@ def get_baseline(start_date, end_date):
                             start_date, end_date)
 
     df_eis_baseline = pd.read_sql(flagged_officers, con=con) 
+=======
+    query_flagged_officers = ("SELECT DISTINCT officer_id from {} "
+                                "WHERE date_created >= '{}'::date "
+                                "AND date_created <='{}'::date".format(
+                                    db_config["eis_table"],
+                                    start_date,
+                                    end_date))
+
+    # TODO: have this check the actual 2016 EIS table
+    #query_flagged_officers = (  "SELECT DISTINCT officer_id "
+    #                            "FROM officers_hub" )
+
+    df_eis_baseline = pd.read_sql(query_flagged_officers, con=con)
+>>>>>>> Stashed changes
 
     return df_eis_baseline.dropna()
 
@@ -77,8 +92,8 @@ def get_interventions(ids, start_date, end_date):
     start_date: beginning of testing period
     end_date: end of testing period
 
-    Returns: dataframe with ids and boolean value corresponding to if an 
-    officer was intervened on or not in the time period. 
+    Returns: dataframe with ids and boolean value corresponding to if an
+    officer was intervened on or not in the time period.
     """
 
     intervened_officers = ("select distinct newid from {} "
@@ -128,8 +143,40 @@ def get_labels_for_ids(ids, start_date, end_date):
                              start_date, end_date,
                              format_officer_ids(ids))
 
+<<<<<<< Updated upstream
     invest = pd.read_sql(qinvest, con=con)
     adverse = pd.read_sql(qadverse, con=con)
+=======
+    # query to get officer_id for all officers who were invstigated in the specified time period
+    # TODO: add in time period limiting, appropriate table querying
+    query_investigated_officers = "SELECT DISTINCT officer_id FROM staging.officers_hub"
+#                                   ("SELECT DISTINCT officer_id FROM {} "
+#                                   "WHERE officer_id in ({}) "
+#                                   "AND date_created >= '{}'::date "
+#                                   "AND date_created <= '{}'::date "
+#                                   .format(
+#                                       db_config['si_table'],
+#                                       format_officer_ids(ids),
+#                                       start_date,
+#                                       end_date))
+
+    # query to get counts of adverse incidents for all active officers in the specified time period
+    # TODO: add in time period limiting
+    query_adverse_officers = (  "SELECT events_hub.officer_id "
+                                "FROM "
+                                "events_hub as events_hub "
+                                "LEFT JOIN "
+                                "internal_affairs_investigations as ia_table "
+                                "ON "
+                                "events_hub.event_id = ia_table.event_id "
+                                "WHERE ia_table.final_ruling_code = 1 ")
+
+    #invest = pd.read_sql(qinvest, con=con)
+    #adverse = pd.read_sql(qadverse, con=con)
+    invest = pd.read_sql(query_investigated_officers, con=con)
+    adverse = pd.read_sql(query_adverse_officers, con=con)
+
+>>>>>>> Stashed changes
     adverse["adverse_by_ourdef"] = 1
     adverse = adverse.drop(["count"], axis=1)
     invest = invest.drop(["count"], axis=1)
@@ -140,11 +187,11 @@ def get_labels_for_ids(ids, start_date, end_date):
 
 
 def imputation_zero(df, ids):
-    fulldf = pd.DataFrame(ids, columns=["newid"] + [df.columns[0]]) 
+    fulldf = pd.DataFrame(ids, columns=["newid"] + [df.columns[0]])
     df["newid"] = df.index
     newdf = df.merge(fulldf, how="right", on="newid")
     newdf = newdf.fillna(0)
-    newdf[df.columns[0]] = newdf[df.columns[0] + "_x"] + newdf[df.columns[0] + "_y"] 
+    newdf[df.columns[0]] = newdf[df.columns[0] + "_x"] + newdf[df.columns[0] + "_y"]
     newdf = newdf.drop([df.columns[0] + "_x", df.columns[0] + "_y"], axis=1)
     newdf = newdf.set_index("newid")
     return newdf
@@ -234,11 +281,19 @@ class FeatureLoader():
 
         Inputs:
         labelling: dict of Bools representing how officers should be selected
+<<<<<<< Updated upstream
               e.g. labelling['noinvest'] represents how officers with no investigations 
         should be treated - True means they are included as "0", False means they
         are excluded
         def_adverse: dict of Bools representing which IA are considered adverse for 
               the purposes of prediction
+=======
+                   e.g. labelling['noinvest'] represents how officers with no investigations
+                   should be treated - True means they are included as "0", False means they
+                   are excluded
+        def_adverse: dict of Bools representing which IA are considered adverse for
+                     the purposes of prediction
+>>>>>>> Stashed changes
 
         Returns:
         labels: pandas dataframe with two columns:
@@ -260,7 +315,7 @@ class FeatureLoader():
                       "UNION "
                       "SELECT DISTINCT newid FROM {stops} "
                       "WHERE date_time_action >= '{start}' AND "
-                      "date_time_action <= '{end}'").format(stops=self.tables["stops_table"], 
+                      "date_time_action <= '{end}'").format(stops=self.tables["stops_table"],
                           start=self.start_date, end=self.end_date,
                           officers=self.tables["officer_table"],
                           arrests=self.tables["arrest_charges_table"])
@@ -281,7 +336,7 @@ class FeatureLoader():
                       "UNION "
                       "SELECT DISTINCT newid FROM {arrests} "
                       "WHERE arrest_date >= '{start}' AND "
-                      "arrest_date <= '{end}'").format(eis=self.tables["eis_table"], 
+                      "arrest_date <= '{end}'").format(eis=self.tables["eis_table"],
                           start=self.start_date, end=self.end_date,
                           ia=self.tables["si_table"], officers=self.tables["officer_table"],
                           arrests=self.tables["arrest_charges_table"])
@@ -298,7 +353,7 @@ class FeatureLoader():
                       "WHERE date_employed <= '{start}' AND "
                       "(terminationdate >= '{end}' OR "
                       "terminationdate is Null) AND "
-                      "classification = 'S' AND active = 'Y'").format(eis=self.tables["eis_table"], 
+                      "classification = 'S' AND active = 'Y'").format(eis=self.tables["eis_table"],
                           start=self.start_date, end=self.end_date,
                           ia=self.tables["si_table"], officers=self.tables["officer_table"])
         else:
@@ -318,7 +373,7 @@ class FeatureLoader():
                         "group by newid "
                         ).format(self.tables["si_table"],
                                  self.start_date, self.end_date)
-        else:     
+        else:
             qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
                         "WHERE adverse_by_ourdef = 1 "
                         "AND dateoccured >= '{}'::date "
@@ -327,12 +382,41 @@ class FeatureLoader():
                         ).format(self.tables["si_table"],
                                  self.start_date, self.end_date)
 
+<<<<<<< Updated upstream
         invest = pd.read_sql(qinvest, con=con)
         adverse = pd.read_sql(qadverse, con=con)
         adverse["adverse_by_ourdef"] = 1
         adverse = adverse.drop(["count"], axis=1)
         if labelling['noinvest'] == False:
             invest = invest.drop(["count"], axis=1)
+=======
+        # query to get officer_id for all officers who were active in the specified time period
+        # TODO: add in time period limiting
+        query_investigated_officers = ("SELECT DISTINCT events_hub.officer_id "
+                                        "FROM "
+                                        "events_hub as events_hub ")
+
+        # query to get counts of adverse incidents for all active officers in the specified time period
+        # TODO: add in time period limiting
+        query_adverse_officers = (  "SELECT DISTINCT events_hub.officer_id "
+                                    "FROM "
+                                    "events_hub as events_hub "
+                                    "LEFT JOIN "
+                                    "internal_affairs_investigations as ia_table "
+                                    "ON "
+                                    "events_hub.event_id = ia_table.event_id "
+                                    "WHERE ia_table.final_ruling_code = 1 ")
+
+        #invest = pd.read_sql(qinvest, con=con)
+        #adverse = pd.read_sql(qadverse, con=con)
+        invest = pd.read_sql(query_investigated_officers, con=con)
+        adverse = pd.read_sql(query_adverse_officers, con=con)
+
+        adverse["adverse_by_ourdef"] = 1
+        #adverse = adverse.drop(["count"], axis=1)
+        #if labelling['noinvest'] == False:
+            #invest = invest.drop(["count"], axis=1)
+>>>>>>> Stashed changes
         if labelling['use_officer_activity'] == True:
             outcomes = adverse.merge(invest, how='right', on='newid')
         else:
@@ -395,7 +479,7 @@ class FeatureLoader():
                 if len(results) == 0:
                     results = ea_resu
                     results['newid'] = ea_resu.index
-                else:   
+                else:
                     results = results.join(ea_resu, how='left', on='newid')
 
         if feature.type_of_features == "categorical":
