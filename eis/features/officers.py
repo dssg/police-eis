@@ -95,7 +95,7 @@ class Race(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer race"
-        self.query = ("select officer_id, empl_race_cleaned as "
+        self.query = ("select officer_id, race_code as "
                       "race from {}".format(tables['officer_table']))
         self.type_of_features = "categorical"
         self.type_of_imputation = "mean"
@@ -131,12 +131,12 @@ class NumRecentArrests(abstract.OfficerFeature):
         self.description = "Number of recent (<1yr) arrests for officer"
         self.name_of_features = ["1yr_arrest_count"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.query = ("select count(distinct aa_id) as year_arrest_count, "
-                      "officer_id from {} "
-                      "where arrest_date <= '{}'::date "
-                      "and arrest_date >= '{}'::date "
+        self.query = ("select count(distinct event_id) as year_arrest_count, "
+                      "officer_id from {} inner join {} on arrests.event_id = events_hub.event_id "
+                      "where event_datetime <= '{}'::date "
+                      "and event_datetime  >= '{}'::date "
                       "group by officer_id").format(
-                          tables["arrest_charges_table"],
+                          tables["arrest_charges_table"], "events_hub",
                           self.end_date, self.start_date)
 
 
@@ -285,11 +285,11 @@ class CareerArrests(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career arrests for officer"
         self.name_of_features = ["career_arrest_count"]
-        self.query = ("select count(distinct aa_id) as career_arrest_count, "
-                      "officer_id from {} "
-                      "where arrest_date <= '{}'::date "
+        self.query = ("select count(distinct arrests.event_id) as career_arrest_count, "
+                      "officer_id from {} inner join {} on events_hub.event_id = arrests.event_id "
+                      "where event_datetime <= '{}'::date "
                       "group by officer_id").format(
-                          tables["arrest_charges_table"],
+                          tables["arrest_charges_table"], "events_hub",
                           self.end_date)
 
 

@@ -242,7 +242,7 @@ def convert_categorical(df):
         if type(categories[i]) is str:
             newfeatstr = 'is_' + categories[i]
             featnames.append(newfeatstr)
-            df[newfeatstr] = df[onecol] == categories[i]
+            df[newfeatstr] = df[onecol] == int(categories[i])
 
     df = df.drop(onecol, axis=1)
     return df.astype(int), list(df.columns)
