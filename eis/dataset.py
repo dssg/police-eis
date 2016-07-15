@@ -56,15 +56,6 @@ def get_baseline(start_date, end_date):
     df_comparison = get_baseline('2010-01-01', '2011-01-01')
     """
 
-<<<<<<< Updated upstream
-    flagged_officers = ("select distinct newid from {} "
-                        "WHERE datecreated >= '{}'::date "
-                        "AND datecreated <='{}'::date").format(
-                            config["eis_table"],
-                            start_date, end_date)
-
-    df_eis_baseline = pd.read_sql(flagged_officers, con=con) 
-=======
     query_flagged_officers = ("SELECT DISTINCT officer_id from {} "
                                 "WHERE date_created >= '{}'::date "
                                 "AND date_created <='{}'::date".format(
@@ -77,7 +68,6 @@ def get_baseline(start_date, end_date):
     #                            "FROM officers_hub" )
 
     df_eis_baseline = pd.read_sql(query_flagged_officers, con=con)
->>>>>>> Stashed changes
 
     return df_eis_baseline.dropna()
 
@@ -143,10 +133,6 @@ def get_labels_for_ids(ids, start_date, end_date):
                              start_date, end_date,
                              format_officer_ids(ids))
 
-<<<<<<< Updated upstream
-    invest = pd.read_sql(qinvest, con=con)
-    adverse = pd.read_sql(qadverse, con=con)
-=======
     # query to get officer_id for all officers who were invstigated in the specified time period
     # TODO: add in time period limiting, appropriate table querying
     query_investigated_officers = "SELECT DISTINCT officer_id FROM staging.officers_hub"
@@ -175,8 +161,6 @@ def get_labels_for_ids(ids, start_date, end_date):
     #adverse = pd.read_sql(qadverse, con=con)
     invest = pd.read_sql(query_investigated_officers, con=con)
     adverse = pd.read_sql(query_adverse_officers, con=con)
-
->>>>>>> Stashed changes
     adverse["adverse_by_ourdef"] = 1
     adverse = adverse.drop(["count"], axis=1)
     invest = invest.drop(["count"], axis=1)
@@ -281,20 +265,11 @@ class FeatureLoader():
 
         Inputs:
         labelling: dict of Bools representing how officers should be selected
-<<<<<<< Updated upstream
-              e.g. labelling['noinvest'] represents how officers with no investigations 
-        should be treated - True means they are included as "0", False means they
-        are excluded
-        def_adverse: dict of Bools representing which IA are considered adverse for 
-              the purposes of prediction
-=======
                    e.g. labelling['noinvest'] represents how officers with no investigations
                    should be treated - True means they are included as "0", False means they
                    are excluded
         def_adverse: dict of Bools representing which IA are considered adverse for
                      the purposes of prediction
->>>>>>> Stashed changes
-
         Returns:
         labels: pandas dataframe with two columns:
         newid and adverse_by_ourdef
@@ -382,14 +357,6 @@ class FeatureLoader():
                         ).format(self.tables["si_table"],
                                  self.start_date, self.end_date)
 
-<<<<<<< Updated upstream
-        invest = pd.read_sql(qinvest, con=con)
-        adverse = pd.read_sql(qadverse, con=con)
-        adverse["adverse_by_ourdef"] = 1
-        adverse = adverse.drop(["count"], axis=1)
-        if labelling['noinvest'] == False:
-            invest = invest.drop(["count"], axis=1)
-=======
         # query to get officer_id for all officers who were active in the specified time period
         # TODO: add in time period limiting
         query_investigated_officers = ("SELECT DISTINCT events_hub.officer_id "
@@ -416,7 +383,6 @@ class FeatureLoader():
         #adverse = adverse.drop(["count"], axis=1)
         #if labelling['noinvest'] == False:
             #invest = invest.drop(["count"], axis=1)
->>>>>>> Stashed changes
         if labelling['use_officer_activity'] == True:
             outcomes = adverse.merge(invest, how='right', on='newid')
         else:
