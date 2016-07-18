@@ -65,16 +65,13 @@ def get_baseline(start_date, end_date):
     df_comparison = get_baseline('2010-01-01', '2011-01-01')
     """
 
-    query_flagged_officers = ("SELECT DISTINCT officer_id from {} "
+    query_flagged_officers = (  "SELECT DISTINCT officer_id from {} "
                                 "WHERE date_created >= '{}'::date "
-                                "AND date_created <='{}'::date".format(
+                                "AND date_created <='{}'::date"
+                                .format(
                                     db_config["eis_table"],
                                     start_date, 
                                     end_date))
-
-    # TODO: have this check the actual 2016 EIS table
-    #query_flagged_officers = (  "SELECT DISTINCT officer_id "
-    #                            "FROM officers_hub" )
 
     df_eis_baseline = pd.read_sql(query_flagged_officers, con=db_conn) 
 
@@ -126,61 +123,25 @@ def get_interventions(ids, start_date, end_date):
 
 # TODO: make this call FeatureLoader().officer_labeller() with an added 'ids' option
 def get_labels_for_ids(ids, start_date, end_date):
-    qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
-                  "WHERE dateoccured >= '{}'::date "
-                  "AND dateoccured <= '{}'::date "
-                  "AND newid in ({}) "
-                  "group by newid "
-                  ).format(db_config["si_table"],
-                           start_date, end_date,
-                           format_officer_ids(ids))
+    """Get the labels for the specified officer_ids, for the specified time period
 
-    qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
-                    "WHERE adverse_by_ourdef = 1 "
-                    "AND dateoccured >= '{}'::date "
-                    "AND dateoccured <= '{}'::date "
-                    "AND newid in ({}) "
-                    "group by newid "
-                    ).format(db_config["si_table"],
-                             start_date, end_date,
-                             format_officer_ids(ids))
+    Args:
 
-    # query to get officer_id for all officers who were invstigated in the specified time period
-    # TODO: add in time period limiting, appropriate table querying
-    query_investigated_officers = "SELECT DISTINCT officer_id FROM staging.officers_hub"
-#                                   ("SELECT DISTINCT officer_id FROM {} "
-#                                   "WHERE officer_id in ({}) "
-#                                   "AND date_created >= '{}'::date "
-#                                   "AND date_created <= '{}'::date "
-#                                   .format(
-#                                       db_config['si_table'],
-#                                       format_officer_ids(ids),
-#                                       start_date,
-#                                       end_date))
+    Returns:
+        outcomes(pd.DataFrame): 
+    """
 
-    # query to get counts of adverse incidents for all active officers in the specified time period
-    # TODO: add in time period limiting
-    query_adverse_officers = (  "SELECT events_hub.officer_id "
-                                "FROM "
-                                "events_hub as events_hub "
-                                "LEFT JOIN "
-                                "internal_affairs_investigations_fake_data as ia_table " 
-                                "ON "
-                                "events_hub.event_id = ia_table.event_id "
-                                "WHERE ia_table.final_ruling LIKE '%Preventable%' ")
+    # required by FeatureLoader but not used in officer_labeller()
+    fake_today = datetime.date.today()
 
-    #invest = pd.read_sql(qinvest, db_conn=db_conn)
-    #adverse = pd.read_sql(qadverse, db_conn=db_conn)
-    invest = pd.read_sql(query_investigated_officers, con=db_conn)
-    adverse = pd.read_sql(query_adverse_officers, con=db_conn)
-
-    adverse["adverse_by_ourdef"] = 1
-
-    outcomes = adverse.merge(invest, how='outer', on='officer_id')
-    outcomes = outcomes.fillna(0)
-
-    return outcomes
-
+    # load labelling and def_adverse from experiment config file
+    exp_config = setup_environment.get_experiment_config()
+    labelling = exp_config['labelling']
+    def_adverse = exp_config['def_adverse']
+    
+    return (FeatureLoader(start_date, end_date, fake_today)
+            .officer_labeller(labelling, def_adverse, ids_to_label=ids))
+           
 
 def imputation_zero(df, ids):
     fulldf = pd.DataFrame(ids, columns=["newid"] + [df.columns[0]]) 
@@ -373,11 +334,9 @@ class FeatureLoader():
             query_adverse = query_adverse + "AND value != 'complaint' "
 
         # pull in all the officer_ids to use for labelling
-        log.debug('labelled officers query: {}'.format(query_to_label))
         labelled_officers = pd.read_sql(query_to_label, con=db_conn).drop_duplicates()
 
         # pull in the officer_ids of officers who had adverse incidents
-        log.debug('adverse officers query: {}'.format(query_adverse))
         adverse_officers = pd.read_sql(query_adverse, con=db_conn).drop_duplicates()
         adverse_officers["adverse_by_ourdef"] = 1
 
@@ -385,9 +344,8 @@ class FeatureLoader():
         outcomes = adverse_officers.merge(labelled_officers, how='outer', on='officer_id')
         outcomes = outcomes.fillna(0)
 
-        log.debug('len of to_label: {}'.format(len(labelled_officers)))
-        log.debug('len of adverse : {}'.format(len(adverse_officers)))
-        log.debug('len of outcomes : {}'.format(len(outcomes)))
+        log.debug('Number of officers to label: {}'.format(len(labelled_officers)))
+        log.debug('Number of officers with adverse : {}'.format(len(adverse_officers)))
 
         # if given a list of officer ids to label, exclude officer_ids not in that list
         if ids_to_label is not None:
