@@ -124,6 +124,7 @@ def get_interventions(ids, start_date, end_date):
     return df_action
 
 
+# TODO: make this call FeatureLoader().officer_labeller() with an added 'ids' option
 def get_labels_for_ids(ids, start_date, end_date):
     qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
                   "WHERE dateoccured >= '{}'::date "
@@ -271,182 +272,126 @@ class FeatureLoader():
 
         change_schema(self.schema)
 
-    def officer_labeller(self, labelling, def_adverse):
+    def officer_labeller(self, labelling, def_adverse, ids_to_label=None):
         """
-        Load the IDs for a set of officers investigated between
-        two dates and the outcomes
+        Load the IDs for a set of officers who are 'active' during the supplied time window
+        and generate 0 / 1 labels for them. The definition of 'active' is determined by the 
+        options passed in the 'labelling' dictionary.
 
         Inputs:
-        labelling: dict of Bools representing how officers should be selected
-                   e.g. labelling['noinvest'] represents how officers with no investigations 
-                   should be treated - True means they are included as "0", False means they
-                   are excluded
-        def_adverse: dict of Bools representing which IA are considered adverse for 
+        labelling: dict of bools representing how officers should be selected for labelling
+                        include_all_employed: include all officers who are active according 
+                                              to their employment status
+                        include_all_active: include all officers who show up in the stops 
+                                            or arrests tables
+        def_adverse: dict of bools representing which event types are considered adverse for 
                      the purposes of prediction
+        ids_to_label: (Optional) a list of officer_ids to return labels for. Note that if a 
+                      given officer_id is not included in [start_date, end_date] it will 
+                      not be in the returned dataframe.
 
         Returns:
-        labels: pandas dataframe with two columns:
-                officer_id and adverse_by_ourdef
+        labels: pandas dataframe with two columns: officer_id and adverse_by_ourdef
         """
 
         log.info("Loading labels...")
 
-        if labelling['noinvest'] == True and labelling['use_officer_activity'] == True:
-            qinvest = ("SELECT DISTINCT newid FROM {officers} "
-                      "WHERE date_employed <= '{start}' AND "
-                      "(terminationdate >= '{end}' OR "
-                      "terminationdate is Null) AND "
-                      "classification = 'S' and active = 'Y' "
-                      "UNION "
-                      "SELECT DISTINCT newid FROM {arrests} "
-                      "WHERE arrest_date >= '{start}' AND "
-                      "arrest_date <= '{end}' "
-                      "UNION "
-                      "SELECT DISTINCT newid FROM {stops} "
-                      "WHERE date_time_action >= '{start}' AND "
-                      "date_time_action <= '{end}'").format(stops=self.tables["stops_table"], 
-                          start=self.start_date, end=self.end_date,
-                          officers=self.tables["officer_table"],
-                          arrests=self.tables["arrest_charges_table"])
-        elif labelling['noinvest'] == True and labelling['filter_by_active'] == False and labelling['use_officer_activity'] == False:
-            qinvest = ("SELECT DISTINCT newid FROM {eis} "
-                      "WHERE datecreated >= '{start}'::date "
-                      "AND datecreated <= '{end}'::date "
-                      "UNION "
-                      "SELECT DISTINCT newid FROM {ia} "
-                      "WHERE dateoccured >= '{start}'::date "
-                      "AND dateoccured <= '{end}'::date "
-                      "UNION "
-                      "SELECT DISTINCT newid FROM {officers} "
-                      "WHERE date_employed <= '{start}' AND "
-                      "(terminationdate >= '{end}' OR "
-                      "terminationdate is Null) AND "
-                      "classification = 'S' "
-                      "UNION "
-                      "SELECT DISTINCT newid FROM {arrests} "
-                      "WHERE arrest_date >= '{start}' AND "
-                      "arrest_date <= '{end}'").format(eis=self.tables["eis_table"], 
-                          start=self.start_date, end=self.end_date,
-                          ia=self.tables["si_table"], officers=self.tables["officer_table"],
-                          arrests=self.tables["arrest_charges_table"])
-        elif labelling['noinvest'] == True and labelling['filter_by_active'] == True and labelling['use_officer_activity'] == False:
-            qinvest = ("SELECT DISTINCT newid FROM {eis} "
-                      "WHERE datecreated >= '{start}'::date "
-                      "AND datecreated <= '{end}'::date "
-                      "UNION "
-                      "SELECT DISTINCT newid FROM {ia} "
-                      "WHERE dateoccured >= '{start}'::date "
-                      "AND dateoccured <= '{end}'::date "
-                      "UNION "
-                      "SELECT DISTINCT newid FROM {officers} "
-                      "WHERE date_employed <= '{start}' AND "
-                      "(terminationdate >= '{end}' OR "
-                      "terminationdate is Null) AND "
-                      "classification = 'S' AND active = 'Y'").format(eis=self.tables["eis_table"], 
-                          start=self.start_date, end=self.end_date,
-                          ia=self.tables["si_table"], officers=self.tables["officer_table"])
-        else:
-            qinvest = ("SELECT newid, count(adverse_by_ourdef) from {} "
-                      "WHERE dateoccured >= '{}'::date "
-                      "AND dateoccured <= '{}'::date "
-                      "group by newid "
-                      ).format(self.tables["si_table"],
-                               self.start_date, self.end_date)
-
-        if def_adverse['accidents'] == False:
-            qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
-                        "WHERE adverse_by_ourdef = 1 "
-                        "AND eventtype != 'Accident' "
-                        "AND dateoccured >= '{}'::date "
-                        "AND dateoccured <= '{}'::date "
-                        "group by newid "
-                        ).format(self.tables["si_table"],
-                                 self.start_date, self.end_date)
-        else:     
-            qadverse = ("SELECT newid, count(adverse_by_ourdef) from {} "
-                        "WHERE adverse_by_ourdef = 1 "
-                        "AND dateoccured >= '{}'::date "
-                        "AND dateoccured <= '{}'::date "
-                        "group by newid "
-                        ).format(self.tables["si_table"],
-                                 self.start_date, self.end_date)
-
         # select the set of officer ids which we will use for labelling
-        query_labelled_officers = ( "SELECT officer_id "
-                                "FROM {} "
-                                "WHERE date_investigation_started >= '{}'::date "
-                                "AND date_investigation_started <= '{}'::date "
-                                .format(
-                                    self.tables['si_table'],
-                                    self.start_date,
-                                    self.end_date))
+        query_to_label = (              "SELECT DISTINCT officer_id "
+                                        "FROM {} AS events_hub "
+                                        "LEFT JOIN {} AS ia_table "
+                                        "   ON events_hub.event_id = ia_table.event_id "
+                                        "WHERE date_investigation_started >= '{}'::date "
+                                        "AND date_investigation_started <= '{}'::date "
+                                        .format(
+                                            self.tables['events_hub'],
+                                            self.tables['si_table'],
+                                            self.start_date,
+                                            self.end_date))
 
-        # TODO: add in the labelling['invest'], filter by active, etc flags
-        #       maybe by adding some UNIONs in between the FROM and WHERE clauses
+        if labelling['include_all_active'] == True:
 
+            # add the officer_ids of officers who show up in the arrests, traffic, and pedestrian stops tables
+            # see lookup_event_types for the explanation of (1, 2, 3)
+            query_to_label += (         "UNION "
+                                        "SELECT DISTINCT officer_id FROM {} "
+                                        "WHERE event_type_code in (1, 2, 3) "
+                                        "AND event_datetime >= '{}' "
+                                        "AND event_datetime <= '{}' "
+                                        .format(
+                                          self.tables['events_hub'],
+                                          self.start_date,
+                                          self.end_date))
+
+
+        # TODO: add code for labelling['include_all_employed'] option
 
         # repeat the query above, but only select officers who had incidents
         # jugded to be adverse. (see lookup_final_ruling table for codes 2,4,5)
-        query_adverse = query_labelled_officers + "AND final_ruling_code in (2, 4, 5)"
+        query_adverse = (               "SELECT officer_id "
+                                        "FROM {} AS events_hub "
+                                        "LEFT JOIN {} AS ia_table "
+                                        "   ON events_hub.event_id = ia_table.event_id "
+                                        "LEFT JOIN lookup_incident_types AS lookup "
+                                        "   ON lookup.code = ia_table.incident_type_code "
+                                        "WHERE date_investigation_started >= '{}'::date "
+                                        "AND date_investigation_started <= '{}'::date "
+                                        "AND final_ruling_code in (2, 4, 5) "
+                                        .format(
+                                            self.tables['events_hub'],
+                                            self.tables['si_table'],
+                                            self.start_date,
+                                            self.end_date))
 
         # add exclusions to the adverse query based on the definition 
         # of 'adverse' supplied in the experiment file
         if def_adverse['accidents'] == False:
-            query_adverse = query_adverse + "AND event_type != 'accident' "
+            query_adverse = query_adverse + "AND value != 'accident' "
 
         if def_adverse['useofforce'] == False:
-            query_adverse = query_adverse + "AND event_type != 'use_of_force' "
+            query_adverse = query_adverse + "AND value != 'use_of_force' "
 
         if def_adverse['injury'] == False:
-            query_adverse = query_adverse + "AND event_type != 'injury' "
+            query_adverse = query_adverse + "AND value != 'injury' "
 
         if def_adverse['icd'] == False:
-            query_adverse = query_adverse + "AND event_type != 'in_custody_death' "
+            query_adverse = query_adverse + "AND value != 'in_custody_death' "
 
         if def_adverse['nfsi'] == False:
-            query_adverse = query_adverse + "AND event_type != 'no_force_subject_injury' "
+            query_adverse = query_adverse + "AND value != 'no_force_subject_injury' "
 
         if def_adverse['dof'] == False:
-            query_adverse = query_adverse + "AND event_type != 'discharge_of_firearm' "
+            query_adverse = query_adverse + "AND value != 'discharge_of_firearm' "
 
         if def_adverse['raid'] == False:
-            query_adverse = query_adverse + "AND event_type != 'raid' "
+            query_adverse = query_adverse + "AND value != 'raid' "
 
         if def_adverse['pursuit'] == False:
-            query_adverse = query_adverse + "AND event_type != 'pursuit' "
+            query_adverse = query_adverse + "AND value != 'pursuit' "
 
         if def_adverse['complaint'] == False:
-            query_adverse = query_adverse + "AND event_type != 'complaint' "
-
-        # TODO: delete the next two queries once the 2016 staging.internal_affairs_investigations table is populated
-
-        # query to get officer_id for all officers who were active in the specified time period
-        # TODO: add in time period limiting
-        query_investigated_officers = ("SELECT DISTINCT events_hub.officer_id "
-                                        "FROM "
-                                        "events_hub as events_hub ")
-
-        # query to get counts of adverse incidents for all active officers in the specified time period
-        # TODO: add in time period limiting
-        query_adverse_officers = (  "SELECT DISTINCT events_hub.officer_id "
-                                    "FROM "
-                                    "events_hub as events_hub "
-                                    "LEFT JOIN "
-                                    "internal_affairs_investigations_fake_data as ia_table " 
-                                    "ON "
-                                    "events_hub.event_id = ia_table.event_id "
-                                    "WHERE ia_table.final_ruling LIKE '%Preventable%' ")
+            query_adverse = query_adverse + "AND value != 'complaint' "
 
         # pull in all the officer_ids to use for labelling
-        labelled_officers = pd.read_sql(query_investigated_officers, con=db_conn)
+        log.debug('labelled officers query: {}'.format(query_to_label))
+        labelled_officers = pd.read_sql(query_to_label, con=db_conn).drop_duplicates()
 
         # pull in the officer_ids of officers who had adverse incidents
-        adverse_officers = pd.read_sql(query_adverse_officers, con=db_conn)
+        log.debug('adverse officers query: {}'.format(query_adverse))
+        adverse_officers = pd.read_sql(query_adverse, con=db_conn).drop_duplicates()
         adverse_officers["adverse_by_ourdef"] = 1
 
         # merge the labelled and adverse officer_ids and fill in the non-adverse rows with 0s
         outcomes = adverse_officers.merge(labelled_officers, how='outer', on='officer_id')
         outcomes = outcomes.fillna(0)
+
+        log.debug('len of to_label: {}'.format(len(labelled_officers)))
+        log.debug('len of adverse : {}'.format(len(adverse_officers)))
+        log.debug('len of outcomes : {}'.format(len(outcomes)))
+
+        # if given a list of officer ids to label, exclude officer_ids not in that list
+        if ids_to_label is not None:
+            outcomes = outcomes.loc[outcomes.officer_id.isin(ids_to_label)]
 
         return outcomes
 
