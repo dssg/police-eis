@@ -108,7 +108,7 @@ features:
 
     arrests:
         careerarrests: True # Career arrests of officer
-        numrecentarrests: False  # Number arrests in last year
+        numrecentarrests: True  # Number arrests in last year
         careerNPCarrests: False  # Number of no probable cause (NPC) arrests in career
         1yrNPCarrests: False  # Last year number of NPC arrests
         careerdiscarrests: False  # Number of discretionary arrests in career
