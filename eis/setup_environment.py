@@ -7,6 +7,23 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def get_experiment_config(exp_config_file_name='experiment.yaml'):
+    """Get the experiment configuration variables from the config file
+
+    Args:
+        exp_config_file_name(str): the path to the experiment config file
+    """
+    try:
+        with open(exp_config_file_name, 'r') as f:
+            config = yaml.load(f)
+            log.debug("Loaded experiment configuration file")
+    except:
+        log.exception("Failed to get experiment configuration file!")
+        return None
+
+    return config
+
+
 def get_database():
     try:
         engine, dbconf = get_connection_from_profile()
