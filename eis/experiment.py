@@ -13,7 +13,7 @@ MASTER_FEATURE_GROUPS = ["basic", "ia", "unit_div", "arrests",
                          "extraduty", "neighborhood"]
 
 
-log = logging.getLogger("Police EIS")
+log = logging.getLogger(__name__)
 
 class EISExperiment(object):
    """The EISExperiment class defines each individual experiment
@@ -30,14 +30,20 @@ class EISExperiment(object):
        self.pilot_data = None
 
 
-def date_array(prediction_window, begin_date="01Jan2007", end_date="01Jan2016"):
+def get_fake_todays(prediction_window, begin_date="01Jan2007", end_date="01Jan2016"):
+    """Generate a list of start dates for temporal cross validation. Start with
+    begin_date and increment by prediction_window until you get to end_date."""
+
     first_today = datetime.datetime.strptime(begin_date, "%d%b%Y")
     last_today = datetime.datetime.strptime(end_date, "%d%b%Y")
     generated_todays = [first_today]
     test_today = first_today
+
+    # think generated_todays = all_days[begin_date:end_date:prediction_window]
     while test_today + datetime.timedelta(days=prediction_window) < last_today:
         test_today += datetime.timedelta(days=prediction_window)
         generated_todays.append(test_today)
+
     return generated_todays 
 
 
@@ -66,23 +72,24 @@ def generate_time_info(config):
 
     temporal_info = []
 
+    # automatically generate 'fake_todays' for temporal cross validation
     if config["autogen_fake_todays"]:
+        fake_todays = []
         for prediction_window in config["prediction_window"]:
-            generated_todays = date_array(prediction_window)
-            for fake_today in generated_todays:
-                today_str = fake_today.strftime("%d%b%Y")
-                for training_window in config["training_window"]:
-                    temporal_info.append({"fake_today": today_str,
-                                          "training_window": training_window,
-                                          "prediction_window": prediction_window})
+            fake_todays.extend(get_fake_todays(prediction_window))
+
+    # use 'fake_todays' specified in the experiment configuration file
     else:
-        # Then let's just use the list of the fake_todays in the config
-        for fake_today in config["fake_today"]: 
-            for training_window in config["training_window"]:
-                for prediction_window in config["prediction_window"]:
-                    temporal_info.append({"fake_today": fake_today,
-                                          "training_window": training_window,
-                                          "prediction_window": prediction_window})
+        fake_todays = config["fake_today"] 
+
+    
+    # populate temporal_info with all the parameter dictionaries
+    for fake_today, training_window, prediction_window in product(
+        fake_todays, config['training_window'], config['prediction_window']):
+
+            temporal_info.append({"fake_today": fake_today,
+                                  "training_window": training_window,
+                                  "prediction_window": prediction_window})
 
     return temporal_info 
 
@@ -110,8 +117,13 @@ def generate_models_to_run(config, query_db=True):
     else:
         feature_groups = ["all"]
 
+    # generate a list of {fake_today, training_window, prediction_window} dictionaries
     all_temporal_info = generate_time_info(config)
+
     for temporal_info in all_temporal_info:
+
+        # create a copy of the dictionary from the experiment configuration yaml and add
+        # the temporal cross validation information
         this_config = copy.copy(config)
         this_config["prediction_window"] = temporal_info["prediction_window"]
         this_config["training_window"] = temporal_info["training_window"]

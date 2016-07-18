@@ -5,7 +5,6 @@ import logging
 import sys
 import argparse
 import pickle
-import pdb
 import datetime
 
 from . import setup_environment, models, scoring
@@ -13,20 +12,14 @@ from . import dataset, experiment, groups
 
 
 def main(config_file_name):
-    logging.basicConfig(format="%(asctime)s %(message)s",
-                        filename="default.log", level=logging.INFO)
-    log = logging.getLogger("Police EIS")
-
-    screenlog = logging.StreamHandler(sys.stdout)
-    screenlog.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(name)s: %(message)s")
-    screenlog.setFormatter(formatter)
-    log.addHandler(screenlog)
+    logging.basicConfig(format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+                        level=logging.DEBUG)
+    log = logging.getLogger('eis')
 
     try:
         with open(config_file_name, 'r') as f:
             config = yaml.load(f)
-        log.info("Loaded experiment file")
+        log.info("Loaded experiment file: {}".format(config_file_name))
     except:
         log.exception("Failed to get experiment configuration file!")
 
@@ -44,11 +37,13 @@ def main(config_file_name):
             my_exp.config["parameters"],
             my_exp.config["n_cpus"])
 
+        # TODO: fix this failing when aggreation = false in config file
         if my_exp.config["aggregation"]:
             groupscores = groups.aggregate(my_exp.exp_data["test_x_index"],
                                            result_y, my_exp.config["fake_today"])
         else:
             groupscores = []
+
         if my_exp.config["pilot"]:
             log.info("Generating pilot")
             pilot_y, pilot_importances, __, pilot_individual_imps = models.run(

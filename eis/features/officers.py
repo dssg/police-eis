@@ -18,6 +18,18 @@ time_format = "%Y-%m-%d %X"
 
 ### Basic Officer Features
 
+class dummyfeature(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Dummy feature for testing 2016 schema")
+        self.num_features = 1
+        self.name_of_features = ["dummy"]
+        self.query = ("SELECT officer_id, COUNT(event_type_code) "
+                      "FROM events_hub "
+                      "WHERE event_type_code = 4 "
+                      "GROUP BY officer_id")
+        self.type_of_imputation = "mean"
+
 class HeightWeight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
@@ -125,11 +137,11 @@ class AgeAtHire(abstract.OfficerFeature):
 
 ### Arrest History Features
 
-class NumRecentArrests(abstract.OfficerFeature):
+class NumArrestsInPast1yr(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of recent (<1yr) arrests for officer"
-        self.name_of_features = ["1yr_arrest_count"]
+        self.description = "Number of arrests by officer in past 1 yr"
+        self.name_of_features = ["arrest_count_1yr"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
         self.query = ("select count(distinct arrests.event_id) as year_arrest_count, "
                       "officer_id from {} inner join {} on arrests.event_id = events_hub.event_id "

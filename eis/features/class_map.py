@@ -26,7 +26,9 @@ def lookup(feature, **kwargs):
     else:
         kwargs["feat_time_window"] = 15
 
-    dict_lookup = {'height_weight': officers.HeightWeight(**kwargs),
+    dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
+                    'arrest_count_1yr': officers.NumArrestsInPast1yr(**kwargs),
+                    'height_weight': officers.HeightWeight(**kwargs),
                     'education': officers.Education(**kwargs),
                     'daysexperience': officers.DaysExperience(**kwargs),
                     'yearsexperience': officers.YrsExperience(**kwargs),
@@ -36,7 +38,7 @@ def lookup(feature, **kwargs):
                     'officerageathire': officers.AgeAtHire(**kwargs),
                     'maritalstatus': officers.MaritalStatus(**kwargs),
                     'careerarrests': officers.CareerArrests(**kwargs),
-                    'numrecentarrests': officers.NumRecentArrests(**kwargs),
+                    #'numrecentarrests': officers.NumRecentArrests(**kwargs),
                     'careerNPCarrests': officers.NPCArrests(**kwargs),
                     '1yrNPCarrests': officers.NPCArrests(**kwargs),
                     'careerdiscarrests': officers.DiscArrests(**kwargs),
