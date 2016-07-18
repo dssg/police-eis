@@ -131,7 +131,7 @@ class NumRecentArrests(abstract.OfficerFeature):
         self.description = "Number of recent (<1yr) arrests for officer"
         self.name_of_features = ["1yr_arrest_count"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.query = ("select count(distinct event_id) as year_arrest_count, "
+        self.query = ("select count(distinct arrests.event_id) as year_arrest_count, "
                       "officer_id from {} inner join {} on arrests.event_id = events_hub.event_id "
                       "where event_datetime <= '{}'::date "
                       "and event_datetime  >= '{}'::date "
