@@ -137,19 +137,21 @@ class AgeAtHire(abstract.OfficerFeature):
 
 ### Arrest History Features
 
-class NumRecentArrests(abstract.OfficerFeature):
+class NumArrestsInPast1yr(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of recent (<1yr) arrests for officer"
-        self.name_of_features = ["1yr_arrest_count"]
+        self.description = "Number of arrests by officer in past 1 yr"
+        self.name_of_features = ["arrest_count_1yr"]
         self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.query = ("select count(distinct aa_id) as year_arrest_count, "
-                      "newid from {} "
-                      "where arrest_date <= '{}'::date "
-                      "and arrest_date >= '{}'::date "
-                      "group by newid").format(
-                          tables["arrest_charges_table"],
-                          self.end_date, self.start_date)
+        self.query = ("SELECT COUNT(DISTINCT event_id) as arrest_count_1_yr, "
+                      "officer_id from {} "
+                      "where event_datetime <= '{}'::date "
+                      "and event_datetime >= '{}'::date "
+                      "group by officer_id"
+                      .format(
+                          tables["events_hub"],
+                          self.end_date, 
+                          self.start_date))
 
 
 class FractionMaleFemale(abstract.OfficerFeature):
