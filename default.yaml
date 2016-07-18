@@ -258,11 +258,11 @@ features:
 #     C_reg: [100.0]
 #     kernel: ['linear']
 
-model: ['RandomForest', 'ExtraTrees', 'AdaBoost',
-        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
-        'DecisionTreeClassifier',
-        'SGDClassifier', 'KNeighborsClassifier']
-#model: ['RandomForest', 'LogisticRegression']
+#model: ['ExtraTrees', 'AdaBoost',
+#        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
+#        'DecisionTreeClassifier',
+#        'SGDClassifier', 'KNeighborsClassifier']
+model: ['RandomForest', 'LogisticRegression']
 parameters:
   RandomForest:
     n_estimators: [1, 10, 25, 50, 100]  # [1000, 10000]

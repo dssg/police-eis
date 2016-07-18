@@ -71,8 +71,6 @@ def gen_model(train_x, train_y, test_x, model, parameters, n_cores=1):
     modelobj = define_model(model, parameters, n_cores)
     modelobj.fit(train_x, train_y)
     result_y = modelobj.predict_proba(test_x)
-    pdb.set_trace()
-
     return result_y[:, 1], modelobj
 
 

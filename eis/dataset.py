@@ -59,7 +59,7 @@ def get_baseline(start_date, end_date):
     query_flagged_officers = ("SELECT DISTINCT officer_id from {} "
                                 "WHERE date_created >= '{}'::date "
                                 "AND date_created <='{}'::date".format(
-                                    db_config["eis_table"],
+                                    config["eis_table"],
                                     start_date,
                                     end_date))
 
@@ -166,7 +166,7 @@ def get_labels_for_ids(ids, start_date, end_date):
     invest = invest.drop(["count"], axis=1)
     outcomes = adverse.merge(invest, how='outer', on='officer_id')
     outcomes = outcomes.fillna(0)
-
+    pdb.set_trace()
     return outcomes
 
 
@@ -372,7 +372,7 @@ class FeatureLoader():
                                     "internal_affairs_investigations as ia_table "
                                     "ON "
                                     "events_hub.event_id = ia_table.event_id "
-                                    "WHERE ia_table.final_ruling_code = 1 ")
+                                    "WHERE ia_table.final_ruling_code = 5 ")
 
         #invest = pd.read_sql(qinvest, con=con)
         #adverse = pd.read_sql(qadverse, con=con)

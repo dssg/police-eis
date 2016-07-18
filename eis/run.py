@@ -47,7 +47,8 @@ def main(config_file_name):
         if my_exp.config["aggregation"]:
             groupscores = groups.aggregate(my_exp.exp_data["test_x_index"],
                                            result_y, my_exp.config["fake_today"])
-
+        else:
+            groupscores = []
         if my_exp.config["pilot"]:
             log.info("Generating pilot")
             pilot_y, pilot_importances, __, pilot_individual_imps = models.run(
@@ -65,11 +66,13 @@ def main(config_file_name):
                           "test_x": my_exp.pilot_data["test_x"]}
             pilot_file = "{}pilot_experiment_{}.pkl".format(my_exp.config["pilot_dir"], timestamp)
             pickle_results(pilot_file, pilot_save)
-
-        confusion_matrices = scoring.test_thresholds(
-            my_exp.exp_data["test_x_index"], result_y, 
-            my_exp.config['fake_today'], my_exp.exp_data["test_end_date"])
-
+        #commented out for now, but we need to create a flag for whether an eis system already exists in the department 
+        #if config['eis_table']:
+        #    confusion_matrices = scoring.test_thresholds(
+        #	    my_exp.exp_data["test_x_index"], result_y, 
+        #        my_exp.config['fake_today'], my_exp.exp_data["test_end_date"])
+        #else:
+        confusion_matrices = []
         to_save = {"test_labels": my_exp.exp_data["test_y"],
                    "test_predictions": result_y,
                    "config": my_exp.config,
