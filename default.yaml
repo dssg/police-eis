@@ -46,11 +46,9 @@ def_adverse:
     pursuit: False  # unjustified pursuit
     complaint: True  # sustained complaints
 
-
-labelling:
-    noinvest: False  # include officers that have not been investigated in the training
-    filter_by_active: False
-    use_officer_activity: False  # use officers with arrests/traffic stops for training
+labelling: 
+    include_all_employed: True # include all officers who were employed during the specified period
+    include_all_active: True # include all oficcers who made an arrest or stop during the specified period.
 
 ########################
 # Feature selection    #
@@ -108,7 +106,7 @@ features:
 
     arrests:
         careerarrests: True # Career arrests of officer
-        numrecentarrests: True  # Number arrests in last year
+        arrest_count_1yr: True # Number of arrests in last year.
         careerNPCarrests: False  # Number of no probable cause (NPC) arrests in career
         1yrNPCarrests: False  # Last year number of NPC arrests
         careerdiscarrests: False  # Number of discretionary arrests in career
@@ -262,14 +260,14 @@ features:
 #        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier',
 #        'SGDClassifier', 'KNeighborsClassifier']
-model: ['RandomForest', 'LogisticRegression']
+model: ['RandomForest']
 parameters:
   RandomForest:
-    n_estimators: [1, 10, 25, 50, 100]  # [1000, 10000]
-    max_depth: [1, 3, 5, 10, 20]  # 50, 100
-    max_features: ['sqrt', 'log2']  # [2, 4, 8, 16, "auto"]
-    criterion: ['gini', 'entropy']
-    min_samples_split: [2, 5, 10]
+    n_estimators: [10 ] # , 25, 50, 100]  # [1000, 10000]
+    max_depth: [5] # , 10, 20]  # 50, 100
+    max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
+    criterion: ['gini' ] #'entropy']
+    min_samples_split: [2] # 5, 10]
   ExtraTrees:
     n_estimators: [1, 10, 25, 50, 100]  # [1000, 10000]
     max_depth: [1, 3, 5, 10, 20]  # 50, 100
