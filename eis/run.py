@@ -29,13 +29,13 @@ def main(config_file_name, args):
         log.info("Re-building features...")
 
     	# Create the schema.
-        populate_features.drop_and_load_features_schema()
+        #populate_features.drop_and_load_features_schema()
 
         # Create the table.
-        populate_features.create_features_table(config, table_name="features") 
+        #populate_features.create_features_table(config, table_name="features") 
 
         # Populate the schema with features.
-        #populate_features.populate_features_table(config)
+        populate_features.populate_features_table(config)
 
         sys.exit()
 

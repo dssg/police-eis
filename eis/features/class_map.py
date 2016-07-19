@@ -28,6 +28,7 @@ def lookup(feature, **kwargs):
 
     dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
                     'arrest_count_1yr': officers.NumArrestsInPast1yr(**kwargs),
+                    'arrest_count_career': officers.CareerArrests(**kwargs),
                     'height_weight': officers.HeightWeight(**kwargs),
                     'education': officers.Education(**kwargs),
                     'daysexperience': officers.DaysExperience(**kwargs),

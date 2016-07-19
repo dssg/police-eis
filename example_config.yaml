@@ -105,7 +105,7 @@ features:
         careerunithistory: False  # Unit type history in career
 
     arrests:
-        arrest_career: True # Career arrests of officer
+        arrest_count_career: True # Career arrests of officer
         arrest_count_1yr: True # Number of arrests in last year.
         careerNPCarrests: False  # Number of no probable cause (NPC) arrests in career
         #1yrNPCarrests: False  # Last year number of NPC arrests

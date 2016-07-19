@@ -16,7 +16,8 @@ class OfficerFeature():
         self.start_date = None
         self.end_date = kwargs["time_bound"]
         self.query = None
-        self.name_of_features = ""
+        self.feature_name = self.__class__.__name__
+        self.name_of_features = ""  # DEPRECATED
         self.type_of_imputation = "zero"
         self.feat_time_window = None
 
