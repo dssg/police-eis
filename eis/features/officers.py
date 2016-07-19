@@ -30,6 +30,7 @@ class dummyfeature(abstract.OfficerFeature):
                       "GROUP BY officer_id")
         self.type_of_imputation = "mean"
 
+
 class HeightWeight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
@@ -70,11 +71,11 @@ class YrsExperience(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of years of experience for police officer"
-        self.time_bound = kwargs["time_bound"]
+        self.fake_today = kwargs["fake_today"]
         self.name_of_features = ["years_experience"]
         self.query = ("select officer_id, {} - EXTRACT(YEAR FROM "
                       "hire_date_employed) as "
-                      "yrs_experience from {}".format(self.time_bound.year,
+                      "yrs_experience from {}".format(self.fake_today.year,
                                                       tables['officer_table']))
         self.type_of_imputation = "mean"
 
@@ -83,12 +84,12 @@ class DaysExperience(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of days of experience for police officer"
-        self.time_bound = kwargs["time_bound"]
+        self.fake_today = kwargs["fake_today"]
         self.name_of_features = ["days_experience"]
         self.query = ("select officer_id, EXTRACT('days' FROM '{}'::date - "
                       "hire_date_employed) as "
                       "days_experience from {}".format(
-                          self.time_bound.strftime(time_format),
+                          self.fake_today.strftime(time_format),
                           tables['officer_table']))
         self.type_of_imputation = "mean"
 
@@ -117,10 +118,10 @@ class Age(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer age"
-        self.time_bound = kwargs["time_bound"]
+        self.fake_today = kwargs["fake_today"]
         self.name_of_features = ["age"]
         self.query = ("select officer_id, {} - birthdate_year "
-                      "as age from {}".format(self.time_bound.year,
+                      "as age from {}".format(self.fake_today.year,
                                               tables['officer_table']))
         self.type_of_imputation = "mean"
 
@@ -137,19 +138,30 @@ class AgeAtHire(abstract.OfficerFeature):
 
 ### Arrest History Features
 
-class NumArrestsInPast1yr(abstract.OfficerFeature):
+class arrest_count_career(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of career arrests" )
+        self.query = ("UPDATE features.features feature_table "
+                      "SET arrest_count_career = staging_table.count "
+                      "FROM ( select officer_id, count(officer_id) FROM staging.events_hub WHERE event_type_code=4 GROUP BY officer_id  ) staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id" )
+        self.type_of_imputation = "mean"
+
+class arrest_count_1yr(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of arrests by officer in past 1 yr"
         self.name_of_features = ["arrest_count_1yr"]
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.query = ("select count(distinct arrests.event_id) as year_arrest_count, "
                       "officer_id from {} inner join {} on arrests.event_id = events_hub.event_id "
                       "where event_datetime <= '{}'::date "
                       "and event_datetime  >= '{}'::date "
-                      "group by officer_id").format(
-                          tables["arrest_charges_table"], "events_hub",
-                          self.end_date, self.start_date)
+                      "group by officer_id").format( tables["arrest_charges_table"], 
+                                                    "events_hub",
+                                                    self.fake_today, 
+                                                    self.start_date)
 
 
 class FractionMaleFemale(abstract.OfficerFeature):
@@ -161,7 +173,7 @@ class ArrestTimeSeries(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Timeseries of arrest counts (1 yr agg) for officer"
         self.name_of_features = ["timeseries_arrests"]
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=2920)
         self.query = ("select officer_id, array_agg(intervals_count) as "
                       "arrest_timeseries from (select "
                       "a.officer_id as officer_id, a.intervals as intervals, "
@@ -191,7 +203,7 @@ class ArrestRateDelta(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Delta recent (<1yr) arrest rate to career rate"
         self.name_of_features = ["delta_arrest_rate"]
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.query = ("select a.officer_id, a.career_rate, b.recent_rate, "
                       "b.recent_rate / a.career_rate as "
                       "recent_career_arrest_rate_delta from "
@@ -290,19 +302,6 @@ class DiscArrests(abstract.OfficerTimeBoundedFeature):
                           self.name_of_features[0],
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
-
-
-class CareerArrests(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of career arrests for officer"
-        self.name_of_features = ["career_arrest_count"]
-        self.query = ("select count(distinct arrests.event_id) as career_arrest_count, "
-                      "officer_id from {} inner join {} on events_hub.event_id = arrests.event_id "
-                      "where event_datetime <= '{}'::date "
-                      "group by officer_id").format(
-                          tables["arrest_charges_table"], "events_hub",
-                          self.end_date)
 
 
 class NPCArrests(abstract.OfficerTimeBoundedFeature):
@@ -696,7 +695,7 @@ class FIAvgTimeOfDay(abstract.OfficerFeature):
 class FITimeseries(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=2920)
         self.type_of_features = "series"
         self.description = "Timeseries for interviews"
         self.name_of_features = ["fi_timeseries"]
@@ -725,7 +724,7 @@ class FITimeseries(abstract.OfficerFeature):
 class YearNumSuicides(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of suicides in last year"
         self.name_of_features = ["suicides_count"]
         self.query = ("select officer_id,count(distinct inc_id) as num_suicide "
@@ -740,7 +739,7 @@ class YearNumSuicides(abstract.OfficerFeature):
 class YearNumJuvenileVictim(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of juvenile victims in last year"
         self.name_of_features = ["juvenile_count"]
         self.query = ("select officer_id,count(distinct inc_id) as num_juv_victim "
@@ -755,7 +754,7 @@ class YearNumJuvenileVictim(abstract.OfficerFeature):
 class YearNumDomesticViolence(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of domestic violence incidents in last year"
         self.name_of_features = ["domestic_violence_count"]
         self.query = ("select officer_id,count(distinct inc_id) as num_domestic_violence "
@@ -770,7 +769,7 @@ class YearNumDomesticViolence(abstract.OfficerFeature):
 class YearNumHate(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of hate incidents in last year"
         self.name_of_features = ["hate_count"]
         self.query = ("select officer_id,count(distinct inc_id) as num_hate "
@@ -785,7 +784,7 @@ class YearNumHate(abstract.OfficerFeature):
 class YearNumNarcotics(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of narcotics incidents in last year"
         self.name_of_features = ["narcotics_count"]
         self.query = ("select officer_id,count(distinct inc_id) as num_narcotics "
@@ -800,7 +799,7 @@ class YearNumNarcotics(abstract.OfficerFeature):
 class YearNumGang(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of gang incidents in last year"
         self.name_of_features = ["gang_count"]
         self.query = ("select officer_id,count(distinct inc_id) as num_gang "
@@ -815,7 +814,7 @@ class YearNumGang(abstract.OfficerFeature):
 class YearNumGunKnife(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of gun/knife incidents in last year"
         self.name_of_features = ["gun_knife_count"]
         self.query = ("select officer_id,count(distinct inc_id) as num_guns "
@@ -830,7 +829,7 @@ class YearNumGunKnife(abstract.OfficerFeature):
 class YearNumPersWeaps(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of personal weapons incidents in last year"
         self.name_of_features = ["personal_weapon_count"]
         self.query = ("select officer_id,count(distinct inc_id) as num_weapons "
@@ -845,7 +844,7 @@ class YearNumPersWeaps(abstract.OfficerFeature):
 class AvgAgeVictims(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Average age of victims in last year"
         self.name_of_features = ["avg_victim_age"]
         self.query = ("select avg(cast(victim1_age as float)) as victim_age, "
@@ -860,7 +859,7 @@ class AvgAgeVictims(abstract.OfficerFeature):
 class MinAgeVictims(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Min age of victims in last year"
         self.name_of_features = ["min_victim_age"]
         self.query = ("select avg(cast(victim1_age as float)) as min_victim_age,"
@@ -1019,7 +1018,7 @@ class TrafficStopTimeSeries(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Timeseries of traffic stop counts (1 yr agg) for officer"
         self.name_of_features = ["timeseries_trafficstops"]
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=2920)
         self.query = ("select officer_id, array_agg(intervals_count) as "
                       "trf_stop_timeseries from (select "
                       "a.officer_id as officer_id, a.intervals as intervals, "

@@ -51,7 +51,7 @@ def create_features_table(config, table_name="features" ):
         feature_list.remove("height_weight")
 
     # Create and execute a query to create a table with a column for each of the features.
-    log.info("Createing new feature table: {}...".format(table_name))
+    log.info("Creating new feature table: {}...".format(table_name))
     create_query = "CREATE TABLE features.{} ( \n".format(table_name)
     create_query += "\t officer_id \t int,\n"
     create_query += "\t created_on \t timestamp,\n"
@@ -61,6 +61,10 @@ def create_features_table(config, table_name="features" ):
     create_query += ");"
     engine.execute( create_query )
 
+    # Populate the features table with officer_id.
+    log.info("Populating feature table {} with officer ids...".format(table_name))
+    officer_id_query = "INSERT INTO features.{} (officer_id) SELECT staging.officers_hub.officer_id from staging.officers_hub".format(table_name)
+    engine.execute( officer_id_query )
 
 def populate_features_table(config):
     """Calculate all the feature values and store them in the features table in the database"""
@@ -85,10 +89,15 @@ def populate_features_table(config):
     # NOTE: just for debugging
     for feature_name in config['features']['arrests']:
 
+        log.info("Populating feature {}...".format(feature_name) )
+
         # loop over each fake today
         for fake_today in fake_todays:
 
-            feature_class = class_map.lookup(feature_name, time_bound=datetime.datetime.strptime(fake_today, "%d%b%Y" ))
-            #engine.execute(feature_class.query)
+            feature_class = class_map.lookup(feature_name, 
+                                             fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
+                                             table_name="features" )
             log.debug('Calculated and inserted feature {} for fake_today {}'
                         .format(feature_class.feature_name, fake_today))
+            feature_class.build_and_insert( engine )
+            #engine.execute(feature_class.query)
