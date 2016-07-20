@@ -61,10 +61,20 @@ def create_features_table(config, table_name="features" ):
     create_query += ");"
     engine.execute( create_query )
 
+    # Get the list of fake_todays.
+    temporal_info = experiment.generate_time_info(config)
+    fake_todays = {time_dict['fake_today'] for time_dict in temporal_info}
+
     # Populate the features table with officer_id.
-    log.info("Populating feature table {} with officer ids...".format(table_name))
-    officer_id_query = "INSERT INTO features.{} (officer_id) SELECT staging.officers_hub.officer_id from staging.officers_hub".format(table_name)
-    engine.execute( officer_id_query )
+    log.info("Populating feature table {} with officer ids and fake todays...".format(table_name))
+    time_format = "%Y-%m-%d %X"
+    for fake_today in fake_todays:
+        fake_today = datetime.datetime.strptime(fake_today, '%d%b%Y') 
+        fake_today.strftime(time_format)
+        officer_id_query = ( "INSERT INTO features.{} (officer_id,fake_today) "
+                             "SELECT staging.officers_hub.officer_id, '{}'::date "
+                             "FROM staging.officers_hub").format(table_name,fake_today)
+        engine.execute( officer_id_query )
 
 def populate_features_table(config):
     """Calculate all the feature values and store them in the features table in the database"""

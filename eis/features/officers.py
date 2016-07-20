@@ -142,10 +142,12 @@ class arrest_count_career(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of career arrests" )
-        self.query = ("UPDATE features.features feature_table "
+        self.query = ("UPDATE features.{} feature_table "
                       "SET arrest_count_career = staging_table.count "
-                      "FROM ( select officer_id, count(officer_id) FROM staging.events_hub WHERE event_type_code=4 GROUP BY officer_id  ) staging_table "
-                      "WHERE feature_table.officer_id = staging_table.officer_id" )
+                      "FROM ( select officer_id, count(officer_id) "
+                      "FROM staging.events_hub WHERE event_type_code=4 AND event_datetime <= {}::date GROUP BY officer_id  ) staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = {}::date" ).format( self.table_name, self.fake_today, self.fake_today )
         self.type_of_imputation = "mean"
 
 class arrest_count_1yr(abstract.OfficerFeature):
