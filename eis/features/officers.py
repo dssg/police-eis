@@ -163,14 +163,21 @@ class arrest_count_1yr(abstract.OfficerFeature):
         self.description = "Number of arrests by officer in past 1 yr"
         self.name_of_features = ["arrest_count_1yr"]
         self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
-        self.query = ("select count(distinct arrests.event_id) as year_arrest_count, "
-                      "officer_id from {} inner join {} on arrests.event_id = events_hub.event_id "
-                      "where event_datetime <= '{}'::date "
-                      "and event_datetime  >= '{}'::date "
-                      "group by officer_id").format( tables["arrest_charges_table"], 
-                                                    "events_hub",
-                                                    self.fake_today, 
-                                                    self.start_date)
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET arrest_count_career = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code=4 "
+                      "         AND event_datetime <= '{}'::date "
+                      "         AND event_datetime >= '{}'::date - INTERVAL '1 year' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{}'::date" 
+                      .format(  self.table_name, 
+                                self.fake_today.strftime(time_format),
+                                self.fake_today.strftime(time_format),
+                                self.fake_today.strftime(time_format)))
 
 
 class FractionMaleFemale(abstract.OfficerFeature):
