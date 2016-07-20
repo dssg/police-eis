@@ -144,7 +144,11 @@ class arrest_count_career(abstract.OfficerFeature):
         self.description = ("Number of career arrests" )
         self.query = ("UPDATE features.features feature_table "
                       "SET arrest_count_career = staging_table.count "
-                      "FROM ( select officer_id, count(officer_id) FROM staging.events_hub WHERE event_type_code=4 GROUP BY officer_id  ) staging_table "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code=4 "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id" )
         self.type_of_imputation = "mean"
 
