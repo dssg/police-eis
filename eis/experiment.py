@@ -3,6 +3,7 @@ import copy
 from itertools import product
 import datetime
 import logging
+from IPython.core.debugger import Tracer
 
 from . import officer, dispatch, explore
 
@@ -139,8 +140,10 @@ def generate_models_to_run(config, query_db=True):
                 log.info("Running models without feature set {}!".format(
                 group))
             else:
-                feature_groups_to_use = copy.copy(MASTER_FEATURE_GROUPS)
-
+                # get a list of feature groups that are active in this experiment.
+                # note: probably should use MASTER_FEATURE_GROUPS when available.
+                feature_groups_to_use = [ group for group in config["features"].keys() ]
+                Tracer()()
             for features in feature_groups_to_use:
                 features_to_use.update(config["features"][features])
 

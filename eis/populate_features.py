@@ -35,8 +35,9 @@ def create_features_table(config, table_name="features" ):
     log.info("Dropping the old feature table...")
     db_conn.cursor().execute("DROP TABLE IF EXISTS features.{}".format(table_name) )
 
-    # Get a list of all the features.
-    feature_classes = config["features"]
+    # Get a list of all the features that are set tp true.
+    all_feature_classes = config["features"]
+    feature_classes = { feature_class:flag for feature_class, flag in all_feature_classes.items() if flag }
     feature_list  = []
     feature_value = []
     #for classkey in feature_classes:
@@ -91,23 +92,20 @@ def populate_features_table(config):
     fake_todays = {time_dict['fake_today'] for time_dict in temporal_info}
 
     # loop through the feature groups
-    #for feature_group in config['features']:
+    feature_groups = config["features"]
+    for feature_group in feature_groups:
 
-        # select each feature in the group individually
-        #for feature_name in config['features'][feature_group]:
+        # select each feature in the group individually if it is active in the configuration file.
+        active_features = [feature_name for feature_name in config["features"][feature_group].keys() if config["features"][feature_group][feature_name] ]
+        for feature_name in active_features:
 
-    # NOTE: just for debugging
-    for feature_name in config['features']['arrests']:
+            # loop over each fake today
+            for fake_today in fake_todays:
+    
+                feature_class = class_map.lookup(feature_name, 
+                                                 fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
+                                                 table_name="features" )
+                log.debug('Calculated and inserted feature {} for fake_today {}'
+                            .format(feature_class.feature_name, fake_today))
+                feature_class.build_and_insert( engine )
 
-        log.info("Populating feature {}...".format(feature_name) )
-
-        # loop over each fake today
-        for fake_today in fake_todays:
-
-            feature_class = class_map.lookup(feature_name, 
-                                             fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
-                                             table_name="features" )
-            log.debug('Calculated and inserted feature {} for fake_today {}'
-                        .format(feature_class.feature_name, fake_today))
-            feature_class.build_and_insert( engine )
-            #engine.execute(feature_class.query)

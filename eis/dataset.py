@@ -6,6 +6,7 @@ import logging
 import sys
 import datetime
 import json
+from IPython.core.debugger import Tracer
 
 from . import setup_environment
 from .features import class_map
@@ -464,6 +465,8 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
 
     officers = data.officer_labeller(labelling, def_adverse)
     # officers.set_index(["officer_id"])
+    
+    Tracer()()
 
     dataset = officers
     featnames = []
@@ -479,6 +482,8 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     dataset = dataset.reset_index()
     dataset = dataset.reindex(np.random.permutation(dataset.index))
     dataset = dataset.set_index(["officer_id"])
+
+    # Code to query the features table goes here.
 
     dataset = dataset.fillna(0)
 
