@@ -143,16 +143,17 @@ class arrest_count_career(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of career arrests" )
         self.query = ("UPDATE features.{} feature_table "
-                      "SET arrest_count_career = staging_table.count "
+                      "SET {} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.events_hub "
-                      "         WHERE event_type_code=4 "
+                      "         WHERE event_type_code=3 "
                       "         AND event_datetime <= '{}'::date "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       "AND feature_table.fake_today = '{}'::date" 
-                      .format(  self.table_name, 
+                      .format(  self.table_name,
+                                self.feature_name,
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
         self.type_of_imputation = "mean"
@@ -164,17 +165,18 @@ class arrest_count_1yr(abstract.OfficerFeature):
         self.name_of_features = ["arrest_count_1yr"]
         self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.query = ("UPDATE features.{} feature_table "
-                      "SET arrest_count_career = staging_table.count "
+                      "SET {} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.events_hub "
-                      "         WHERE event_type_code=4 "
+                      "         WHERE event_type_code=3 "
                       "         AND event_datetime <= '{}'::date "
-                      "         AND event_datetime >= '{}'::date - INTERVAL '1 year' "
+                      "         AND event_datetime >= '{}'::date - interval '1 year' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       "AND feature_table.fake_today = '{}'::date" 
-                      .format(  self.table_name, 
+                      .format(  self.table_name,
+                                self.feature_name, 
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
