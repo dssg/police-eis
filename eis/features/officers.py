@@ -156,6 +156,8 @@ class arrest_count_career(abstract.OfficerFeature):
                                 self.feature_name,
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
+        self.type_of_features = "categorical"
+        self.name_of_features = ["arrest_count_career"]
         self.type_of_imputation = "mean"
 
 class arrest_count_1yr(abstract.OfficerFeature):
@@ -180,6 +182,9 @@ class arrest_count_1yr(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
+        self.type_of_imputation = "mean"
+        self.name_of_features = ["arrest_count_1yr"]
+        self.type_of_features = "categorical"
 
 
 class FractionMaleFemale(abstract.OfficerFeature):

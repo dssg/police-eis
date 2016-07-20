@@ -45,10 +45,6 @@ def create_features_table(config, table_name="features" ):
                 feature_list.extend([feature])
                 feature_value.extend([True])
 
-    print( feature_list )
-#        feature_list.extend( feature_classes["arrests"].keys() )
-#        feature_value.extend( feature_classes["arrests"].values() )
-
     # Split the height_weight feature into two features.
     if "height_weight" in feature_list:
         feature_list.extend(["height","weight"])
