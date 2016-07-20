@@ -70,13 +70,13 @@ def populate_features_table(config):
     """Calculate all the feature values and store them in the features table in the database"""
 
     # connect to the database
-    log.info("Connecting to database...")
+    log.debug("Connecting to database...")
     engine, db_config = setup_environment.get_database()
 
     # get the list of fake todays specified by the config file
     temporal_info = experiment.generate_time_info(config)
 
-    # using set to remove duplicates, bc temporal_info gives multiple time windows
+    # using a set comprehension to remove duplicates, bc temporal_info gives multiple time windows
     # which we don't care about here
     fake_todays = {time_dict['fake_today'] for time_dict in temporal_info}
 
