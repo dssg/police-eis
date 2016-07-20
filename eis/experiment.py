@@ -140,11 +140,10 @@ def generate_models_to_run(config, query_db=True):
                 log.info("Running models without feature set {}!".format(
                 group))
             else:
-                # get a list of feature groups that are active in this experiment.
-                # note: probably should use MASTER_FEATURE_GROUPS when available.
-                feature_groups_to_use = [ group for group in config["features"].keys() ]
-                Tracer()()
+                feature_groups_to_use = copy.copy(MASTER_FEATURE_GROUPS)
+
             for features in feature_groups_to_use:
+                print( config["features"] )
                 features_to_use.update(config["features"][features])
 
             this_config["features"] = features_to_use

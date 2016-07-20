@@ -35,21 +35,25 @@ def create_features_table(config, table_name="features" ):
     log.info("Dropping the old feature table...")
     db_conn.cursor().execute("DROP TABLE IF EXISTS features.{}".format(table_name) )
 
-    # Get a list of all the features that are set tp true.
-    all_feature_classes = config["features"]
-    feature_classes = { feature_class:flag for feature_class, flag in all_feature_classes.items() if flag }
+    # Get a list of all the features that are set to true.
+    feature_classes = config["features"]
     feature_list  = []
     feature_value = []
-    #for classkey in feature_classes:
-    #    feature_list.extend(feature_classes[classkey].keys())
-    #    feature_value.extend(feature_classes[classkey].values())
-    feature_list.extend( feature_classes["arrests"].keys() )
-    feature_value.extend( feature_classes["arrests"].values() )
+    for classkey in feature_classes:
+        for feature in feature_classes[classkey]:
+            if config["features"][classkey][feature]:
+                feature_list.extend([feature])
+                feature_value.extend([True])
+
+    print( feature_list )
+#        feature_list.extend( feature_classes["arrests"].keys() )
+#        feature_value.extend( feature_classes["arrests"].values() )
 
     # Split the height_weight feature into two features.
     if "height_weight" in feature_list:
         feature_list.extend(["height","weight"])
         feature_list.remove("height_weight")
+
 
     # Create and execute a query to create a table with a column for each of the features.
     log.info("Creating new feature table: {}...".format(table_name))
