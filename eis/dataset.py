@@ -227,13 +227,14 @@ def convert_categorical(df):
 
 class FeatureLoader():
 
-    def __init__(self, start_date, end_date, fake_today):
+    def __init__(self, start_date, end_date, fake_today, table_name):
 
         self.start_date = start_date
         self.end_date = end_date
         self.fake_today = fake_today
         self.tables = db_config  # Dict of tables
         self.schema = db_config['schema']
+        self.table_name = table_name
 
         change_schema(self.schema)
 
@@ -388,48 +389,56 @@ class FeatureLoader():
         return labels
 
     def loader(self, features_to_load, ids):
-        kwargs = {"time_bound": self.fake_today,
+        kwargs = {"fake_today": self.fake_today,
+                  "table_name":self.table_name,
                   "feat_time_window": 0}
         feature = class_map.lookup(features_to_load, **kwargs)
 
-        if type(feature.query) == str:
-            results = self.__read_feature_from_db(feature.query,
-                                                  features_to_load,
-                                                  drop_duplicates=True)
-            featurenames = feature.name_of_features
-        elif type(feature.query) == list:
-            featurenames = []
-            results = pd.DataFrame()
-            for each_query in feature.query:
-                ea_resu = self.__read_feature_from_db(each_query,
-                                                      features_to_load,
-                                                      drop_duplicates=True)
-                featurenames = featurenames + feature.name_of_features
+        # Create the query for this feature.
+        query = ( "SELECT officer_id, {} FROM features.{}" ).format( feature.__class__.__name__, self.table_name )
+    
+        # Execute the query.
+        results = self.__read_feature_from_db( query, features_to_load )
+        featurenames = feature.name_of_features
 
-                if len(results) == 0:
-                    results = ea_resu
-                    results['officer_id'] = ea_resu.index
-                else:
-                    results = results.join(ea_resu, how='left', on='officer_id')
+#        if type(feature.query) == str:
+#            results = self.__read_feature_from_db(feature.query,
+#                                                  features_to_load,
+#                                                  drop_duplicates=True)
+#            featurenames = feature.name_of_features
+#        elif type(feature.query) == list:
+#            featurenames = []
+#            results = pd.DataFrame()
+#            for each_query in feature.query:
+#                ea_resu = self.__read_feature_from_db(each_query,
+#                                                      features_to_load,
+#                                                      drop_duplicates=True)
+#                featurenames = featurenames + feature.name_of_features
+#
+#                if len(results) == 0:
+#                    results = ea_resu
+#                    results['officer_id'] = ea_resu.index
+#                else:
+#                    results = results.join(ea_resu, how='left', on='officer_id')
+#
+#        if feature.type_of_features == "categorical":
+#            results, featurenames = convert_categorical(results)
+#        elif feature.type_of_features == "series":
+#            results, featurenames = convert_series(results)
 
-        if feature.type_of_features == "categorical":
-            results, featurenames = convert_categorical(results)
-        elif feature.type_of_features == "series":
-            results, featurenames = convert_series(results)
-
-        if feature.type_of_imputation == "zero":
-                results = imputation_zero(results, ids)
-        elif feature.type_of_imputation == "mean":
-                results, featurenames = imputation_mean(results, featurenames)
+#        if feature.type_of_imputation == "zero":
+#                results = imputation_zero(results, ids)
+#        elif feature.type_of_imputation == "mean":
+#                results, featurenames = imputation_mean(results, featurenames)
 
         return results, featurenames
 
-    def __read_feature_from_db(self, query, features_to_load,
-                               drop_duplicates=True):
+    def __read_feature_from_db(self, query, features_to_load, drop_duplicates=True):
 
         log.debug("Loading features for events from {} to {}".format(
                         self.start_date, self.end_date))
 
+        # Load this feature from the feature table.
         results = pd.read_sql(query, con=db_conn)
 
         if drop_duplicates:
@@ -443,7 +452,7 @@ class FeatureLoader():
         return results
 
 
-def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling):
+def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling, table_name):
     """
     Function that defines the dataset.
 
@@ -461,13 +470,11 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
-    data = FeatureLoader(start_date, end_date, time_bound)
+    data = FeatureLoader(start_date, end_date, time_bound, table_name)
 
     officers = data.officer_labeller(labelling, def_adverse)
     # officers.set_index(["officer_id"])
     
-    Tracer()()
-
     dataset = officers
     featnames = []
     for each_feat in features:
@@ -482,8 +489,6 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     dataset = dataset.reset_index()
     dataset = dataset.reindex(np.random.permutation(dataset.index))
     dataset = dataset.set_index(["officer_id"])
-
-    # Code to query the features table goes here.
 
     dataset = dataset.fillna(0)
 

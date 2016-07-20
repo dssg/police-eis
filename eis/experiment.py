@@ -143,7 +143,6 @@ def generate_models_to_run(config, query_db=True):
                 feature_groups_to_use = copy.copy(MASTER_FEATURE_GROUPS)
 
             for features in feature_groups_to_use:
-                print( config["features"] )
                 features_to_use.update(config["features"][features])
 
             this_config["features"] = features_to_use
