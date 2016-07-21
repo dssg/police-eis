@@ -385,9 +385,11 @@ class FeatureLoader():
         # select dispatches that led to events deemed adverse
         query_adverse = (   "SELECT DISTINCT dispatch_id "
                             "FROM events_hub "
-                            "LEFT JOIN internal_affairs_investigations AS ia_table "
-                            "   ON events_hub.event_id = ia_table.event_id "
-                            "WHERE event_type_code = 5 "
+                            "LEFT JOIN incidents AS incidents "
+                            "   ON events_hub.event_id = incidents.event_id "
+                            "LEFT JOIN lookup_incident_types AS lookup "
+                            "   ON lookup.code = incidents.incident_type_code "
+                            "WHERE event_type_code = 4 "
                             "AND event_datetime >= '{}'::date "
                             "AND event_datetime <= '{}'::date "
                             "AND final_ruling_code in (2, 4, 5) "
@@ -395,6 +397,34 @@ class FeatureLoader():
                                 self.start_date,
                                 self.stop_date))
 
+        # add exclusions to the adverse query based on the definition 
+        # of 'adverse' supplied in the experiment file
+        if def_adverse['accidents'] == False:
+            query_adverse = query_adverse + "AND value != 'accident' "
+
+        if def_adverse['useofforce'] == False:
+            query_adverse = query_adverse + "AND value != 'use_of_force' "
+
+        if def_adverse['injury'] == False:
+            query_adverse = query_adverse + "AND value != 'injury' "
+
+        if def_adverse['icd'] == False:
+            query_adverse = query_adverse + "AND value != 'in_custody_death' "
+
+        if def_adverse['nfsi'] == False:
+            query_adverse = query_adverse + "AND value != 'no_force_subject_injury' "
+
+        if def_adverse['dof'] == False:
+            query_adverse = query_adverse + "AND value != 'discharge_of_firearm' "
+
+        if def_adverse['raid'] == False:
+            query_adverse = query_adverse + "AND value != 'raid' "
+
+        if def_adverse['pursuit'] == False:
+            query_adverse = query_adverse + "AND value != 'pursuit' "
+
+        if def_adverse['complaint'] == False:
+            query_adverse = query_adverse + "AND value != 'complaint' "
 
         dispatches = pd.read_sql(query_all, con=db_conn)
         adverse_dispatches = pd.read_sql(query_adverse, con=db_conn)
@@ -408,50 +438,30 @@ class FeatureLoader():
 
         return dispatches
 
-    def loader(self, features_to_load, ids):
-        kwargs = {"fake_today": self.fake_today,
-                  "table_name":self.table_name,
-                  "feat_time_window": 0}
-        feature = class_map.lookup(features_to_load, **kwargs)
+    def loader(self, feature_to_load, feature_type='officer'):
+        """Get the feature values from the database"""
 
-        # Create the query for this feature.
-        query = ( "SELECT officer_id, {} FROM features.{}" ).format( feature.__class__.__name__, self.table_name )
+        kwargs = {"fake_today": self.fake_today,
+                  "table_name": self.table_name,
+                  "feat_time_window": 0}
+        feature = class_map.lookup(feature_to_load, **kwargs)
+
+        if feature_type == 'officer':
+            # Create the query for this feature.
+            query = (   "SELECT officer_id, {} FROM features.{}" 
+                        .format(feature.feature_name, self.table_name))
+
+        if feature_type == 'dispatch':
+            # Create the query for this feature.
+            query = (   "SELECT dispatch_id, {} FROM features.{}"
+                        .format(feature.feature_name, self.table_name))
     
         # Execute the query.
-        results = self.__read_feature_from_db( query, features_to_load )
-        featurenames = feature.name_of_features
+        results = self.__read_feature_from_db(query, feature_to_load)
 
-#        if type(feature.query) == str:
-#            results = self.__read_feature_from_db(feature.query,
-#                                                  features_to_load,
-#                                                  drop_duplicates=True)
-#            featurenames = feature.name_of_features
-#        elif type(feature.query) == list:
-#            featurenames = []
-#            results = pd.DataFrame()
-#            for each_query in feature.query:
-#                ea_resu = self.__read_feature_from_db(each_query,
-#                                                      features_to_load,
-#                                                      drop_duplicates=True)
-#                featurenames = featurenames + feature.name_of_features
-#
-#                if len(results) == 0:
-#                    results = ea_resu
-#                    results['officer_id'] = ea_resu.index
-#                else:
-#                    results = results.join(ea_resu, how='left', on='officer_id')
-#
-#        if feature.type_of_features == "categorical":
-#            results, featurenames = convert_categorical(results)
-#        elif feature.type_of_features == "series":
-#            results, featurenames = convert_series(results)
+        feature_name = feature.feature_name
 
-#        if feature.type_of_imputation == "zero":
-#                results = imputation_zero(results, ids)
-#        elif feature.type_of_imputation == "mean":
-#                results, featurenames = imputation_mean(results, featurenames)
-
-        return results, featurenames
+        return results, feature_name
 
     def __read_feature_from_db(self, query, features_to_load, drop_duplicates=True):
 
@@ -550,20 +560,23 @@ def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, 
     # load the labels for the relevant dispatches
     dispatch_labels = feature_loader.dispatch_labeller(def_adverse)
     
-    dataset = officers
+    dataset = dispatch_labels
+
+    # select all the features which are set to True in the config file
+    # NOTE: dict.items() is python 3 specific. for python 2 use dict.iteritems()
+    features_to_use = [feat for feat, is_used in features.items() if is_used]
     featnames = []
-    for each_feat in features:
-        if features[each_feat] == True:
-            feature_df, names = data.loader(each_feat,
-                                            dataset["officer_id"])
-            log.info("Loaded feature {} with {} rows".format(
-                each_feat, len(feature_df)))
-            featnames = list(featnames) + list(names)
-            dataset = dataset.join(feature_df, how='left', on='officer_id')
+    for feature in features_to_use:
+        feature_df, names = feature_loader.loader(feature, dataset["dispatch_id"])
+
+        log.info("Loaded feature {} with {} rows".format(feature, len(feature_df)))
+
+        featnames = list(featnames) + list(names)
+        dataset = dataset.join(feature_df, how='left', on='dispatch_id')
 
     dataset = dataset.reset_index()
     dataset = dataset.reindex(np.random.permutation(dataset.index))
-    dataset = dataset.set_index(["officer_id"])
+    dataset = dataset.set_index(["dispatch_id"])
 
     dataset = dataset.fillna(0)
 
