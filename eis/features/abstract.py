@@ -39,7 +39,16 @@ class OfficerTimeBoundedFeature(OfficerFeature):
 
 
 class DispatchFeature():
-    pass
+    def __init__(self, **kwargs):
+        self.description = ""
+        self.description_long =""
+        self.fake_today = kwargs["fake_today"]
+        self.query = None
+        self.feature_name = self.__class__.__name__
+        self.table_name = kwargs["table_name"]
+
+    def build_and_insert( self, engine ):
+        engine.execute( self.query )
 
 
 class DispatchTimeBoundedFeature(DispatchFeature):

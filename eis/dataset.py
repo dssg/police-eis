@@ -438,44 +438,60 @@ class FeatureLoader():
 
         return dispatches
 
-    def loader(self, feature_to_load, feature_type='officer'):
-        """Get the feature values from the database"""
+    def loader(self, feature_to_load, ids_to_use, feature_type='officer'):
+        """Get the feature values from the database
+        
+        Args:
+            feature_to_load(str): name of feature to be loaded, must be in classmap
+            ids_to_use(list): the subset of ids to return feature values for
+            
+        Returns:
+            returns(pd.DataFrame): dataframe of the feature values indexed by id
+            feature_name: the name of the feature
+            """
 
         kwargs = {"fake_today": self.fake_today,
                   "table_name": self.table_name,
                   "feat_time_window": 0}
         feature = class_map.lookup(feature_to_load, **kwargs)
 
+        # select the appropriate id column for this feature type
         if feature_type == 'officer':
-            # Create the query for this feature.
-            query = (   "SELECT officer_id, {} FROM features.{}" 
-                        .format(feature.feature_name, self.table_name))
-
+            id_column = 'officer_id'
         if feature_type == 'dispatch':
-            # Create the query for this feature.
-            query = (   "SELECT dispatch_id, {} FROM features.{}"
-                        .format(feature.feature_name, self.table_name))
+            id_column = 'dispatch_id'
+
+        # Create the query for this feature.
+        query = (   "SELECT {}, {} FROM features.{}"
+                    .format(
+                        id_column,
+                        feature.feature_name, 
+                        self.table_name))
     
         # Execute the query.
-        results = self.__read_feature_from_db(query, feature_to_load)
+        results = self.__read_feature_from_db(query, feature_to_load, feature_type)
+        results = results.ix[ids_to_use]
 
-        feature_name = feature.feature_name
+        return results, feature.feature_name
 
-        return results, feature_name
-
-    def __read_feature_from_db(self, query, features_to_load, drop_duplicates=True):
+    def __read_feature_from_db(self, query, features_to_load, feature_type='officer', drop_duplicates=True):
 
         log.debug("Loading features for events from {} to {}".format(
                         self.start_date, self.end_date))
+
+        # select the appropriate id column for this feature type
+        if feature_type == 'officer':
+            id_column = 'officer_id'
+        if feature_type == 'dispatch':
+            id_column = 'dispatch_id'
 
         # Load this feature from the feature table.
         results = pd.read_sql(query, con=db_conn)
 
         if drop_duplicates:
-            results = results.drop_duplicates(subset=["officer_id"])
+            results = results.drop_duplicates(subset=[id_column])
 
-        results = results.set_index(["officer_id"])
-        # features = features[features_to_load]
+        results = results.set_index([id_column])
 
         log.debug("... {} rows, {} features".format(len(results),
                                                     len(results.columns)))
@@ -534,6 +550,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
 
     return feats, labels, ids, featnames
 
+
 def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, labelling, table_name):
     """Function that returns the dataset to use in an experiment.
 
@@ -567,11 +584,11 @@ def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, 
     features_to_use = [feat for feat, is_used in features.items() if is_used]
     featnames = []
     for feature in features_to_use:
-        feature_df, names = feature_loader.loader(feature, dataset["dispatch_id"])
+        feature_df, feat_name = feature_loader.loader(feature, dataset["dispatch_id"])
 
         log.info("Loaded feature {} with {} rows".format(feature, len(feature_df)))
 
-        featnames = list(featnames) + list(names)
+        featnames.append(feat_name)
         dataset = dataset.join(feature_df, how='left', on='dispatch_id')
 
     dataset = dataset.reset_index()

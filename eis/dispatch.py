@@ -10,7 +10,8 @@ log = logging.getLogger(__name__)
 
 def run_traintest(config):
     """Get training and testing datasets from the database"""
-    today_dt = datetime.datetime.strptime(config['fake_today', "%d%b%Y")
+
+    today_dt = datetime.datetime.strptime(config['fake_today', "%d%b%Y"])
     result = setup(config, today_dt)
     return result
 

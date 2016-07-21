@@ -55,6 +55,11 @@ labelling:
 ########################
 try_feature_sets_by_group: False  # Turn on if you want the code to try removing each feature set in turn
 
+dispatch_features:
+    basic:
+        dummy_feature: True
+
+
 features:
     basic:
         height_weight: False  # Height, weight of the officer

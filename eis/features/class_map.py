@@ -7,6 +7,7 @@ import sys
 import datetime
 
 from . import officers
+from . import dispatch
 
 log = logging.getLogger(__name__)
 
@@ -27,7 +28,8 @@ def lookup(feature, **kwargs):
         kwargs["feat_time_window"] = 15
 
     dict_lookup = { 'arrest_count_1yr': officers.arrest_count_1yr(**kwargs),
-                    'arrest_count_career': officers.arrest_count_career(**kwargs) 
+                    'arrest_count_career': officers.arrest_count_career(**kwargs),
+                    'dummy_feature': dispatch.dummy_feature(**kwargs) 
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
