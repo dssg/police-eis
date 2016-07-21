@@ -33,8 +33,9 @@ def setup(config, today):
     log.info("Test label window stop: {}".format(test_end_date))
 
     log.info("Loading dispatches and features to use as training...")
-    table_name = "features"
-    train_x, train_y, train_id, names = dataset.grab_officer_data(
+
+    table_name = "features_dispatch"
+    train_x, train_y, train_id, names = dataset.grab_dispatch_data(
         config["features"],
         train_start_date,
         today,

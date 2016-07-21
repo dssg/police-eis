@@ -125,7 +125,6 @@ def get_interventions(ids, start_date, end_date):
     return df_action
 
 
-# TODO: make this call FeatureLoader().officer_labeller() with an added 'ids' option
 def get_labels_for_ids(ids, start_date, end_date):
     """Get the labels for the specified officer_ids, for the specified time period
 
@@ -227,7 +226,7 @@ def convert_categorical(df):
 
 class FeatureLoader():
 
-    def __init__(self, start_date, end_date, fake_today, table_name):
+    def __init__(self, start_date, end_date, fake_today, table_name=None):
 
         self.start_date = start_date
         self.end_date = end_date
@@ -257,7 +256,7 @@ class FeatureLoader():
                       not be in the returned dataframe.
 
         Returns:
-        labels: pandas dataframe with two columns: officer_id and adverse_by_ourdef
+        outcomes: pandas dataframe with two columns: officer_id and adverse_by_ourdef
         """
 
         log.info("Loading labels...")
@@ -358,35 +357,56 @@ class FeatureLoader():
 
         return outcomes
 
-    def dispatch_labeller(self):
+
+    def dispatch_labeller(self, def_adverse):
         """
-        Load the dispatch events investigated between
-        two dates and the outcomes
+        Load the dispatch events which occured between two dates and their outcomes
+
+        Args:
+            def_adverse: dict of bools representing which event types are considered adverse for 
+                         the purposes of prediction
 
         Returns:
-        labels: pandas dataframe with two columns:
-        officer_id, adverse_by_ourdef, dateoccured
+            labels: pandas dataframe with two columns, dispatch_id and adverse_by_ourdef
         """
 
-        log.info("Loading labels...")
+        log.debug("Loading dispatch labels...")
 
-        # These are the objects flagged as ones and twos
-        query = ("SELECT officer_id, adverse_by_ourdef, "
-                 "dateoccured from {}.{} "
-                 "WHERE dateoccured >= '{}'::date "
-                 "AND dateoccured <= '{}'::date"
-                 ).format(self.schema, self.tables["si_table"],
-                          self.start_date, self.end_date)
+        # select all dispatches within the specified time window
+        query_all = (       "SELECT DISTINCT dispatch_id "
+                            "FROM events_hub "
+                            "WHERE event_type_code = 5 "
+                            "AND event_datetime >= '{}'::date "
+                            "AND event_datetime <= '{}'::date "
+                            .format(
+                                self.start_date,
+                                self.stop_date))
 
-        labels = pd.read_sql(query, con=db_conn)
+        # select dispatches that led to events deemed adverse
+        query_adverse = (   "SELECT DISTINCT dispatch_id "
+                            "FROM events_hub "
+                            "LEFT JOIN internal_affairs_investigations AS ia_table "
+                            "   ON events_hub.event_id = ia_table.event_id "
+                            "WHERE event_type_code = 5 "
+                            "AND event_datetime >= '{}'::date "
+                            "AND event_datetime <= '{}'::date "
+                            "AND final_ruling_code in (2, 4, 5) "
+                            .format(
+                                self.start_date,
+                                self.stop_date))
 
-        # Now also label those not sampled
-        # Grab all dispatch events and filter out the ones
-        # already included
 
-        pdb.set_trace()
+        dispatches = pd.read_sql(query_all, con=db_conn)
+        adverse_dispatches = pd.read_sql(query_adverse, con=db_conn)
 
-        return labels
+        log.debug('Number of dispatches to label: {}'.format(len(dispatches)))
+        log.debug('Number of dispatches with adverse : {}'.format(len(adverse_dispatches)))
+
+        # fill all the dispatch labels with 0s, then add 1s for the adverse incidents
+        dispatches['adverse_by_ourdef'] = 0
+        dispatches.ix[adverse_dispatches] = 1
+
+        return dispatches
 
     def loader(self, features_to_load, ids):
         kwargs = {"fake_today": self.fake_today,
@@ -498,6 +518,61 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
 
     # make sure we return a non-zero number of labelled officers
     assert len(labels) > 0, 'Labelled officer selection returned no officers'
+
+    log.debug("Dataset has {} rows and {} features".format(
+       len(labels), len(feats.columns)))
+
+    return feats, labels, ids, featnames
+
+def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, labelling, table_name):
+    """Function that returns the dataset to use in an experiment.
+
+    Args:
+        features: dict containing which features to use
+        start_date(datetime.datetime): start date for selecting dispatch
+        end_date(datetime.datetime): end date for selecting dispatch
+        fake_today(datetime.datetime): build features with respect to this date
+        def_adverse: dict containing options for adverse incident definitions
+        labelling: dict containing options to select which dispatches to use for labelling
+
+    Returns:
+        feats(pd.DataFrame): the array of features to train or test on 
+        labels(np.array): n x 1 array with 0 / 1 adverse labels 
+        ids(np.array): n x 1 array with dispatch ids
+        featnames(list): the list of feature column names
+    """
+
+    start_date = start_date.strftime('%Y-%m-%d')
+    end_date = end_date.strftime('%Y-%m-%d')
+
+    feature_loader = FeatureLoader(start_date, end_date, fake_today)
+
+    # load the labels for the relevant dispatches
+    dispatch_labels = feature_loader.dispatch_labeller(def_adverse)
+    
+    dataset = officers
+    featnames = []
+    for each_feat in features:
+        if features[each_feat] == True:
+            feature_df, names = data.loader(each_feat,
+                                            dataset["officer_id"])
+            log.info("Loaded feature {} with {} rows".format(
+                each_feat, len(feature_df)))
+            featnames = list(featnames) + list(names)
+            dataset = dataset.join(feature_df, how='left', on='officer_id')
+
+    dataset = dataset.reset_index()
+    dataset = dataset.reindex(np.random.permutation(dataset.index))
+    dataset = dataset.set_index(["officer_id"])
+
+    dataset = dataset.fillna(0)
+
+    labels = dataset["adverse_by_ourdef"].values
+    feats = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
+    ids = dataset.index.values
+
+    # make sure we return a non-zero number of labelled dispatches
+    assert len(labels) > 0, 'Labelled dispatch selection returned no officers'
 
     log.debug("Dataset has {} rows and {} features".format(
        len(labels), len(feats.columns)))
