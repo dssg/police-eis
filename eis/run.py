@@ -9,9 +9,9 @@ import datetime
 
 from . import setup_environment, models, scoring
 from . import dataset, experiment, groups
+from . import populate_features
 
-
-def main(config_file_name):
+def main(config_file_name, args):
     logging.basicConfig(format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
                         level=logging.DEBUG)
     log = logging.getLogger('eis')
@@ -22,6 +22,22 @@ def main(config_file_name):
         log.info("Loaded experiment file: {}".format(config_file_name))
     except:
         log.exception("Failed to get experiment configuration file!")
+
+    # If asked to generate features, then do that and stop.
+    if args.buildfeatures:
+        
+        log.info("Re-building features...")
+
+    	# Create the schema.
+        populate_features.drop_and_load_features_schema()
+
+        # Create the table.
+        populate_features.create_features_table(config, table_name="features") 
+
+        # Populate the schema with features.
+        populate_features.populate_features_table(config)
+
+        sys.exit()
 
     all_experiments = experiment.generate_models_to_run(config)    
 
@@ -37,12 +53,11 @@ def main(config_file_name):
             my_exp.config["parameters"],
             my_exp.config["n_cpus"])
 
-        # TODO: fix this failing when aggreation = false in config file
         if my_exp.config["aggregation"]:
             groupscores = groups.aggregate(my_exp.exp_data["test_x_index"],
                                            result_y, my_exp.config["fake_today"])
         else:
-            groupscores = None
+            groupscores = []
 
         if my_exp.config["pilot"]:
             log.info("Generating pilot")
@@ -61,11 +76,13 @@ def main(config_file_name):
                           "test_x": my_exp.pilot_data["test_x"]}
             pilot_file = "{}pilot_experiment_{}.pkl".format(my_exp.config["pilot_dir"], timestamp)
             pickle_results(pilot_file, pilot_save)
-
-        confusion_matrices = scoring.test_thresholds(
-            my_exp.exp_data["test_x_index"], result_y, 
-            my_exp.config['fake_today'], my_exp.exp_data["test_end_date"])
-
+        #commented out for now, but we need to create a flag for whether an eis system already exists in the department 
+        #if config['eis_table']:
+        #    confusion_matrices = scoring.test_thresholds(
+        #	    my_exp.exp_data["test_x_index"], result_y, 
+        #        my_exp.config['fake_today'], my_exp.exp_data["test_end_date"])
+        #else:
+        confusion_matrices = []
         to_save = {"test_labels": my_exp.exp_data["test_y"],
                    "test_predictions": result_y,
                    "config": my_exp.config,
@@ -118,7 +135,7 @@ def pickle_results(pkl_file, to_save):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", type=str, help="pass your config",
-                        default="default.yaml")
+    parser.add_argument("config", type=str, help="pass your config", default="default.yaml")
+    parser.add_argument( "-f", "--buildfeatures", help="build the features and stop", action='store_true' )
     args = parser.parse_args()
-    main(args.config)
+    main(args.config, args)

@@ -6,6 +6,7 @@ import logging
 import sys
 import datetime
 import json
+from IPython.core.debugger import Tracer
 
 from . import setup_environment
 from .features import class_map
@@ -51,8 +52,8 @@ def format_officer_ids(ids):
 
 def get_baseline(start_date, end_date):
     """
-    Gets EIS baseline - get officers that are flagged 
-    by the EIS at any point in the labelling window. 
+    Gets EIS baseline - get officers that are flagged
+    by the EIS at any point in the labelling window.
 
     Inputs:
     ids: officer ids
@@ -65,15 +66,18 @@ def get_baseline(start_date, end_date):
     df_comparison = get_baseline('2010-01-01', '2011-01-01')
     """
 
-    query_flagged_officers = (  "SELECT DISTINCT officer_id from {} "
+    query_flagged_officers = ("SELECT DISTINCT officer_id from {} "
                                 "WHERE date_created >= '{}'::date "
-                                "AND date_created <='{}'::date"
-                                .format(
-                                    db_config["eis_table"],
-                                    start_date, 
+                                "AND date_created <='{}'::date".format(
+                                    config["eis_table"],
+                                    start_date,
                                     end_date))
 
-    df_eis_baseline = pd.read_sql(query_flagged_officers, con=db_conn) 
+    # TODO: have this check the actual 2016 EIS table
+    #query_flagged_officers = (  "SELECT DISTINCT officer_id "
+    #                            "FROM officers_hub" )
+
+    df_eis_baseline = pd.read_sql(query_flagged_officers, con=con)
 
     return df_eis_baseline.dropna()
 
@@ -88,25 +92,25 @@ def get_interventions(ids, start_date, end_date):
     start_date: beginning of testing period
     end_date: end of testing period
 
-    Returns: dataframe with ids and boolean value corresponding to if an 
-    officer was intervened on or not in the time period. 
+    Returns: dataframe with ids and boolean value corresponding to if an
+    officer was intervened on or not in the time period.
     """
 
-    intervened_officers = ("select distinct newid from {} "
+    intervened_officers = ("select distinct officer_id from {} "
                         "WHERE intervention != 'No Intervention Required' "
                         "AND datecreated >= '{}'::date "
                         "AND datecreated <='{}'::date "
-                        "AND newid in ({}) ").format(
-                            db_config["eis_table"],
+                        "AND officer_id in ({}) ").format(
+                            config["eis_table"],
                             start_date, end_date,
                             format_officer_ids(ids))
 
-    no_intervention_officers = ("select distinct newid from {} "
+    no_intervention_officers = ("select distinct officer_id from {} "
                         "WHERE intervention = 'No Intervention Required' "
                         "AND datecreated >= '{}'::date "
                         "AND datecreated <='{}'::date "
-                        "AND newid in ({}) ").format(
-                            db_config["eis_table"],
+                        "AND officer_id in ({}) ").format(
+                            config["eis_table"],
                             start_date, end_date,
                             format_officer_ids(ids))
 
@@ -115,7 +119,7 @@ def get_interventions(ids, start_date, end_date):
     df_no_intervention = pd.read_sql(no_intervention_officers, con=db_conn)
 
     df_intervention["intervention"] = 1
-    df_action = df_intervention.merge(df_no_intervention, how='right', on='newid')
+    df_action = df_intervention.merge(df_no_intervention, how='right', on='officer_id')
     df_action = df_action.fillna(0)
 
     return df_action
@@ -144,19 +148,19 @@ def get_labels_for_ids(ids, start_date, end_date):
            
 
 def imputation_zero(df, ids):
-    fulldf = pd.DataFrame(ids, columns=["newid"] + [df.columns[0]]) 
-    df["newid"] = df.index
-    newdf = df.merge(fulldf, how="right", on="newid")
+    fulldf = pd.DataFrame(ids, columns=["officer_id"] + [df.columns[0]])
+    df["officer_id"] = df.index
+    newdf = df.merge(fulldf, how="right", on="officer_id")
     newdf = newdf.fillna(0)
-    newdf[df.columns[0]] = newdf[df.columns[0] + "_x"] + newdf[df.columns[0] + "_y"] 
+    newdf[df.columns[0]] = newdf[df.columns[0] + "_x"] + newdf[df.columns[0] + "_y"]
     newdf = newdf.drop([df.columns[0] + "_x", df.columns[0] + "_y"], axis=1)
-    newdf = newdf.set_index("newid")
+    newdf = newdf.set_index("officer_id")
     return newdf
 
 
 def imputation_mean(df, featurenames):
     try:
-        newdf = df.set_index("newid")
+        newdf = df.set_index("officer_id")
     except:
         newdf = df
     for i in range(len(newdf.columns)):
@@ -215,7 +219,7 @@ def convert_categorical(df):
         if type(categories[i]) is str:
             newfeatstr = 'is_' + categories[i]
             featnames.append(newfeatstr)
-            df[newfeatstr] = df[onecol] == categories[i]
+            df[newfeatstr] = df[onecol] == int(categories[i])
 
     df = df.drop(onecol, axis=1)
     return df.astype(int), list(df.columns)
@@ -223,13 +227,14 @@ def convert_categorical(df):
 
 class FeatureLoader():
 
-    def __init__(self, start_date, end_date, fake_today):
+    def __init__(self, start_date, end_date, fake_today, table_name):
 
         self.start_date = start_date
         self.end_date = end_date
         self.fake_today = fake_today
         self.tables = db_config  # Dict of tables
         self.schema = db_config['schema']
+        self.table_name = table_name
 
         change_schema(self.schema)
 
@@ -262,10 +267,10 @@ class FeatureLoader():
                                         "FROM {} AS events_hub "
                                         "LEFT JOIN {} AS ia_table "
                                         "   ON events_hub.event_id = ia_table.event_id "
-                                        "WHERE date_investigation_started >= '{}'::date "
-                                        "AND date_investigation_started <= '{}'::date "
+                                        "WHERE events_hub.event_datetime >= '{}'::date "
+                                        "AND events_hub.event_datetime <= '{}'::date "
                                         .format(
-                                            self.tables['events_hub'],
+                                            'events_hub',
                                             self.tables['si_table'],
                                             self.start_date,
                                             self.end_date))
@@ -280,7 +285,7 @@ class FeatureLoader():
                                         "AND event_datetime >= '{}' "
                                         "AND event_datetime <= '{}' "
                                         .format(
-                                          self.tables['events_hub'],
+                                          'events_hub',
                                           self.start_date,
                                           self.end_date))
 
@@ -295,11 +300,11 @@ class FeatureLoader():
                                         "   ON events_hub.event_id = ia_table.event_id "
                                         "LEFT JOIN lookup_incident_types AS lookup "
                                         "   ON lookup.code = ia_table.incident_type_code "
-                                        "WHERE date_investigation_started >= '{}'::date "
-                                        "AND date_investigation_started <= '{}'::date "
+                                        "WHERE events_hub.event_datetime >= '{}'::date "
+                                        "AND events_hub.event_datetime <= '{}'::date "
                                         "AND final_ruling_code in (2, 4, 5) "
                                         .format(
-                                            self.tables['events_hub'],
+                                            'events_hub',
                                             self.tables['si_table'],
                                             self.start_date,
                                             self.end_date))
@@ -360,13 +365,13 @@ class FeatureLoader():
 
         Returns:
         labels: pandas dataframe with two columns:
-        newid, adverse_by_ourdef, dateoccured
+        officer_id, adverse_by_ourdef, dateoccured
         """
 
         log.info("Loading labels...")
 
         # These are the objects flagged as ones and twos
-        query = ("SELECT newid, adverse_by_ourdef, "
+        query = ("SELECT officer_id, adverse_by_ourdef, "
                  "dateoccured from {}.{} "
                  "WHERE dateoccured >= '{}'::date "
                  "AND dateoccured <= '{}'::date"
@@ -384,48 +389,56 @@ class FeatureLoader():
         return labels
 
     def loader(self, features_to_load, ids):
-        kwargs = {"time_bound": self.fake_today,
+        kwargs = {"fake_today": self.fake_today,
+                  "table_name":self.table_name,
                   "feat_time_window": 0}
         feature = class_map.lookup(features_to_load, **kwargs)
 
-        if type(feature.query) == str:
-            results = self.__read_feature_from_db(feature.query,
-                                                  features_to_load,
-                                                  drop_duplicates=True)
-            featurenames = feature.name_of_features
-        elif type(feature.query) == list:
-            featurenames = []
-            results = pd.DataFrame()
-            for each_query in feature.query:
-                ea_resu = self.__read_feature_from_db(each_query,
-                                                      features_to_load,
-                                                      drop_duplicates=True)
-                featurenames = featurenames + feature.name_of_features
+        # Create the query for this feature.
+        query = ( "SELECT officer_id, {} FROM features.{}" ).format( feature.__class__.__name__, self.table_name )
+    
+        # Execute the query.
+        results = self.__read_feature_from_db( query, features_to_load )
+        featurenames = feature.name_of_features
 
-                if len(results) == 0:
-                    results = ea_resu
-                    results['newid'] = ea_resu.index
-                else:   
-                    results = results.join(ea_resu, how='left', on='newid')
+#        if type(feature.query) == str:
+#            results = self.__read_feature_from_db(feature.query,
+#                                                  features_to_load,
+#                                                  drop_duplicates=True)
+#            featurenames = feature.name_of_features
+#        elif type(feature.query) == list:
+#            featurenames = []
+#            results = pd.DataFrame()
+#            for each_query in feature.query:
+#                ea_resu = self.__read_feature_from_db(each_query,
+#                                                      features_to_load,
+#                                                      drop_duplicates=True)
+#                featurenames = featurenames + feature.name_of_features
+#
+#                if len(results) == 0:
+#                    results = ea_resu
+#                    results['officer_id'] = ea_resu.index
+#                else:
+#                    results = results.join(ea_resu, how='left', on='officer_id')
+#
+#        if feature.type_of_features == "categorical":
+#            results, featurenames = convert_categorical(results)
+#        elif feature.type_of_features == "series":
+#            results, featurenames = convert_series(results)
 
-        if feature.type_of_features == "categorical":
-            results, featurenames = convert_categorical(results)
-        elif feature.type_of_features == "series":
-            results, featurenames = convert_series(results)
-
-        if feature.type_of_imputation == "zero":
-                results = imputation_zero(results, ids)
-        elif feature.type_of_imputation == "mean":
-                results, featurenames = imputation_mean(results, featurenames)
+#        if feature.type_of_imputation == "zero":
+#                results = imputation_zero(results, ids)
+#        elif feature.type_of_imputation == "mean":
+#                results, featurenames = imputation_mean(results, featurenames)
 
         return results, featurenames
 
-    def __read_feature_from_db(self, query, features_to_load,
-                               drop_duplicates=True):
+    def __read_feature_from_db(self, query, features_to_load, drop_duplicates=True):
 
         log.debug("Loading features for events from {} to {}".format(
                         self.start_date, self.end_date))
 
+        # Load this feature from the feature table.
         results = pd.read_sql(query, con=db_conn)
 
         if drop_duplicates:
@@ -439,7 +452,7 @@ class FeatureLoader():
         return results
 
 
-def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling):
+def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling, table_name):
     """
     Function that defines the dataset.
 
@@ -457,11 +470,11 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
-    data = FeatureLoader(start_date, end_date, time_bound)
+    data = FeatureLoader(start_date, end_date, time_bound, table_name)
 
     officers = data.officer_labeller(labelling, def_adverse)
-    # officers.set_index(["newid"])
-
+    # officers.set_index(["officer_id"])
+    
     dataset = officers
     featnames = []
     for each_feat in features:

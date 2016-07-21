@@ -1,7 +1,7 @@
 import logging
 import datetime
 from sklearn import preprocessing
-
+import pdb
 from . import dataset
 
 log = logging.getLogger(__name__)
@@ -35,13 +35,15 @@ def setup(config, today):
     log.info("Test label window stop: {}".format(test_end_date))
 
     log.info("Loading officers and features to use as training...")
+    table_name = "features"
     train_x, train_y, train_id, names = dataset.grab_officer_data(
         config["features"],
         train_start_date,
         today,
         train_start_date,
         config["def_adverse"],
-        config["labelling"])
+        config["labelling"],
+        table_name)
 
     # Testing data should include ALL officers, ignoring "noinvest" keyword
     testing_labelling_config = config["labelling"].copy()
@@ -54,7 +56,8 @@ def setup(config, today):
         test_end_date,
         today,
         config["def_adverse"],
-        testing_labelling_config)
+        testing_labelling_config,
+        table_name)
 
     train_x_index = train_x.index
     test_x_index = test_x.index

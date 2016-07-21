@@ -62,7 +62,7 @@ features:
         yearsexperience: False  # Experience level of officer (number of years)
         daysexperience: False  # Experience level of officer (number of days)
         malefemale: False # Is officer male or female
-        race: True # What is officer race
+        race: False # What is officer race
         officerage: False  # Age of officers
         officerageathire: False  # Officer age when hired
         maritalstatus: False  # Officer marital status
@@ -105,7 +105,7 @@ features:
         careerunithistory: False  # Unit type history in career
 
     arrests:
-        careerarrests: True # Career arrests of officer
+        arrest_count_career: True # Career arrests of officer
         arrest_count_1yr: True # Number of arrests in last year.
         careerNPCarrests: False  # Number of no probable cause (NPC) arrests in career
         1yrNPCarrests: False  # Last year number of NPC arrests
@@ -117,13 +117,13 @@ features:
         arrestratedelta: False  # Arrest rate delta
         arresttimeseries: False  # Arrest time series
         arrestcentroids: False  # Subbeats
-
+        
     citations:
         careernpccitations: False  # Career NPC citations
         1yrnpccitations: False  # Recent NPC citations
         careercitations: False  # Career citations
         1yrcitations: False  # Recent citations
-
+                
     incidents:
         numsuicides: False  # Number of suicide incidents for officer in last year
         numjuveniles: False  # Number of incidents involving juveniles for officer in last year
@@ -135,7 +135,7 @@ features:
         numpersweaps: False # Number of incidents involving hands, feet, teeth used as weapons in last year
         avgagevictims: False  # Average age of victims in last year
         minagevictims: False  # Minimum age of victims in last year
-
+                
     field_interviews:
         careerficount: False  # Number of field interviews in career
         1yrficount: False  # Number of field interviews in last year
@@ -150,13 +150,13 @@ features:
         avgsuspectagefi: False  # Average age of suspects in field interviews
         avgtimeofdayfi: False  # Average time of day for field interviews
         fitimeseries: False  # Field interviews timeseries
-
+        
     cad:
         careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
         1yrcadstats: False  # Slow # CAD statistics in last year
         careercadterms: False  # CAD termination types in career
         1yrcadterms: False  # CAD termination types in last year
-
+                
     training:
         careerelectivetrain: False  # Number of elective hours of training in career
         1yrelectivetrain: False  # Number of elective hours of training in last year
@@ -178,7 +178,7 @@ features:
         1yrforcetrain: False  # Number of hours spent in use of force training in last year
         careermilitarytrain: False  # Number of hours spent in return from military training
         1yrmilitarytrain: False  # Number of hours spent in return from military training in last year
-
+        
     traffic_stops:
         careertsuofarr: False  # Number of traffic stops in career where tags were run and then force was used or an arrest was made
         1yrtsuofarr: False  # Number of traffic stops in last year where tags were run and then force was used or an arrest was made
@@ -217,7 +217,7 @@ features:
         5yrtrafstopbygender: False  # Traffic stops by gender in last year
         careertrafstopbygender: False  # Traffic stops by gender in career
         trafficstoptimeseries: False  # Time series of traffic stops
-
+       
     eis:
         1yreiswarnings: False  # EIS warnings in last year
         5yreiswarnings: False  # EIS warnings in last five years
@@ -226,7 +226,7 @@ features:
         careereiswarningtypes: False  # Frac of EIS warnings by type in career
         1yreiswarninginterventions: False  # Frac of EIS warning interventions by type in last year
         careereiswarninginterventions: False  # Frac of EIS warning interventions by type in career
-
+        
     extraduty:
         1yrextradutyhours: False  # Number of extra duty hours in last year
         careerextradutyhours: False  # Number of extra duty hours in career
@@ -234,7 +234,7 @@ features:
         careerextradutyneighb1: False  # avg neighborhood features in extra duty hours places in career
         1yrextradutyneighb2: False  # avg neighborhood features in extra duty hours places in last year
         careerextradutyneighb2: False  # avg neighborhood features in extra duty hours places in career
-
+        
     neighborhood:
         1yrneighb1: False  # avg neighborhood features in where officer made their arrests in last year
         careerneighb1: False  # avg neighborhood features in where officer made their arrests in career

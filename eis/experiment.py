@@ -3,6 +3,7 @@ import copy
 from itertools import product
 import datetime
 import logging
+from IPython.core.debugger import Tracer
 
 from . import officer, dispatch, explore
 

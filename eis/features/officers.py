@@ -30,6 +30,7 @@ class dummyfeature(abstract.OfficerFeature):
                       "GROUP BY officer_id")
         self.type_of_imputation = "mean"
 
+
 class HeightWeight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
@@ -38,9 +39,9 @@ class HeightWeight(abstract.OfficerFeature):
                             "that officer.")
         self.num_features = 2
         self.name_of_features = ["weight", "height"]
-        self.query = ("select newid, avg(weight_int) as avg_weight, "
+        self.query = ("select officer_id, avg(weight_int) as avg_weight, "
                       "avg(height_inches_int) as avg_height_inches "
-                      "from {} group by newid".format(tables['si_table']))
+                      "from {} group by officer_id".format(tables['si_table']))
         self.type_of_imputation = "mean"
 
 
@@ -51,7 +52,7 @@ class Education(abstract.OfficerFeature):
         self.num_features = 12
         self.type_of_features = "categorical"
         self.name_of_features = [""]
-        self.query = ("select newid, education_level_cleaned "
+        self.query = ("select officer_id, education_level_cleaned "
                       "from {}".format(tables['officer_table']))
         self.type_of_imputation = "mean"
 
@@ -61,7 +62,7 @@ class MaritalStatus(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.type_of_features = "categorical"
         self.description = "Marital status of officer"
-        self.query = ("select newid, marital_status as "
+        self.query = ("select officer_id, marital_status as "
                       "married from {}".format(tables['officer_table']))
         self.type_of_imputation = "mean"
 
@@ -70,11 +71,11 @@ class YrsExperience(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of years of experience for police officer"
-        self.time_bound = kwargs["time_bound"]
+        self.fake_today = kwargs["fake_today"]
         self.name_of_features = ["years_experience"]
-        self.query = ("select newid, {} - EXTRACT(YEAR FROM "
+        self.query = ("select officer_id, {} - EXTRACT(YEAR FROM "
                       "hire_date_employed) as "
-                      "yrs_experience from {}".format(self.time_bound.year,
+                      "yrs_experience from {}".format(self.fake_today.year,
                                                       tables['officer_table']))
         self.type_of_imputation = "mean"
 
@@ -83,12 +84,12 @@ class DaysExperience(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of days of experience for police officer"
-        self.time_bound = kwargs["time_bound"]
+        self.fake_today = kwargs["fake_today"]
         self.name_of_features = ["days_experience"]
-        self.query = ("select newid, EXTRACT('days' FROM '{}'::date - "
+        self.query = ("select officer_id, EXTRACT('days' FROM '{}'::date - "
                       "hire_date_employed) as "
                       "days_experience from {}".format(
-                          self.time_bound.strftime(time_format),
+                          self.fake_today.strftime(time_format),
                           tables['officer_table']))
         self.type_of_imputation = "mean"
 
@@ -97,7 +98,7 @@ class MaleFemale(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Is officer male or female"
-        self.query = ("select newid, empl_sex_clean as "
+        self.query = ("select officer_id, empl_sex_clean as "
                       "male_female from {}".format(tables['officer_table']))
         self.type_of_features = "categorical"
         self.type_of_imputation = "mean"
@@ -107,7 +108,7 @@ class Race(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer race"
-        self.query = ("select newid, empl_race_cleaned as "
+        self.query = ("select officer_id, race_code as "
                       "race from {}".format(tables['officer_table']))
         self.type_of_features = "categorical"
         self.type_of_imputation = "mean"
@@ -117,10 +118,10 @@ class Age(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer age"
-        self.time_bound = kwargs["time_bound"]
+        self.fake_today = kwargs["fake_today"]
         self.name_of_features = ["age"]
-        self.query = ("select newid, {} - birthdate_year "
-                      "as age from {}".format(self.time_bound.year,
+        self.query = ("select officer_id, {} - birthdate_year "
+                      "as age from {}".format(self.fake_today.year,
                                               tables['officer_table']))
         self.type_of_imputation = "mean"
 
@@ -130,28 +131,60 @@ class AgeAtHire(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Officer age at hire"
         self.name_of_features = ["age_at_hire"]
-        self.query = ("select newid, extract(year from "
+        self.query = ("select officer_id, extract(year from "
                       "hire_date_employed)-birthdate_year as "
                       "age_at_hire from {}".format(tables['officer_table']))
         self.type_of_imputation = "mean"
 
 ### Arrest History Features
 
-class NumArrestsInPast1yr(abstract.OfficerFeature):
+class arrest_count_career(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of career arrests" )
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code=3 "
+                      "         AND event_datetime <= '{}'::date "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{}'::date" 
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format),
+                                self.fake_today.strftime(time_format)))
+        self.type_of_features = "categorical"
+        self.name_of_features = ["arrest_count_career"]
+        self.type_of_imputation = "mean"
+
+class arrest_count_1yr(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of arrests by officer in past 1 yr"
         self.name_of_features = ["arrest_count_1yr"]
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.query = ("SELECT COUNT(DISTINCT event_id) as arrest_count_1_yr, "
-                      "officer_id from {} "
-                      "where event_datetime <= '{}'::date "
-                      "and event_datetime >= '{}'::date "
-                      "group by officer_id"
-                      .format(
-                          tables["events_hub"],
-                          self.end_date, 
-                          self.start_date))
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code=3 "
+                      "         AND event_datetime <= '{}'::date "
+                      "         AND event_datetime >= '{}'::date - interval '1 year' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{}'::date" 
+                      .format(  self.table_name,
+                                self.feature_name, 
+                                self.fake_today.strftime(time_format),
+                                self.fake_today.strftime(time_format),
+                                self.fake_today.strftime(time_format)))
+        self.type_of_imputation = "mean"
+        self.name_of_features = ["arrest_count_1yr"]
+        self.type_of_features = "categorical"
 
 
 class FractionMaleFemale(abstract.OfficerFeature):
@@ -163,26 +196,26 @@ class ArrestTimeSeries(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Timeseries of arrest counts (1 yr agg) for officer"
         self.name_of_features = ["timeseries_arrests"]
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
-        self.query = ("select newid, array_agg(intervals_count) as "
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=2920)
+        self.query = ("select officer_id, array_agg(intervals_count) as "
                       "arrest_timeseries from (select "
-                      "a.newid as newid, a.intervals as intervals, "
+                      "a.officer_id as officer_id, a.intervals as intervals, "
                       "intervalid, greatest(a.default_count,b.arrcount) "
-                      "as intervals_count from (select a.newid, "
+                      "as intervals_count from (select a.officer_id, "
                       "b.intervals, intervalid, 0 as default_count "
-                      "from (select distinct newid "
+                      "from (select distinct officer_id "
                       "from {}) as a left join (select intervals, "
-                      "row_number() over () as intervalid from ( "              
+                      "row_number() over () as intervalid from ( "
                       "select distinct date_trunc('year',d) as intervals "
                       "from generate_series('{}'::timestamp, '{}'::timestamp, "
                       "'1 day') as d order by intervals) as foo) as b "
                       "on True) as a "
-                      "left join (select newid, date_trunc('year',arrest_date) "
+                      "left join (select officer_id, date_trunc('year',arrest_date) "
                       "as intervals, count(distinct aa_id)::int as arrcount "
-                      "from {} group by newid, date_trunc('year',arrest_date)) "
-                      "as b on a.newid = b.newid and a.intervals = b.intervals) "
-                      "as koo group by newid").format(
-                          tables["arrest_charges_table"], self.start_date, 
+                      "from {} group by officer_id, date_trunc('year',arrest_date)) "
+                      "as b on a.officer_id = b.officer_id and a.intervals = b.intervals) "
+                      "as koo group by officer_id").format(
+                          tables["arrest_charges_table"], self.start_date,
                           self.end_date, tables["arrest_charges_table"])
         self.type_of_features = "series"
         self.type_of_imputation = "mean"
@@ -193,24 +226,24 @@ class ArrestRateDelta(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Delta recent (<1yr) arrest rate to career rate"
         self.name_of_features = ["delta_arrest_rate"]
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
-        self.query = ("select a.newid, a.career_rate, b.recent_rate, "
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
+        self.query = ("select a.officer_id, a.career_rate, b.recent_rate, "
                       "b.recent_rate / a.career_rate as "
                       "recent_career_arrest_rate_delta from "
-                      "(select a.newid, a.career_arrest_count / (extract(year "
+                      "(select a.officer_id, a.career_arrest_count / (extract(year "
                       "from coalesce(terminationdate, "
                       "'{}'::date)) - extract(year from b.hire_date) + 2) "
                       "as career_rate from "
                       "(select count(distinct aa_id) as career_arrest_count, "
-                      "newid from {} where arrest_date <= '{}'::date "
-                      "group by newid) as a "
+                      "officer_id from {} where arrest_date <= '{}'::date "
+                      "group by officer_id) as a "
                       "left join {} as b "
-                      "on a.newid = b.newid) as a "
+                      "on a.officer_id = b.officer_id) as a "
                       "left join (select count(distinct aa_id) "
-                      "as recent_rate, newid from {} where "
+                      "as recent_rate, officer_id from {} where "
                       "arrest_date <= '{}'::date and arrest_date >= "
-                      "'{}'::date group by newid) as b "
-                      "on a.newid = b.newid ").format(
+                      "'{}'::date group by officer_id) as b "
+                      "on a.officer_id = b.officer_id ").format(
                           self.end_date, tables["arrest_charges_table"],
                           self.end_date, tables["officer_table"],
                           tables["arrest_charges_table"], self.end_date,
@@ -223,9 +256,9 @@ class DiscOnlyArrestsCount(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of career disc ONLY arrests for officer"
         self.name_of_features = ["disc_only_count"]
-        self.query = ("select newid, count(distinct aa_id) as disc_only_count "
+        self.query = ("select officer_id, count(distinct aa_id) as disc_only_count "
                       "from ( select a.*, b.aa_id as aa_id2 from "
-                      "( select aa_id, newid, arrest_date from {} "
+                      "( select aa_id, officer_id, arrest_date from {} "
                       "where charge_desc like '%DISORDERLY%' "
                       "or charge_desc like '%OBSTRUCT%' "
                       "or charge_desc like '%RESIST%' "
@@ -238,7 +271,7 @@ class DiscOnlyArrestsCount(abstract.OfficerFeature):
                       "and charge_desc not like '%DELAY%' "
                       "and arrest_date <= '{}'::date) as b "
                       "on a.aa_id = b.aa_id) as foo where aa_id2 "
-                      "is null group by newid").format(
+                      "is null group by officer_id").format(
                           tables["arrest_charges_table"],
                           self.end_date,
                           tables["arrest_charges_table"],
@@ -250,10 +283,10 @@ class AvgAgeArrests(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Average age of arrestees for officer"
         self.name_of_features = ["avg_age_arrestees"]
-        self.query = ("select avg(age) as avg_age_arrestees, newid "
+        self.query = ("select avg(age) as avg_age_arrestees, officer_id "
                       "from {} "
                       "where arrest_date <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                           tables["arrest_charges_table"],
                           self.end_date)
         self.type_of_imputation = "mean"
@@ -265,9 +298,9 @@ class AvgTimeOfDayArrests(abstract.OfficerFeature):
         self.description = "Average arrest time of day for officer"
         self.name_of_features = ["tod_arrest"]
         self.query = ("select avg(extract(hour from arrest_date)) "
-                      "as arrest_avg_hour, newid from {} "
+                      "as arrest_avg_hour, officer_id from {} "
                       "where arrest_date <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                           tables["arrest_charges_table"],
                           self.end_date)
         self.type_of_imputation = "mean"
@@ -279,32 +312,19 @@ class DiscArrests(abstract.OfficerTimeBoundedFeature):
         self.description = "Number of discretionary arrests for officer"
         self.name_of_features = ["disc_arrest_count_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select count(*) as {}, newid "
-                      "from ( select count(*) as c, newid, string_agg("
+        self.query = ("select count(*) as {}, officer_id "
+                      "from ( select count(*) as c, officer_id, string_agg("
                       "charge_desc::text, '    ') as charges from "
                       "{} where charge_desc is not null "
                       "and arrest_date <= '{}'::date "
                       "and arrest_date >= '{}'::date "
-                      "group by newid, aa_id) a "
+                      "group by officer_id, aa_id) a "
                       "where c=1 and charges similar to "
                       "'%(DISORDERLY|RESIST|OBSTRUCT|DELAY)%' "
-                      "group by newid").format(
+                      "group by officer_id").format(
                           self.name_of_features[0],
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
-
-
-class CareerArrests(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of career arrests for officer"
-        self.name_of_features = ["career_arrest_count"]
-        self.query = ("select count(distinct aa_id) as career_arrest_count, "
-                      "newid from {} "
-                      "where arrest_date <= '{}'::date "
-                      "group by newid").format(
-                          tables["arrest_charges_table"],
-                          self.end_date)
 
 
 class NPCArrests(abstract.OfficerTimeBoundedFeature):
@@ -314,10 +334,10 @@ class NPCArrests(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["npc_arrest_count_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(distinct aa_id) as {}, "
-                      "newid from {} where magistrate_action_mlov = 'MA03' "
+                      "officer_id from {} where magistrate_action_mlov = 'MA03' "
                       "and arrest_date <= '{}'::date "
                       "and arrest_date >= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                           self.name_of_features[0],
                           tables["arrest_charges_table"],
                           self.end_date, self.start_date)
@@ -329,17 +349,17 @@ class ArrestCentroids(abstract.OfficerFeature):
         self.description = "Arrest Centroids"
         self.name_of_features = ["arrest_centroids"]
         self.type_of_features = "categorical"
-        self.query = ("select a.newid, b.subbeat "
+        self.query = ("select a.officer_id, b.subbeat "
                       "from( select *, st_setsrid(st_makepoint( "
                       "cent_long,cent_lat), 4326) as point "
                       "from( "
                       "select avg(long) as cent_long, avg(lat) as "
-                      "cent_lat, newid "
+                      "cent_lat, officer_id "
                       "from( select distinct on (aa_id) "
-                      "aa_id, arrest_date, newid, lat, long "
+                      "aa_id, arrest_date, officer_id, lat, long "
                       "from {} ) as foo "
                       "where arrest_date <= '{}'::date "
-                      "group by newid ) as doo ) as a "
+                      "group by officer_id ) as doo ) as a "
                       "left join {} as b "
                       "on st_contains(b.geom2::geometry, a.point::"
                       "geometry)").format(tables["arrest_charges_table"],
@@ -355,11 +375,11 @@ class NPCCitations(abstract.OfficerTimeBoundedFeature):
         self.description = "Number of no probable cause citations"
         self.name_of_features = ["npc_citations_count_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select newid,count(*) as {} "
+        self.query = ("select officer_id,count(*) as {} "
                       "from {} where type = 'NPC' "
                       "and datet <= '{}'::date "
                       "and datet >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["citations_table"],
                       self.end_date, self.start_date)
@@ -371,11 +391,11 @@ class Citations(abstract.OfficerTimeBoundedFeature):
         self.description = "Number of citations"
         self.name_of_features = ["citations_count_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select newid,count(*) as {} "
+        self.query = ("select officer_id,count(*) as {} "
                       "from {} where type = 'NPC' "
                       "and datet <= '{}'::date "
                       "and datet >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["citations_table"],
                       self.end_date, self.start_date)
@@ -412,16 +432,16 @@ class CADStatistics(abstract.OfficerTimeBoundedFeature):
                       "avg(priority_fin::int) as {x[8]}, "
                       "stddev(priority_fin::int) as {x[9]}, "
                       "avg(priority_org::int - priority_fin::int) as "
-                      "{x[10]}, newid from {table} "
+                      "{x[10]}, officer_id from {table} "
                       "where date_add <= '{date1}'::date "
                       "and date_add >= '{date2}'::date "
-                      "group by newid").format(x=self.name_of_features,
+                      "group by officer_id").format(x=self.name_of_features,
                       table=tables["dispatch_table"],
                       date1=self.end_date, date2=self.start_date)
         self.type_of_imputation = "mean"
 
 termination_types = ["CANCOMM", "FTC", "UNKNOWN", "CANCCOMP", "CANCOFC", "DUPNCAN",
-                     "CANCALRM", "ASSTUNIT", "UL", "CITE_NMV", "CITE_MV", "ACCIDENT", 
+                     "CANCALRM", "ASSTUNIT", "UL", "CITE_NMV", "CITE_MV", "ACCIDENT",
                      "WARNING", "OO/CASE", "MI"]
 
 
@@ -434,12 +454,12 @@ class CountCADTerminationTypes(abstract.OfficerTimeBoundedFeature):
             this_feature = "in_division_{}_{}yr".format(
             term, int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when div='{}' then 1 else null end)::float "
             "as {} from {} "
             "WHERE date_add >= '{}'::date "
             "AND date_add <= '{}'::date "
-            "group by newid").format(term, this_feature,
+            "group by officer_id").format(term, this_feature,
             tables["dispatch_table"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -472,11 +492,11 @@ class EISWarningsCount(abstract.OfficerTimeBoundedFeature):
         self.description = "Count of EIS warnings"
         self.name_of_features = ["eis_warning_count_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select count(distinct eisno) as {}, newid "
+        self.query = ("select count(distinct eisno) as {}, officer_id "
                       "from {} where "
-                      "datecreated <= '{}'::date " 
+                      "datecreated <= '{}'::date "
                       "and datecreated >= '{}'::date "
-                      "group by newid").format(self.name_of_features[0],
+                      "group by officer_id").format(self.name_of_features[0],
                       tables["eis_table"],
                       self.end_date, self.start_date)
 
@@ -491,13 +511,13 @@ class EISWarningByTypeFrac(abstract.OfficerTimeBoundedFeature):
             eis_warning_types_name_map[warning_type],
             int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when eventtype LIKE '%{}%' then 1 else null end)"
             "::float/(count(case when eventtype is not null then 1 else null end)+1) as {} "
-            "from (select distinct eisno, eventtype, newid, datecreated from {}) as a "
+            "from (select distinct eisno, eventtype, officer_id, datecreated from {}) as a "
             "where datecreated <= '{}'::date "
             "and datecreated >= '{}'::date "
-            "group by newid").format(warning_type, this_feature,
+            "group by officer_id").format(warning_type, this_feature,
             tables["eis_table"], self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -514,13 +534,13 @@ class EISWarningByTypeCount(abstract.OfficerTimeBoundedFeature):
             eis_warning_types_name_map[warning_type],
             int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(distinct eisno) as {} "
             "from {} "
             "where eventtype = '{}' "
             "and datecreated <= '{}'::date "
             "and datecreated >= '{}'::date "
-            "group by newid").format(this_feature, tables["eis_table"],
+            "group by officer_id").format(this_feature, tables["eis_table"],
             warning_type, self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -537,13 +557,13 @@ class EISWarningInterventionFrac(abstract.OfficerTimeBoundedFeature):
             eis_intervention_types_name_map[intervention_type],
             int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when intervention LIKE '%{}%' then 1 else null end)"
             "::float/(count(case when intervention is not null then 1 else null end)+1) as {} "
-            "from (select distinct eisno, intervention, newid, datecreated from {}) as a "
+            "from (select distinct eisno, intervention, officer_id, datecreated from {}) as a "
             "where datecreated <= '{}'::date "
             "and datecreated >= '{}'::date "
-            "group by newid").format(intervention_type, this_feature,
+            "group by officer_id").format(intervention_type, this_feature,
             tables["eis_table"], self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -560,13 +580,13 @@ class EISInterventionByTypeCount(abstract.OfficerTimeBoundedFeature):
             eis_warning_types_name_map[intervention_type],
             int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(distinct eisno) as {} "
             "from {} "
             "where intervention = '{}' "
             "and datecreated <= '{}'::date "
             "and datecreated >= '{}'::date "
-            "group by newid").format(this_feature, tables["eis_table"],
+            "group by officer_id").format(this_feature, tables["eis_table"],
             intervention_type, self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -581,11 +601,11 @@ class FICount(abstract.OfficerTimeBoundedFeature):
         self.description = "Number of field interviews"
         self.name_of_features = ["fi_count_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select count(*) as {}, newid "
+        self.query = ("select count(*) as {}, officer_id "
                       "from {} "
                       "where corrected_interview_date <= '{}'::date "
                       "and corrected_interview_date >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["field_int_table"],
                       self.end_date, self.start_date)
@@ -597,11 +617,11 @@ class NonTrafficFICount(abstract.OfficerTimeBoundedFeature):
         self.description = "Number of non-traffic field interviews"
         self.name_of_features = ["fi_nontraffic_count_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select count(*) as {}, newid "
+        self.query = ("select count(*) as {}, officer_id "
                       "from {} where traffic_stop_yn = 'N' "
                       "and corrected_interview_date <= '{}'::date "
                       "and corrected_interview_date >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["field_int_table"],
                       self.end_date, self.start_date)
@@ -613,11 +633,11 @@ class HighCrimeAreaFI(abstract.OfficerTimeBoundedFeature):
         self.description = "Number of field interviews in high crime area"
         self.name_of_features = ["fi_highcrime_count_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select count(*) as {}, newid "
+        self.query = ("select count(*) as {}, officer_id "
                       "from {} where narrative like '%high crime area%' "
                       "and corrected_interview_date <= '{}'::date "
                       "and corrected_interview_date >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["field_int_table"],
                       self.end_date, self.start_date)
@@ -634,11 +654,11 @@ class LoiterFI(abstract.OfficerTimeBoundedFeature):
         self.description = "Number of field interviews of loiterers"
         self.name_of_features = ["fi_loiter_count_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select count(*) as {}, newid "
+        self.query = ("select count(*) as {}, officer_id "
                       "from {} where {} "
                       "and corrected_interview_date <= '{}'::date "
                       "and corrected_interview_date >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["field_int_table"], loiter_sleep_sit,
                       self.end_date, self.start_date)
@@ -649,11 +669,11 @@ class CareerBlackFI(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Fraction of field interviews where the suspect is black"
         self.name_of_features = ["career_frac_black_suspects"]
-        self.query = ("select newid, "
+        self.query = ("select officer_id, "
                       "(SUM(CASE WHEN rac_code = 'B' then 1 else null end))::float/"
                       "(count(*) + 1) as fi_prop_black from {} "
                       "where corrected_interview_date <= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["field_int_table"],
                       self.end_date)
 
@@ -663,11 +683,11 @@ class CareerWhiteFI(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Fraction of field interviews where the suspect is white"
         self.name_of_features = ["career_frac_white_suspects"]
-        self.query = ("select newid, "
+        self.query = ("select officer_id, "
                       "(SUM(CASE WHEN rac_code = 'W' then 1 else null end))::float/"
                       "(count(*) + 1) as fi_prop_white from {} "
                       "where corrected_interview_date <= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["field_int_table"],
                       self.end_date)
 
@@ -677,8 +697,8 @@ class FIAvgSuspectAge(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Average age of suspects in field interviews"
         self.name_of_features = ["avg_age_suspects_fi"]
-        self.query = ("select avg(age) as fi_avg_age, newid from {} "
-                      "group by newid").format(
+        self.query = ("select avg(age) as fi_avg_age, officer_id from {} "
+                      "group by officer_id").format(
                       tables["field_int_table"],
                       self.end_date)
 
@@ -689,8 +709,8 @@ class FIAvgTimeOfDay(abstract.OfficerFeature):
         self.description = "Average time of day for field interviews"
         self.name_of_features = ["avg_tod_fi"]
         self.query = ("select avg(extract(hour from corrected_interview_date)) "
-                      "as fi_avg_hour, newid from {} "
-                      "group by newid").format(
+                      "as fi_avg_hour, officer_id from {} "
+                      "group by officer_id").format(
                       tables["field_int_table"],
                       self.end_date)
 
@@ -698,25 +718,25 @@ class FIAvgTimeOfDay(abstract.OfficerFeature):
 class FITimeseries(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=2920)
         self.type_of_features = "series"
         self.description = "Timeseries for interviews"
         self.name_of_features = ["fi_timeseries"]
-        self.query = ("select newid, array_agg(intervals_count) as fi_timeseries "
-                      "from ( select a.newid as newid, a.intervals as intervals, "
+        self.query = ("select officer_id, array_agg(intervals_count) as fi_timeseries "
+                      "from ( select a.officer_id as officer_id, a.intervals as intervals, "
                       "intervalid, greatest(a.default_count,b.ficount) as intervals_count "
-                      "from (select a.newid, b.intervals, intervalid, "
+                      "from (select a.officer_id, b.intervals, intervalid, "
                       "0 as default_count from "
-                      "(select distinct newid from {}) as a "
+                      "(select distinct officer_id from {}) as a "
                       "left join (select intervals, row_number() over () as intervalid "
                       "from ( select distinct date_trunc('year',d) as intervals "
                       "from generate_series('{}'::timestamp, '{}'::timestamp, '1 day') "
                       "as d order by intervals) as foo) as b on True) as a "
-                      "left join (select newid, date_trunc('year',corrected_interview_date) "
+                      "left join (select officer_id, date_trunc('year',corrected_interview_date) "
                       "as intervals, count(*)::int as ficount from {} "
-                      "group by newid, date_trunc('year',corrected_interview_date)) as b "
-                      "on a.newid = b.newid and a.intervals = b.intervals) as koo "
-                      "group by newid").format(
+                      "group by officer_id, date_trunc('year',corrected_interview_date)) as b "
+                      "on a.officer_id = b.officer_id and a.intervals = b.intervals) as koo "
+                      "group by officer_id").format(
                       tables["field_int_table"], self.start_date,
                       self.end_date, tables["field_int_table"])
         self.type_of_imputation = "mean"
@@ -727,14 +747,14 @@ class FITimeseries(abstract.OfficerFeature):
 class YearNumSuicides(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of suicides in last year"
         self.name_of_features = ["suicides_count"]
-        self.query = ("select newid,count(distinct inc_id) as num_suicide "
+        self.query = ("select officer_id,count(distinct inc_id) as num_suicide "
                       "from {} where ucr_desc = 'Suicide' "
                       "and date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -742,14 +762,14 @@ class YearNumSuicides(abstract.OfficerFeature):
 class YearNumJuvenileVictim(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of juvenile victims in last year"
         self.name_of_features = ["juvenile_count"]
-        self.query = ("select newid,count(distinct inc_id) as num_juv_victim "
+        self.query = ("select officer_id,count(distinct inc_id) as num_juv_victim "
                       "from {} where victim1_age_int < 16 "
                       "and date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -757,14 +777,14 @@ class YearNumJuvenileVictim(abstract.OfficerFeature):
 class YearNumDomesticViolence(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of domestic violence incidents in last year"
         self.name_of_features = ["domestic_violence_count"]
-        self.query = ("select newid,count(distinct inc_id) as num_domestic_violence "
+        self.query = ("select officer_id,count(distinct inc_id) as num_domestic_violence "
                       "from {} where domestic_violence_flag = 'Y' "
                       "and date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -772,14 +792,14 @@ class YearNumDomesticViolence(abstract.OfficerFeature):
 class YearNumHate(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of hate incidents in last year"
         self.name_of_features = ["hate_count"]
-        self.query = ("select newid,count(distinct inc_id) as num_hate "
+        self.query = ("select officer_id,count(distinct inc_id) as num_hate "
                       "from {} where bias_hate_flag = 'Y' "
                       "and date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -787,14 +807,14 @@ class YearNumHate(abstract.OfficerFeature):
 class YearNumNarcotics(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of narcotics incidents in last year"
         self.name_of_features = ["narcotics_count"]
-        self.query = ("select newid,count(distinct inc_id) as num_narcotics "
+        self.query = ("select officer_id,count(distinct inc_id) as num_narcotics "
                       "from {} where narcotics_flag = 'Y' "
                       "and date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -802,14 +822,14 @@ class YearNumNarcotics(abstract.OfficerFeature):
 class YearNumGang(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of gang incidents in last year"
         self.name_of_features = ["gang_count"]
-        self.query = ("select newid,count(distinct inc_id) as num_gang "
+        self.query = ("select officer_id,count(distinct inc_id) as num_gang "
                       "from {} where gang_flag = 'Y' "
                       "and date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -817,14 +837,14 @@ class YearNumGang(abstract.OfficerFeature):
 class YearNumGunKnife(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of gun/knife incidents in last year"
         self.name_of_features = ["gun_knife_count"]
-        self.query = ("select newid,count(distinct inc_id) as num_guns "
+        self.query = ("select officer_id,count(distinct inc_id) as num_guns "
                       "from {} where gang_flag = 'Y' "
                       "and date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -832,14 +852,14 @@ class YearNumGunKnife(abstract.OfficerFeature):
 class YearNumPersWeaps(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Number of personal weapons incidents in last year"
         self.name_of_features = ["personal_weapon_count"]
-        self.query = ("select newid,count(distinct inc_id) as num_weapons "
+        self.query = ("select officer_id,count(distinct inc_id) as num_weapons "
                       "from {} where weapon_type_code = 'G' "
                       "and date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -847,14 +867,14 @@ class YearNumPersWeaps(abstract.OfficerFeature):
 class AvgAgeVictims(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Average age of victims in last year"
         self.name_of_features = ["avg_victim_age"]
         self.query = ("select avg(cast(victim1_age as float)) as victim_age, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -862,14 +882,14 @@ class AvgAgeVictims(abstract.OfficerFeature):
 class MinAgeVictims(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=365)
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.description = "Min age of victims in last year"
         self.name_of_features = ["min_victim_age"]
         self.query = ("select avg(cast(victim1_age as float)) as min_victim_age,"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where date_incident_began <= '{}'::date "
                       "and date_incident_began >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["incidents_table"],
                       self.end_date, self.start_date)
 
@@ -897,11 +917,11 @@ class TrafficStopsSearch(abstract.OfficerTimeBoundedFeature):
                             "consent to search in traffic stop")
         self.name_of_features = ["traffic_stops_search_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select newid,count(*) as {} "
+        self.query = ("select officer_id,count(*) as {} "
                       "from {} where consent_search='Y' "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
@@ -916,13 +936,13 @@ class TrafficStopSearchReason(abstract.OfficerTimeBoundedFeature):
             this_feature = "traffic_stops_search_reason_{}_{}yr".format(
             reason.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when search_reason LIKE '%{}%' then 1 else null end)"
             "::float/(count(case when search_reason is not null then 1 else null end)+1) as {} "
             "from {} "
             "where date_time_action <= '{}'::date "
             "and date_time_action >= '{}'::date "
-            "group by newid").format(reason, this_feature,
+            "group by officer_id").format(reason, this_feature,
             tables["stops_table"], self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -938,13 +958,13 @@ class TrafficStopRunTagReason(abstract.OfficerTimeBoundedFeature):
             this_feature = "traffic_stops_runtag_reason_{}_{}yr".format(
             reason.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when runtag_reason LIKE '%{}%' then 1 else null end)"
             "::float/(count(case when runtag_reason is not null then 1 else null end)+1) as {} "
             "from {} "
             "where date_time_action <= '{}'::date "
             "and date_time_action >= '{}'::date "
-            "group by newid").format(reason, this_feature,
+            "group by officer_id").format(reason, this_feature,
             tables["stops_table"], self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -960,12 +980,12 @@ class TrafficStopResult(abstract.OfficerTimeBoundedFeature):
             this_feature = "traffic_stops_result_{}_{}yr".format(
             reason.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when resultofstop='{}' then 1 else null end)::float/"
             "(count(*)+1) as {} from {} "
             "where date_time_action <= '{}'::date "
             "and date_time_action >= '{}'::date "
-            "group by newid").format(reason, this_feature,
+            "group by officer_id").format(reason, this_feature,
             tables["stops_table"], self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -981,13 +1001,13 @@ class TrafficStopFracRace(abstract.OfficerTimeBoundedFeature):
             this_feature = "traffic_stops_byrace_{}_{}yr".format(
             race.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when race = '{}' then 1 else null end)"
             "::float/(count(case when race is not null then 1 else null end)+1) "
             "as {} from {} "
             "where date_time_action <= '{}'::date "
             "and date_time_action >= '{}'::date "
-            "group by newid").format(race, this_feature,
+            "group by officer_id").format(race, this_feature,
             tables["stops_table"], self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -1003,13 +1023,13 @@ class TrafficStopFracGender(abstract.OfficerTimeBoundedFeature):
             this_feature = "traffic_stops_bygender_{}_{}yr".format(
             gender.replace(" ", ""), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when race = '{}' then 1 else null end)"
             "::float/(count(case when gender is not null then 1 else null end)+1) "
             "as {} from {} "
             "where date_time_action <= '{}'::date "
             "and date_time_action >= '{}'::date "
-            "group by newid").format(gender, this_feature,
+            "group by officer_id").format(gender, this_feature,
             tables["stops_table"], self.end_date, self.start_date)
             all_queries.append(this_query)
         self.name_of_features = all_featnames
@@ -1021,26 +1041,26 @@ class TrafficStopTimeSeries(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Timeseries of traffic stop counts (1 yr agg) for officer"
         self.name_of_features = ["timeseries_trafficstops"]
-        self.start_date = kwargs["time_bound"] - datetime.timedelta(days=2920)
-        self.query = ("select newid, array_agg(intervals_count) as "
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=2920)
+        self.query = ("select officer_id, array_agg(intervals_count) as "
                       "trf_stop_timeseries from (select "
-                      "a.newid as newid, a.intervals as intervals, "
+                      "a.officer_id as officer_id, a.intervals as intervals, "
                       "intervalid, greatest(a.default_count,b.trfcount) "
-                      "as intervals_count from (select a.newid, "
+                      "as intervals_count from (select a.officer_id, "
                       "b.intervals, intervalid, 0 as default_count "
-                      "from (select distinct newid "
+                      "from (select distinct officer_id "
                       "from {}) as a left join (select intervals, "
-                      "row_number() over () as intervalid from ( "              
+                      "row_number() over () as intervalid from ( "
                       "select distinct date_trunc('year',d) as intervals "
                       "from generate_series('{}'::timestamp, '{}'::timestamp, "
                       "'1 day') as d order by intervals) as foo) as b "
                       "on True) as a "
-                      "left join (select newid, date_trunc('year',date_time_action) "
+                      "left join (select officer_id, date_trunc('year',date_time_action) "
                       "as intervals, count(distinct inc_key) as trfcount "
-                      "from {} group by newid, date_trunc('year',date_time_action)) "
-                      "as b on a.newid = b.newid and a.intervals = b.intervals) "
-                      "as koo group by newid").format(
-                          tables["officer_table"], self.start_date, 
+                      "from {} group by officer_id, date_trunc('year',date_time_action)) "
+                      "as b on a.officer_id = b.officer_id and a.intervals = b.intervals) "
+                      "as koo group by officer_id").format(
+                          tables["officer_table"], self.start_date,
                           self.end_date, tables["stops_table"])
         self.type_of_features = "series"
         self.type_of_imputation = "mean"
@@ -1052,11 +1072,11 @@ class NumTrafficStops(abstract.OfficerTimeBoundedFeature):
         self.description =  "Number of traffic stops"
         self.name_of_features = ["num_traffic_stops_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select newid, count(distinct inc_key) as "
+        self.query = ("select officer_id, count(distinct inc_key) as "
                       "{} from {} "
                       "where date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
@@ -1069,12 +1089,12 @@ class NumTStopRunTagUOFOrArrest(abstract.OfficerTimeBoundedFeature):
                             "run and then force was used or an arrest was made")
         self.name_of_features = ["num_traffic_stops_taguofarrest_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select newid, count(*) as {} "
+        self.query = ("select officer_id, count(*) as {} "
                       "from {} where run_tag='Y' and (uof='Y' or "
                       "arrest_driver='Y' or arrest_pass='Y') "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
@@ -1086,11 +1106,11 @@ class NumTrafficStopsForce(abstract.OfficerTimeBoundedFeature):
         self.description =  "Number of traffic stops where force is used"
         self.name_of_features = ["num_traffic_stops_uof_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select newid, count(distinct inc_key) as "
+        self.query = ("select officer_id, count(distinct inc_key) as "
                       "{} from {} where uof='Y' "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
@@ -1102,7 +1122,7 @@ class TSPercBlackDayNight(abstract.OfficerTimeBoundedFeature):
         self.description = "Ratio of times officer stops a black person at night vs during the day"
         self.name_of_features = ["ratio_bl_night_day_{}yr".format(
             int(self.feat_time_window/365))]
-        self.query = ("select newid, "
+        self.query = ("select officer_id, "
                       "(SUM(CASE WHEN (extract(hour from date_time_action) "
                       "> 21 or extract(hour from date_time_action) < 5 ) "
                       "then 1 else 0 end )+1)::float/ "
@@ -1112,7 +1132,7 @@ class TSPercBlackDayNight(abstract.OfficerTimeBoundedFeature):
                       "from {} where race='B' "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
@@ -1123,10 +1143,10 @@ class CareerNumTrafficStopsResist(abstract.OfficerFeature):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of traffic stops in career where resistance is encountered"
         self.name_of_features = ["career_ts_physresist"]
-        self.query = ("select newid, count(distinct inc_key) as "
+        self.query = ("select officer_id, count(distinct inc_key) as "
                       "career_ts_physresist from {} where physical_resist='Y' "
                       "and date_time_action <= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       tables["stops_table"],
                       self.end_date)
 
@@ -1141,11 +1161,11 @@ class TrafficStopsSearch(abstract.OfficerFeature):
             self.feat_time_window)]
         self.start_date = self.end_date - datetime.timedelta(
             days=self.feat_time_window)
-        self.query = ("select newid,count(*) as {} "
+        self.query = ("select officer_id,count(*) as {} "
                       "from {} where consent_search='Y' "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
@@ -1157,11 +1177,11 @@ class NumTrafficStopsResist(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["trafficstop_physresist_{}yr".format(
             int(self.feat_time_window/365))]
         self.description = "Number of traffic stops where resistance is encountered"
-        self.query = ("select newid, count(distinct inc_key) as "
+        self.query = ("select officer_id, count(distinct inc_key) as "
                       "{} from {} where physical_resist='Y' "
                       "and date_time_action <= '{}'::date "
                       "and date_time_action >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["stops_table"],
                       self.end_date, self.start_date)
@@ -1175,10 +1195,10 @@ class ElectHoursTrain(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["elect_hrs_train_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} where rtyp_id = 'ELECTIVE' "
+                      "officer_id from {} where rtyp_id = 'ELECTIVE' "
                       "and compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1191,10 +1211,10 @@ class HoursTrain(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_train_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1207,11 +1227,11 @@ class HoursPhysFit(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_physfit_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_typ_id = 'PHYS TEST' "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1224,11 +1244,11 @@ class HoursROCTrain(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_roc_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Rules of Conduct%' "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1241,11 +1261,11 @@ class HoursProfTrain(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_proftrain_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Profil%' "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1258,11 +1278,11 @@ class HoursDomViolTrain(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_domestic_violence_train_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%DOMESTIC_VIOLENCE%' "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1275,11 +1295,11 @@ class HoursMilitaryReturn(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_military_train_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%ilitary%' "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1292,12 +1312,12 @@ class HoursTaserTrain(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_taser_train_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Taser%' "
                       "or cpnt_id like '%TASER%'"
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1310,11 +1330,11 @@ class HoursBiasTrain(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_bias_train_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Bias%' "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
@@ -1327,17 +1347,17 @@ class HoursForceTrain(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["hrs_force_train_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(credit_hrs) as {},"
-                      "newid from {} "
+                      "officer_id from {} "
                       "where compl_dte <= '{}'::date "
                       "and compl_dte >= '{}'::date "
                       "and cpnt_id like '%Force%' "
-                      " group by newid").format(
+                      " group by officer_id").format(
                       self.name_of_features[0],
                       tables["plateau_table"],
                       self.end_date, self.start_date)
 
 
-## Districts and units 
+## Districts and units
 
 class CountDivision(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):
@@ -1348,13 +1368,13 @@ class CountDivision(abstract.OfficerTimeBoundedFeature):
             this_feature = "in_division_{}_{}yr".format(
             division, int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when div='{}' then 1 else null end)::float/"
             "(count(case when div is not null then 1 else null end)+1) as {} "
             "from {} "
             "WHERE date_ln >= '{}'::date "
             "AND date_ln <= '{}'::date "
-            "group by newid").format(division, this_feature,
+            "group by officer_id").format(division, this_feature,
             tables["logonoff"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1371,13 +1391,13 @@ class CountUnit(abstract.OfficerTimeBoundedFeature):
             this_feature = "in_unittype_{}_{}yr".format(
             division, int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when unityp='{}' then 1 else null end)::float/"
             "(count(case when unityp is not null then 1 else null end)+1) as {} "
             "from {} "
             "WHERE date_ln >= '{}'::date "
             "AND date_ln <= '{}'::date "
-            "group by newid").format(division, this_feature,
+            "group by officer_id").format(division, this_feature,
             tables["logonoff"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1398,12 +1418,12 @@ dof_types = ['Property DamageObject', 'Non-Fatal InjuryAnimal',
              'MissAnimal', 'No DamageGround',
              'Fatal InjuryAnimal']
 
-directives = ['insub', 'driving', 'law_break', 'assoc', 'alcohol', 
+directives = ['insub', 'driving', 'law_break', 'assoc', 'alcohol',
               'superv', 'neg_duty', 'bad_conduct', 'harass',
-              'know_reg', 'courtesy', 'dept_eqp', 'uow', 'absence', 
-              'evidence', 'abuse_position', 'telephone', 'lying', 
+              'know_reg', 'courtesy', 'dept_eqp', 'uow', 'absence',
+              'evidence', 'abuse_position', 'telephone', 'lying',
               'emp_outside', 'drugs',
-              'id', 'uof', 'unsat_perf', 'intervention', 'profiling', 
+              'id', 'uof', 'unsat_perf', 'intervention', 'profiling',
               'arrest_seiz', 'part_adm_inv',
               'viol_rules', 'dept_rep', 'radio']
 
@@ -1421,13 +1441,13 @@ class NormalizedCountsWeaponsUse(abstract.OfficerTimeBoundedFeature):
             weapon.replace(" ", "").lower().replace('/',''),
             int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, "
+            this_query = ("select officer_id, "
             "count(case when empweapons='{}' then 1 else null end)::float/"
             "(count(case when empweapons is not null then 1 else null end)+1) as {} "
             "from {} "
             "WHERE dateoccured >= '{}'::date "
             "AND dateoccured <= '{}'::date "
-            "group by newid").format(weapon, this_feature,
+            "group by officer_id").format(weapon, this_feature,
             tables["si_table"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1445,12 +1465,12 @@ class DOFTypeCounts(abstract.OfficerTimeBoundedFeature):
             dof.lower().replace(" ", "").replace("-", ""),
             int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, count(alleg_doflevel || "
+            this_query = ("select officer_id, count(alleg_doflevel || "
             "alleg_doftype = '{}')::float as {} "
             "from {} "
             "WHERE dateoccured >= '{}'::date "
             "AND dateoccured <= '{}'::date "
-            "group by newid").format(dof, this_feature,
+            "group by officer_id").format(dof, this_feature,
             tables["si_table"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1468,12 +1488,12 @@ class DirectiveViolCounts(abstract.OfficerTimeBoundedFeature):
             directive.lower().replace(" ", ""),
             int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, count( "
+            this_query = ("select officer_id, count( "
             "rocdesc_cleaned = '{}')::float as {} "
             "from {} "
             "WHERE dateoccured >= '{}'::date "
             "AND dateoccured <= '{}'::date "
-            "group by newid").format(directive, this_feature,
+            "group by officer_id").format(directive, this_feature,
             tables["si_table"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1491,12 +1511,12 @@ class IAEventTypeCounts(abstract.OfficerTimeBoundedFeature):
             event.lower().replace(" ", ""),
             int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, count( "
+            this_query = ("select officer_id, count( "
             "eventtype = '{}')::float as {} "
             "from {} "
             "WHERE dateoccured >= '{}'::date "
             "AND dateoccured <= '{}'::date "
-            "group by newid").format(event, this_feature,
+            "group by officer_id").format(event, this_feature,
             tables["si_table"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1510,13 +1530,13 @@ class IARate(abstract.OfficerTimeBoundedFeature):
         self.description = "Career IA rate of allegations"
         self.name_of_features = ["ia_rate_{}yr".format(int(self.feat_time_window/365))]
         self.query = ("select "
-                      "a.newid, a.iacount/extract(day from '{date}' - b.startdate)*365 as {name} "
+                      "a.officer_id, a.iacount/extract(day from '{date}' - b.startdate)*365 as {name} "
                       "from "
-                      "(select newid, count(*) as iacount from {iatable} "
-                      "where dateoccured < '{date}' and {si_bad} group by newid) as a "
-                      "left join (select newid, greatest('2005-01-01'::timestamp,date_employed) "
+                      "(select officer_id, count(*) as iacount from {iatable} "
+                      "where dateoccured < '{date}' and {si_bad} group by officer_id) as a "
+                      "left join (select officer_id, greatest('2005-01-01'::timestamp,date_employed) "
                       "as startdate from {officers}) as b "
-                      "on a.newid = b.newid").format(date=self.end_date, 
+                      "on a.officer_id = b.officer_id").format(date=self.end_date,
                                                      name=self.name_of_features[0],
                                                      iatable=tables["si_table"],
                                                      si_bad=tables["si_bad_definition"],
@@ -1530,12 +1550,12 @@ class CountPriorAdverse(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["num_prior_adverse_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(distinct silogno) as {}, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where {} "
                       "AND eventtype != 'Accident' "
                       "AND dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0], tables["si_table"],
                       tables["si_bad_definition_all"], self.start_date,
                       self.end_date)
@@ -1548,12 +1568,12 @@ class CountPriorAccident(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["num_prior_accidents_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(distinct silogno) as {}, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where {} "
                       "AND eventtype = 'Accident' "
                       "AND dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0], tables["si_table"],
                       tables["si_bad_definition_all"], self.start_date,
                       self.end_date)
@@ -1566,11 +1586,11 @@ class CountPriorFilteredAdverse(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["num_prior_filtered_adverse_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(distinct silogno) as {}, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where {} "
                       "AND dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0], tables["si_table"],
                       tables["si_bad_definition"], self.start_date,
                       self.end_date)
@@ -1583,11 +1603,11 @@ class CountRocCOC(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["num_roc_coc_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where roc is not null and rlevel = 'COC' "
                       "AND dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0], tables["si_table"],
                       self.start_date, self.end_date)
 
@@ -1599,11 +1619,11 @@ class CountRocIA(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["num_roc_ia_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where roc is not null and rlevel = 'IA' "
                       "AND dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0], tables["si_table"],
                       self.start_date, self.end_date)
 
@@ -1615,11 +1635,11 @@ class CountPreventable(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["num_preventable_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where finalsidisposition = 'Preventable' "
                       "AND dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0], tables["si_table"],
                       self.start_date, self.end_date)
 
@@ -1631,11 +1651,11 @@ class CountUnjustified(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["num_unjustified_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where finalsidisposition = 'Not Justified' "
                       "AND dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0], tables["si_table"],
                       self.start_date, self.end_date)
 
@@ -1647,11 +1667,11 @@ class CountSustainedComplaints(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["num_sustained_complaints_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select count(*) as {}, "
-                      "newid from {} "
+                      "officer_id from {} "
                       "where internaldisposition = 'Sustained' "
                       "AND dateoccured >= '{}'::date "
                       "AND dateoccured <= '{}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       self.name_of_features[0], tables["si_table"],
                       self.start_date, self.end_date)
 
@@ -1668,11 +1688,11 @@ class IAConcerns(abstract.OfficerTimeBoundedFeature):
         self.query = ("select sum(has_safety_concerns) as {x[0]}, "
                       "       sum(has_comm_concerns) as {x[1]}, "
                       "       sum(has_tactics_concerns) as {x[2]}, "
-                      "newid from {table} "
+                      "officer_id from {table} "
                       "where internaldisposition = 'Sustained' "
                       "AND dateoccured >= '{date1}'::date "
                       "AND dateoccured <= '{date2}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       x=self.name_of_features, table=tables["si_table"],
                       date1=self.start_date, date2=self.end_date)
 
@@ -1695,10 +1715,10 @@ class SuspensionCounselingTime(abstract.OfficerTimeBoundedFeature):
                       "       (case when sum(suspensionactive)>0 or "
                       "sum(suspensioninactive)>0 then 1 else 0 end) as {x[4]}, "
                       "sum(case when injurydesc is not null then 1 else 0 end) as {x[5]}, "
-                      "newid from {table} "
+                      "officer_id from {table} "
                       "WHERE dateoccured >= '{date1}'::date "
                       "AND dateoccured <= '{date2}'::date "
-                      "group by newid").format(
+                      "group by officer_id").format(
                       x=self.name_of_features, table=tables["si_table"],
                       date1=self.start_date, date2=self.end_date)
 
@@ -1721,14 +1741,14 @@ class AvgNeighborhoodFeatures1(abstract.OfficerTimeBoundedFeature):
             this_feature = "avg_{}_{}yr".format(
             each_feat.lower(), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, avg(\"{}\") as {} "
-            "from (select newid, npa, arrest_date from {}) a "
+            this_query = ("select officer_id, avg(\"{}\") as {} "
+            "from (select officer_id, npa, arrest_date from {}) a "
             "left join "
             "(select * from {}) b "
             "on a.npa = b.\"NPA\" "
             "where arrest_date <= '{}'::date "
             "and arrest_date >= '{}'::date "
-            "group by newid").format(each_feat, this_feature,
+            "group by officer_id").format(each_feat, this_feature,
             tables["arrest_charges_table"], tables["city_neigh_1"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1745,14 +1765,14 @@ class AvgNeighborhoodFeatures2(abstract.OfficerTimeBoundedFeature):
             this_feature = "avg_{}_{}yr".format(
             each_feat.lower(), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, avg(\"{}\") as {} "
-            "from (select newid, npa, arrest_date from {}) a "
+            this_query = ("select officer_id, avg(\"{}\") as {} "
+            "from (select officer_id, npa, arrest_date from {}) a "
             "left join "
             "(select * from {}) b "
             "on a.npa = b.\"NPA\" "
             "where arrest_date <= '{}'::date "
             "and arrest_date >= '{}'::date "
-            "group by newid").format(each_feat, this_feature,
+            "group by officer_id").format(each_feat, this_feature,
             tables["arrest_charges_table"], tables["city_neigh_2"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1770,14 +1790,14 @@ class ExtraDutyNeighborhoodFeatures1(abstract.OfficerTimeBoundedFeature):
             this_feature = "extraduty_avg_{}_{}yr".format(
             each_feat.lower(), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, avg(\"{}\") as {} "
-            "from (select newid, npa, jobdate from {}) a "
+            this_query = ("select officer_id, avg(\"{}\") as {} "
+            "from (select officer_id, npa, jobdate from {}) a "
             "left join "
             "(select * from {}) b "
             "on a.npa = b.\"NPA\" "
             "where jobdate <= '{}'::date "
             "and jobdate >= '{}'::date "
-            "group by newid").format(each_feat, this_feature,
+            "group by officer_id").format(each_feat, this_feature,
             tables["extra_duty_geocoded"], tables["city_neigh_1"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1794,14 +1814,14 @@ class ExtraDutyNeighborhoodFeatures2(abstract.OfficerTimeBoundedFeature):
             this_feature = "extraduty_avg_{}_{}yr".format(
             each_feat.lower(), int(self.feat_time_window/365))
             all_featnames.append(this_feature)
-            this_query = ("select newid, avg(\"{}\") as {} "
-            "from (select newid, npa, jobdate from {}) a "
+            this_query = ("select officer_id, avg(\"{}\") as {} "
+            "from (select officer_id, npa, jobdate from {}) a "
             "left join "
             "(select * from {}) b "
             "on a.npa = b.\"NPA\" "
             "where jobdate <= '{}'::date "
             "and jobdate >= '{}'::date "
-            "group by newid").format(each_feat, this_feature,
+            "group by officer_id").format(each_feat, this_feature,
             tables["extra_duty_geocoded"], tables["city_neigh_2"],
             self.end_date, self.start_date)
             all_queries.append(this_query)
@@ -1816,11 +1836,10 @@ class ExtraDutyHours(abstract.OfficerTimeBoundedFeature):
         self.name_of_features = ["extra_duty_hours_{}yr".format(
             int(self.feat_time_window/365))]
         self.query = ("select sum(extract(hour from corrected_actualendtime - corrected_actualstarttime)) "
-                      "as {}, newid from {} "
+                      "as {}, officer_id from {} "
                       "where (corrected_actualendtime - corrected_actualstarttime) > '0' "
-                      "and jobdate <= '{}'::date " 
+                      "and jobdate <= '{}'::date "
                       "and jobdate >= '{}'::date "
-                      "group by newid").format(self.name_of_features[0],
+                      "group by officer_id").format(self.name_of_features[0],
                       tables["extra_duty_table"],
                       self.end_date, self.start_date)
-

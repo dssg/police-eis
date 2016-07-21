@@ -10,15 +10,23 @@ log = logging.getLogger(__name__)
 class OfficerFeature():
     def __init__(self, **kwargs):
         self.description = ""
-        self.time_bound = None
-        self.num_features = 1
-        self.type_of_features = "float"
-        self.start_date = None
-        self.end_date = kwargs["time_bound"]
+        self.description_long =""
+        self.fake_today = kwargs["fake_today"]
         self.query = None
-        self.name_of_features = ""
-        self.type_of_imputation = "zero"
-        self.feat_time_window = None
+        self.feature_name = self.__class__.__name__
+        self.table_name = kwargs["table_name"]
+
+    def build_and_insert( self, engine ):
+        engine.execute( self.query )
+
+#        self.time_bound = None
+#        self.num_features = 1
+#        self.type_of_features = "float"
+#        self.start_date = None
+#        self.end_date = kwargs["time_bound"]
+#        self.name_of_features = ""  # DEPRECATED
+#        self.type_of_imputation = "zero"
+#        self.feat_time_window = None
 
 
 class OfficerTimeBoundedFeature(OfficerFeature):
