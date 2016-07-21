@@ -195,34 +195,39 @@ def convert_categorical(df):
     "category n" or not
     """
 
-    onecol = df.columns[0]
-    categories = pd.unique(df[onecol])
+    #onecol = df.columns[0]
+    #categories = pd.unique(df[onecol])
 
     # Remove empty fields
     # Replace Nones or empty fields with NaNs?
-    categories = [x for x in categories if x is not None]
-    try:
-        categories.remove(' ')
-    except:
-        pass
+    #categories = [x for x in categories if x is not None]
+    #try:
+    #    categories.remove(' ')
+    #except:
+    #    pass
 
     # Get rid of tricksy unicode strings
-    categories = [str(x) for x in categories]
+    #categories = [str(x) for x in categories]
 
     # Get rid of capitalization differences
-    categories = list(set([str.lower(x) for x in categories]))
+    #categories = list(set([str.lower(x) for x in categories]))
 
     # Set up new features
-    featnames = []
-    for i in range(len(categories)):
-        if type(categories[i]) is str:
-            newfeatstr = 'is_' + categories[i]
-            featnames.append(newfeatstr)
-            df[newfeatstr] = df[onecol] == int(categories[i])
+    #featnames = []
+    #for i in range(len(categories)):
+    #    if type(categories[i]) is str:
+    #        newfeatstr = 'is_' + categories[i]
+    #        featnames.append(newfeatstr)
+    #        df[newfeatstr] = df[onecol] == int(categories[i])
 
-    df = df.drop(onecol, axis=1)
-    return df.astype(int), list(df.columns)
+    #df = df.drop(onecol, axis=1)
+    #return df.astype(int), list(df.columns)
 
+    #Finds all columns with type'object' (string)	
+    categorical_columns = list(df.select_dtypes(include=['object']).columns)
+    #Df returned  where each category of each categorical var is now a new dummy col
+    df = pd.get_dummies(df, prefix=categorical_columns)
+    return df
 
 class FeatureLoader():
 
