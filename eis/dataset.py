@@ -225,7 +225,7 @@ def convert_categorical(df):
 
     #Finds all columns with type'object' (string)	
     categorical_columns = list(df.select_dtypes(include=['object']).columns)
-    #Df returned  where each category of each categorical var is now a new dummy col
+    #Df updated  where each category of each categorical var is now a new dummy col
     df = pd.get_dummies(df, prefix=categorical_columns)
     return df
 
