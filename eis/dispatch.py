@@ -1,6 +1,7 @@
 import logging
 import datetime
 
+from sklearn import cross_validation
 from sklearn import preprocessing
 
 from . import dataset
@@ -27,55 +28,34 @@ def setup(config, today):
     train_start_date = today - datetime.timedelta(days=config["training_window"])
     test_end_date = today + datetime.timedelta(days=config["prediction_window"])
 
-    log.info("Train label window start: {}".format(train_start_date))
-    log.info("Train label window stop: {}".format(today))
-    log.info("Test label window start: {}".format(today))
-    log.info("Test label window stop: {}".format(test_end_date))
+    log.info("Loading dispatch feature and label data...")
 
-    log.info("Loading dispatches and features to use as training...")
+    # load the features and labels for all dispatches
+    features, labels, ids, feature_names = dataset.grab_dispatch_data(
+                                            features = config['dispatch_features'],
+                                            def_adverse = config['def_adverse'],
+                                            table_name = 'dispatch_features')
+                                                
+    log.info("Splitting the data into training and testing subsets...")
 
-    table_name = "features_dispatch"
-    train_x, train_y, train_id, names = dataset.grab_dispatch_data(
-        config["dispatch_features"],
-        train_start_date,
-        today,
-        train_start_date,
-        config["def_adverse"],
-        config["labelling"],
-        table_name)
+    # NOTE: !!IMPORTANT!! the random_state must be the same for the following two train_test_splits
+    #                     so that the ids are correctly matched to their rows
+    
+    # split the features and labels
+    train_X, test_X, train_y, test_y = cross_validation.train_test_split(features, labels, test_size=0.4, random_state=0)
 
-    # Testing data should include ALL officers, ignoring "noinvest" keyword
-    testing_labelling_config = config["labelling"].copy()
-    testing_labelling_config["noinvest"] = True
-
-    log.info("Loading dispatches and features to use as testing...")
-    test_x, test_y, test_id, names = dataset.grab_dispatch_data(
-        config["dispatch_features"],
-        today,
-        test_end_date,
-        today,
-        config["def_adverse"],
-        testing_labelling_config,
-        table_name)
-
-    train_x_index = train_x.index
-    test_x_index = test_x.index
-    features = train_x.columns.values
-
+    # split the row indexes (dispatch_ids) using same split as the feature / labels
+    train_id, test_id, _, _ = cross_validation.train_test_split(ids, labels, test_size=0.4, random_state=0)
+    
     # Feature scaling
-    scaler = preprocessing.StandardScaler().fit(train_x)
-    train_x = scaler.transform(train_x)
-    test_x = scaler.transform(test_x)
+    scaler = preprocessing.StandardScaler().fit(train_X)
+    train_X = scaler.transform(train_X)
+    test_X = scaler.transform(test_X)
 
-    return {"train_x": train_x,
+    return {"train_x": train_X,
             "train_y": train_y,
             "train_id": train_id,
-            "test_x": test_x,
+            "test_x": test_X,
             "test_y": test_y,  # For pilot test_y will not be used
             "test_id": test_id,
-            "names": names,
-            "train_start_date": train_start_date,
-            "test_end_date": test_end_date,
-            "train_x_index": train_x_index,
-            "test_x_index": test_x_index,
             "features": features}

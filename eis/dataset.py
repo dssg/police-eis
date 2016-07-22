@@ -231,7 +231,7 @@ def convert_categorical(df):
 
 class FeatureLoader():
 
-    def __init__(self, start_date, end_date, fake_today, table_name=None):
+    def __init__(self, start_date=None, end_date=None, fake_today=None, table_name=None):
 
         self.start_date = start_date
         self.end_date = end_date
@@ -353,8 +353,8 @@ class FeatureLoader():
         outcomes = adverse_officers.merge(labelled_officers, how='outer', on='officer_id')
         outcomes = outcomes.fillna(0)
 
-        log.debug('Number of officers to label: {}'.format(len(labelled_officers)))
-        log.debug('Number of officers with adverse : {}'.format(len(adverse_officers)))
+        log.debug('... number of officers to label: {}'.format(len(labelled_officers)))
+        log.debug('... number of officers with adverse : {}'.format(len(adverse_officers)))
 
         # if given a list of officer ids to label, exclude officer_ids not in that list
         if ids_to_label is not None:
@@ -404,12 +404,12 @@ class FeatureLoader():
         dispatches = pd.read_sql(query_all, con=db_conn)
         adverse_dispatches = pd.read_sql(query_adverse, con=db_conn)
 
-        log.debug('Number of dispatches to label: {}'.format(len(dispatches)))
-        log.debug('Number of dispatches with adverse : {}'.format(len(adverse_dispatches)))
+        log.debug('... number of dispatches to label: {}'.format(len(dispatches)))
+        log.debug('... number of dispatches with adverse : {}'.format(len(adverse_dispatches)))
 
         # fill all the dispatch labels with 0s, then add 1s for the adverse incidents
         dispatches['adverse_by_ourdef'] = 0
-        dispatches.ix[adverse_dispatches] = 1
+        dispatches.ix[adverse_dispatches.index] = 1
 
         return dispatches
 
@@ -557,7 +557,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     ids = dataset.index.values
 
     # make sure we return a non-zero number of labelled officers
-    assert len(labels) > 0, 'Labelled officer selection returned no officers'
+    assert sum(labels) > 0, 'Labelled officer selection returned no officers'
 
     log.debug("Dataset has {} rows and {} features".format(
        len(labels), len(feats.columns)))
@@ -565,7 +565,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     return feats, labels, ids, featnames
 
 
-def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, labelling, table_name):
+def grab_dispatch_data(features, def_adverse, table_name):
     """Function that returns the dataset to use in an experiment.
 
     Args:
@@ -583,10 +583,7 @@ def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, 
         featnames(list): the list of feature column names
     """
 
-    start_date = start_date.strftime('%Y-%m-%d')
-    end_date = end_date.strftime('%Y-%m-%d')
-
-    feature_loader = FeatureLoader(start_date, end_date, fake_today)
+    feature_loader = FeatureLoader()
 
     # load the labels for the relevant dispatches
     dispatch_labels = feature_loader.dispatch_labeller(def_adverse)
@@ -616,7 +613,7 @@ def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, 
     feature_names = features.columns
 
     # make sure we return a non-zero number of labelled dispatches
-    # assert sum(labels) > 0, 'No dispatches were labelled adverse''
+    assert sum(labels) > 0, 'No dispatches were labelled adverse'
 
     log.debug("Dataset has {} rows and {} features".format(
        len(labels), len(feature_names)))
