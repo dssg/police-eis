@@ -396,32 +396,10 @@ class FeatureLoader():
 
         # add exclusions to the adverse query based on the definition 
         # of 'adverse' supplied in the experiment file
-        if def_adverse['accidents'] == False:
-            query_adverse = query_adverse + "AND value != 'accident' "
 
-        if def_adverse['useofforce'] == False:
-            query_adverse = query_adverse + "AND value != 'use_of_force' "
-
-        if def_adverse['injury'] == False:
-            query_adverse = query_adverse + "AND value != 'injury' "
-
-        if def_adverse['icd'] == False:
-            query_adverse = query_adverse + "AND value != 'in_custody_death' "
-
-        if def_adverse['nfsi'] == False:
-            query_adverse = query_adverse + "AND value != 'no_force_subject_injury' "
-
-        if def_adverse['dof'] == False:
-            query_adverse = query_adverse + "AND value != 'discharge_of_firearm' "
-
-        if def_adverse['raid'] == False:
-            query_adverse = query_adverse + "AND value != 'raid' "
-
-        if def_adverse['pursuit'] == False:
-            query_adverse = query_adverse + "AND value != 'pursuit' "
-
-        if def_adverse['complaint'] == False:
-            query_adverse = query_adverse + "AND value != 'complaint' "
+        # TODO: implement filtering on event type that works with new incidents table
+        #if def_adverse['accidents'] == False:
+        #    query_adverse = query_adverse + "AND value != 'accident' "
 
         dispatches = pd.read_sql(query_all, con=db_conn)
         adverse_dispatches = pd.read_sql(query_adverse, con=db_conn)
@@ -468,21 +446,56 @@ class FeatureLoader():
                         table_name))
     
         # Execute the query.
-        results = self.__read_feature_from_db(query, feature_to_load, feature_type)
+        results = self.__read_feature_table(query, id_column)
         results = results.ix[ids_to_use]
 
         return results, feature.feature_name
 
-    def __read_feature_from_db(self, query, features_to_load, feature_type='officer', drop_duplicates=True):
+
+    def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
+        """Get the feature values from the database
+        
+        Args:
+            features_to_load(list): names of all features to be loaded, names must be in classmap
+            ids_to_use(list): the subset of ids to return feature values for
+            feature_type(str): the type of feature being loaded, one of ['officer', 'dispatch']
+            
+        Returns:
+            returns(pd.DataFrame): dataframe of the feature values indexed by id
+            """
+
+        feature_name_list = ', '.join(features_to_load)
+
+        # select the appropriate id column and feature table name for this feature type
+        if feature_type == 'officer':
+            id_column = 'officer_id'
+            table_name = 'officer_features'
+        if feature_type == 'dispatch':
+            id_column = 'dispatch_id'
+            table_name = 'dispatch_features'
+
+        # Create the query for this feature.
+        query = (   "SELECT {}, {} FROM features.{}"
+                    .format(
+                        id_column,
+                        feature_name_list,
+                        table_name))
+    
+        # Execute the query.
+        results = self.__read_feature_table(query, id_column)
+        
+        # filter out the rows which aren't in ids_to_use
+        if ids_to_use is not None:
+            results = results.ix[ids_to_use]
+
+        return results
+
+
+    def __read_feature_table(self, query, id_column, drop_duplicates=True):
+        """Return a dataframe with data from the features table, indexed by the relevant id (officer or dispatch)"""
 
         log.debug("Loading features for events from {} to {}".format(
                         self.start_date, self.end_date))
-
-        # select the appropriate id column for this feature type
-        if feature_type == 'officer':
-            id_column = 'officer_id'
-        if feature_type == 'dispatch':
-            id_column = 'dispatch_id'
 
         # Load this feature from the feature table.
         results = pd.read_sql(query, con=db_conn)
@@ -490,13 +503,15 @@ class FeatureLoader():
         if drop_duplicates:
             results = results.drop_duplicates(subset=[id_column])
 
-        results = results.set_index([id_column])
+        # index by the relevant id
+        results = results.set_index(id_column)
 
         log.debug("... {} rows, {} features".format(len(results),
                                                     len(results.columns)))
         return results
 
 
+# TODO: make this use load_all_features() instead of loader()
 def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling, table_name):
     """
     Function that defines the dataset.
@@ -571,43 +586,39 @@ def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
 
-    log.debug(features)
-
     feature_loader = FeatureLoader(start_date, end_date, fake_today)
 
     # load the labels for the relevant dispatches
     dispatch_labels = feature_loader.dispatch_labeller(def_adverse)
     
-    dataset = dispatch_labels
-
     # select all the features which are set to True in the config file
     # NOTE: dict.items() is python 3 specific. for python 2 use dict.iteritems()
     features_to_use = [feat for feat, is_used in features.items() if is_used]
-    featnames = []
-    for feature in features_to_use:
-        feature_df, feat_name = feature_loader.loader(feature, 
-                                                      ids_to_use = dataset["dispatch_id"], 
-                                                      feature_type = 'dispatch')
 
-        log.info("Loaded feature {} with {} rows".format(feature, len(feature_df)))
+    features_df = feature_loader.load_all_features(features_to_use,
+                                                   ids_to_use = None,
+                                                   feature_type = 'dispatch')
+                                                   
+    # join the labels and the features
+    log.debug('... merging labels and features in memory')
+    dataset = dispatch_labels.join(features_df, how='left', on='dispatch_id')
 
-        featnames.append(feat_name)
-        dataset = dataset.join(feature_df, how='left', on='dispatch_id')
-
+    # shuffle the dataset rows for some reason
     dataset = dataset.reset_index()
     dataset = dataset.reindex(np.random.permutation(dataset.index))
     dataset = dataset.set_index(["dispatch_id"])
 
     dataset = dataset.fillna(0)
 
+    features = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
     labels = dataset["adverse_by_ourdef"].values
-    feats = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
     ids = dataset.index.values
+    feature_names = features.columns
 
     # make sure we return a non-zero number of labelled dispatches
-    assert len(labels) > 0, 'Labelled dispatch selection returned no officers'
+    # assert sum(labels) > 0, 'No dispatches were labelled adverse''
 
     log.debug("Dataset has {} rows and {} features".format(
-       len(labels), len(feats.columns)))
+       len(labels), len(feature_names)))
 
-    return feats, labels, ids, featnames
+    return features, labels, ids, feature_names
