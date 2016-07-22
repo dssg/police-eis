@@ -28,15 +28,16 @@ def main(config_file_name, args):
         
         log.info("Re-building features...")
 
-    	# Create the schema.
-        populate_features.drop_and_load_features_schema()
+        # set the features table name based on type of prediction (officer / dispatch)
+        table_name = '{}_features'.format(config['unit'])
 
-        # Create the table.
-        populate_features.create_features_table(config, table_name="features") 
+        # Create the features table.
+        populate_features.create_features_table(config, table_name) 
 
-        # Populate the schema with features.
-        populate_features.populate_features_table(config)
+        # Populate the featuress table
+        populate_features.populate_features_table(config, table_name)
 
+        log.info('Done creating features table')
         sys.exit()
 
     all_experiments = experiment.generate_models_to_run(config)    

@@ -13,29 +13,42 @@ from .features import officers
 
 log = logging.getLogger(__name__)
 
-def drop_and_load_features_schema():
-    """ If the features schema exists, DROP and CREATE.  If it doesn't, CREATE """
-
-    # Create the schema.
+try:
     log.info("Connecting to database...")
-    engine, db_config = setup_environment.get_database()
-    log.info("Dropping the old features schema...")
-    engine.execute("DROP SCHEMA IF EXISTS features CASCADE") # Note: this should be confirmed by the user before dropping the features.
-    engine.execute("CREATE SCHEMA features") 
+    engine, _ = setup_environment.get_database()
+except:
+    log.error('Could not connect to the database')
+    
+def create_features_table(config, table_name):
+    """Build the features table for the type of model (officer/dispatch) specified in the config file"""
 
-def create_features_table(config, table_name="features" ):
+    if config['unit'] == 'officer':
+        create_officer_features_table(config, table_name)
+    if config['unit'] == 'dispatch':
+        create_dispatch_features_table(config, table_name)
+
+
+def populate_features_table(config, table_name):
+    """Calculate values for all features which are set to True (in the config file) 
+    for the appropriate run type (officer/dispatch)
+    """
+
+    if config['unit'] == 'officer':
+        populate_officer_features_table(config, table_name)
+    if config['unit'] == 'dispatch':
+        populate_dispatch_features_table(config, table_name)
+
+
+def create_officer_features_table(config, table_name="officer_features"):
     """ Creates a features.table_name table within the features schema """
 
-    log.info("Re-building features...")
-
-    # Drop the table and rebuild.
-    log.info("Connecting to database...")
-    engine, db_config = setup_environment.get_database()
-    db_conn = engine.raw_connection()
-    log.info("Dropping the old feature table...")
-    db_conn.cursor().execute("DROP TABLE IF EXISTS features.{}".format(table_name) )
+    # drop the old features table
+    log.info("Dropping the old officer feature table: {}".format(table_name))
+    engine.execute("DROP TABLE IF EXISTS features.{}".format(table_name) )
 
     # Get a list of all the features that are set to true.
+    features = config['features']
+
     feature_classes = config["features"]
     feature_list  = []
     feature_value = []
@@ -45,22 +58,29 @@ def create_features_table(config, table_name="features" ):
                 feature_list.extend([feature])
                 feature_value.extend([True])
 
-    # Split the height_weight feature into two features.
-    if "height_weight" in feature_list:
-        feature_list.extend(["height","weight"])
-        feature_list.remove("height_weight")
+    # make sure we have at least 1 feature
+    assert len(feature_list) > 0, 'List of features to build is empty'
 
+    # use the appropriate id column, depending on feature types (officer / dispatch)
+    id_column = '{}_id'.format(config['unit'])
 
     # Create and execute a query to create a table with a column for each of the features.
-    log.info("Creating new feature table: {}...".format(table_name))
-    create_query = "CREATE TABLE features.{} ( \n".format(table_name)
-    create_query += "\t officer_id \t int,\n"
-    create_query += "\t created_on \t timestamp,\n"
-    create_query += "\t fake_today \t timestamp,\n"
-    feature_query = [ "\t {} \t numeric \n".format(x) for x in feature_list ]
-    create_query += ', '.join(feature_query)
-    create_query += ");"
-    engine.execute( create_query )
+    log.info("Creating new officer feature table: {}...".format(table_name))
+
+    create_query = (    "CREATE TABLE features.{} ( "
+                        "   {}              int, "
+                        "   created_on      timestamp, "
+                        "   fake_today      timestamp, "
+                        .format(
+                            table_name,
+                            id_column))
+
+    # add a column for each feature in feature_list
+    feature_query = ', '.join(["{} numeric ".format(x) for x in feature_list])
+
+    final_query = create_query + feature_query + ");"
+
+    engine.execute(final_query)
 
     # Get the list of fake_todays.
     temporal_info = experiment.generate_time_info(config)
@@ -75,14 +95,77 @@ def create_features_table(config, table_name="features" ):
         officer_id_query = ( "INSERT INTO features.{} (officer_id,fake_today) "
                              "SELECT staging.officers_hub.officer_id, '{}'::date "
                              "FROM staging.officers_hub").format(table_name,fake_today)
-        engine.execute( officer_id_query )
+        engine.execute(officer_id_query)
 
-def populate_features_table(config):
+
+def create_dispatch_features_table(config, table_name="dispatch_features"):
+
+    # drop the old features table
+    log.info("Dropping the old dispatch feature table: {}".format(table_name))
+    engine.execute("DROP TABLE IF EXISTS features.{}".format(table_name))
+
+    # Get a list of all the features that are set to true.
+    feature_list = [feat for feat, is_set_true in config['dispatch_features'].items() if is_set_true]
+
+    # make sure we have at least 1 feature
+    assert len(feature_list) > 0, 'List of features to build is empty'
+
+    # use the appropriate id column, depending on feature types (officer / dispatch)
+    id_column = '{}_id'.format(config['unit'])
+
+    # Create and execute a query to create a table with a column for each of the features.
+    log.info("Creating new dispatch feature table: {}".format(table_name))
+
+    create_query = (    "CREATE TABLE features.{} ( "
+                        "   {}              varchar, "
+                        "   created_on      timestamp,"
+                        .format(
+                            table_name,
+                            id_column))
+
+    # add a column for each feature in feature_list
+    feature_query = ', '.join(["{} numeric ".format(x) for x in feature_list])
+
+    final_query = create_query + feature_query + ");"
+    engine.execute(final_query)
+
+    # TODO: for dispatch predictions we need to figure out an alternative to fake_today
+    #       temporal cross validation
+
+    # Populate the features table with dispatch id.
+    log.info("Populating feature table {} with dispatch ids ".format(table_name))
+
+    query = (   "INSERT INTO features.{} "
+                "   ({}) "
+                "SELECT DISTINCT "
+                "   staging.events_hub.dispatch_id "
+                "FROM staging.events_hub"
+                .format(
+                    table_name,
+                    id_column))
+
+    engine.execute(query)
+
+
+def populate_dispatch_features_table(config, table_name):
     """Calculate all the feature values and store them in the features table in the database"""
 
-    # connect to the database
-    log.debug("Connecting to database...")
-    engine, db_config = setup_environment.get_database()
+    # Get a list of all the features that are set to true.
+    feature_list = [feat for feat, is_set_true in config['dispatch_features'].items() if is_set_true]
+
+    for feature_name in feature_list:
+
+       feature_class = class_map.lookup(feature_name, 
+                                        fake_today = datetime.datetime.today(),
+                                        table_name = table_name)
+
+       feature_class.build_and_insert(engine)
+
+       log.debug('Calculated and inserted feature {}'.format(feature_class.feature_name))
+
+
+def populate_officer_features_table(config, table_name):
+    """Calculate all the feature values and store them in the features table in the database"""
 
     # get the list of fake todays specified by the config file
     temporal_info = experiment.generate_time_info(config)
@@ -104,8 +187,9 @@ def populate_features_table(config):
     
                 feature_class = class_map.lookup(feature_name, 
                                                  fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
-                                                 table_name="features" )
+                                                 table_name=table_name)
+                feature_class.build_and_insert(engine)
                 log.debug('Calculated and inserted feature {} for fake_today {}'
                             .format(feature_class.feature_name, fake_today))
-                feature_class.build_and_insert( engine )
+
 

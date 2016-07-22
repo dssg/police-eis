@@ -37,7 +37,7 @@ def change_schema(schema):
 
 
 def enter_into_db(timestamp, config, auc):
-    query = ("INSERT INTO models.\"full\" (id_timestamp, config, auc) "
+    query = ("INSERT INTO models.full (id_timestamp, config, auc) "
              "VALUES ('{}', '{}', {}) ".format(timestamp, json.dumps(config), auc))
     db_conn.cursor().execute(query)
     db_conn.commit()
@@ -380,12 +380,7 @@ class FeatureLoader():
         # select all dispatches within the specified time window
         query_all = (       "SELECT DISTINCT dispatch_id "
                             "FROM events_hub "
-                            "WHERE event_type_code = 5 "
-                            "AND event_datetime >= '{}'::date "
-                            "AND event_datetime <= '{}'::date "
-                            .format(
-                                self.start_date,
-                                self.stop_date))
+                            "WHERE event_type_code = 5 ")
 
         # select dispatches that led to events deemed adverse
         query_adverse = (   "SELECT DISTINCT dispatch_id "
@@ -393,14 +388,11 @@ class FeatureLoader():
                             "LEFT JOIN incidents AS incidents "
                             "   ON events_hub.event_id = incidents.event_id "
                             "LEFT JOIN lookup_incident_types AS lookup "
-                            "   ON lookup.code = incidents.incident_type_code "
+                            "   ON lookup.code = incidents.grouped_incident_type_code "
                             "WHERE event_type_code = 4 "
-                            "AND event_datetime >= '{}'::date "
-                            "AND event_datetime <= '{}'::date "
-                            "AND final_ruling_code in (2, 4, 5) "
-                            .format(
-                                self.start_date,
-                                self.stop_date))
+                            "AND      number_of_unjustified_allegations "
+                            "       + number_of_preventable_allegations "
+                            "       + number_of_sustained_allegations > 0")
 
         # add exclusions to the adverse query based on the definition 
         # of 'adverse' supplied in the experiment file
@@ -463,15 +455,17 @@ class FeatureLoader():
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
+            table_name = 'officer_features'
         if feature_type == 'dispatch':
             id_column = 'dispatch_id'
+            table_name = 'dispatch_features'
 
         # Create the query for this feature.
         query = (   "SELECT {}, {} FROM features.{}"
                     .format(
                         id_column,
                         feature.feature_name, 
-                        self.table_name))
+                        table_name))
     
         # Execute the query.
         results = self.__read_feature_from_db(query, feature_to_load, feature_type)
@@ -577,6 +571,8 @@ def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
 
+    log.debug(features)
+
     feature_loader = FeatureLoader(start_date, end_date, fake_today)
 
     # load the labels for the relevant dispatches
@@ -589,7 +585,9 @@ def grab_dispatch_data(features, start_date, end_date, fake_today, def_adverse, 
     features_to_use = [feat for feat, is_used in features.items() if is_used]
     featnames = []
     for feature in features_to_use:
-        feature_df, feat_name = feature_loader.loader(feature, dataset["dispatch_id"])
+        feature_df, feat_name = feature_loader.loader(feature, 
+                                                      ids_to_use = dataset["dispatch_id"], 
+                                                      feature_type = 'dispatch')
 
         log.info("Loaded feature {} with {} rows".format(feature, len(feature_df)))
 

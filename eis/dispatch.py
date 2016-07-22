@@ -1,17 +1,16 @@
-import numpy as np
-import pandas as pd
 import logging
-import sys
-import pickle
-import pdb
 import datetime
+
+from sklearn import preprocessing
+
+from . import dataset
 
 log = logging.getLogger(__name__)
 
 def run_traintest(config):
     """Get training and testing datasets from the database"""
 
-    today_dt = datetime.datetime.strptime(config['fake_today', "%d%b%Y"])
+    today_dt = datetime.datetime.today()
     result = setup(config, today_dt)
     return result
 
@@ -37,7 +36,7 @@ def setup(config, today):
 
     table_name = "features_dispatch"
     train_x, train_y, train_id, names = dataset.grab_dispatch_data(
-        config["features"],
+        config["dispatch_features"],
         train_start_date,
         today,
         train_start_date,
@@ -49,9 +48,9 @@ def setup(config, today):
     testing_labelling_config = config["labelling"].copy()
     testing_labelling_config["noinvest"] = True
 
-    log.info("Loading officers and features to use as testing...")
-    test_x, test_y, test_id, names = dataset.grab_officer_data(
-        config["features"],
+    log.info("Loading dispatches and features to use as testing...")
+    test_x, test_y, test_id, names = dataset.grab_dispatch_data(
+        config["dispatch_features"],
         today,
         test_end_date,
         today,

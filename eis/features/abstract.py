@@ -42,13 +42,22 @@ class DispatchFeature():
     def __init__(self, **kwargs):
         self.description = ""
         self.description_long =""
-        self.fake_today = kwargs["fake_today"]
-        self.query = None
-        self.feature_name = self.__class__.__name__
         self.table_name = kwargs["table_name"]
+        self.feature_name = self.__class__.__name__
+        # self.query should return two columns, named 'dispatch_id' and '<feature_name>'
+        self.query = None
+        # self.update_query take the result of the feature query and inserts it into the feature table
+        self.update_query = ("UPDATE features.{} AS feature_table "
+                            "SET {} = staging_table.feature_column "
+                            "FROM ({}) AS staging_table "
+                            "WHERE feature_table.dispatch_id = staging_table.dispatch_id ")
 
-    def build_and_insert( self, engine ):
-        engine.execute( self.query )
+    def build_and_insert(self, engine):
+        build_query = self.update_query.format(
+                                self.table_name,
+                                self.feature_name,
+                                self.query)
+        engine.execute(build_query)
 
 
 class DispatchTimeBoundedFeature(DispatchFeature):
