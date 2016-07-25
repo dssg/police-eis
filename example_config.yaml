@@ -230,6 +230,7 @@ features:
         careereiswarninginterventions: False  # Frac of EIS warning interventions by type in career
         
     extraduty:
+        mean_hours_per_shift: True # Average number of hours per shift
         1yrextradutyhours: False  # Number of extra duty hours in last year
         careerextradutyhours: False  # Number of extra duty hours in career
         1yrextradutyneighb1: False  # avg neighborhood features in extra duty hours places in last year

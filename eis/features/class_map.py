@@ -32,6 +32,7 @@ def lookup(feature, **kwargs):
                     'arrest_count_career': officers.arrest_count_career(**kwargs),
                     'divorce_count': officers.divorce_count(**kwargs),
                     'dummy_feature': dispatch.dummy_feature(**kwargs),
+                    'mean_hours_per_shift': officers.mean_hours_per_shift(**kwargs),
                     'random_feature': dispatch.random_feature(**kwargs) 
                   }
 
