@@ -152,7 +152,7 @@ def generate_models_to_run(config, query_db=True):
                     if config["unit"] == "officer":
                         exp_data = officer.run_traintest(this_config)
                     elif config["unit"] == "dispatch":
-                        exp_data = dispatch.setup(this_config)
+                        exp_data = dispatch.run_traintest(this_config)
                 else:
                     exp_data = {"test_x": None, "train_y": None}
 

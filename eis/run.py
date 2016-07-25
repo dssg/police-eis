@@ -28,15 +28,16 @@ def main(config_file_name, args):
         
         log.info("Re-building features...")
 
-    	# Create the schema.
-        populate_features.drop_and_load_features_schema()
+        # set the features table name based on type of prediction (officer / dispatch)
+        table_name = '{}_features'.format(config['unit'])
 
-        # Create the table.
-        populate_features.create_features_table(config, table_name="features") 
+        # Create the features table.
+        populate_features.create_features_table(config, table_name) 
 
-        # Populate the schema with features.
-        populate_features.populate_features_table(config)
+        # Populate the featuress table
+        populate_features.populate_features_table(config, table_name)
 
+        log.info('Done creating features table')
         sys.exit()
 
     all_experiments = experiment.generate_models_to_run(config)    
@@ -83,22 +84,35 @@ def main(config_file_name, args):
         #        my_exp.config['fake_today'], my_exp.exp_data["test_end_date"])
         #else:
         confusion_matrices = []
-        to_save = {"test_labels": my_exp.exp_data["test_y"],
-                   "test_predictions": result_y,
-                   "config": my_exp.config,
-                   "officer_id_train": my_exp.exp_data["train_x_index"],
-                   "officer_id_test": my_exp.exp_data["test_x_index"],
-                   "features": my_exp.exp_data["names"],
-                   "timestamp": timestamp,
-                   "parameters": my_exp.config["parameters"],
-                   "train_start_date": my_exp.exp_data["train_start_date"],
-                   "test_end_date": my_exp.exp_data["test_end_date"],
-                   "feature_importances": importances,
-                   "feature_importances_names": my_exp.exp_data["features"],
-                   "aggregation": groupscores,
-                   "eis_baseline": confusion_matrices,
-                   "modelobj": modelobj,
-                   "individual_importances": individual_imps}
+        
+        # TODO: make this more robust for officer vs dispatch level predictions
+        if config['unit'] == 'officer':
+            to_save = {"test_labels": my_exp.exp_data["test_y"],
+                       "test_predictions": result_y,
+                       "config": my_exp.config,
+                       "officer_id_train": my_exp.exp_data["train_x_index"],
+                       "officer_id_test": my_exp.exp_data["test_x_index"],
+                       "features": my_exp.exp_data["names"],
+                       "timestamp": timestamp,
+                       "parameters": my_exp.config["parameters"],
+                       "train_start_date": my_exp.exp_data["train_start_date"],
+                       "test_end_date": my_exp.exp_data["test_end_date"],
+                       "feature_importances": importances,
+                       "feature_importances_names": my_exp.exp_data["features"],
+                       "aggregation": groupscores,
+                       "eis_baseline": confusion_matrices,
+                       "modelobj": modelobj,
+                       "individual_importances": individual_imps}
+
+        elif config['unit'] == 'dispatch':
+            to_save = {"test_labels": my_exp.exp_data["test_y"],
+                       "test_predictions": result_y,
+                       "config": my_exp.config,
+                       "timestamp": timestamp,
+                       "parameters": my_exp.config["parameters"],
+                       "feature_importances_names": my_exp.exp_data["features"],
+                       "modelobj": modelobj}
+
 
         pkl_file = "{}{}_{}.pkl".format(
                     my_exp.config['directory'], my_exp.config['pkl_prefix'], timestamp)
