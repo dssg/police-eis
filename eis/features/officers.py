@@ -37,9 +37,9 @@ class academy_score(abstract.OfficerFeature):
         self.num_features = 1
         self.name_of_features = ["academy_score"]
         self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = staging_table.academy_score "
-                      "FROM (   SELECT officer_id, academy_score "
-                      "         FROM staging.officer_characteristics "
+                      "SET {} = staging_table.score "
+                      "FROM (   SELECT officer_id, score "
+                      "         FROM staging.officer_trainings "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
