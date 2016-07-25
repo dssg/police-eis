@@ -57,7 +57,8 @@ try_feature_sets_by_group: False  # Turn on if you want the code to try removing
 
 features:
     basic:
-        academy_score: True # Performance score at the police academy.
+        academy_score: False # Performance score at the police academy.
+        divorce_count: True # Number of total divorces in this officer's past.
         height_weight: False  # Height, weight of the officer
         education: False # Education level of officer
         yearsexperience: False  # Experience level of officer (number of years)

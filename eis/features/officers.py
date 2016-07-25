@@ -46,6 +46,25 @@ class academy_score(abstract.OfficerFeature):
                                 self.feature_name ) )
         self.type_of_imputation = "mean"
 
+class divorce_count(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of divorces for the officer")
+        self.num_features = 1
+        self.name_of_features = ["divorce_count"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.officer_marital " 
+                      "         WHERE marital_status_code = 4 "
+                      "         AND last_modified <= '{}'::date "
+                      "         GROUP BY officer_id ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format) ) )
+        self.type_of_imputation = "mean"
+
 class HeightWeight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
