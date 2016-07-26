@@ -43,6 +43,52 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
+#        dataset.store_model_info( timestamp, batch_timestamp, config, pkl_file )
+#        dataset.store_prediction_info( timestamp, my_exp )
+#        dataset.store_evaluation_metrics( timestamp, metric_type, metric_value ) 
+def store_model_info( timestamp, batch_timestamp, config, pkl_file ):
+    """ Write model configuration into the results.model table
+
+    :param str timestamp: the timestamp at which this model was run.
+    :param str batch_timestamp: the timestamp that this batch of models was run.
+    :param dict config: the configuration dictionary that contains all model parameters.
+    :param str pkl_file: the name of the pkl file containing this model run.
+    """
+
+    query =  ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) "
+                "VALUES ('{}', '{}', '{}', '{}')".format(   timestamp, 
+                                                            batch_timestamp, 
+                                                            json.deumps(config), 
+                                                            pkl_file ))
+    db_conn.cursor().execute(query)
+    db_conn.commit()
+
+def store_prediction_info( timestamp, this_exp ):
+    """ Write the model predictions (officer or dispatch risk scores) to the results schema.
+
+    :param str timestamp: the timestamp at which this model was run.
+    :param object this_exp: experiment object.
+    """
+
+    # get the model primary key corresponding to this timestamp.
+    query = ( " SELECT model_id FROM results.models WHWERE run_time = {}::timestamp ".format( timestamp ) )
+    db_conn.cursor().execute(query)
+    this_model_id = db_conn.cursor().fetch()
+
+    # insert this prediction into the predictions table.
+    query = (   " INSERT INTO results.predictions( model_id, unit_train_list, unit_test_list, unit_scores, true_labels ) "
+                " VALUES ( '{}', '{}', '{}', '{}', '{}' )". format( this_model_id,
+                                                                    this_exp["officer_id_train"],
+                                                                    this_exp["officer_id_test"],
+                                                                    this_exp["test_predictions"],
+                                                                    this_exp["test_labels"] ) )
+
+    db_conn.cursor().execute(query)
+    db_conn.commit()
+
+#def store_evaluation_info( ):
+
+
 
 def format_officer_ids(ids):
     formatted = ["{}".format(each_id) for each_id in ids]
