@@ -43,9 +43,6 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
-#        dataset.store_model_info( timestamp, batch_timestamp, config, pkl_file )
-#        dataset.store_prediction_info( timestamp, my_exp )
-#        dataset.store_evaluation_metrics( timestamp, metric_type, metric_value ) 
 def store_model_info( timestamp, batch_timestamp, config, pkl_file ):
     """ Write model configuration into the results.model table
 
@@ -58,37 +55,68 @@ def store_model_info( timestamp, batch_timestamp, config, pkl_file ):
     query =  ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) "
                 "VALUES ('{}', '{}', '{}', '{}')".format(   timestamp, 
                                                             batch_timestamp, 
-                                                            json.deumps(config), 
+                                                            json.dumps(config), 
                                                             pkl_file ))
     db_conn.cursor().execute(query)
     db_conn.commit()
+    return None
 
-def store_prediction_info( timestamp, this_exp ):
+def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels ):
     """ Write the model predictions (officer or dispatch risk scores) to the results schema.
 
     :param str timestamp: the timestamp at which this model was run.
-    :param object this_exp: experiment object.
+    :param list unit_id_train: list of unit id's used in the training set.
+    :param list unit_id_test: list of unit id's used in the test set.
+    :param list unit_predictions: list of risk scores.
+    :param list unit_labels: list of true labels.
     """
 
     # get the model primary key corresponding to this timestamp.
-    query = ( " SELECT model_id FROM results.models WHWERE run_time = {}::timestamp ".format( timestamp ) )
-    db_conn.cursor().execute(query)
-    this_model_id = db_conn.cursor().fetch()
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    cur = db_conn.cursor()
+    cur.execute(query)
+    this_model_id = cur.fetchone()
+    this_model_id = this_model_id[0]
+
+    # round unit_id's to integer type.
+    unit_id_train = list( map( int, unit_id_train ) )
+    unit_id_test  = list( map( int, unit_id_test ) )
+    unit_labels   = list( map( int, unit_labels ) )
 
     # insert this prediction into the predictions table.
     query = (   " INSERT INTO results.predictions( model_id, unit_train_list, unit_test_list, unit_scores, true_labels ) "
-                " VALUES ( '{}', '{}', '{}', '{}', '{}' )". format( this_model_id,
-                                                                    this_exp["officer_id_train"],
-                                                                    this_exp["officer_id_test"],
-                                                                    this_exp["test_predictions"],
-                                                                    this_exp["test_labels"] ) )
+                " VALUES ( '{}', '{{{}}}', '{{{}}}', '{{{}}}', '{{{}}}' )".format( this_model_id,
+                                                                    ",".join(map(str, unit_id_train    ) ),
+                                                                    ",".join(map(str, unit_id_test     ) ),
+                                                                    ",".join(map(str, unit_predictions ) ),
+                                                                    ",".join(map(str, unit_labels      ) ) ))
 
     db_conn.cursor().execute(query)
     db_conn.commit()
+    return None
 
-#def store_evaluation_info( ):
+def store_evaluation_metrics( timestamp, evaluation_type, evaluation_value ):
+    """ Write the model evaluation metrics into the results schema
+    
+    :param str timestamp: the timestamp at which this model was run.
+    :param str evaluation_type: string describing the metric being run.
+    :param list evalution_value: a list of numeric values defining the evaluation metric.
+    """
+    # get the model primary key corresponding to this timestamp.
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    cur = db_conn.cursor()
+    cur.execute(query)
+    this_model_id = cur.fetchone()
+    this_model_id = this_model_id[0]
 
-
+    # insert this prediction into the evaluations table.
+    query = (   " INSERT INTO results.evaluations( model_id, evaluation_type, evaluation_value )"
+                " VALUES( '{}', '{}', '{{{}}}') ".format(   this_model_id,
+                                                            evaluation_type,
+                                                            ",".join( map( str, list(evaluation_value) ) ) ) )
+    db_conn.cursor().execute(query)
+    db_conn.commit()
+    return None
 
 def format_officer_ids(ids):
     formatted = ["{}".format(each_id) for each_id in ids]
@@ -343,50 +371,45 @@ class FeatureLoader():
         # TODO: add code for labelling['include_all_employed'] option
 
         # repeat the query above, but only select officers who had incidents
-        # jugded to be adverse. (see lookup_final_ruling table for codes 2,4,5)
+        # jugded to be adverse. 
         query_adverse = (               "SELECT officer_id "
-                                        "FROM {} AS events_hub "
-                                        "LEFT JOIN {} AS ia_table "
-                                        "   ON events_hub.event_id = ia_table.event_id "
-                                        "LEFT JOIN lookup_incident_types AS lookup "
-                                        "   ON lookup.code = ia_table.incident_type_code "
+                                        "FROM events_hub "
+                                        "LEFT JOIN incidents "
+                                        "   ON events_hub.event_id = incidents.event_id "
                                         "WHERE events_hub.event_datetime >= '{}'::date "
                                         "AND events_hub.event_datetime <= '{}'::date "
-                                        "AND final_ruling_code in (2, 4, 5) "
-                                        .format(
-                                            'events_hub',
-                                            self.tables['si_table'],
-                                            self.start_date,
-                                            self.end_date))
+                                        "AND number_of_sustained_allegations > 0 "
+                                        .format(self.start_date,
+                                                self.end_date))
 
-        # add exclusions to the adverse query based on the definition 
-        # of 'adverse' supplied in the experiment file
-        if def_adverse['accidents'] == False:
-            query_adverse = query_adverse + "AND value != 'accident' "
-
-        if def_adverse['useofforce'] == False:
-            query_adverse = query_adverse + "AND value != 'use_of_force' "
-
-        if def_adverse['injury'] == False:
-            query_adverse = query_adverse + "AND value != 'injury' "
-
-        if def_adverse['icd'] == False:
-            query_adverse = query_adverse + "AND value != 'in_custody_death' "
-
-        if def_adverse['nfsi'] == False:
-            query_adverse = query_adverse + "AND value != 'no_force_subject_injury' "
-
-        if def_adverse['dof'] == False:
-            query_adverse = query_adverse + "AND value != 'discharge_of_firearm' "
-
-        if def_adverse['raid'] == False:
-            query_adverse = query_adverse + "AND value != 'raid' "
-
-        if def_adverse['pursuit'] == False:
-            query_adverse = query_adverse + "AND value != 'pursuit' "
-
-        if def_adverse['complaint'] == False:
-            query_adverse = query_adverse + "AND value != 'complaint' "
+#        # add exclusions to the adverse query based on the definition 
+#        # of 'adverse' supplied in the experiment file
+#        if def_adverse['accidents'] == False:
+#            query_adverse = query_adverse + "AND value != 'accident' "
+#
+#        if def_adverse['useofforce'] == False:
+#            query_adverse = query_adverse + "AND value != 'use_of_force' "
+#
+#        if def_adverse['injury'] == False:
+#            query_adverse = query_adverse + "AND value != 'injury' "
+#
+#        if def_adverse['icd'] == False:
+#            query_adverse = query_adverse + "AND value != 'in_custody_death' "
+#
+#        if def_adverse['nfsi'] == False:
+#            query_adverse = query_adverse + "AND value != 'no_force_subject_injury' "
+#
+#        if def_adverse['dof'] == False:
+#            query_adverse = query_adverse + "AND value != 'discharge_of_firearm' "
+#
+#        if def_adverse['raid'] == False:
+#            query_adverse = query_adverse + "AND value != 'raid' "
+#
+#        if def_adverse['pursuit'] == False:
+#            query_adverse = query_adverse + "AND value != 'pursuit' "
+#
+#        if def_adverse['complaint'] == False:
+#            query_adverse = query_adverse + "AND value != 'complaint' "
 
         # pull in all the officer_ids to use for labelling
         labelled_officers = pd.read_sql(query_to_label, con=db_conn).drop_duplicates()
