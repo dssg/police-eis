@@ -65,6 +65,23 @@ class divorce_count(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format) ) )
         self.type_of_imputation = "mean"
 
+class miles_from_post(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of miles that the officer lives from the post")
+        self.num_features = 1
+        self.name_of_features = ["miles_from_post"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.miles_to_assignment "
+                      "FROM (   SELECT officer_id, miles_to_assignment "
+                      "         FROM staging.officer_addresses " 
+                      "         WHERE last_modified <= '{}'::date ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format) ) )
+        self.type_of_imputation = "mean"
+
 class HeightWeight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)

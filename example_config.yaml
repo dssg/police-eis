@@ -59,6 +59,7 @@ features:
     basic:
         academy_score: True # Performance score at the police academy.
         divorce_count: True # Number of total divorces in this officer's past.
+        miles_from_post: True # Number of miles to post.
         height_weight: False  # Height, weight of the officer
         education: False # Education level of officer
         yearsexperience: False  # Experience level of officer (number of years)
