@@ -83,16 +83,14 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     unit_id_test  = list( map( int, unit_id_test ) )
     unit_labels   = list( map( int, unit_labels ) )
 
-    # insert this prediction into the predictions table.
-    query = (   " INSERT INTO results.predictions( model_id, unit_train_list, unit_test_list, unit_scores, true_labels ) "
-                " VALUES ( '{}', '{{{}}}', '{{{}}}', '{{{}}}', '{{{}}}' )".format( this_model_id,
-                                                                    ",".join(map(str, unit_id_train    ) ),
-                                                                    ",".join(map(str, unit_id_test     ) ),
-                                                                    ",".join(map(str, unit_predictions ) ),
-                                                                    ",".join(map(str, unit_labels      ) ) ))
-
-    db_conn.cursor().execute(query)
-    db_conn.commit()
+    # append data into predictions table. there is probably a faster way to do this than put it into a 
+    # dataframe and then use .to_sql but this works for now.
+    dataframe_for_insert = pd.DataFrame( {  "model_id": [this_model_id]*len(unit_id_test), 
+                                            "unit_id": unit_id_test,
+                                            "unit_score": unit_predictions,
+                                            "label_value": unit_labels } )
+                                            
+    dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False ) 
     return None
 
 def store_evaluation_metrics( timestamp, evaluation_type, evaluation_value ):
