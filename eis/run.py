@@ -43,6 +43,7 @@ def main(config_file_name, args):
     all_experiments = experiment.generate_models_to_run(config)    
 
     log.info("Running models on dataset...")
+    batch_timestamp = datetime.datetime.now().isoformat()
     for my_exp in all_experiments:
         timestamp = datetime.datetime.now().isoformat()
 
@@ -119,7 +120,22 @@ def main(config_file_name, args):
         pickle_results(pkl_file, to_save)
 
         auc = scoring.compute_AUC(my_exp.exp_data["test_y"], result_y)
-        dataset.enter_into_db(timestamp, my_exp.config, auc)
+        
+        # Store model info into results schema.
+        #dataset.enter_into_db(timestamp, my_exp.config, auc)
+
+        # package data for storing into results schema.
+        unit_id_train    = list( my_exp.exp_data["train_x_index"] )
+        unit_id_test     = list( my_exp.exp_data["test_x_index"] )
+        unit_predictions = list( result_y )
+        unit_labels      = list( my_exp.exp_data["test_y"] )
+        metric_type      = "auc"
+        metric_value     = [ float(auc) ]
+
+        # Store information about this experiment into the results schema.
+        dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, pkl_file )
+        dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
+        dataset.store_evaluation_metrics( timestamp, metric_type, metric_value ) 
 
         if my_exp.config["auditing"]:
             audit_outputs = {"train_x": my_exp.exp_data["train_x"],
