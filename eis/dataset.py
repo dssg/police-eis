@@ -90,13 +90,13 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False ) 
     return None
 
-def store_evaluation_metrics( timestamp, evaluation_type, evaluation_value ):
+def store_evaluation_metrics( timestamp, evaluation_metrics ):
     """ Write the model evaluation metrics into the results schema
     
     :param str timestamp: the timestamp at which this model was run.
-    :param str evaluation_type: string describing the metric being run.
-    :param list evalution_value: a list of numeric values defining the evaluation metric.
+    :param dict evaluation_metrics: dictionary whose keys correspond to metric names in the features.evaluations columns.
     """
+
     # get the model primary key corresponding to this timestamp.
     query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
     cur = db_conn.cursor()
@@ -104,11 +104,13 @@ def store_evaluation_metrics( timestamp, evaluation_type, evaluation_value ):
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
-    # insert this prediction into the evaluations table.
-    query = (   " INSERT INTO results.evaluations( model_id, evaluation_type, evaluation_value )"
-                " VALUES( '{}', '{}', '{{{}}}') ".format(   this_model_id,
-                                                            evaluation_type,
-                                                            ",".join( map( str, list(evaluation_value) ) ) ) )
+    # create query and insert into the evaluations table.
+    columns = list(evaluation_metrics.keys())
+    values  = list(evaluation_metrics.values())
+    query = (   " INSERT INTO results.evaluations( model_id, " + ",".join(map(str, columns ) ) + " ) " + 
+                " VALUES( " + str(this_model_id) + ", " + ",".join( map( str, values )) + " ) " )
+    
+
     db_conn.cursor().execute(query)
     db_conn.commit()
     return None
