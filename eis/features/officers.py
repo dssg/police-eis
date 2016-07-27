@@ -30,6 +30,57 @@ class dummyfeature(abstract.OfficerFeature):
                       "GROUP BY officer_id")
         self.type_of_imputation = "mean"
 
+class academy_score(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer's score at the police academy")
+        self.num_features = 1
+        self.name_of_features = ["academy_score"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.score "
+                      "FROM (   SELECT officer_id, score "
+                      "         FROM staging.officer_trainings "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
+        self.type_of_imputation = "mean"
+
+class divorce_count(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of divorces for the officer")
+        self.num_features = 1
+        self.name_of_features = ["divorce_count"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.officer_marital " 
+                      "         WHERE marital_status_code = 4 "
+                      "         AND last_modified <= '{}'::date "
+                      "         GROUP BY officer_id ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format) ) )
+        self.type_of_imputation = "mean"
+
+class miles_from_post(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of miles that the officer lives from the post")
+        self.num_features = 1
+        self.name_of_features = ["miles_from_post"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.miles_to_assignment "
+                      "FROM (   SELECT officer_id, miles_to_assignment "
+                      "         FROM staging.officer_addresses " 
+                      "         WHERE last_modified <= '{}'::date ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format) ) )
+        self.type_of_imputation = "mean"
 
 class HeightWeight(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -1780,6 +1831,27 @@ class AvgNeighborhoodFeatures2(abstract.OfficerTimeBoundedFeature):
         self.query = all_queries
 
 ### xtraduty
+
+
+class mean_hours_per_shift(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of hours worked on a shift on average")
+        self.num_features = 1
+        self.name_of_features = ["mean_hours_per_shift"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.avg "
+                      "FROM (   SELECT officer_id, AVG( EXTRACT( EPOCH from shift_length)/3600 )"
+                      "         FROM staging.officer_shifts "
+                      "         WHERE EXTRACT( EPOCH from shift_length)/3600 < 48 " # Discarding tremendous outliers (bad data).
+                      "         AND stop_datetime < '{}'::date "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name, 
+                                self.fake_today.strftime(time_format)))
+        self.type_of_imputation = "mean"
 
 class ExtraDutyNeighborhoodFeatures1(abstract.OfficerTimeBoundedFeature):
     def __init__(self, **kwargs):

@@ -57,6 +57,9 @@ try_feature_sets_by_group: False  # Turn on if you want the code to try removing
 
 features:
     basic:
+        academy_score: True # Performance score at the police academy.
+        divorce_count: True # Number of total divorces in this officer's past.
+        miles_from_post: True # Number of miles to post.
         height_weight: False  # Height, weight of the officer
         education: False # Education level of officer
         yearsexperience: False  # Experience level of officer (number of years)
@@ -228,6 +231,7 @@ features:
         careereiswarninginterventions: False  # Frac of EIS warning interventions by type in career
         
     extraduty:
+        mean_hours_per_shift: True # Average number of hours per shift
         1yrextradutyhours: False  # Number of extra duty hours in last year
         careerextradutyhours: False  # Number of extra duty hours in career
         1yrextradutyneighb1: False  # avg neighborhood features in extra duty hours places in last year
