@@ -6,6 +6,7 @@ import logging
 import sys
 import datetime
 import json
+import psycopg2
 from IPython.core.debugger import Tracer
 
 from . import setup_environment
@@ -43,21 +44,17 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
-def store_model_info( timestamp, batch_timestamp, config, pkl_file ):
+def store_model_info( timestamp, batch_timestamp, config, pickle_data ):
     """ Write model configuration into the results.model table
 
     :param str timestamp: the timestamp at which this model was run.
     :param str batch_timestamp: the timestamp that this batch of models was run.
     :param dict config: the configuration dictionary that contains all model parameters.
-    :param str pkl_file: the name of the pkl file containing this model run.
+    :param str pkl_obj: the serialized pickle object string for this model run.
     """
 
-    query =  ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) "
-                "VALUES ('{}', '{}', '{}', '{}')".format(   timestamp, 
-                                                            batch_timestamp, 
-                                                            json.dumps(config), 
-                                                            pkl_file ))
-    db_conn.cursor().execute(query)
+    query = ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) VALUES( %s, %s, %s, %s )" )
+    db_conn.cursor().execute(query, ( timestamp, batch_timestamp, json.dumps(config), psycopg2.Binary(pickle_data) ) )
     db_conn.commit()
     return None
 

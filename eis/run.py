@@ -5,6 +5,7 @@ import logging
 import sys
 import argparse
 import pickle
+import psycopg2
 import datetime
 
 from . import setup_environment, models, scoring
@@ -114,10 +115,12 @@ def main(config_file_name, args):
                        "feature_importances_names": my_exp.exp_data["features"],
                        "modelobj": modelobj}
 
+        #pkl_file = "{}{}_{}.pkl".format(
+        #            my_exp.config['directory'], my_exp.config['pkl_prefix'], timestamp)
+        #pickle_results(pkl_file, to_save)
 
-        pkl_file = "{}{}_{}.pkl".format(
-                    my_exp.config['directory'], my_exp.config['pkl_prefix'], timestamp)
-        pickle_results(pkl_file, to_save)
+        # create a pickle object to store into the database.
+        model_data_pickle_object = pickle.dumps( to_save )
 
         auc = scoring.compute_AUC(my_exp.exp_data["test_y"], result_y)
         
@@ -133,7 +136,7 @@ def main(config_file_name, args):
         metric_value     = [ float(auc) ]
 
         # Store information about this experiment into the results schema.
-        dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, pkl_file )
+        dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, model_data_pickle_object )
         dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
         dataset.store_evaluation_metrics( timestamp, metric_type, metric_value ) 
 
