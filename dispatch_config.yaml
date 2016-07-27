@@ -53,11 +53,16 @@ labelling:
 ########################
 # Feature selection    #
 ########################
-try_feature_sets_by_group: False  # Turn on if you want the code to try removing each feature set in turn
+
+officer_features:
+    investigation_count_career: True
+    arrest_count_career: True
+    arrest_count_1yr: False
 
 dispatch_features:
     dummy_feature: True
     random_feature: True
+    division_assigned: True
 
 
 features:
@@ -79,6 +84,10 @@ features:
         careerprioraccident: False  # preventable accidents in career
         1yrnumfilteredadverse: False  # filtered adverse incidents in past year
         careernumfilteredadverse: False  # filtered adverse incidents in career
+        1yrroccoc: False  # rules of conduct COC violations in last year
+        careerroccoc: False  # rules of conduct COC violations in career
+        1yrrocia: False  # rules of conduct IA violations in last year
+        careerrocia: False  # rules of conduct IA violations in career
         1yrroccoc: False  # rules of conduct COC violations in last year
         careerroccoc: False  # rules of conduct COC violations in career
         1yrrocia: False  # rules of conduct IA violations in last year
@@ -239,10 +248,6 @@ features:
         careerextradutyneighb1: False  # avg neighborhood features in extra duty hours places in career
         1yrextradutyneighb2: False  # avg neighborhood features in extra duty hours places in last year
         careerextradutyneighb2: False  # avg neighborhood features in extra duty hours places in career
-        
-    neighborhood:
-        1yrneighb1: False  # avg neighborhood features in where officer made their arrests in last year
-        careerneighb1: False  # avg neighborhood features in where officer made their arrests in career
         1yrneighb2: False  # avg neighborhood features in where officer made their arrests in last year
         careerneighb2: False  # avg neighborhood features in where officer made their arrests in career
 

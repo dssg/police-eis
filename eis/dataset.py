@@ -182,52 +182,34 @@ def convert_series(df):
     return newdf.astype(int), newcols
 
 
-def convert_categorical(df):
+def convert_categorical(feature_df):
     """
-    this function generates features from a nominal feature
+    Convert a dataframe with columns containing categorical variables to
+    a dataframe with dummy variables for each category.
 
-    Inputs:
-    df: a dataframe with two columns: id, and a feature which is 1
-    of n categories
+    Args:
+        feature_df(pd.DataFrame): A dataframe containing the features, some
+                                  of which may be categorical
 
-    Outputs:
-    df: a dataframe with 1 + n columns: id and boolean features that are
-    "category n" or not
+    Returns:
+        feature_df_w_dummies(pd.DataFrame): The features dataframe, but with
+                        categorical features converted to dummy variables
     """
 
-    #onecol = df.columns[0]
-    #categories = pd.unique(df[onecol])
+    log.info('Converting categorical features to dummy variablles')
 
-    # Remove empty fields
-    # Replace Nones or empty fields with NaNs?
-    #categories = [x for x in categories if x is not None]
-    #try:
-    #    categories.remove(' ')
-    #except:
-    #    pass
+    categorical_features = class_map.find_categorical_features(feature_list)
 
-    # Get rid of tricksy unicode strings
-    #categories = [str(x) for x in categories]
+    log.info('... {} categorical features'.format(len(categorical_features)))
 
-    # Get rid of capitalization differences
-    #categories = list(set([str.lower(x) for x in categories]))
+    # add dummy variables to feature dataframe
+    feature_df_w_dummies = pd.get_dummies(feature_df, columns=categorical_features)
 
-    # Set up new features
-    #featnames = []
-    #for i in range(len(categories)):
-    #    if type(categories[i]) is str:
-    #        newfeatstr = 'is_' + categories[i]
-    #        featnames.append(newfeatstr)
-    #        df[newfeatstr] = df[onecol] == int(categories[i])
+    log.info('... {} dummy variables added'.format(len(feature_df_w_dummies.columns) 
+                                                   - len(feature_df.columns)))
 
-    #df = df.drop(onecol, axis=1)
-    #return df.astype(int), list(df.columns)
+    return feature_df_w_dummies
 
-    #Finds all columns with type'object' (string)	
-    categorical_columns = list(df.select_dtypes(include=['object']).columns)
-    #Df updated  where each category of each categorical var is now a new dummy col
-    df = pd.get_dummies(df, prefix=categorical_columns)
-    return df
 
 class FeatureLoader():
 
@@ -461,7 +443,7 @@ class FeatureLoader():
             feature_type(str): the type of feature being loaded, one of ['officer', 'dispatch']
             
         Returns:
-            returns(pd.DataFrame): dataframe of the feature values indexed by id
+            returns(pd.DataFrame): dataframe of the feature values indexed by officer_id or dispatch_id
             """
 
         feature_name_list = ', '.join(features_to_load)
@@ -595,10 +577,13 @@ def grab_dispatch_data(features, def_adverse, table_name):
     features_df = feature_loader.load_all_features(features_to_use,
                                                    ids_to_use = None,
                                                    feature_type = 'dispatch')
+
+    # encode categorical features with dummy variables
+    features_df_w_dummies = convert_categorical(features_df)
                                                    
     # join the labels and the features
     log.debug('... merging labels and features in memory')
-    dataset = dispatch_labels.join(features_df, how='left', on='dispatch_id')
+    dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
 
     # shuffle the dataset rows for some reason
     dataset = dataset.reset_index()
