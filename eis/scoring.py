@@ -6,6 +6,29 @@ from sklearn import metrics
 from . import dataset
 
 
+def calculate_all_evaluation_metrics( test_label, test_predictions ):
+    """ Calculate several evaluation metrics using sklearn for a set of 
+        labels and predictions.
+    :param list test_labels: list of true labels for the test data.
+    :param list test_predictions: list of risk scores for the test data.
+    :return: all_metrics
+    :rtype: dict
+    """
+
+    all_metrics = dict()
+    
+    # compute built-in sklearn metrics.
+    #all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions )
+    all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
+    #all_metrics["f1_score"]       = metrics.f1_score( test_label, test_predictions )
+    all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
+
+    # compute precision at different threshholds.
+
+    # compute recall at different threshholds.
+
+    return all_metrics 
+
 def compute_AUC(test_labels, test_predictions):
     fpr, tpr, thresholds = metrics.roc_curve(
         test_labels, test_predictions, pos_label=1)

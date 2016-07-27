@@ -6,6 +6,7 @@ import logging
 import sys
 import datetime
 import json
+import psycopg2
 from IPython.core.debugger import Tracer
 
 from . import setup_environment
@@ -43,21 +44,17 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
-def store_model_info( timestamp, batch_timestamp, config, pkl_file ):
+def store_model_info( timestamp, batch_timestamp, config, pickle_data ):
     """ Write model configuration into the results.model table
 
     :param str timestamp: the timestamp at which this model was run.
     :param str batch_timestamp: the timestamp that this batch of models was run.
     :param dict config: the configuration dictionary that contains all model parameters.
-    :param str pkl_file: the name of the pkl file containing this model run.
+    :param str pkl_obj: the serialized pickle object string for this model run.
     """
 
-    query =  ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) "
-                "VALUES ('{}', '{}', '{}', '{}')".format(   timestamp, 
-                                                            batch_timestamp, 
-                                                            json.dumps(config), 
-                                                            pkl_file ))
-    db_conn.cursor().execute(query)
+    query = ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) VALUES( %s, %s, %s, %s )" )
+    db_conn.cursor().execute(query, ( timestamp, batch_timestamp, json.dumps(config), psycopg2.Binary(pickle_data) ) )
     db_conn.commit()
     return None
 
@@ -83,25 +80,23 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     unit_id_test  = list( map( int, unit_id_test ) )
     unit_labels   = list( map( int, unit_labels ) )
 
-    # insert this prediction into the predictions table.
-    query = (   " INSERT INTO results.predictions( model_id, unit_train_list, unit_test_list, unit_scores, true_labels ) "
-                " VALUES ( '{}', '{{{}}}', '{{{}}}', '{{{}}}', '{{{}}}' )".format( this_model_id,
-                                                                    ",".join(map(str, unit_id_train    ) ),
-                                                                    ",".join(map(str, unit_id_test     ) ),
-                                                                    ",".join(map(str, unit_predictions ) ),
-                                                                    ",".join(map(str, unit_labels      ) ) ))
-
-    db_conn.cursor().execute(query)
-    db_conn.commit()
+    # append data into predictions table. there is probably a faster way to do this than put it into a 
+    # dataframe and then use .to_sql but this works for now.
+    dataframe_for_insert = pd.DataFrame( {  "model_id": [this_model_id]*len(unit_id_test), 
+                                            "unit_id": unit_id_test,
+                                            "unit_score": unit_predictions,
+                                            "label_value": unit_labels } )
+                                            
+    dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False ) 
     return None
 
-def store_evaluation_metrics( timestamp, evaluation_type, evaluation_value ):
+def store_evaluation_metrics( timestamp, evaluation_metrics ):
     """ Write the model evaluation metrics into the results schema
     
     :param str timestamp: the timestamp at which this model was run.
-    :param str evaluation_type: string describing the metric being run.
-    :param list evalution_value: a list of numeric values defining the evaluation metric.
+    :param dict evaluation_metrics: dictionary whose keys correspond to metric names in the features.evaluations columns.
     """
+
     # get the model primary key corresponding to this timestamp.
     query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
     cur = db_conn.cursor()
@@ -109,11 +104,13 @@ def store_evaluation_metrics( timestamp, evaluation_type, evaluation_value ):
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
-    # insert this prediction into the evaluations table.
-    query = (   " INSERT INTO results.evaluations( model_id, evaluation_type, evaluation_value )"
-                " VALUES( '{}', '{}', '{{{}}}') ".format(   this_model_id,
-                                                            evaluation_type,
-                                                            ",".join( map( str, list(evaluation_value) ) ) ) )
+    # create query and insert into the evaluations table.
+    columns = list(evaluation_metrics.keys())
+    values  = list(evaluation_metrics.values())
+    query = (   " INSERT INTO results.evaluations( model_id, " + ",".join(map(str, columns ) ) + " ) " + 
+                " VALUES( " + str(this_model_id) + ", " + ",".join( map( str, values )) + " ) " )
+    
+
     db_conn.cursor().execute(query)
     db_conn.commit()
     return None
