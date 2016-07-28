@@ -113,11 +113,6 @@ def generate_models_to_run(config, query_db=True):
 
     experiment_list = []
 
-    if config["try_feature_sets_by_group"] == True:
-        feature_groups = MASTER_FEATURE_GROUPS 
-    else:
-        feature_groups = ["all"]
-
     # generate a list of {fake_today, training_window, prediction_window} dictionaries
     all_temporal_info = generate_time_info(config)
 
@@ -130,58 +125,47 @@ def generate_models_to_run(config, query_db=True):
         this_config["training_window"] = temporal_info["training_window"]
         this_config["fake_today"] = temporal_info["fake_today"]
         
-        for group in feature_groups:
+        # get the appropriate feature data from the database
+        if config["unit"] == "officer":
+            # get officer-level features to use
+            this_config["features"] = [feat for feat, is_set_true in config['officer_features'].items() if is_set_true]
+            exp_data = officer.run_traintest(this_config)
 
-            # leave out features related to the selected group
-            features_to_use = {}
-            if config["try_feature_sets_by_group"] == True:
-                feature_groups_to_use = copy.copy(feature_groups)
-                feature_groups_to_use.remove(group)
-                log.info("Running models without feature set {}!".format(
-                group))
-            else:
-                feature_groups_to_use = copy.copy(MASTER_FEATURE_GROUPS)
+        elif config["unit"] == "dispatch":
+            # get dispatch-level features to use
+            this_config["features"] = [feat for feat, is_set_true in config['dispatch_features'].items() if is_set_true]
+            exp_data = dispatch.run_traintest(this_config)
+        else:
+            log.error("Invalid 'unit' specified in config file: {}".format(config['unit']))
 
-            for features in feature_groups_to_use:
-                features_to_use.update(config["features"][features])
+        for model in config["model"]:
 
-            this_config["features"] = features_to_use
+            this_config["parameters"] = config["parameters"][model]
+            this_config["model"] = model
 
-            for model in config["model"]:
-                if query_db:
-                    if config["unit"] == "officer":
-                        exp_data = officer.run_traintest(this_config)
-                    elif config["unit"] == "dispatch":
-                        exp_data = dispatch.run_traintest(this_config)
-                else:
-                    exp_data = {"test_x": None, "train_y": None}
+            if config["pilot"]:
+                pilot_data = officer.run_pilot(this_config)
 
-                this_config["parameters"] = config["parameters"][model]
-                this_config["model"] = model
+            if config["make_feat_dists"]:
+                explore.make_all_dists(exp_data)
 
+            parameter_names = sorted(this_config["parameters"])
+            parameter_values = [this_config["parameters"][p] for p in parameter_names]
+            all_params = product(*parameter_values)
+
+            for each_param in all_params:
+                timestamp = datetime.datetime.now().isoformat()
+
+                parameters = {name: value for name, value
+                              in zip(parameter_names, each_param)}
+                log.info("Training model: {} with {}".format(this_config["model"],
+                     parameters))
+
+                this_config["parameters"] = parameters
+                new_experiment = EISExperiment(this_config)
+                new_experiment.exp_data = exp_data
                 if config["pilot"]:
-                    pilot_data = officer.run_pilot(this_config)
-
-                if config["make_feat_dists"]:
-                    explore.make_all_dists(exp_data)
-
-                parameter_names = sorted(this_config["parameters"])
-                parameter_values = [this_config["parameters"][p] for p in parameter_names]
-                all_params = product(*parameter_values)
-
-                for each_param in all_params:
-                    timestamp = datetime.datetime.now().isoformat()
-
-                    parameters = {name: value for name, value
-                                  in zip(parameter_names, each_param)}
-                    log.info("Training model: {} with {}".format(this_config["model"],
-                         parameters))
-
-                    this_config["parameters"] = parameters
-                    new_experiment = EISExperiment(this_config)
-                    new_experiment.exp_data = exp_data
-                    if config["pilot"]:
-                        new_experiment.pilot_data = pilot_data
-                    experiment_list.append(new_experiment)
+                    new_experiment.pilot_data = pilot_data
+                experiment_list.append(new_experiment)
 
     return experiment_list

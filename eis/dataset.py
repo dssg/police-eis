@@ -182,7 +182,7 @@ def convert_series(df):
     return newdf.astype(int), newcols
 
 
-def convert_categorical(feature_df):
+def convert_categorical(feature_df, feature_columns):
     """
     Convert a dataframe with columns containing categorical variables to
     a dataframe with dummy variables for each category.
@@ -190,6 +190,7 @@ def convert_categorical(feature_df):
     Args:
         feature_df(pd.DataFrame): A dataframe containing the features, some
                                   of which may be categorical
+        feature_columns(list): A list of the feature column names
 
     Returns:
         feature_df_w_dummies(pd.DataFrame): The features dataframe, but with
@@ -198,12 +199,12 @@ def convert_categorical(feature_df):
 
     log.info('Converting categorical features to dummy variablles')
 
-    categorical_features = class_map.find_categorical_features(feature_list)
+    categorical_features = class_map.find_categorical_features(feature_columns)
 
     log.info('... {} categorical features'.format(len(categorical_features)))
 
     # add dummy variables to feature dataframe
-    feature_df_w_dummies = pd.get_dummies(feature_df, columns=categorical_features)
+    feature_df_w_dummies = pd.get_dummies(feature_df, columns=categorical_features, sparse=True)
 
     log.info('... {} dummy variables added'.format(len(feature_df_w_dummies.columns) 
                                                    - len(feature_df.columns)))
@@ -372,9 +373,9 @@ class FeatureLoader():
                             "LEFT JOIN lookup_incident_types AS lookup "
                             "   ON lookup.code = incidents.grouped_incident_type_code "
                             "WHERE event_type_code = 4 "
-                            "AND      number_of_unjustified_allegations "
-                            "       + number_of_preventable_allegations "
-                            "       + number_of_sustained_allegations > 0")
+                            "AND (     number_of_unjustified_allegations > 0"
+                            "       OR number_of_preventable_allegations > 0"
+                            "       OR number_of_sustained_allegations > 0)")
 
         # add exclusions to the adverse query based on the definition 
         # of 'adverse' supplied in the experiment file
@@ -528,10 +529,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
             featnames = list(featnames) + list(names)
             dataset = dataset.join(feature_df, how='left', on='officer_id')
 
-    dataset = dataset.reset_index()
-    dataset = dataset.reindex(np.random.permutation(dataset.index))
-    dataset = dataset.set_index(["officer_id"])
-
+    dataset = dataset.set_index(["officer_id"], inplace=True)
     dataset = dataset.fillna(0)
 
     labels = dataset["adverse_by_ourdef"].values
@@ -579,17 +577,16 @@ def grab_dispatch_data(features, def_adverse, table_name):
                                                    feature_type = 'dispatch')
 
     # encode categorical features with dummy variables
-    features_df_w_dummies = convert_categorical(features_df)
+    features_df_w_dummies = convert_categorical(features_df, features_to_use)
                                                    
     # join the labels and the features
     log.debug('... merging labels and features in memory')
     dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
 
-    # shuffle the dataset rows for some reason
-    dataset = dataset.reset_index()
-    dataset = dataset.reindex(np.random.permutation(dataset.index))
-    dataset = dataset.set_index(["dispatch_id"])
+    log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
 
+    # shuffle the dataset rows for some reason
+    dataset = dataset.set_index(["dispatch_id"], inplace=True)
     dataset = dataset.fillna(0)
 
     features = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
