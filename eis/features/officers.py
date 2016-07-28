@@ -27,7 +27,6 @@ class DummyFeature(abstract.OfficerFeature):
                       "FROM events_hub "
                       "WHERE event_type_code = 4 "
                       "GROUP BY officer_id")
-        self.type_of_imputation = "mean"
 
 class IncidentCount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -50,7 +49,6 @@ class IncidentCount(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
-        self.type_of_imputation = "mean"
         self.name_of_features = ["incident_count"]
         self.type_of_features = "categorical"
 
@@ -68,7 +66,6 @@ class OfficerGender(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name ) )
-        self.type_of_imputation = "mean"
 
 class OfficerRace(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -84,7 +81,6 @@ class OfficerRace(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name ) )
-        self.type_of_imputation = "mean"
 
 class AcademyScore(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -100,7 +96,6 @@ class AcademyScore(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name ) )
-        self.type_of_imputation = "mean"
 
 class DivorceCount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -119,7 +114,6 @@ class DivorceCount(abstract.OfficerFeature):
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format) ) )
-        self.type_of_imputation = "mean"
 
 class MilesFromPost(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -136,7 +130,6 @@ class MilesFromPost(abstract.OfficerFeature):
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format) ) )
-        self.type_of_imputation = "mean"
 
 class ArrestCountCareer(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -158,7 +151,6 @@ class ArrestCountCareer(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format)))
         self.type_of_features = "categorical"
         self.name_of_features = ["ArrestCountCareer"]
-        self.type_of_imputation = "mean"
 
 class ArrestCount1Yr(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -182,7 +174,6 @@ class ArrestCount1Yr(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
-        self.type_of_imputation = "mean"
         self.name_of_features = ["arrest_count_1yr"]
         self.type_of_features = "categorical"
 
@@ -205,7 +196,6 @@ class MeanHoursPerShift(abstract.OfficerFeature):
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format)))
-        self.type_of_imputation = "mean"
 
 
 class SustainedRuleViolations(abstract.OfficerFeature):
@@ -254,4 +244,4 @@ class AllAllegations(abstract.OfficerFeature):
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format)))
-        self.type_of_imputation = "mean"
+        self.set_null_counts_to_zero = True
