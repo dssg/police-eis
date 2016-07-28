@@ -15,9 +15,10 @@ Code to take top performing recent models and
 put them in the evaluation webapp for further
 examination.
 
-Example:
+Examples:
 --------
 python prepare.py '2016-07-28' auc_score
+python prepare.py '2016-07-28' precision_score_at_top_point_01_percent
 """
 
 engine, config = setup_environment.get_database()
@@ -60,13 +61,32 @@ def get_pickel_best_models(timestamp, metric):
                     ORDER BY {} DESC LIMIT 25; ").format(timestamp, metric, metric)
 
     df_models = pd.read_sql(query, con=con)
-    pdb.set_trace()
+    #pdb.set_trace()
     output = df_models['pickle_file'].apply(lambda x: str(x)).values
-    pdb.set_trace()
+    #pdb.set_trace()
     #TODO
     #Save pickle_file to local directory?
     #output = df_models['pickle_file'].apply(lambda x: str(x).replace(' ', 'T')).values
     print (output, type(output), len(output))
+    return output
+
+def get_metric_best_models(timestamp, metric):
+
+    """
+    Get the evaluation results of the best recent models
+    by the specified timestamp and given metric
+    """
+
+    query   =  ("   SELECT {} FROM results.evaluations JOIN results.models \
+                    ON evaluations.model_id=models.model_id \
+                    WHERE run_time >= '{}' \
+                    AND {} is not null \
+                    ORDER BY {} DESC LIMIT 25; ").format(metric, timestamp, metric, metric)
+
+    df_models = pd.read_sql(query, con=con)
+    output = df_models[metric].apply(lambda x: str(x)).values
+    statement = "Resulting metric for models with best {} for {}: \n".format(metric, timestamp)
+    print (statement, output)
     return output
 
 
@@ -99,7 +119,8 @@ if __name__=='__main__':
 
     print("[*] Updating model list...")
     ids = get_best_recent_models(args.timestamp, args.metric)
-    pickles = ids = get_pickel_best_models(args.timestamp, args.metric)
+    pickles = get_pickel_best_models(args.timestamp, args.metric)
+    metrics = get_metric_best_models(args.timestamp, args.metric)
 
     #raw_outputs_dir = '/mnt/data4/jhelsby/newpilot/'
     #webapp_display_dir = '/mnt/data4/jhelsby/currentdisplay/'
