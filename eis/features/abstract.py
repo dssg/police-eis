@@ -20,27 +20,24 @@ class OfficerFeature():
     def build_and_insert( self, engine ):
         engine.execute( self.query )
 
-#        self.time_bound = None
-#        self.num_features = 1
-#        self.type_of_features = "float"
-#        self.start_date = None
-#        self.end_date = kwargs["time_bound"]
-#        self.name_of_features = ""  # DEPRECATED
-#        self.type_of_imputation = "zero"
-#        self.feat_time_window = None
-
 class TimeGatedOfficerFeature(OfficerFeature):
+    
+    # class-defined wildcards for writing template queries. 
+    DURATION = "durationwildcardstring"
+    COLUMN   = "columnwildcardstring"
+
     def __init__(self, **kwargs):
         OfficerFeature.__init__(self, **kwargs)
         self.lookback_durations = kwargs[ "lookback_durations" ]
         self.type_of_imputation = "zero"
-        self.feature_column_names = [ feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_duration ]
+        self.feature_column_names = [ self.feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_durations ]
 
     def build_and_insert( self, engine ):
-        for duration in self.lookback_durations:
-            query_str = self.query
-            query_str.replace( "INTERVAL", 
-            engine.execute( self.query )
+        for duration, column in zip( self.lookback_durations, self.feature_column_names):
+            this_query = self.query
+            this_query = this_query.replace( self.DURATION, duration )
+            this_query = this_query.replace( self.COLUMN, column )
+            engine.execute( this_query )
     
 class DispatchFeature():
     def __init__(self, **kwargs):

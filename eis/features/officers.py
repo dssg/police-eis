@@ -31,17 +31,23 @@ class DummyFeature(abstract.OfficerFeature):
 
 class TimeGatedDummyFeature(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
-        abstract.TimeGatedOFficerFeature.__init__(self, **kwargs)
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
         self.description = ("Dummy time-gated feature for testing 2016 schema")
-        self.column_names = 
-        self.query = ("UPDATE features.{} feature_table "
-                  "SET {} = staging_table.score "
-                  "FROM (   SELECT officer_id, score "
-                  "         FROM staging.officer_trainings "
-                  "     ) AS staging_table "
-                  "WHERE feature_table.officer_id = staging_table.officer_id "
-                  .format(  self.table_name,
-                            self.feature_name ) )
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code=3 "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
         self.type_of_imputation = "mean"
 
 class IncidentCount(abstract.OfficerFeature):
@@ -83,18 +89,6 @@ class OfficerGender(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name ) )
-        self.type_of_imputation = "mean"
-
-class OfficerRace(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = ("Officer race")
-        self.num_features = 1
-        self.name_of_features = ["OfficerRace"]
-        self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = staging_table.race_code "
-                      "FROM (   SELECT officer_id, race_code "
-                      "         FROM staging.officers_hub "
         self.type_of_imputation = "mean"
 
 class AcademyScore(abstract.OfficerFeature):
