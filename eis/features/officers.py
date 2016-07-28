@@ -18,7 +18,7 @@ time_format = "%Y-%m-%d %X"
 
 ### Basic Officer Features
 
-class dummyfeature(abstract.OfficerFeature):
+class DummyFeature(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Dummy feature for testing 2016 schema")
@@ -28,6 +28,22 @@ class dummyfeature(abstract.OfficerFeature):
                       "FROM events_hub "
                       "WHERE event_type_code = 4 "
                       "GROUP BY officer_id")
+        self.type_of_imputation = "mean"
+
+class OfficerRace(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer race")
+        self.num_features = 1
+        self.name_of_features = ["OfficerRace"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.race_code "
+                      "FROM (   SELECT officer_id, race_code "
+                      "         FROM staging.officers_hub "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
         self.type_of_imputation = "mean"
 
 class academy_score(abstract.OfficerFeature):
