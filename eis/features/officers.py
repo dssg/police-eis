@@ -230,4 +230,4 @@ class SustainedRuleViolations(abstract.OfficerFeature):
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format)))
-        self.type_of_imputation = "mean"
+        self.set_null_counts_to_zero = True

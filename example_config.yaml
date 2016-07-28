@@ -65,7 +65,8 @@ officer_features:
     ArrestCountCareer: True # Career arrests of officer
     ArrestCount1Yr: True # Number of arrests in last year.
     IncidentCount: True # Officer investigatable incident count to fake_today
- 
+    SustainedRuleViolations: True # Officer investigatable incident count to fake_today
+
     MeanHoursPerShift: True # Average number of hours per shift
 
 # empty feature groups break the code, so for now, we're
