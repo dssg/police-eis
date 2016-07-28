@@ -47,7 +47,7 @@ def create_officer_features_table(config, table_name="officer_features"):
     engine.execute("DROP TABLE IF EXISTS features.{}".format(table_name) )
 
     # get a list of table column names.
-    column_names = get_officer_features_table_columns( config )
+    column_names = officer.get_officer_features_table_columns( config )
 
     # Get a list of all the features that are set to true.
     features = config["officer_features"]
