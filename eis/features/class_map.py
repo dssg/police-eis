@@ -34,7 +34,8 @@ def lookup(feature, **kwargs):
                     'DummyFeature': dispatch.DummyFeature(**kwargs),
                     'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
                     'MilesFromPost': officers.MilesFromPost(**kwargs),
-                    'RandomFeature': dispatch.RandomFeature(**kwargs) 
+		    'OfficerRace': officers.OfficerRace(**kwargs),                    
+		    'RandomFeature': dispatch.RandomFeature(**kwargs) 
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),

@@ -60,6 +60,7 @@ features:
         AcademyScore: True # Performance score at the police academy.
         DivorceCount: True # Number of total divorces in this officer's past.
         MilesFromPost: True # Number of miles to post.
+	OfficerRace: True # Officer race code
 
     arrests:
         ArrestCountCareer: True # Career arrests of officer
