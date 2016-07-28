@@ -118,16 +118,21 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
     log.info("Creating new dispatch feature table: {}".format(table_name))
 
     create_query = (    "CREATE TABLE features.{} ( "
-                        "   {}              varchar, "
-                        "   created_on      timestamp,"
+                        "   {}              varchar(20), "
+                        "   created_on      timestamp"
                         .format(
                             table_name,
                             id_column))
 
-    # add a column for each feature in feature_list
-    feature_query = ', '.join(["{} numeric ".format(x) for x in feature_list])
+    # add a column for each categorical feature in feature_list
+    cat_features = class_map.find_categorical_features(feature_list)
+    cat_feature_query = ', '.join(["{} varchar(20) ".format(x) for x in cat_features])
 
-    final_query = create_query + feature_query + ");"
+    # add a column for each numeric feature in feature_list
+    num_features = set(feature_list) - set(cat_features)
+    num_feature_query = ', '.join(["{} numeric ".format(x) for x in num_features])
+
+    final_query = ', '.join([create_query, num_feature_query, cat_feature_query]) + ");"
     engine.execute(final_query)
 
     # TODO: for dispatch predictions we need to figure out an alternative to fake_today
@@ -160,9 +165,9 @@ def populate_dispatch_features_table(config, table_name):
                                         fake_today = datetime.datetime.today(),
                                         table_name = table_name)
 
-       feature_class.build_and_insert(engine)
+       log.debug('Calculating and inserting feature {}'.format(feature_class.feature_name))
 
-       log.debug('Calculated and inserted feature {}'.format(feature_class.feature_name))
+       feature_class.build_and_insert(engine)
 
 
 def populate_officer_features_table(config, table_name):
@@ -184,7 +189,9 @@ def populate_officer_features_table(config, table_name):
             continue
 
         # select each feature in the group individually if it is active in the configuration file.
-        active_features = [feature_name for feature_name in config["features"][feature_group].keys() if config["features"][feature_group][feature_name] ]
+        active_features = [feature_name for feature_name in config["features"][feature_group].keys() 
+                                        if config["features"][feature_group][feature_name] ]
+
         for feature_name in active_features:
 
             # loop over each fake today
@@ -196,5 +203,3 @@ def populate_officer_features_table(config, table_name):
                 feature_class.build_and_insert(engine)
                 log.debug('Calculated and inserted feature {} for fake_today {}'
                             .format(feature_class.feature_name, fake_today))
-
-

@@ -7,7 +7,7 @@ import sys
 import datetime
 
 from . import officers
-from . import dispatch
+from . import dispatches
 
 log = logging.getLogger(__name__)
 
@@ -18,6 +18,25 @@ class UnknownFeatureError(Exception):
 
     def __str__(self):
         return "Unknown feature: {}".format(self.feature)
+
+def find_categorical_features(feature_list):
+    """Given a list of feature names return the names of the 
+    features which are categorical
+    
+    Args:
+        feature_list(list): list of feature names to check
+        
+    Returns:
+        categorical_features(list): the features which are categorical
+    """
+
+    # TODO: make it so that we don't need to supply a bogus fake today to instantiate an OfficerFeature
+    dummy_kwargs = {'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
+    feature_classes = [lookup(feature, **dummy_kwargs) for feature in feature_list]
+
+    categorical_features = [feature.feature_name for feature in feature_classes if feature.is_categorical]
+
+    return categorical_features
 
 
 def lookup(feature, **kwargs):
@@ -36,9 +55,12 @@ def lookup(feature, **kwargs):
                     'IncidentCount': officers.IncidentCount(**kwargs),
 		    'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
                     'MilesFromPost': officers.MilesFromPost(**kwargs),
-		    'OfficerGender': officers.OfficerGender(**kwargs),
-		    'OfficerRace': officers.OfficerRace(**kwargs),                    
-		    'RandomFeature': dispatch.RandomFeature(**kwargs) 
+		            'OfficerGender': officers.OfficerGender(**kwargs),
+		            'OfficerRace': officers.OfficerRace(**kwargs),                    
+		            'RandomFeature': dispatch.RandomFeature(**kwargs),
+                    'dummy_feature': dispatches.dummy_feature(**kwargs),
+                    'random_feature': dispatches.random_feature(**kwargs),
+                    'division_assigned': dispatches.division_assigned(**kwargs) 
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
