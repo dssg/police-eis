@@ -482,17 +482,15 @@ class FeatureLoader():
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
-            table_name = 'officer_features'
         if feature_type == 'dispatch':
             id_column = 'dispatch_id'
-            table_name = 'dispatch_features'
 
         # Create the query for this feature.
         query = (   "SELECT {}, {} FROM features.{}"
                     .format(
                         id_column,
                         feature.feature_name, 
-                        table_name))
+                        self.table_name))
     
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
@@ -518,17 +516,15 @@ class FeatureLoader():
         # select the appropriate id column and feature table name for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
-            table_name = 'officer_features'
         if feature_type == 'dispatch':
             id_column = 'dispatch_id'
-            table_name = 'dispatch_features'
 
         # Create the query for this feature.
         query = (   "SELECT {}, {} FROM features.{}"
                     .format(
                         id_column,
                         feature_name_list,
-                        table_name))
+                        self.table_name))
     
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
