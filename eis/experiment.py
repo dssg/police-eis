@@ -7,13 +7,6 @@ from IPython.core.debugger import Tracer
 
 from . import officer, dispatch, explore
 
-# Potential data sources in the police dept to draw from
-MASTER_FEATURE_GROUPS = ["basic", "ia", "unit_div", "arrests",
-                         "citations", "incidents", "field_interviews",
-                         "cad", "training", "traffic_stops", "eis",
-                         "extraduty", "neighborhood"]
-
-
 log = logging.getLogger(__name__)
 
 class EISExperiment(object):
@@ -114,9 +107,9 @@ def generate_models_to_run(config, query_db=True):
     experiment_list = []
 
     if config["try_feature_sets_by_group"] == True:
-        feature_groups = MASTER_FEATURE_GROUPS 
+        feature_groups = config["features"].keys()
     else:
-        feature_groups = ["all"]
+        feature_groups = config["features"].keys()
 
     # generate a list of {fake_today, training_window, prediction_window} dictionaries
     all_temporal_info = generate_time_info(config)
@@ -140,7 +133,7 @@ def generate_models_to_run(config, query_db=True):
                 log.info("Running models without feature set {}!".format(
                 group))
             else:
-                feature_groups_to_use = copy.copy(MASTER_FEATURE_GROUPS)
+                feature_groups_to_use = config["features"].keys()
 
             for features in feature_groups_to_use:
                 features_to_use.update(config["features"][features])

@@ -53,10 +53,11 @@ def create_officer_features_table(config, table_name="officer_features"):
     feature_list  = []
     feature_value = []
     for classkey in feature_classes:
-        for feature in feature_classes[classkey]:
-            if config["features"][classkey][feature]:
-                feature_list.extend([feature])
-                feature_value.extend([True])
+        if feature_classes[classkey] is not None:
+            for feature in feature_classes[classkey]:
+                if config["features"][classkey][feature]:
+                    feature_list.extend([feature])
+                    feature_value.extend([True])
 
     # make sure we have at least 1 feature
     assert len(feature_list) > 0, 'List of features to build is empty'
@@ -177,6 +178,10 @@ def populate_officer_features_table(config, table_name):
     # loop through the feature groups
     feature_groups = config["features"]
     for feature_group in feature_groups:
+
+        # if this feature group is empty, skip to the next one.
+        if config["features"][feature_group] is None:
+            continue
 
         # select each feature in the group individually if it is active in the configuration file.
         active_features = [feature_name for feature_name in config["features"][feature_group].keys() if config["features"][feature_group][feature_name] ]
