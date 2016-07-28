@@ -52,3 +52,26 @@ class division_assigned(abstract.DispatchFeature):
                         "   unit_div as feature_column "
                         "FROM "
                         "   staging.non_formatted_dispatches_data ")
+
+#TODO
+#ALL CODE BELOW IS QUERYING NON-STAGING TABLES, FIX THIS ASAP!
+class latitude(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Latitude of the original dispatch"
+        self.query = (  "SELECT "
+                        " dispatch_id, "
+                        " latitude as feature_column "
+                        "FROM "
+                        " staging.non_formatted_dispatches_data ")
+
+class longitude(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Longitude of the original dispatch"
+        self.query = (  "SELECT "
+                        " dispatch_id, "
+                        " longitude as feature_column "
+                        "FROM "
+                        " staging.non_formatted_dispatches_data ")
+
