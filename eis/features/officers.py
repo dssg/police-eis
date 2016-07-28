@@ -44,9 +44,9 @@ class IncidentCount(abstract.OfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{}'::date" 
+                      "AND feature_table.fake_today = '{}'::date"
                       .format(  self.table_name,
-                                self.feature_name, 
+                                self.feature_name,
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
@@ -216,18 +216,17 @@ class SustainedRuleViolations(abstract.OfficerFeature):
         self.name_of_features = ["SustainedRuleViolations"]
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
-                      "FROM (   SELECT officer_id, count(grouped_incident_type_code) "
+                      "FROM (   SELECT officer_id, sum(number_of_sustained_allegations) as count "
                       "         FROM staging.incidents "
                       "         INNER JOIN staging.events_hub "
                       "         ON incidents.event_id = events_hub.event_id "
-                      "         WHERE number_of_sustained_allegations > 0 "
-                      "         AND event_datetime <= '{2}'"
+                      "         WHERE event_datetime <= '{2}' "
                       # the following line must be removed when not-sworn officers are removed. GIANT HACK
                       "         AND officer_id IS NOT null "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.fake_today = '{2}'::date "
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format)))
