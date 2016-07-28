@@ -20,12 +20,12 @@ class UnknownFeatureError(Exception):
         return "Unknown feature: {}".format(self.feature)
 
 def find_categorical_features(feature_list):
-    """Given a list of feature names return the names of the 
+    """Given a list of feature names return the names of the
     features which are categorical
-    
+
     Args:
         feature_list(list): list of feature names to check
-        
+
     Returns:
         categorical_features(list): the features which are categorical
     """
@@ -51,16 +51,13 @@ def lookup(feature, **kwargs):
                     'ArrestCountCareer': officers.ArrestCountCareer(**kwargs),
                     'DivorceCount': officers.DivorceCount(**kwargs),
                     'SustainedRuleViolations': officers.SustainedRuleViolations(**kwargs),
-                    'DummyFeature': dispatch.DummyFeature(**kwargs),
                     'IncidentCount': officers.IncidentCount(**kwargs),
 		    'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
                     'MilesFromPost': officers.MilesFromPost(**kwargs),
 		            'OfficerGender': officers.OfficerGender(**kwargs),
-		            'OfficerRace': officers.OfficerRace(**kwargs),                    
-		            'RandomFeature': dispatch.RandomFeature(**kwargs),
-                    'dummy_feature': dispatches.dummy_feature(**kwargs),
-                    'random_feature': dispatches.random_feature(**kwargs),
-                    'division_assigned': dispatches.division_assigned(**kwargs) 
+		            'OfficerRace': officers.OfficerRace(**kwargs),
+		            'RandomFeature': dispatches.RandomFeature(**kwargs),
+                    'DummyFeature': dispatches.DummyFeature(**kwargs)
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
