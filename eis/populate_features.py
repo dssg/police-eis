@@ -62,7 +62,6 @@ def create_officer_features_table(config, table_name="officer_features"):
 
     # Create and execute a query to create a table with a column for each of the features.
     log.info("Creating new officer feature table: {}...".format(table_name))
-
     create_query = (    "CREATE TABLE features.{} ( "
                         "   {}              int, "
                         "   created_on      timestamp, "
@@ -188,26 +187,3 @@ def populate_officer_features_table(config, table_name):
             feature_class.build_and_insert(engine)
             log.debug('Calculated and inserted feature {} for fake_today {}'
                         .format(feature_class.feature_name, fake_today))
-
-
-def get_officer_features_table_columns( config ):
-    """ Creates temporary instances of feature classes to get a list of all feature table column names """
-        
-    # get a list of all features that are set to true.
-    active_features = [ key for key in config["officer_features"] if config["officer_features"][key] == True ] 
-
-    # loop over active features, populating list of column names.
-    feature_table_columns = []
-    for active_feature in active_features:
-        feature_class = class_map.lookup(   active_feature,
-                                            fake_today=datetime.datetime.now() ,
-                                            table_name="junk",
-                                            lookback_durations=config["timegated_feature_lookback_duration"] )
-
-        # if this object is time gated, get a list of column names.
-        if hasattr( feature_class, "feature_column_names" ):
-            feature_table_columns.extend( feature_class.feature_column_names )
-        else:
-            feature_table_columns.extend( [feature_class.feature_name] )
-
-    return feature_table_columns 
