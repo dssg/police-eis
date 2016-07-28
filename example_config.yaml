@@ -47,7 +47,7 @@ def_adverse:
     pursuit: False  # unjustified pursuit
     complaint: True  # sustained complaints
 
-labelling: 
+labelling:
     include_all_employed: True # include all officers who were employed during the specified period
     include_all_active: True # include all oficcers who made an arrest or stop during the specified period.
 
@@ -56,41 +56,41 @@ labelling:
 ########################
 try_feature_sets_by_group: False  # Turn on if you want the code to try removing each feature set in turn
 
-features:
-    basic:
-        AcademyScore: True # Performance score at the police academy.
-        DivorceCount: True # Number of total divorces in this officer's past.
-        MilesFromPost: True # Number of miles to post.
+officer_features:
+    AcademyScore: True # Performance score at the police academy.
+    DivorceCount: True # Number of total divorces in this officer's past.
+    MilesFromPost: True # Number of miles to post.
+    OfficerRace: True # Officer race code
+    OfficerGender: True # Officer gender code
 
-    arrests:
-        ArrestCountCareer: True # Career arrests of officer
-        ArrestCount1Yr: True # Number of arrests in last year.
-
-    extraduty:
-        MeanHoursPerShift: True # Average number of hours per shift
+    ArrestCountCareer: True # Career arrests of officer
+    ArrestCount1Yr: True # Number of arrests in last year.
+    IncidentCount: True # Officer investigatable incident count to fake_today
+ 
+    MeanHoursPerShift: True # Average number of hours per shift
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
 # features defined.
-#    
+#
 #    ia:
 #
 #    unit_div:
-#        
+#
 #    citations:
-#                
+#
 #    incidents:
-#                
+#
 #    field_interviews:
-#        
+#
 #    cad:
-#                
+#
 #    training:
-#        
+#
 #    traffic_stops:
-#       
+#
 #    eis:
-#        
+#
 #    neighborhood:
 
 ########################

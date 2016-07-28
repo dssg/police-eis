@@ -15,6 +15,7 @@ class OfficerFeature():
         self.query = None
         self.feature_name = self.__class__.__name__
         self.table_name = kwargs["table_name"]
+        self.is_categorical = False
 
     def build_and_insert( self, engine ):
         engine.execute( self.query )
@@ -47,6 +48,7 @@ class DispatchFeature():
         self.description_long =""
         self.table_name = kwargs["table_name"]
         self.feature_name = self.__class__.__name__
+        self.is_categorical = False
         # self.query should return two columns, named 'dispatch_id' and '<feature_name>'
         self.query = None
         # self.update_query take the result of the feature query and inserts it into the feature table

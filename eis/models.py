@@ -41,14 +41,14 @@ def get_individual_importances(model, model_name, test_x):
 
 def run(train_x, train_y, test_x, model, parameters, n_cores):
 
-    results, modelobj = gen_model(train_x, train_y, test_x, model,
+    predicted_y_probability, predicted_y_binary, modelobj = gen_model(train_x, train_y, test_x, model,
                                   parameters, n_cores=n_cores)
 
     # Model interpretability
     individual_imp = get_individual_importances(modelobj, model, test_x)
     importances = get_feature_importances(modelobj)
 
-    return results, importances, modelobj, individual_imp
+    return predicted_y_probability, predicted_y_binary, importances, modelobj, individual_imp
 
 
 def gen_model(train_x, train_y, test_x, model, parameters, n_cores=1):
@@ -70,8 +70,9 @@ def gen_model(train_x, train_y, test_x, model, parameters, n_cores=1):
     log.info("Training {} with {}".format(model, parameters))
     modelobj = define_model(model, parameters, n_cores)
     modelobj.fit(train_x, train_y)
-    result_y = modelobj.predict_proba(test_x)
-    return result_y[:, 1], modelobj
+    result_y_probability = modelobj.predict_proba(test_x)
+    result_y_binary = modelobj.predict(test_x)
+    return result_y_probability[:, 1], result_y_binary, modelobj
 
 
 def get_feature_importances(model):

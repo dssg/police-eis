@@ -40,3 +40,15 @@ class RandomFeature(abstract.DispatchFeature):
                         "FROM staging.events_hub "
                         "GROUP BY dispatch_id")
         self.type_of_imputation = "mean"
+
+
+class division_assigned(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Division in which the dispatch occurred"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   unit_div as feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")

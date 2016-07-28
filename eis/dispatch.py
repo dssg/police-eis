@@ -25,9 +25,6 @@ def setup(config, today):
                                   split on for temporal cross-validation
     """
 
-    train_start_date = today - datetime.timedelta(days=config["training_window"])
-    test_end_date = today + datetime.timedelta(days=config["prediction_window"])
-
     log.info("Loading dispatch feature and label data...")
 
     # load the features and labels for all dispatches

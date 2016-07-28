@@ -7,6 +7,8 @@ import argparse
 import pickle
 import psycopg2
 import datetime
+import time
+import pdb
 
 from . import setup_environment, models, scoring
 from . import dataset, experiment, groups
@@ -24,16 +26,22 @@ def main(config_file_name, args):
     except:
         log.exception("Failed to get experiment configuration file!")
 
+    # if no features table name was set by the user, 
+    # set the features table name based on type of prediction (officer / dispatch)
+    if ( args.featuretable ):
+        table_name = args.featuretable
+    else:
+        table_name = '{}_features'.format(config['unit'])
+    config["feature_table_name"] = table_name
+
     # If asked to generate features, then do that and stop.
     if args.buildfeatures:
-        
+
         log.info("Re-building features...")
 
-        # set the features table name based on type of prediction (officer / dispatch)
-        table_name = '{}_features'.format(config['unit'])
 
         # Create the features table.
-        populate_features.create_features_table(config, table_name) 
+        populate_features.create_features_table(config, table_name)
 
         # Populate the featuress table
         populate_features.populate_features_table(config, table_name)
@@ -41,14 +49,15 @@ def main(config_file_name, args):
         log.info('Done creating features table')
         sys.exit()
 
-    all_experiments = experiment.generate_models_to_run(config)    
+    all_experiments = experiment.generate_models_to_run(config)
 
     log.info("Running models on dataset...")
     batch_timestamp = datetime.datetime.now().isoformat()
     for my_exp in all_experiments:
+        start = time.time()
         timestamp = datetime.datetime.now().isoformat()
 
-        result_y, importances, modelobj, individual_imps = models.run(
+        result_y, result_y_binary, importances, modelobj, individual_imps = models.run(
             my_exp.exp_data["train_x"],
             my_exp.exp_data["train_y"],
             my_exp.exp_data["test_x"],
@@ -79,18 +88,24 @@ def main(config_file_name, args):
                           "test_x": my_exp.pilot_data["test_x"]}
             pilot_file = "{}pilot_experiment_{}.pkl".format(my_exp.config["pilot_dir"], timestamp)
             pickle_results(pilot_file, pilot_save)
-        #commented out for now, but we need to create a flag for whether an eis system already exists in the department 
+        #commented out for now, but we need to create a flag for whether an eis system already exists in the department
         #if config['eis_table']:
         #    confusion_matrices = scoring.test_thresholds(
-        #	    my_exp.exp_data["test_x_index"], result_y, 
+        #	    my_exp.exp_data["test_x_index"], result_y,
         #        my_exp.config['fake_today'], my_exp.exp_data["test_end_date"])
         #else:
         confusion_matrices = []
-        
+
         # TODO: make this more robust for officer vs dispatch level predictions
+        end = time.time()
+        #pdb.set_trace()
+        model_time_in_seconds = "%.3f" % (end-start)
+        print(model_time_in_seconds)
+
         if config['unit'] == 'officer':
             to_save = {"test_labels": my_exp.exp_data["test_y"],
                        "test_predictions": result_y,
+                       "test_predictions_binary" : result_y_binary,
                        "config": my_exp.config,
                        "officer_id_train": my_exp.exp_data["train_x_index"],
                        "officer_id_test": my_exp.exp_data["test_x_index"],
@@ -104,19 +119,22 @@ def main(config_file_name, args):
                        "aggregation": groupscores,
                        "eis_baseline": confusion_matrices,
                        "modelobj": modelobj,
-                       "individual_importances": individual_imps}
+                       "individual_importances": individual_imps,
+                       "time_for_model_in_seconds": model_time_in_seconds }
 
         elif config['unit'] == 'dispatch':
             to_save = {"test_labels": my_exp.exp_data["test_y"],
                        "test_predictions": result_y,
+                       "test_predictions_binary": result_y_binary,
                        "config": my_exp.config,
                        "timestamp": timestamp,
                        "parameters": my_exp.config["parameters"],
                        "feature_importances_names": my_exp.exp_data["features"],
-                       "modelobj": modelobj}
+                       "modelobj": modelobj,
+                       "time_for_model_in_seconds": model_time_in_seconds }
 
         # get all model metrics.
-        all_metrics = scoring.calculate_all_evaluation_metrics( list( my_exp.exp_data["test_y"]), list(result_y) )
+        all_metrics = scoring.calculate_all_evaluation_metrics( list( my_exp.exp_data["test_y"]), list(result_y), list(result_y_binary), model_time_in_seconds )
 
         # create a pickle object to store into the database.
         model_data_pickle_object = pickle.dumps( to_save )
@@ -130,7 +148,7 @@ def main(config_file_name, args):
         # Store information about this experiment into the results schema.
         dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, model_data_pickle_object )
         dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
-        dataset.store_evaluation_metrics( timestamp, all_metrics ) 
+        dataset.store_evaluation_metrics( timestamp, all_metrics )
 
         if my_exp.config["auditing"]:
             audit_outputs = {"train_x": my_exp.exp_data["train_x"],
@@ -161,6 +179,7 @@ def pickle_results(pkl_file, to_save):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str, help="pass your config", default="default.yaml")
-    parser.add_argument( "-f", "--buildfeatures", help="build the features and stop", action='store_true' )
+    parser.add_argument( "-b", "--buildfeatures", help="build the features and stop", action='store_true' )
+    parser.add_argument( "-f", "--featuretable", help="set the name of the features table", default="features" )
     args = parser.parse_args()
     main(args.config, args)
