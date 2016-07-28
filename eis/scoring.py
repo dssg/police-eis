@@ -56,8 +56,18 @@ def recall_at_x_percent(test_labels, test_predictions, x_percent=0.01,
     else:
         return recall
 
+def get_test_predictions_binary(test_predictions, cutoff_probability=0.8):
 
-def calculate_all_evaluation_metrics( test_label, test_predictions ):
+    test_predictions_binary = np.copy(test_predictions)
+    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
+    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+
+    return test_predictions_binary
+
+
+#test_predictions_binary = get_test_predictions_binary(test_predictions)
+
+def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary=None ):
     """ Calculate several evaluation metrics using sklearn for a set of
         labels and predictions.
     :param list test_labels: list of true labels for the test data.
@@ -67,6 +77,9 @@ def calculate_all_evaluation_metrics( test_label, test_predictions ):
     """
 
     all_metrics = dict()
+
+    #test_predictions_binary = get_test_predictions_binary(test_predictions)
+
 
     # compute built-in sklearn metrics.
     #all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions )
@@ -78,7 +91,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions ):
     #all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions )
     #all_metrics["fbeta_score_favor_precision"] = metrics.
     #all_metrics["fbeta_score_favor_recall"] = metrics.
-    #all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions )
+    all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions_binary )
     all_metrics["precision_score_at_top_point_01_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
     all_metrics["precision_score_at_top_point_1_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.1)
     all_metrics["precision_score_at_top_1_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=1.0)
