@@ -61,7 +61,10 @@ features:
         DivorceCount: True # Number of total divorces in this officer's past.
         MilesFromPost: True # Number of miles to post.
         SustainedRuleViolations: True # Number of sustained rule violations
-
+	OfficerRace: True # Officer race code
+	OfficerGender: True # Officer gender code
+	IncidentCount: True # Officer investigatable incident count to fake_today
+ 
     arrests:
         ArrestCountCareer: True # Career arrests of officer
         ArrestCount1Yr: True # Number of arrests in last year.
