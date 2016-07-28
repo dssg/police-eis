@@ -360,10 +360,10 @@ class FeatureLoader():
 
         log.debug("Loading dispatch labels...")
 
+        # TODO: change this back to the events_hub table once it's stable
         # select all dispatches within the specified time window
         query_all = (       "SELECT DISTINCT dispatch_id "
-                            "FROM events_hub "
-                            "WHERE event_type_code = 5 ")
+                            "FROM non_formatted_dispatches_data ")
 
         # select dispatches that led to events deemed adverse
         query_adverse = (   "SELECT DISTINCT dispatch_id "
@@ -533,7 +533,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     dataset = dataset.fillna(0)
 
     labels = dataset["adverse_by_ourdef"].values
-    feats = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
+    feats = dataset.drop(["adverse_by_ourdef"], axis=1)
     ids = dataset.index.values
 
     # make sure we return a non-zero number of labelled officers
@@ -582,14 +582,13 @@ def grab_dispatch_data(features, def_adverse, table_name):
     # join the labels and the features
     log.debug('... merging labels and features in memory')
     dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
-
     log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
 
-    # shuffle the dataset rows for some reason
-    dataset = dataset.set_index(["dispatch_id"], inplace=True)
-    dataset = dataset.fillna(0)
+    # NOTE: its important to run these inplace, otherwise you get a MemoryError (on a 15G RAM machine)
+    dataset.set_index(["dispatch_id"], inplace=True)
+    dataset.fillna(0, inplace=True)
 
-    features = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
+    features = dataset.drop(["adverse_by_ourdef"], axis=1)
     labels = dataset["adverse_by_ourdef"].values
     ids = dataset.index.values
     feature_names = features.columns
