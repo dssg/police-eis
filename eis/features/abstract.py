@@ -16,9 +16,18 @@ class OfficerFeature():
         self.feature_name = self.__class__.__name__
         self.table_name = kwargs["table_name"]
         self.is_categorical = False
+        self.type_of_imputation = None
+        self.set_null_counts_to_zero = False
 
     def build_and_insert( self, engine ):
         engine.execute( self.query )
+
+        if self.set_null_counts_to_zero:
+            # option to set all nulls to zeros (for use with counts)
+            update_query = ("UPDATE features.{0} SET {1} = 0 "
+                            "WHERE {1} IS null; ".format(self.table_name, self.feature_name))
+            engine.execute( update_query )
+
 
 #        self.time_bound = None
 #        self.num_features = 1
