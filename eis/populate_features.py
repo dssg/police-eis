@@ -47,17 +47,19 @@ def create_officer_features_table(config, table_name="officer_features"):
     engine.execute("DROP TABLE IF EXISTS features.{}".format(table_name) )
 
     # Get a list of all the features that are set to true.
-    features = config['features']
+    features = config["officer_features"]
+    feature_list = [ key for key in features if features[key] == True ]
+    feature_value = [True]*len(feature_list)
 
-    feature_classes = config["features"]
-    feature_list  = []
-    feature_value = []
-    for classkey in feature_classes:
-        if feature_classes[classkey] is not None:
-            for feature in feature_classes[classkey]:
-                if config["features"][classkey][feature]:
-                    feature_list.extend([feature])
-                    feature_value.extend([True])
+#    feature_classes = config["features"]
+#    feature_list  = []
+#    feature_value = []
+#    for classkey in feature_classes:
+#        if feature_classes[classkey] is not None:
+#            for feature in feature_classes[classkey]:
+#                if config["features"][classkey][feature]:
+#                    feature_list.extend([feature])
+#                    feature_value.extend([True])
 
     # make sure we have at least 1 feature
     assert len(feature_list) > 0, 'List of features to build is empty'
@@ -180,26 +182,16 @@ def populate_officer_features_table(config, table_name):
     # which we don't care about here
     fake_todays = {time_dict['fake_today'] for time_dict in temporal_info}
 
-    # loop through the feature groups
-    feature_groups = config["features"]
-    for feature_group in feature_groups:
+    # get a list of all features that are set to true.
+    active_features = [ key for key in config["officer_features"] if config["officer_features"][key] == True ] 
 
-        # if this feature group is empty, skip to the next one.
-        if config["features"][feature_group] is None:
-            continue
+    # loop over all fake todays, populating the active features for each.
+    for feature_name in active_features:
+        for fake_today in fake_todays:
 
-        # select each feature in the group individually if it is active in the configuration file.
-        active_features = [feature_name for feature_name in config["features"][feature_group].keys() 
-                                        if config["features"][feature_group][feature_name] ]
-
-        for feature_name in active_features:
-
-            # loop over each fake today
-            for fake_today in fake_todays:
-    
-                feature_class = class_map.lookup(feature_name, 
-                                                 fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
-                                                 table_name=table_name)
-                feature_class.build_and_insert(engine)
-                log.debug('Calculated and inserted feature {} for fake_today {}'
-                            .format(feature_class.feature_name, fake_today))
+            feature_class = class_map.lookup(feature_name, 
+                                             fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
+                                             table_name=table_name)
+            feature_class.build_and_insert(engine)
+            log.debug('Calculated and inserted feature {} for fake_today {}'
+                        .format(feature_class.feature_name, fake_today))

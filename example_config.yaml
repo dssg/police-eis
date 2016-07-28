@@ -55,13 +55,6 @@ labelling:
 ########################
 try_feature_sets_by_group: False  # Turn on if you want the code to try removing each feature set in turn
 
-features:
-    basic:
-        AcademyScore: True # Performance score at the police academy.
-        DivorceCount: True # Number of total divorces in this officer's past.
-        MilesFromPost: True # Number of miles to post.
-        SustainedRuleViolations: True # Number of sustained rule violations
-
 officer_features:
     AcademyScore: True # Performance score at the police academy.
     DivorceCount: True # Number of total divorces in this officer's past.
