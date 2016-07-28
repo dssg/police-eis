@@ -27,19 +27,19 @@ def lookup(feature, **kwargs):
     else:
         kwargs["feat_time_window"] = 15
 
-    dict_lookup = { 'academy_score': officers.academy_score(**kwargs),
-                    'arrest_count_1yr': officers.arrest_count_1yr(**kwargs),
-                    'arrest_count_career': officers.arrest_count_career(**kwargs),
-                    'divorce_count': officers.divorce_count(**kwargs),
-                    'dummy_feature': dispatch.dummy_feature(**kwargs),
-                    'mean_hours_per_shift': officers.mean_hours_per_shift(**kwargs),
-                    'miles_from_post': officers.miles_from_post(**kwargs),
-                    'random_feature': dispatch.random_feature(**kwargs) 
+    dict_lookup = { 'AcademyScore': officers.AcademyScore(**kwargs),
+                    'ArrestCount1Yr': officers.ArrestCount1Yr(**kwargs),
+                    'ArrestCountCareer': officers.ArrestCountCareer(**kwargs),
+                    'DivorceCount': officers.DivorceCount(**kwargs),
+                    'DummyFeature': dispatch.DummyFeature(**kwargs),
+                    'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
+                    'MilesFromPost': officers.MilesFromPost(**kwargs),
+                    'RandomFeature': dispatch.RandomFeature(**kwargs) 
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
-    #                'arrest_count_1yr': officers.arrest_count_1yr(**kwargs),
-    #                'arrest_count_career': officers.arrest_count_career(**kwargs),
+    #                'ArrestCount1Yr': officers.ArrestCount1Yr(**kwargs),
+    #                'ArrestCountCareer': officers.ArrestCountCareer(**kwargs),
     #                'height_weight': officers.HeightWeight(**kwargs),
     #                'education': officers.Education(**kwargs),
     #                'daysexperience': officers.DaysExperience(**kwargs),
