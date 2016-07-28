@@ -37,7 +37,7 @@ def setup(config, today):
     log.info("Loading officers and features to use as training...")
     table_name = config["feature_table_name"]
     train_x, train_y, train_id, names = dataset.grab_officer_data(
-        config["features"],
+        config["officer_features"],
         train_start_date,
         today,
         train_start_date,
@@ -51,7 +51,7 @@ def setup(config, today):
 
     log.info("Loading officers and features to use as testing...")
     test_x, test_y, test_id, names = dataset.grab_officer_data(
-        config["features"],
+        config["officer_features"],
         today,
         test_end_date,
         today,
