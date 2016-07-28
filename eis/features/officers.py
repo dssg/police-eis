@@ -15,24 +15,24 @@ except:
 
 time_format = "%Y-%m-%d %X"
 
-class dummyfeature(abstract.OfficerFeature):
+class DummyFeature(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Dummy feature for testing 2016 schema")
         self.num_features = 1
-        self.name_of_features = ["dummy"]
+        self.name_of_features = ["DummyFeature"]
         self.query = ("SELECT officer_id, COUNT(event_type_code) "
                       "FROM events_hub "
                       "WHERE event_type_code = 4 "
                       "GROUP BY officer_id")
         self.type_of_imputation = "mean"
 
-class academy_score(abstract.OfficerFeature):
+class AcademyScore(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Officer's score at the police academy")
         self.num_features = 1
-        self.name_of_features = ["academy_score"]
+        self.name_of_features = ["AcademyScore"]
         self.query = ("UPDATE features.{} feature_table "
                       "SET {} = staging_table.score "
                       "FROM (   SELECT officer_id, score "
@@ -43,12 +43,12 @@ class academy_score(abstract.OfficerFeature):
                                 self.feature_name ) )
         self.type_of_imputation = "mean"
 
-class divorce_count(abstract.OfficerFeature):
+class DivorceCount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of divorces for the officer")
         self.num_features = 1
-        self.name_of_features = ["divorce_count"]
+        self.name_of_features = ["DivorceCount"]
         self.query = ("UPDATE features.{} feature_table "
                       "SET {} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
@@ -62,12 +62,12 @@ class divorce_count(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format) ) )
         self.type_of_imputation = "mean"
 
-class miles_from_post(abstract.OfficerFeature):
+class MilesFromPost(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of miles that the officer lives from the post")
         self.num_features = 1
-        self.name_of_features = ["miles_from_post"]
+        self.name_of_features = ["MilesFromPost"]
         self.query = ("UPDATE features.{} feature_table "
                       "SET {} = staging_table.miles_to_assignment "
                       "FROM (   SELECT officer_id, miles_to_assignment "
@@ -79,7 +79,7 @@ class miles_from_post(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format) ) )
         self.type_of_imputation = "mean"
 
-class arrest_count_career(abstract.OfficerFeature):
+class ArrestCountCareer(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of career arrests" )
@@ -98,14 +98,14 @@ class arrest_count_career(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
         self.type_of_features = "categorical"
-        self.name_of_features = ["arrest_count_career"]
+        self.name_of_features = ["ArrestCountCareer"]
         self.type_of_imputation = "mean"
 
-class arrest_count_1yr(abstract.OfficerFeature):
+class ArrestCount1Yr(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = "Number of arrests by officer in past 1 yr"
-        self.name_of_features = ["arrest_count_1yr"]
+        self.name_of_features = ["ArrestCount1Yr"]
         self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
         self.query = ("UPDATE features.{} feature_table "
                       "SET {} = staging_table.count "
@@ -128,12 +128,12 @@ class arrest_count_1yr(abstract.OfficerFeature):
         self.type_of_features = "categorical"
 
 
-class mean_hours_per_shift(abstract.OfficerFeature):
+class MeanHoursPerShift(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of hours worked on a shift on average")
         self.num_features = 1
-        self.name_of_features = ["mean_hours_per_shift"]
+        self.name_of_features = ["MeanHoursPerShift"]
         self.query = ("UPDATE features.{} feature_table "
                       "SET {} = staging_table.avg "
                       "FROM (   SELECT officer_id, AVG( EXTRACT( EPOCH from shift_length)/3600 )"
