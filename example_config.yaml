@@ -21,7 +21,7 @@ pilot_dir: 'pilot/'
 ########################
 
 fake_today: ['01May2014', '01May2013']  # if you want a specific_today then pass this
-timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years", "forever"]
+timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"]
 autogen_fake_todays: False  # set to off if you want a specific fake_today
 training_window: [365, 730, 10000]  # training, days, used for officer-level prediction
 prediction_window: [365, 180]  # prediction, days, used for officer-level prediction
@@ -58,16 +58,14 @@ try_feature_sets_by_group: False  # Turn on if you want the code to try removing
 
 officer_features:
     AcademyScore: True # Performance score at the police academy.
-    DivorceCount: True # Number of total divorces in this officer's past.
-    MilesFromPost: True # Number of miles to post.
-    OfficerRace: True # Officer race code
-    OfficerGender: True # Officer gender code
-
-    ArrestCountCareer: True # Career arrests of officer
-    ArrestCount1Yr: True # Number of arrests in last year.
-    IncidentCount: True # Officer investigatable incident count to fake_today
- 
-    MeanHoursPerShift: True # Average number of hours per shift
+    DivorceCount: False # Number of total divorces in this officer's past.
+    MilesFromPost: False # Number of miles to post.
+    OfficerGender: False  # Officer gender code
+    ArrestCountCareer: False # Career arrests of officer
+    ArrestCount1Yr: False # Number of arrests in last year.
+    IncidentCount: False # Officer investigatable incident count to fake_today
+    MeanHoursPerShift: False # Average number of hours per shift
+    TimeGatedDummyFeature: True # Time gated dummy feature.
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
