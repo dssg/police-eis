@@ -88,7 +88,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
 
 
-    #all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions )
+    all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions_binary )
     #all_metrics["fbeta_score_favor_precision"] = metrics.
     #all_metrics["fbeta_score_favor_recall"] = metrics.
     all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions_binary )
