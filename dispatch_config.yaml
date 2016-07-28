@@ -60,10 +60,10 @@ officer_features:
     arrest_count_1yr: False
 
 dispatch_features:
-    dummy_feature: True
-    random_feature: True
-    division_assigned: True
-
+    DummyFeature: True
+    RandomFeature: True
+    latitude: True
+    longitude: True
 
 features:
     basic:
