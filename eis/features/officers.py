@@ -27,6 +27,20 @@ class DummyFeature(abstract.OfficerFeature):
                       "GROUP BY officer_id")
         self.type_of_imputation = "mean"
 
+class TimeGatedDummyFeature(abstract.TimeGatedOfficerFeature):
+        def __init__(self, **kwargs):
+            abstract.TimeGatedOFficerFeature.__init__(self, **kwargs)
+            self.description = ("Dummy time-gated feature for testing 2016 schema")
+            self.column_names = 
+            self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.score "
+                      "FROM (   SELECT officer_id, score "
+                      "         FROM staging.officer_trainings "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
+
 class AcademyScore(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)

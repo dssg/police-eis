@@ -28,16 +28,19 @@ class OfficerFeature():
 #        self.type_of_imputation = "zero"
 #        self.feat_time_window = None
 
-
-class OfficerTimeBoundedFeature(OfficerFeature):
+class TimeGatedOfficerFeature(OfficerFeature):
     def __init__(self, **kwargs):
         OfficerFeature.__init__(self, **kwargs)
-        self.feat_time_window = kwargs["feat_time_window"] * 365
-        self.start_date = self.end_date - datetime.timedelta(
-            days=self.feat_time_window)
+        self.lookback_durations = kwargs[ "lookback_durations" ]
         self.type_of_imputation = "zero"
+        self.feature_column_names = [ feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_duration ]
 
-
+    def build_and_insert( self, engine ):
+        for duration in self.lookback_durations:
+            query_str = self.query
+            query_str.replace( "INTERVAL", 
+            engine.execute( self.query )
+    
 class DispatchFeature():
     def __init__(self, **kwargs):
         self.description = ""
