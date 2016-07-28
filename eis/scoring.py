@@ -80,10 +80,10 @@ def calculate_all_evaluation_metrics( test_label, test_predictions ):
     #all_metrics["fbeta_score_favor_recall"] = metrics.
     #all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions )
     all_metrics["precision_score_at_top_point_01_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
-    #all_metrics["precision_score_at_top_point_1_percent"] = metrics.
-    #all_metrics["precision_score_at_top_1_percent"] = metrics.
-    #all_metrics["precision_score_at_top_5_percent"] = metrics.
-    #all_metrics["precision_score_at_top_10_percent"] = metrics.
+    all_metrics["precision_score_at_top_point_1_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.1)
+    all_metrics["precision_score_at_top_1_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=1.0)
+    all_metrics["precision_score_at_top_5_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=5.0)
+    all_metrics["precision_score_at_top_10_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=10.0)
     #all_metrics["recall_score_default"] = metrics.
     #all_metrics["recall_score_at_top_point_01_percent"] = metrics.
     #all_metrics["recall_score_at_top_point_1_percent"] = metrics.
