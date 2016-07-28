@@ -231,3 +231,27 @@ class SustainedRuleViolations(abstract.OfficerFeature):
                                 self.feature_name,
                                 self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
+
+class AllAllegations(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of allegations")
+        self.num_features = 1
+        self.name_of_features = ["AllAllegations"]
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, sum(number_of_allegations) as count "
+                      "         FROM staging.incidents "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON incidents.event_id = events_hub.event_id "
+                      "         WHERE event_datetime <= '{2}' "
+                      # the following line must be removed when not-sworn officers are removed. GIANT HACK
+                      "         AND officer_id IS NOT null "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format)))
+        self.type_of_imputation = "mean"

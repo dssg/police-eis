@@ -68,7 +68,7 @@ officer_features:
     SustainedRuleViolations: True # Officer investigatable incident count to fake_today
 
     MeanHoursPerShift: True # Average number of hours per shift
-
+    AllAllegations: True # Number of allegations made against an officer
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
 # features defined.
