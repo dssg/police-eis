@@ -82,7 +82,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
 
 
     # compute built-in sklearn metrics.
-    #all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions )
+    all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions_binary )
     all_metrics["auc_score"] = compute_AUC(test_label, test_predictions)
     all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
     all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
@@ -97,7 +97,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics["precision_score_at_top_1_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=1.0)
     all_metrics["precision_score_at_top_5_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=5.0)
     all_metrics["precision_score_at_top_10_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=10.0)
-    #all_metrics["recall_score_default"] = metrics.
+    #all_metrics["recall_score_default"] = metrics.recall_score( test_label, test_predictions_binary )
     #all_metrics["recall_score_at_top_point_01_percent"] = metrics.
     #all_metrics["recall_score_at_top_point_1_percent"] = metrics.
     #all_metrics["recall_score_at_top_1_percent"] = metrics.
