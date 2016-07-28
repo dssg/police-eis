@@ -67,7 +67,7 @@ def get_test_predictions_binary(test_predictions, cutoff_probability=0.8):
 
 #test_predictions_binary = get_test_predictions_binary(test_predictions)
 
-def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary=None ):
+def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary, time_for_model_in_seconds ):
     """ Calculate several evaluation metrics using sklearn for a set of
         labels and predictions.
     :param list test_labels: list of true labels for the test data.
@@ -78,16 +78,11 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
 
     all_metrics = dict()
 
-    #test_predictions_binary = get_test_predictions_binary(test_predictions)
-
-
     # compute built-in sklearn metrics.
     all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions_binary )
     all_metrics["auc_score"] = compute_AUC(test_label, test_predictions)
     all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
     all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
-
-
     all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions_binary )
     all_metrics["fbeta_score_favor_precision"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)
     all_metrics["fbeta_score_favor_recall"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
@@ -103,13 +98,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics["recall_score_at_top_1_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=1.0)
     all_metrics["recall_score_at_top_5_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=5.0)
     all_metrics["recall_score_at_top_10_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=10.0)
-    #all_metrics["time_for_model_in_seconds"] = metrics.
-
-
-
-    # compute precision at different threshholds.
-
-    # compute recall at different threshholds.
+    all_metrics["time_for_model_in_seconds"] = time_for_model_in_seconds
 
     return all_metrics
 

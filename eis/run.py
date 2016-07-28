@@ -7,6 +7,8 @@ import argparse
 import pickle
 import psycopg2
 import datetime
+import time
+import pdb
 
 from . import setup_environment, models, scoring
 from . import dataset, experiment, groups
@@ -46,6 +48,7 @@ def main(config_file_name, args):
     log.info("Running models on dataset...")
     batch_timestamp = datetime.datetime.now().isoformat()
     for my_exp in all_experiments:
+        start = time.time()
         timestamp = datetime.datetime.now().isoformat()
 
         result_y, result_y_binary, importances, modelobj, individual_imps = models.run(
@@ -88,6 +91,11 @@ def main(config_file_name, args):
         confusion_matrices = []
 
         # TODO: make this more robust for officer vs dispatch level predictions
+        end = time.time()
+        #pdb.set_trace()
+        model_time_in_seconds = "%.3f" % (end-start)
+        print(model_time_in_seconds)
+
         if config['unit'] == 'officer':
             to_save = {"test_labels": my_exp.exp_data["test_y"],
                        "test_predictions": result_y,
@@ -105,7 +113,8 @@ def main(config_file_name, args):
                        "aggregation": groupscores,
                        "eis_baseline": confusion_matrices,
                        "modelobj": modelobj,
-                       "individual_importances": individual_imps}
+                       "individual_importances": individual_imps,
+                       "time_for_model_in_seconds": model_time_in_seconds }
 
         elif config['unit'] == 'dispatch':
             to_save = {"test_labels": my_exp.exp_data["test_y"],
@@ -115,10 +124,11 @@ def main(config_file_name, args):
                        "timestamp": timestamp,
                        "parameters": my_exp.config["parameters"],
                        "feature_importances_names": my_exp.exp_data["features"],
-                       "modelobj": modelobj}
+                       "modelobj": modelobj,
+                       "time_for_model_in_seconds": model_time_in_seconds }
 
         # get all model metrics.
-        all_metrics = scoring.calculate_all_evaluation_metrics( list( my_exp.exp_data["test_y"]), list(result_y), list(result_y_binary) )
+        all_metrics = scoring.calculate_all_evaluation_metrics( list( my_exp.exp_data["test_y"]), list(result_y), list(result_y_binary), model_time_in_seconds )
 
         # create a pickle object to store into the database.
         model_data_pickle_object = pickle.dumps( to_save )
