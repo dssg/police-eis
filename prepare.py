@@ -1,14 +1,10 @@
 import sys
 import os
 import pandas as pd
-pd.__version__
 import subprocess
 import argparse
 import pdb
 import pickle
-
-sys.path.append("../")
-
 from eis import setup_environment
 
 """
