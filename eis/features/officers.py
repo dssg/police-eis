@@ -111,7 +111,7 @@ class DivorceCount(abstract.OfficerFeature):
         self.query = ("UPDATE features.{} feature_table "
                       "SET {} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
-                      "         FROM staging.officer_marital " 
+                      "         FROM staging.officer_marital "
                       "         WHERE marital_status_code = 4 "
                       "         AND last_modified <= '{}'::date "
                       "         GROUP BY officer_id ) AS staging_table "
@@ -130,7 +130,7 @@ class MilesFromPost(abstract.OfficerFeature):
         self.query = ("UPDATE features.{} feature_table "
                       "SET {} = staging_table.miles_to_assignment "
                       "FROM (   SELECT officer_id, miles_to_assignment "
-                      "         FROM staging.officer_addresses " 
+                      "         FROM staging.officer_addresses "
                       "         WHERE last_modified <= '{}'::date ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
@@ -151,7 +151,7 @@ class ArrestCountCareer(abstract.OfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{}'::date" 
+                      "AND feature_table.fake_today = '{}'::date"
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format),
@@ -176,9 +176,9 @@ class ArrestCount1Yr(abstract.OfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{}'::date" 
+                      "AND feature_table.fake_today = '{}'::date"
                       .format(  self.table_name,
-                                self.feature_name, 
+                                self.feature_name,
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format),
                                 self.fake_today.strftime(time_format)))
@@ -203,7 +203,32 @@ class MeanHoursPerShift(abstract.OfficerFeature):
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
-                                self.feature_name, 
+                                self.feature_name,
                                 self.fake_today.strftime(time_format)))
         self.type_of_imputation = "mean"
 
+
+class SustainedRuleViolations(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of sustained rule violatoins")
+        self.num_features = 1
+        self.name_of_features = ["SustainedRuleViolations"]
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(grouped_incident_type_code) "
+                      "         FROM staging.incidents "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON incidents.event_id = events_hub.event_id "
+                      "         WHERE number_of_sustained_allegations > 0 "
+                      "         AND event_datetime <= '{2}'"
+                      # the following line must be removed when not-sworn officers are removed. GIANT HACK
+                      "         AND officer_id IS NOT null "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format)))
+        self.type_of_imputation = "mean"
