@@ -63,6 +63,9 @@ dispatch_features:
     dummy_feature: True
     random_feature: True
     division_assigned: True
+    DispatchHour: True
+    DispatchDayOfWeek: True
+    DispatchYearQuarter: True
 
 
 features:

@@ -52,3 +52,39 @@ class division_assigned(abstract.DispatchFeature):
                         "   unit_div as feature_column "
                         "FROM "
                         "   staging.non_formatted_dispatches_data ")
+
+
+class DispatchHour(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Hour during which the dispatch occurred (24 hour clock)"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(hour FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
+
+
+class DispatchDayOfWeek(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Day of week the dispatch occurred (Sunday=0)"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(DOW FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
+
+
+class DispatchYearQuarter(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Year quarter the dispatch occurred"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(QUARTER FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")

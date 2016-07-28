@@ -57,7 +57,10 @@ def lookup(feature, **kwargs):
 		            'OfficerGender': officers.OfficerGender(**kwargs),
 		            'OfficerRace': officers.OfficerRace(**kwargs),
 		            'RandomFeature': dispatches.RandomFeature(**kwargs),
-                    'DummyFeature': dispatches.DummyFeature(**kwargs)
+                    'DummyFeature': dispatches.DummyFeature(**kwargs),
+                    'DispatchDayOfWeek': dispatches.DispatchDayOfWeek(**kwargs),
+                    'DispatchHour': dispatches.DispatchHour(**kwargs),
+                    'DispatchYearQuarter': dispatches.DispatchHour(**kwargs)
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
