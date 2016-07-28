@@ -44,7 +44,7 @@ def get_best_recent_models(timestamp, metric):
 
     df_models = pd.read_sql(query, con=con)
     output = df_models['run_time'].apply(lambda x: str(x).replace(' ', 'T')).values
-    print (output)
+    #print (output)
     return output
 
 def get_pickel_best_models(timestamp, metric):
@@ -85,19 +85,26 @@ def get_metric_best_models(timestamp, metric):
 
     df_models = pd.read_sql(query, con=con)
     output = df_models[metric].apply(lambda x: str(x)).values
-    statement = "Resulting metric for models with best {} for {}: \n".format(metric, timestamp)
+    statement = "Resulting metric for models with best {} run on or after {}: \n".format(metric, timestamp)
     print (statement, output)
     return output
 
 
-def get_best_models():
+def get_best_models(metric):
     """
     Grab the identifiers of the best performing (top AUC) models
     from the database.
     """
-    query = "SELECT id_timestamp FROM models.full ORDER BY auc DESC LIMIT 25"
+    #query = "SELECT id_timestamp FROM models.full ORDER BY auc DESC LIMIT 25"
+    query   =  ("   SELECT run_time FROM results.evaluations JOIN results.models \
+                    ON evaluations.model_id=models.model_id \
+                    WHERE {} is not null \
+                    ORDER BY {} DESC LIMIT 25; ").format(metric, metric)
+
     df_models = pd.read_sql(query, con=con)
-    return df_models['id_timestamp'].apply(lambda x: str(x).replace(' ', 'T')).values
+    output = df_models['run_time'].apply(lambda x: str(x).replace(' ', 'T')).values
+    #print(output)
+    return output
 
 
 def prepare_webapp_display(ids, src_dir, dest_dir):
@@ -119,8 +126,11 @@ if __name__=='__main__':
 
     print("[*] Updating model list...")
     ids = get_best_recent_models(args.timestamp, args.metric)
+    ids_all = get_best_models(args.metric)
     pickles = get_pickel_best_models(args.timestamp, args.metric)
     metrics = get_metric_best_models(args.timestamp, args.metric)
+
+    #pickle.load
 
     #raw_outputs_dir = '/mnt/data4/jhelsby/newpilot/'
     #webapp_display_dir = '/mnt/data4/jhelsby/currentdisplay/'
