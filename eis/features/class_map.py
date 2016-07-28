@@ -57,7 +57,10 @@ def lookup(feature, **kwargs):
                     'OfficerGender': officers.OfficerGender(**kwargs),
 	            'RandomFeature': dispatches.RandomFeature(**kwargs),
                     'DummyFeature': dispatches.DummyFeature(**kwargs),
-                    'TimeGatedDummyFeature': officers.TimeGatedDummyFeature(**kwargs)
+                    'TimeGatedDummyFeature': officers.TimeGatedDummyFeature(**kwargs),
+		    'OfficerRace': officers.OfficerRace(**kwargs),
+                    'AllAllegations': officers.AllAllegations(**kwargs),
+		    'DummyFeature': dispatches.DummyFeature(**kwargs)
                   }
 
     if feature not in dict_lookup.keys():

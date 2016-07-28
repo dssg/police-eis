@@ -87,7 +87,6 @@ def get_officer_features_table_columns( config ):
         
     # get a list of all features that are set to true.
     feature_names = config["officer_features"]
-    print( type( feature_names ) )
     active_features = [ key for key in feature_names if feature_names[key] == True ] 
 
     # loop over active features, populating list of column names.
