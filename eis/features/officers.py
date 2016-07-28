@@ -29,6 +29,31 @@ class DummyFeature(abstract.OfficerFeature):
                       "GROUP BY officer_id")
         self.type_of_imputation = "mean"
 
+class IncidentCount(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = "Number of investigable incidents"
+        self.name_of_features = ["IncidentCount"]
+        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code=4 "
+                      "         AND event_datetime <= '{}'::date "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{}'::date" 
+                      .format(  self.table_name,
+                                self.feature_name, 
+                                self.fake_today.strftime(time_format),
+                                self.fake_today.strftime(time_format),
+                                self.fake_today.strftime(time_format)))
+        self.type_of_imputation = "mean"
+        self.name_of_features = ["incident_count"]
+        self.type_of_features = "categorical"
+
 class OfficerGender(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
