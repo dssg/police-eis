@@ -16,6 +16,9 @@ class OfficerFeature():
         self.feature_name = self.__class__.__name__
         self.table_name = kwargs["table_name"]
         self.is_categorical = False
+        self.type_of_imputation = None
+
+
 
     def build_and_insert( self, engine ):
         engine.execute( self.query )
