@@ -34,6 +34,7 @@ def lookup(feature, **kwargs):
                     'DummyFeature': dispatch.DummyFeature(**kwargs),
                     'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
                     'MilesFromPost': officers.MilesFromPost(**kwargs),
+		    'OfficerGender': officers.OfficerGender(**kwargs),
 		    'OfficerRace': officers.OfficerRace(**kwargs),                    
 		    'RandomFeature': dispatch.RandomFeature(**kwargs) 
                   }

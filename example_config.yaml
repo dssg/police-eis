@@ -61,6 +61,7 @@ features:
         DivorceCount: True # Number of total divorces in this officer's past.
         MilesFromPost: True # Number of miles to post.
 	OfficerRace: True # Officer race code
+	OfficerGender: True # Officer gender code
 
     arrests:
         ArrestCountCareer: True # Career arrests of officer

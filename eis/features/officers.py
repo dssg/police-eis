@@ -29,6 +29,22 @@ class DummyFeature(abstract.OfficerFeature):
                       "GROUP BY officer_id")
         self.type_of_imputation = "mean"
 
+class OfficerGender(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer gender")
+        self.num_features = 1
+        self.name_of_features = ["OfficerGender"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.gender_code "
+                      "FROM (   SELECT officer_id, gender_code "
+                      "         FROM staging.officer_characteristics "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
+        self.type_of_imputation = "mean"
+
 class OfficerRace(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
