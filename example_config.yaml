@@ -46,7 +46,7 @@ def_adverse:
     pursuit: False  # unjustified pursuit
     complaint: True  # sustained complaints
 
-labelling: 
+labelling:
     include_all_employed: True # include all officers who were employed during the specified period
     include_all_active: True # include all oficcers who made an arrest or stop during the specified period.
 
@@ -60,6 +60,7 @@ features:
         AcademyScore: True # Performance score at the police academy.
         DivorceCount: True # Number of total divorces in this officer's past.
         MilesFromPost: True # Number of miles to post.
+        SustainedRuleViolations: True # Number of sustained rule violations
 
     arrests:
         ArrestCountCareer: True # Career arrests of officer
@@ -71,25 +72,25 @@ features:
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
 # features defined.
-#    
+#
 #    ia:
 #
 #    unit_div:
-#        
+#
 #    citations:
-#                
+#
 #    incidents:
-#                
+#
 #    field_interviews:
-#        
+#
 #    cad:
-#                
+#
 #    training:
-#        
+#
 #    traffic_stops:
-#       
+#
 #    eis:
-#        
+#
 #    neighborhood:
 
 ########################
