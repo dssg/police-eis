@@ -578,20 +578,19 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     data = FeatureLoader(start_date, end_date, time_bound, table_name)
 
     officers = data.officer_labeller(labelling, def_adverse)
-    # officers.set_index(["officer_id"])
+    officers.set_index(["officer_id"])
     
     dataset = officers
     featnames = []
     for each_feat in features:
-        if features[each_feat] == True:
-            feature_df, names = data.loader(each_feat,
-                                            dataset["officer_id"])
-            log.info("Loaded feature {} with {} rows".format(
-                each_feat, len(feature_df)))
-            featnames = list(featnames) + list(names)
-            dataset = dataset.join(feature_df, how='left', on='officer_id')
+        feature_df, names = data.loader(each_feat,
+                                        dataset["officer_id"])
+        log.info("Loaded feature {} with {} rows".format(
+            each_feat, len(feature_df)))
+        featnames = list(featnames) + list(names)
+        dataset = dataset.join(feature_df, how='left', on='officer_id')
 
-    dataset = dataset.set_index(["officer_id"], inplace=True)
+    dataset.set_index(["officer_id"], inplace=True)
     dataset = dataset.fillna(0)
 
     labels = dataset["adverse_by_ourdef"].values
