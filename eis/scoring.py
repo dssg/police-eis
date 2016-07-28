@@ -1,13 +1,17 @@
+import sys
 import pdb
 import numpy as np
 import pandas as pd
 from sklearn import metrics
 
+sys.path.append('../evaluation/webapp/')
+import evaluation
+
 from . import dataset
 
 
 def calculate_all_evaluation_metrics( test_label, test_predictions ):
-    """ Calculate several evaluation metrics using sklearn for a set of 
+    """ Calculate several evaluation metrics using sklearn for a set of
         labels and predictions.
     :param list test_labels: list of true labels for the test data.
     :param list test_predictions: list of risk scores for the test data.
@@ -16,18 +20,38 @@ def calculate_all_evaluation_metrics( test_label, test_predictions ):
     """
 
     all_metrics = dict()
-    
+
     # compute built-in sklearn metrics.
     #all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions )
+    all_metrics["auc_score"] = compute_AUC(test_label, test_predictions)
     all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
-    #all_metrics["f1_score"]       = metrics.f1_score( test_label, test_predictions )
     all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
+
+
+    #all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions )
+    #all_metrics["fbeta_score_favor_precision"] = metrics.
+    #all_metrics["fbeta_score_favor_recall"] = metrics.
+    #all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions )
+    #all_metrics["precision_score_at_top_point_01_percent"] = metrics.
+    #all_metrics["precision_score_at_top_point_1_percent"] = metrics.
+    #all_metrics["precision_score_at_top_1_percent"] = metrics.
+    #all_metrics["precision_score_at_top_5_percent"] = metrics.
+    #all_metrics["precision_score_at_top_10_percent"] = metrics.
+    #all_metrics["recall_score_default"] = metrics.
+    #all_metrics["recall_score_at_top_point_01_percent"] = metrics.
+    #all_metrics["recall_score_at_top_point_1_percent"] = metrics.
+    #all_metrics["recall_score_at_top_1_percent"] = metrics.
+    #all_metrics["recall_score_at_top_5_percent"] = metrics.
+    #all_metrics["recall_score_at_top_10_percent"] = metrics.
+    #all_metrics["time_for_model_in_seconds"] = metrics.
+
+
 
     # compute precision at different threshholds.
 
     # compute recall at different threshholds.
 
-    return all_metrics 
+    return all_metrics
 
 def compute_AUC(test_labels, test_predictions):
     fpr, tpr, thresholds = metrics.roc_curve(
@@ -45,7 +69,7 @@ def test_thresholds(testid, testprobs, start_date, end_date):
     for each_threshold in perc_thresholds:
         cm_eis, cm_dsapp = compute_confusion(testid, testprobs, each_threshold,
                                              start_date, end_date)
-        confusion_matrices.update({each_threshold: {'eis': cm_eis, 
+        confusion_matrices.update({each_threshold: {'eis': cm_eis,
                                                     'dsapp': cm_dsapp}})
 
     return confusion_matrices
@@ -65,7 +89,7 @@ def compute_confusion(testid, testprobs, at_x_perc, start_date, end_date):
 
     Returns:
     cm_eis - confusion matrix for the existing EIS during this time period
-    cm_dsapp - confusion matrix for the DSaPP EIS during this time period 
+    cm_dsapp - confusion matrix for the DSaPP EIS during this time period
     and probability cutoff
     """
 
