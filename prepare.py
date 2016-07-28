@@ -1,9 +1,11 @@
 import sys
 import os
 import pandas as pd
+pd.__version__
 import subprocess
 import argparse
 import pdb
+import pickle
 
 sys.path.append("../")
 
@@ -47,28 +49,43 @@ def get_best_recent_models(timestamp, metric):
     #print (output)
     return output
 
+def pickle_results(pkl_file, to_save):
+    """
+    Save contents of experiment to pickle file for later use
+    """
+
+    with open(pkl_file, 'wb') as f:
+        pickle.dump(to_save, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+    return None
+
 def get_pickel_best_models(timestamp, metric):
 
     """
     Get the pickle file of the best recent models
     by the specified timestamp and given metric
+
+    Dumps top pickle files from database to results directory.
     """
 
-    query   =  ("   SELECT pickle_file FROM results.evaluations JOIN results.models \
+    query   =  ("   SELECT pickle_file, run_time FROM results.evaluations JOIN results.models \
                     ON evaluations.model_id=models.model_id \
                     WHERE run_time >= '{}' \
                     AND {} is not null \
                     ORDER BY {} DESC LIMIT 25; ").format(timestamp, metric, metric)
 
     df_models = pd.read_sql(query, con=con)
-    #pdb.set_trace()
-    output = df_models['pickle_file'].apply(lambda x: str(x)).values
-    #pdb.set_trace()
-    #TODO
-    #Save pickle_file to local directory?
-    #output = df_models['pickle_file'].apply(lambda x: str(x).replace(' ', 'T')).values
-    print (output, type(output), len(output))
-    return output
+    N = len(df_models['pickle_file'])
+
+    for file_number in range(0, N):
+        pickle_file = pickle.loads(df_models['pickle_file'].iloc[file_number])
+        file_name = df_models['run_time'].apply(lambda x: str(x).replace(' ', 'T')).iloc[file_number]
+        full_file_name = "police_eis_results_"+"top_"+metric+"_"+file_name+".pkl"
+        file_path = "results/"+full_file_name
+        pickle.dump(pickle_file, open( file_path, "wb" ) )
+
+    return None
+
 
 def get_metric_best_models(timestamp, metric):
 
@@ -125,10 +142,12 @@ if __name__=='__main__':
     args = parser.parse_args()
 
     print("[*] Updating model list...")
+    metrics = get_metric_best_models(args.timestamp, args.metric)
+    print("[*] Dumping requested pickle files to results...")
     ids = get_best_recent_models(args.timestamp, args.metric)
     ids_all = get_best_models(args.metric)
     pickles = get_pickel_best_models(args.timestamp, args.metric)
-    metrics = get_metric_best_models(args.timestamp, args.metric)
+    print("[*] Done!")
 
     #pickle.load
 
