@@ -3,11 +3,58 @@ import pdb
 import numpy as np
 import pandas as pd
 from sklearn import metrics
-
-sys.path.append('../evaluation/webapp/')
-import evaluation
-
 from . import dataset
+
+def compute_AUC(test_labels, test_predictions):
+    fpr, tpr, thresholds = metrics.roc_curve(
+        test_labels, test_predictions, pos_label=1)
+    return metrics.auc(fpr, tpr)
+
+
+def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01,
+                           return_cutoff=False):
+
+    cutoff_index = int(len(test_predictions) * x_percent)
+    cutoff_index = min(cutoff_index, len(test_predictions) - 1)
+
+    sorted_by_probability = np.sort(test_predictions)[::-1]
+    cutoff_probability = sorted_by_probability[cutoff_index]
+
+    test_predictions_binary = np.copy(test_predictions)
+    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
+    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+
+    precision, _, _, _ = metrics.precision_recall_fscore_support(
+        test_labels, test_predictions_binary)
+    precision = precision[1]  # only interested in precision for label 1
+
+    if return_cutoff:
+        return precision, cutoff_probability
+    else:
+        return precision
+
+
+def recall_at_x_percent(test_labels, test_predictions, x_percent=0.01,
+                        return_cutoff=False):
+
+    cutoff_index = int(len(test_predictions) * x_percent)
+    cutoff_index = min(cutoff_index, len(test_predictions) - 1)
+
+    sorted_by_probability = np.sort(test_predictions)[::-1]
+    cutoff_probability = sorted_by_probability[cutoff_index]
+
+    test_predictions_binary = np.copy(test_predictions)
+    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
+    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+
+    _, recall, _, _ = metrics.precision_recall_fscore_support(
+        test_labels, test_predictions_binary)
+    recall = recall[1]  # only interested in precision for label 1
+
+    if return_cutoff:
+        return recall, cutoff_probability
+    else:
+        return recall
 
 
 def calculate_all_evaluation_metrics( test_label, test_predictions ):
@@ -32,7 +79,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions ):
     #all_metrics["fbeta_score_favor_precision"] = metrics.
     #all_metrics["fbeta_score_favor_recall"] = metrics.
     #all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions )
-    #all_metrics["precision_score_at_top_point_01_percent"] = metrics.
+    all_metrics["precision_score_at_top_point_01_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
     #all_metrics["precision_score_at_top_point_1_percent"] = metrics.
     #all_metrics["precision_score_at_top_1_percent"] = metrics.
     #all_metrics["precision_score_at_top_5_percent"] = metrics.
@@ -53,10 +100,6 @@ def calculate_all_evaluation_metrics( test_label, test_predictions ):
 
     return all_metrics
 
-def compute_AUC(test_labels, test_predictions):
-    fpr, tpr, thresholds = metrics.roc_curve(
-        test_labels, test_predictions, pos_label=1)
-    return metrics.auc(fpr, tpr)
 
 
 def test_thresholds(testid, testprobs, start_date, end_date):
