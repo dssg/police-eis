@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import subprocess
 import argparse
+import pdb
 
 sys.path.append("../")
 
@@ -30,7 +31,8 @@ except:
 
 def get_best_recent_models(timestamp, metric):
     """
-    Grab the identifiers of the best recent models by specified metric
+    Get the model id of the best recent models
+    by the specified timestamp and given metric
     """
 
     query   =  ("   SELECT run_time FROM results.evaluations JOIN results.models \
@@ -44,7 +46,28 @@ def get_best_recent_models(timestamp, metric):
     print (output)
     return output
 
+def get_pickel_best_models(timestamp, metric):
 
+    """
+    Get the pickle file of the best recent models
+    by the specified timestamp and given metric
+    """
+
+    query   =  ("   SELECT pickle_file FROM results.evaluations JOIN results.models \
+                    ON evaluations.model_id=models.model_id \
+                    WHERE run_time >= '{}' \
+                    AND {} is not null \
+                    ORDER BY {} DESC LIMIT 25; ").format(timestamp, metric, metric)
+
+    df_models = pd.read_sql(query, con=con)
+    pdb.set_trace()
+    output = df_models['pickle_file'].apply(lambda x: str(x)).values
+    pdb.set_trace()
+    #TODO
+    #Save pickle_file to local directory?
+    #output = df_models['pickle_file'].apply(lambda x: str(x).replace(' ', 'T')).values
+    print (output, type(output), len(output))
+    return output
 
 
 def get_best_models():
@@ -76,6 +99,8 @@ if __name__=='__main__':
 
     print("[*] Updating model list...")
     ids = get_best_recent_models(args.timestamp, args.metric)
-    raw_outputs_dir = '/mnt/data4/jhelsby/newpilot/'
-    webapp_display_dir = '/mnt/data4/jhelsby/currentdisplay/'
-    prepare_webapp_display(ids, raw_outputs_dir, webapp_display_dir)
+    pickles = ids = get_pickel_best_models(args.timestamp, args.metric)
+
+    #raw_outputs_dir = '/mnt/data4/jhelsby/newpilot/'
+    #webapp_display_dir = '/mnt/data4/jhelsby/currentdisplay/'
+    #prepare_webapp_display(ids, raw_outputs_dir, webapp_display_dir)
