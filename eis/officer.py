@@ -35,7 +35,7 @@ def setup(config, today):
     log.info("Test label window stop: {}".format(test_end_date))
 
     log.info("Loading officers and features to use as training...")
-    table_name = "features"
+    table_name = config["feature_table_name"]
     train_x, train_y, train_id, names = dataset.grab_officer_data(
         config["features"],
         train_start_date,
