@@ -7,13 +7,6 @@ from IPython.core.debugger import Tracer
 
 from . import officer, dispatch, explore
 
-# Potential data sources in the police dept to draw from
-MASTER_FEATURE_GROUPS = ["basic", "ia", "unit_div", "arrests",
-                         "citations", "incidents", "field_interviews",
-                         "cad", "training", "traffic_stops", "eis",
-                         "extraduty", "neighborhood"]
-
-
 log = logging.getLogger(__name__)
 
 class EISExperiment(object):

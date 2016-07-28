@@ -5,6 +5,7 @@ import logging
 import sys
 import argparse
 import pickle
+import psycopg2
 import datetime
 
 from . import setup_environment, models, scoring
@@ -43,6 +44,7 @@ def main(config_file_name, args):
     all_experiments = experiment.generate_models_to_run(config)    
 
     log.info("Running models on dataset...")
+    batch_timestamp = datetime.datetime.now().isoformat()
     for my_exp in all_experiments:
         timestamp = datetime.datetime.now().isoformat()
 
@@ -113,13 +115,22 @@ def main(config_file_name, args):
                        "feature_importances_names": my_exp.exp_data["features"],
                        "modelobj": modelobj}
 
+        # get all model metrics.
+        all_metrics = scoring.calculate_all_evaluation_metrics( list( my_exp.exp_data["test_y"]), list(result_y) )
 
-        pkl_file = "{}{}_{}.pkl".format(
-                    my_exp.config['directory'], my_exp.config['pkl_prefix'], timestamp)
-        pickle_results(pkl_file, to_save)
+        # create a pickle object to store into the database.
+        model_data_pickle_object = pickle.dumps( to_save )
 
-        auc = scoring.compute_AUC(my_exp.exp_data["test_y"], result_y)
-        dataset.enter_into_db(timestamp, my_exp.config, auc)
+        # package data for storing into results schema.
+        unit_id_train    = list( my_exp.exp_data["train_x_index"] )
+        unit_id_test     = list( my_exp.exp_data["test_x_index"] )
+        unit_predictions = list( result_y )
+        unit_labels      = list( my_exp.exp_data["test_y"] )
+
+        # Store information about this experiment into the results schema.
+        dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, model_data_pickle_object )
+        dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
+        dataset.store_evaluation_metrics( timestamp, all_metrics ) 
 
         if my_exp.config["auditing"]:
             audit_outputs = {"train_x": my_exp.exp_data["train_x"],

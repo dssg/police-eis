@@ -17,7 +17,7 @@ time_format = "%Y-%m-%d %X"
 
 ### Basic Dispatch Features
 
-class dummy_feature(abstract.DispatchFeature):
+class DummyFeature(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = ("Dummy feature for testing 2016 schema")
@@ -30,7 +30,7 @@ class dummy_feature(abstract.DispatchFeature):
         self.type_of_imputation = "mean"
 
 
-class random_feature(abstract.DispatchFeature):
+class RandomFeature(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = ("Random feature for testing")
