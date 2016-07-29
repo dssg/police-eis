@@ -45,7 +45,7 @@ def_adverse:
     dof: False  # unjustified discharge of firearm
     raid: False  # unjustified raid and search
     pursuit: False  # unjustified pursuit
-    complaint: True  # sustained complaints
+    complaint: True  # sustained complaints    
 
 labelling:
     include_all_employed: True # include all officers who were employed during the specified period
@@ -61,38 +61,15 @@ officer_features:
     DivorceCount: True # Number of total divorces in this officer's past.
     MilesFromPost: True # Number of miles to post.
     OfficerGender: True  # Officer gender code
-    ArrestCountCareer: True # Career arrests of officer
+    ArrestCountCareer: True # Career arrests of officer, time gated.
     ArrestCount1Yr: True # Number of arrests in last year.
     IncidentCount: True # Officer investigatable incident count to fake_today
     MeanHoursPerShift: True # Average number of hours per shift
     TimeGatedDummyFeature: True # Time gated dummy feature.
     SustainedRuleViolations: True # Officer investigatable incident count to fake_today
-
     MeanHoursPerShift: True # Average number of hours per shift
     AllAllegations: True # Number of allegations made against an officer
-# empty feature groups break the code, so for now, we're
-# commenting out all feature groups that have no
-# features defined.
-#
-#    ia:
-#
-#    unit_div:
-#
-#    citations:
-#
-#    incidents:
-#
-#    field_interviews:
-#
-#    cad:
-#
-#    training:
-#
-#    traffic_stops:
-#
-#    eis:
-#
-#    neighborhood:
+     
 
 ########################
 # Model selection      #
