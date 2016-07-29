@@ -142,3 +142,24 @@ class DispatchYear(abstract.DispatchFeature):
                         "FROM "
                         "   staging.non_formatted_dispatches_data ")
 
+#TODO beat
+
+#TODO event_type_code
+
+#TODO priority
+
+#TODO dispatch role
+
+#TODO dispatch delay
+
+#TODO travel time
+
+#TODO response time
+
+#TODO at scene time
+
+#TODO units assigned
+
+#TODO units arrived
+
+#TODO unit shift
