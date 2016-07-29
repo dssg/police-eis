@@ -64,6 +64,7 @@ dispatch_features:
     RandomFeature: True
     Latitude: True
     Longitude: True
+    DispatchMinute: True
     DispatchHour: True
     DispatchDayOfWeek: True
     DispatchMonth: True
