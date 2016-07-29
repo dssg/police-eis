@@ -93,6 +93,7 @@ def get_officer_features_table_columns( config ):
     feature_table_columns = []
     for active_feature in active_features:
         feature_class = class_map.lookup(   active_feature,
+                                            unit = 'officer',
                                             fake_today=datetime.datetime.now() ,
                                             table_name="junk",
                                             lookback_durations=config["timegated_feature_lookback_duration"] )

@@ -39,31 +39,36 @@ def find_categorical_features(feature_list):
     return categorical_features
 
 
-def lookup(feature, **kwargs):
-
-    if feature[1:3] == "yr":
-        kwargs["feat_time_window"] = int(feature[0])
+def lookup(feature_name, unit, **kwargs):
+    
+    '''
+    
+    Instantiates an object of class feature_name.
+    
+    :str feature_name: The name of the feature to instantiate
+    :str unit: The name of the type of feature being built; either 'officer' or 'dispatch'
+    :returns: Object of feature class
+    :rtype: unit.feature_name object
+ 
+    '''
+    if feature_name[1:3] == "yr":
+        kwargs["feat_time_window"] = int(feature_name[0])
     else:
         kwargs["feat_time_window"] = 15
-
-    dict_lookup = { 'AcademyScore': officers.AcademyScore(**kwargs),
-                    'ArrestCount1Yr': officers.ArrestCount1Yr(**kwargs),
-                    'ArrestCountCareer': officers.ArrestCountCareer(**kwargs),
-                    'DivorceCount': officers.DivorceCount(**kwargs),
-                    'SustainedRuleViolations': officers.SustainedRuleViolations(**kwargs),
-                    'IncidentCount': officers.IncidentCount(**kwargs),
-		    'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
-                    'MilesFromPost': officers.MilesFromPost(**kwargs),
-                    'OfficerGender': officers.OfficerGender(**kwargs),
-	            'RandomFeature': dispatches.RandomFeature(**kwargs),
-                    'DummyFeature': dispatches.DummyFeature(**kwargs),
-                    'TimeGatedDummyFeature': officers.TimeGatedDummyFeature(**kwargs),
-		    'OfficerRace': officers.OfficerRace(**kwargs),
-                    'AllAllegations': officers.AllAllegations(**kwargs),
-		    'DummyFeature': dispatches.DummyFeature(**kwargs)
-                  }
-
-    if feature not in dict_lookup.keys():
+    
+    # Assign the module to find the feature class in   
+    if unit == 'officer':
+        unit = officers
+    elif unit == 'dispatch':
+        unit = dispatches
+    
+    # Read in the feature class
+    try:
+        feature_class = getattr(unit, feature_name)
+    except NameError:
         raise UnknownFeatureError(feature)
-
-    return dict_lookup[feature]
+    
+    # Instantiate the feature class
+    feature = feature_class(**kwargs)    
+    
+    return feature

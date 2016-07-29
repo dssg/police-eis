@@ -462,12 +462,13 @@ class FeatureLoader():
 
         return dispatches
 
-    def loader(self, feature_to_load, ids_to_use, feature_type='officer'):
+    def loader(self, feature_to_load, ids_to_use, feature_type = 'officer'):
         """Get the feature values from the database
         
         Args:
             feature_to_load(str): name of feature to be loaded, must be in classmap
             ids_to_use(list): the subset of ids to return feature values for
+			feature_type(str): the type of feature being loaded, either officer or dispatch 
             
         Returns:
             returns(pd.DataFrame): dataframe of the feature values indexed by id
@@ -477,8 +478,7 @@ class FeatureLoader():
         kwargs = {"fake_today": self.fake_today,
                   "table_name": self.table_name,
                   "feat_time_window": 0}
-        #feature = class_map.lookup(feature_to_load, **kwargs)
-
+        
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
