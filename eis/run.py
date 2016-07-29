@@ -142,7 +142,14 @@ def main(config_file_name, args):
         # Store information about this experiment into the results schema.
         dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, model_data_pickle_object )
         dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
-        dataset.store_evaluation_metrics( timestamp, all_metrics )
+        #dataset.store_evaluation_metrics( timestamp, all_metrics )
+        #dataset.store_evaluation_metrics( timestamp, 0.75, 'auc' )
+
+        dataset.store_evaluation_metrics( timestamp, 0.75, 'auc', "auc_under_pr_curve", 0.50 )
+        dataset.store_evaluation_metrics( timestamp, 0.81, 'precision', "precision for the top 0.1 percent", 0.10 )
+        dataset.store_evaluation_metrics( timestamp, 0.761, 'time_seconds', "time_in_seconds")
+
+        #dataset.store_evaluation_metrics( timestamp, all_evaluations, all_metrics, all_metric_parameters, all_descriptions )
 
         if my_exp.config["auditing"]:
             audit_outputs = {"train_x": my_exp.exp_data["train_x"],
