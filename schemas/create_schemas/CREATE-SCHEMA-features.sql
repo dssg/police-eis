@@ -1,0 +1,2 @@
+DROP SCHEMA IF EXISTS features CASCADE;
+CREATE SCHEMA features;
