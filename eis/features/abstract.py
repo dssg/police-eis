@@ -21,33 +21,31 @@ class OfficerFeature():
 
     def build_and_insert( self, engine ):
         engine.execute( self.query )
-
         if self.set_null_counts_to_zero:
             # option to set all nulls to zeros (for use with counts)
             update_query = ("UPDATE features.{0} SET {1} = 0 "
                             "WHERE {1} IS null; ".format(self.table_name, self.feature_name))
             engine.execute( update_query )
 
+class TimeGatedOfficerFeature(OfficerFeature):
+    
+    # class-defined wildcards for writing template queries. 
+    DURATION = "durationwildcardstring"
+    COLUMN   = "columnwildcardstring"
 
-#        self.time_bound = None
-#        self.num_features = 1
-#        self.type_of_features = "float"
-#        self.start_date = None
-#        self.end_date = kwargs["time_bound"]
-#        self.name_of_features = ""  # DEPRECATED
-#        self.type_of_imputation = "zero"
-#        self.feat_time_window = None
-
-
-class OfficerTimeBoundedFeature(OfficerFeature):
     def __init__(self, **kwargs):
         OfficerFeature.__init__(self, **kwargs)
-        self.feat_time_window = kwargs["feat_time_window"] * 365
-        self.start_date = self.end_date - datetime.timedelta(
-            days=self.feat_time_window)
+        self.lookback_durations = kwargs[ "lookback_durations" ]
         self.type_of_imputation = "zero"
+        self.feature_column_names = [ self.feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_durations ]
 
-
+    def build_and_insert( self, engine ):
+        for duration, column in zip( self.lookback_durations, self.feature_column_names):
+            this_query = self.query
+            this_query = this_query.replace( self.DURATION, duration )
+            this_query = this_query.replace( self.COLUMN, column )
+            engine.execute( this_query )
+    
 class DispatchFeature():
     def __init__(self, **kwargs):
         self.description = ""

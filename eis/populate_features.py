@@ -46,20 +46,13 @@ def create_officer_features_table(config, table_name="officer_features"):
     log.info("Dropping the old officer feature table: {}".format(table_name))
     engine.execute("DROP TABLE IF EXISTS features.{}".format(table_name) )
 
+    # get a list of table column names.
+    column_names = officer.get_officer_features_table_columns( config )
+
     # Get a list of all the features that are set to true.
     features = config["officer_features"]
     feature_list = [ key for key in features if features[key] == True ]
     feature_value = [True]*len(feature_list)
-
-#    feature_classes = config["features"]
-#    feature_list  = []
-#    feature_value = []
-#    for classkey in feature_classes:
-#        if feature_classes[classkey] is not None:
-#            for feature in feature_classes[classkey]:
-#                if config["features"][classkey][feature]:
-#                    feature_list.extend([feature])
-#                    feature_value.extend([True])
 
     # make sure we have at least 1 feature
     assert len(feature_list) > 0, 'List of features to build is empty'
@@ -69,7 +62,6 @@ def create_officer_features_table(config, table_name="officer_features"):
 
     # Create and execute a query to create a table with a column for each of the features.
     log.info("Creating new officer feature table: {}...".format(table_name))
-
     create_query = (    "CREATE TABLE features.{} ( "
                         "   {}              int, "
                         "   created_on      timestamp, "
@@ -78,8 +70,8 @@ def create_officer_features_table(config, table_name="officer_features"):
                             table_name,
                             id_column))
 
-    # add a column for each feature in feature_list
-    feature_query = ', '.join(["{} numeric ".format(x) for x in feature_list])
+    # create a column for all the features we'll generate.
+    feature_query = ', '.join(["{} numeric ".format(x) for x in column_names])
 
     final_query = create_query + feature_query + ");"
 
@@ -188,10 +180,10 @@ def populate_officer_features_table(config, table_name):
     # loop over all fake todays, populating the active features for each.
     for feature_name in active_features:
         for fake_today in fake_todays:
-
             feature_class = class_map.lookup(feature_name, 
                                              fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
-                                             table_name=table_name)
+                                             table_name=table_name, 
+                                             lookback_durations=config["timegated_feature_lookback_duration"])
             feature_class.build_and_insert(engine)
             log.debug('Calculated and inserted feature {} for fake_today {}'
                         .format(feature_class.feature_name, fake_today))

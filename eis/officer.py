@@ -3,6 +3,7 @@ import datetime
 from sklearn import preprocessing
 import pdb
 from . import dataset
+from .features import class_map 
 
 log = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ def setup(config, today):
     log.info("Loading officers and features to use as training...")
     table_name = config["feature_table_name"]
     train_x, train_y, train_id, names = dataset.grab_officer_data(
-        config["officer_features"],
+        config["officer_features"], 
         train_start_date,
         today,
         train_start_date,
@@ -80,3 +81,26 @@ def setup(config, today):
             "train_x_index": train_x_index,
             "test_x_index": test_x_index,
             "features": features}
+
+def get_officer_features_table_columns( config ):
+    """ Creates temporary instances of feature classes to get a list of all feature table column names """
+        
+    # get a list of all features that are set to true.
+    feature_names = config["officer_features"]
+    active_features = [ key for key in feature_names if feature_names[key] == True ] 
+
+    # loop over active features, populating list of column names.
+    feature_table_columns = []
+    for active_feature in active_features:
+        feature_class = class_map.lookup(   active_feature,
+                                            fake_today=datetime.datetime.now() ,
+                                            table_name="junk",
+                                            lookback_durations=config["timegated_feature_lookback_duration"] )
+
+        # if this object is time gated, get a list of column names.
+        if hasattr( feature_class, "feature_column_names" ):
+            feature_table_columns.extend( feature_class.feature_column_names )
+        else:
+            feature_table_columns.extend( [feature_class.feature_name] )
+
+    return feature_table_columns 

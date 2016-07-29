@@ -121,7 +121,8 @@ def generate_models_to_run(config, query_db=True):
         # get the appropriate feature data from the database
         if config["unit"] == "officer":
             # get officer-level features to use
-            this_config["officer_features"] = [feat for feat, is_set_true in config['officer_features'].items() if is_set_true]
+            #this_config["officer_features"] = [feat for feat, is_set_true in config['officer_features'].items() if is_set_true]
+            this_config["officer_features"] = officer.get_officer_features_table_columns( config )
             exp_data = officer.run_traintest(this_config)
 
         elif config["unit"] == "dispatch":
