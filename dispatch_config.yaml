@@ -62,6 +62,7 @@ officer_features:
 dispatch_features:
     DummyFeature: True
     RandomFeature: True
+    DivisionAssigned: True
     Latitude: True
     Longitude: True
     DispatchMinute: True

@@ -58,6 +58,7 @@ def lookup(feature, **kwargs):
 		            'OfficerRace': officers.OfficerRace(**kwargs),
 		            'RandomFeature': dispatches.RandomFeature(**kwargs),
                     'DummyFeature': dispatches.DummyFeature(**kwargs),
+                    'DivisionAssigned': dispatches.DivisionAssigned(**kwargs),
 		    'Longitude': dispatches.Longitude(**kwargs),
 		    'Latitude': dispatches.Latitude(**kwargs),
                     'DispatchHour': dispatches.DispatchHour(**kwargs),
