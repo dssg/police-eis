@@ -416,6 +416,9 @@ class FeatureLoader():
         """
         Load the dispatch events which occured between two dates and their outcomes
 
+        Note that this uses the start_date and stop_date attributes of the FeatureLoader
+        to limit which dispatches are used.
+
         Args:
             def_adverse: dict of bools representing which event types are considered adverse for 
                          the purposes of prediction
@@ -426,10 +429,14 @@ class FeatureLoader():
 
         log.debug("Loading dispatch labels...")
 
-        # TODO: change this back to the events_hub table once it's stable
         # select all dispatches within the specified time window
         query_all = (       "SELECT DISTINCT dispatch_id "
-                            "FROM non_formatted_dispatches_data ")
+                            "FROM events_hub "
+                            "WHERE events_hub.event_type_code = 5 "
+                            "AND events_hub.event_datetime >= '{}'::date "
+                            "AND events_hub.event_datetime <= '{}'::date "
+                            .format(self.start_date,
+                                    self.end_date))
 
         # select dispatches that led to events deemed adverse
         query_adverse = (   "SELECT DISTINCT dispatch_id "
@@ -439,9 +446,13 @@ class FeatureLoader():
                             "LEFT JOIN lookup_incident_types AS lookup "
                             "   ON lookup.code = incidents.grouped_incident_type_code "
                             "WHERE event_type_code = 4 "
-                            "AND (     number_of_unjustified_allegations > 0"
+                            "   AND events_hub.event_datetime >= '{}'::date "
+                            "   AND events_hub.event_datetime <= '{}'::date "
+                            "   AND (  number_of_unjustified_allegations > 0"
                             "       OR number_of_preventable_allegations > 0"
-                            "       OR number_of_sustained_allegations > 0)")
+                            "       OR number_of_sustained_allegations > 0)"
+                            .format(self.start_date,
+                                    self.end_date))
 
         # add exclusions to the adverse query based on the definition 
         # of 'adverse' supplied in the experiment file
@@ -607,14 +618,14 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     return feats, labels, ids, featnames
 
 
-def grab_dispatch_data(features, def_adverse, table_name):
+def grab_dispatch_data(features, start_date, fake_today, end_date, def_adverse, table_name):
     """Function that returns the dataset to use in an experiment.
 
     Args:
         features: dict containing which features to use
         start_date(datetime.datetime): start date for selecting dispatch
-        end_date(datetime.datetime): end date for selecting dispatch
         fake_today(datetime.datetime): build features with respect to this date
+        end_date(datetime.datetime): end date for selecting dispatch
         def_adverse: dict containing options for adverse incident definitions
         labelling: dict containing options to select which dispatches to use for labelling
 
@@ -625,7 +636,10 @@ def grab_dispatch_data(features, def_adverse, table_name):
         featnames(list): the list of feature column names
     """
 
-    feature_loader = FeatureLoader()
+    feature_loader = FeatureLoader(start_date = start_date,
+                                   fake_today = fake_today,
+                                   end_date = end_date,
+                                   table_name = table_name)
 
     # load the labels for the relevant dispatches
     dispatch_labels = feature_loader.dispatch_labeller(def_adverse)

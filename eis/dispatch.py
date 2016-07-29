@@ -10,12 +10,10 @@ log = logging.getLogger(__name__)
 
 def run_traintest(config):
     """Get training and testing datasets from the database"""
-
-    today_dt = datetime.datetime.today()
-    result = setup(config, today_dt)
+    result = setup(config)
     return result
 
-def setup(config, today):
+def setup(config):
     """
     Sets up dispatch-level experiment
 
@@ -24,6 +22,15 @@ def setup(config, today):
         today(datetime.datetime): python datetime object containing the date to 
                                   split on for temporal cross-validation
     """
+
+    today = datetime.datetime.strptime(config['fake_today', "%d%b%Y")
+    train_start_date = today - datetime.timedelta(days=config["training_window"])
+    test_end_date = today + datetime.timedelta(days=config["prediction_window"])
+
+    log.info("Train label window start: {}".format(train_start_date))
+    log.info("Train label window stop: {}".format(today))
+    log.info("Test label window start: {}".format(today))
+    log.info("Test label window stop: {}".format(test_end_date))
 
     log.info("Loading dispatch feature and label data...")
 
