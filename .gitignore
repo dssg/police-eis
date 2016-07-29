@@ -4,6 +4,7 @@
 
 # Committing credentials is A Bad Thing 
 default_profile*
+*luigi.cfg
 
 # Committing the trained models is A Bad Thing
 *.pkl
