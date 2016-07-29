@@ -62,14 +62,13 @@ officer_features:
     MilesFromPost: True # Number of miles to post.
     OfficerGender: True  # Officer gender code
     ArrestCountCareer: True # Career arrests of officer
-    ArrestCount1Yr: True # Number of arrests in last year.
     IncidentCount: True # Officer investigatable incident count to fake_today
     MeanHoursPerShift: True # Average number of hours per shift
     TimeGatedDummyFeature: True # Time gated dummy feature.
     SustainedRuleViolations: True # Officer investigatable incident count to fake_today
 
     MeanHoursPerShift: True # Average number of hours per shift
-    AllAllegations: True # Number of allegations made against an officer
+    AllAllegations: True # Number of allegations made against an officer, time gated.
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
 # features defined.
