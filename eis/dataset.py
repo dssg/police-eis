@@ -479,9 +479,6 @@ class FeatureLoader():
                   "table_name": self.table_name,
                   "feat_time_window": 0}
 
-        # instantiate a feature object
-        feature = class_map.lookup(feature_to_load, unit = feature_type, **kwargs)
-
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
@@ -492,14 +489,14 @@ class FeatureLoader():
         query = (   "SELECT {}, {} FROM features.{}"
                     .format(
                         id_column,
-                        feature.feature_name, 
+                        feature_to_load, 
                         self.table_name))
     
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
         results = results.ix[ids_to_use]
 
-        return results, feature.feature_name
+        return results, feature_to_load 
 
 
     def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
@@ -560,7 +557,7 @@ class FeatureLoader():
 
 
 # TODO: make this use load_all_features() instead of loader()
-def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling, table_name):
+def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling, table_name ):
     """
     Function that defines the dataset.
 
@@ -582,6 +579,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
 
     officers = data.officer_labeller(labelling, def_adverse)
     officers.set_index(["officer_id"])
+
     
     dataset = officers
     featnames = []

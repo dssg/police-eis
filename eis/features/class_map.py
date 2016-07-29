@@ -43,7 +43,7 @@ def lookup(feature_name, unit, **kwargs):
     
     '''
     
-    Instantiates an object of class feature_name, in either the officers or the dispatches hub.
+    Instantiates an object of class feature_name.
     
     :str feature_name: The name of the feature to instantiate
     :str unit: The name of the type of feature being built; either 'officer' or 'dispatch'
@@ -55,17 +55,20 @@ def lookup(feature_name, unit, **kwargs):
         kwargs["feat_time_window"] = int(feature_name[0])
     else:
         kwargs["feat_time_window"] = 15
-   
+    
+    # Assign the module to find the feature class in   
     if unit == 'officer':
         unit = officers
     elif unit == 'dispatch':
         unit = dispatches
     
+    # Read in the feature class
     try:
         feature_class = getattr(unit, feature_name)
     except NameError:
         raise UnknownFeatureError(feature)
     
+    # Instantiate the feature class
     feature = feature_class(**kwargs)    
     
     return feature
