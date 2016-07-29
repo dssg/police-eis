@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+"""Script to populate lookup tables using the information stored in a yaml file"""
+
+import argparse
+import yaml
+import pandas as pd
+import psycopg2
+import sqlalchemy
+
+# TODO: put schema in the yaml file
+SCHEMA_NAME = 'staging'
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-c", "--credentials", help="the credential file")
+parser.add_argument("-t", "--tablefile", help="the yaml table definition file")
+args = parser.parse_args()
+
+# read the credentials file
+with open(args.credentials) as infile:
+    credentials = yaml.load(infile.read())
+
+# establish a connection to the database
+engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{database}'.format(
+                           host = credentials['PGHOST'],
+                           database = credentials['PGDATABASE'], 
+                           user = credentials['PGUSER'],
+                           password = credentials['PGPASSWORD']))
+db_conn = engine.connect()
+
+# read the lookup table data from the yaml file
+with open(args.tablefile) as infile:
+    table_dict = yaml.load(infile.read())
+
+# populate each table
+for table_name, contents in table_dict.items():
+
+    # remove all rows from the table, if any are already present
+    sql_query = """DELETE FROM {}.{}""".format(SCHEMA_NAME, table_name)
+    db_conn.execute(sql_query)
+
+    table_df = pd.DataFrame(contents['rows'], columns=contents['columns'])
+    table_df.to_sql(table_name, db_conn, index=False, schema=SCHEMA_NAME, if_exists='append')
+    print('done with {}'.format(table_name))
