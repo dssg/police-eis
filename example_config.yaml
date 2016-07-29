@@ -61,7 +61,7 @@ officer_features:
     DivorceCount: True # Number of total divorces in this officer's past.
     MilesFromPost: True # Number of miles to post.
     OfficerGender: True  # Officer gender code
-    ArrestCountCareer: True # Career arrests of officer, time gated.
+    ArrestCount: True # Number of arrests made by an officer, time gated.
     ArrestCount1Yr: True # Number of arrests in last year.
     IncidentCount: True # Officer investigatable incident count to fake_today
     MeanHoursPerShift: True # Average number of hours per shift

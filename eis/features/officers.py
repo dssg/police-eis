@@ -152,10 +152,10 @@ class MilesFromPost(abstract.OfficerFeature):
                                 self.feature_name,
                                 self.fake_today.strftime(time_format) ) )
 
-class ArrestCountCareer(abstract.TimeGatedOfficerFeature):
+class ArrestCount(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Dummy time-gated feature for testing 2016 schema")
+        self.description = ("Number of arrests an officer has made, time gated")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
