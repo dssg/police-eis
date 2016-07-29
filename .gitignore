@@ -2,6 +2,9 @@
 *.ipynb
 .ipynb_checkpoints
 
+# ignore the police-eis-private repo at the root level
+police-eis-private/
+
 # Committing credentials is A Bad Thing 
 default_profile*
 *luigi.cfg

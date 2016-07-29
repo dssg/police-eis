@@ -87,9 +87,11 @@ def create_officer_features_table(config, table_name="officer_features"):
     for fake_today in fake_todays:
         fake_today = datetime.datetime.strptime(fake_today, '%d%b%Y') 
         fake_today.strftime(time_format)
-        officer_id_query = ( "INSERT INTO features.{} (officer_id,fake_today) "
-                             "SELECT staging.officers_hub.officer_id, '{}'::date "
-                             "FROM staging.officers_hub").format(table_name,fake_today)
+        officer_id_query = (    "INSERT INTO features.{} (officer_id, created_on, fake_today) "
+                                "SELECT staging.officers_hub.officer_id, '{}'::timestamp, '{}'::date "
+                                "FROM staging.officers_hub").format(    table_name,
+                                                                        datetime.datetime.now(),
+                                                                        fake_today)
         engine.execute(officer_id_query)
 
 
@@ -136,9 +138,9 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
     log.info("Populating feature table {} with dispatch ids ".format(table_name))
 
     query = (   "INSERT INTO features.{} "
-                "   ({}) "
+                "({}) "
                 "SELECT DISTINCT "
-                "   staging.events_hub.dispatch_id "
+                "staging.events_hub.dispatch_id "
                 "FROM staging.events_hub"
                 .format(
                     table_name,
@@ -156,6 +158,7 @@ def populate_dispatch_features_table(config, table_name):
     for feature_name in feature_list:
 
        feature_class = class_map.lookup(feature_name, 
+										unit = 'dispatch',
                                         fake_today = datetime.datetime.today(),
                                         table_name = table_name)
 
@@ -181,6 +184,7 @@ def populate_officer_features_table(config, table_name):
     for feature_name in active_features:
         for fake_today in fake_todays:
             feature_class = class_map.lookup(feature_name, 
+											 unit = 'officer',
                                              fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
                                              table_name=table_name, 
                                              lookback_durations=config["timegated_feature_lookback_duration"])
