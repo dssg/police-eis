@@ -145,9 +145,36 @@ def main(config_file_name, args):
         #dataset.store_evaluation_metrics( timestamp, all_metrics )
         #dataset.store_evaluation_metrics( timestamp, 0.75, 'auc' )
 
-        dataset.store_evaluation_metrics( timestamp, 0.75, 'auc', "auc_under_pr_curve", 0.50 )
-        dataset.store_evaluation_metrics( timestamp, 0.81, 'precision', "precision for the top 0.1 percent", 0.10 )
-        dataset.store_evaluation_metrics( timestamp, 0.761, 'time_seconds', "time_in_seconds")
+        #pdb.set_trace()
+        print (type(all_metrics))
+        for key in all_metrics:
+            evaluation = all_metrics[key]
+            description = key
+            metric = description.split('_score', 1)[0]
+            try:
+                #metric_parameter = description.split('__', 1).split('__', 1)[0]
+                metric_parameter = float(description.split('__', 1)[1].split('__')[0])
+                #print(metric_parameter)
+                #pdb.set_trace()
+            except:
+                #print ("error")
+                metric_parameter=float(000.00)
+                pass
+            print(evaluation, metric, description, metric_parameter)
+
+            dataset.store_evaluation_metrics( timestamp, evaluation, metric, description, metric_parameter )
+
+
+
+        pdb.set_trace()
+
+        #dataset.store_evaluation_metrics( timestamp, 0.75, 'auc', "auc_under_pr_curve", 0.50 )
+        #dataset.store_evaluation_metrics( timestamp, 0.81, 'precision', "precision for the top 0.1 percent", 0.10 )
+        #dataset.store_evaluation_metrics( timestamp, 0.81, 'precision', "precision for the top 0.1 percent", 0.10 )
+        #dataset.store_evaluation_metrics( timestamp, 0.761, 'time_seconds', "time_in_seconds")
+        #dataset.store_evaluation_metrics( timestamp, all_metrics["precision_score_at_top_point_01_percent"], 'precision', "precision_score_at_top_point_01_percent", 0.01 )
+
+        #all_metrics["precision_score_at_top_point_01_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
 
         #dataset.store_evaluation_metrics( timestamp, all_evaluations, all_metrics, all_metric_parameters, all_descriptions )
 
