@@ -74,6 +74,16 @@ class Longitude(abstract.DispatchFeature):
                         " longitude as feature_column "
                         "FROM "
                         " staging.non_formatted_dispatches_data ")
+class DispatchMinute(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Minute of the hour the dispatch occured"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(minute FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
 
 class DispatchHour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -110,7 +120,6 @@ class DispatchYearQuarter(abstract.DispatchFeature):
                         "FROM "
                         "   staging.non_formatted_dispatches_data ")
 
-#TODO Month
 class DispatchMonth(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
@@ -122,7 +131,6 @@ class DispatchMonth(abstract.DispatchFeature):
                         "FROM "
                         "   staging.non_formatted_dispatches_data ")
 
-#TODO Year
 class DispatchYear(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
