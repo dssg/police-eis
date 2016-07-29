@@ -47,7 +47,6 @@ class TimeGatedDummyFeature(abstract.TimeGatedOfficerFeature):
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
-        self.type_of_imputation = "mean"
 
 class IncidentCount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -171,7 +170,6 @@ class ArrestCount(abstract.TimeGatedOfficerFeature):
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
-        self.type_of_imputation = "mean"
 
 class MeanHoursPerShift(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -191,7 +189,6 @@ class MeanHoursPerShift(abstract.OfficerFeature):
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format)))
-
 
 class SustainedRuleViolations(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -239,4 +236,3 @@ class AllAllegations(abstract.TimeGatedOfficerFeature):
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
-        self.type_of_imputation = "mean"
