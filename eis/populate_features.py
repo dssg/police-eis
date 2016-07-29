@@ -164,6 +164,7 @@ def populate_dispatch_features_table(config, table_name):
     for feature_name in feature_list:
 
        feature_class = class_map.lookup(feature_name, 
+										unit = 'dispatch',
                                         fake_today = datetime.datetime.today(),
                                         table_name = table_name)
 
@@ -190,6 +191,7 @@ def populate_officer_features_table(config, table_name):
         for fake_today in fake_todays:
 
             feature_class = class_map.lookup(feature_name, 
+											 unit = 'officer',
                                              fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
                                              table_name=table_name)
             feature_class.build_and_insert(engine)
