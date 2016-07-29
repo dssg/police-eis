@@ -62,8 +62,13 @@ officer_features:
 dispatch_features:
     DummyFeature: True
     RandomFeature: True
-    latitude: True
-    longitude: True
+    Latitude: True
+    Longitude: True
+    DispatchHour: True
+    DispatchDayOfWeek: True
+    DispatchMonth: True
+    DispatchYearQuarter: True
+    DispatchYear: True
 
 features:
     basic:

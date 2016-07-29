@@ -42,7 +42,7 @@ class RandomFeature(abstract.DispatchFeature):
         self.type_of_imputation = "mean"
 
 
-class division_assigned(abstract.DispatchFeature):
+class DivisionAssigned(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.is_categorical = True
@@ -55,7 +55,7 @@ class division_assigned(abstract.DispatchFeature):
 
 #TODO
 #ALL CODE BELOW IS QUERYING NON-STAGING TABLES, FIX THIS ASAP!
-class latitude(abstract.DispatchFeature):
+class Latitude(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Latitude of the original dispatch"
@@ -65,7 +65,7 @@ class latitude(abstract.DispatchFeature):
                         "FROM "
                         " staging.non_formatted_dispatches_data ")
 
-class longitude(abstract.DispatchFeature):
+class Longitude(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Longitude of the original dispatch"
@@ -74,4 +74,63 @@ class longitude(abstract.DispatchFeature):
                         " longitude as feature_column "
                         "FROM "
                         " staging.non_formatted_dispatches_data ")
+
+class DispatchHour(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Hour during which the dispatch occurred (24 hour clock)"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(hour FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
+
+
+class DispatchDayOfWeek(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Day of week the dispatch occurred (Sunday=0)"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(DOW FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
+
+
+class DispatchYearQuarter(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Year quarter the dispatch occurred"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(QUARTER FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
+
+#TODO Month
+class DispatchMonth(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Month the dispatch occurred"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(MONTH FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
+
+#TODO Year
+class DispatchYear(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Year the dispatch occurred"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(YEAR FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
 
