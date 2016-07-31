@@ -170,6 +170,7 @@ class ArrestCount(abstract.TimeGatedOfficerFeature):
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
+        self.set_null_counts_to_zero = True
 
 class MeanHoursPerShift(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -236,3 +237,4 @@ class AllAllegations(abstract.TimeGatedOfficerFeature):
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
+        self.set_null_counts_to_zero = True

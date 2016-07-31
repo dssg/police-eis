@@ -28,8 +28,8 @@ class OfficerFeature():
             engine.execute( update_query )
 
 class TimeGatedOfficerFeature(OfficerFeature):
-    
-    # class-defined wildcards for writing template queries. 
+
+    # class-defined wildcards for writing template queries.
     DURATION = "durationwildcardstring"
     COLUMN   = "columnwildcardstring"
 
@@ -45,7 +45,16 @@ class TimeGatedOfficerFeature(OfficerFeature):
             this_query = this_query.replace( self.DURATION, duration )
             this_query = this_query.replace( self.COLUMN, column )
             engine.execute( this_query )
-    
+
+            # if set_null_counts_to_zero update the column. This is similar to
+            # the build and execute above, and might could need to be refactored
+            # to deduplicate
+            if self.set_null_counts_to_zero:
+                # option to set all nulls to zeros (for use with counts)
+                update_query = ("UPDATE features.{0} SET {1} = 0 "
+                                "WHERE {1} IS null; ".format(self.table_name, column))
+                engine.execute( update_query )
+
 class DispatchFeature():
     def __init__(self, **kwargs):
         self.description = ""
