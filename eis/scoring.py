@@ -2,6 +2,7 @@ import sys
 import pdb
 import numpy as np
 import pandas as pd
+import statistics
 from sklearn import metrics
 from . import dataset
 
@@ -10,11 +11,91 @@ def compute_AUC(test_labels, test_predictions):
         test_labels, test_predictions, pos_label=1)
     return metrics.auc(fpr, tpr)
 
+def compute_avg_false_positive_rate(test_labels, test_predictions):
+    fpr, tpr, thresholds = metrics.roc_curve(
+        test_labels, test_predictions, pos_label=1)
+    return statistics.mean(fpr)
 
-def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01,
+
+def compute_avg_true_positive_rate(test_labels, test_predictions):
+    fpr, tpr, thresholds = metrics.roc_curve(
+        test_labels, test_predictions, pos_label=1)
+
+    #pdb.set_trace()
+    #print(fpr)
+    #print(tpr)
+    #print(thresholds)
+    return statistics.mean(tpr)
+
+def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_proportion=0.01):
+
+    """
+    Returns the raw number of a given metric:
+        'TP' = true positives,
+        'TN' = true negatives,
+        'FP' = false positives,
+        'FN' = false negatives
+
+    for a threshold of the results stated as a proportion:
+        x_proportion
+        where x_proportion = 0.01 represents 1.0%
+
+    """
+
+    #Get Binary Predictions at Threshold
+    cutoff_index = int(len(test_predictions) * x_proportion)
+    cutoff_index = min(cutoff_index, len(test_predictions) - 1)
+
+    sorted_by_probability = np.sort(test_predictions)[::-1]
+    cutoff_probability = sorted_by_probability[cutoff_index]
+
+    test_predictions_binary = np.copy(test_predictions)
+    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
+    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+
+
+    #Recode Test Labels to Correctly id TP, TN, FP, FN from a Difference of Lists
+    test = [99 if y==1 else 0 for y in test_labels]
+    pred = [99 if y==1 else 5 for y in test_predictions_binary]
+    results = [(x-y) for x,y in zip(test,pred)]
+
+
+    # KEY WORKED OUT
+    #True Positive:     Test_Label=99 and Test_Prediction   = 99::  x-y == 0
+    #True Negative:     Test_Label=0 and True_Prediction    = 5::   x-y == -5
+    #False Positive:    Test_Label=0 and Test_Prediction    = 99::  x-y== -99
+    #False Negative:    Test_Label=99 and Test_Prediction   = 5::   x-y==94
+
+    # KEY RESULTS
+    #   0   = TP
+    #   -5  = TN
+    #   -99 = FP
+    #   94  = FN
+
+    #Get Counts of Results
+    TP = len([y for y in results if y==0])
+    TN = len([y for y in results if y==-5])
+    FP = len([y for y in results if y==-99])
+    FN = len([y for y in results if y==94])
+
+    #Return Requested Metric
+    if metric=='TP':
+        return TP
+    elif metric=='TN':
+        return TN
+    elif metric=='FP':
+        return FP
+    elif metric=='FN':
+        return FN
+    else:
+        pass
+
+
+
+def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
                            return_cutoff=False):
 
-    cutoff_index = int(len(test_predictions) * x_percent)
+    cutoff_index = int(len(test_predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(test_predictions) - 1)
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
@@ -34,10 +115,10 @@ def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01,
         return precision
 
 
-def recall_at_x_percent(test_labels, test_predictions, x_percent=0.01,
+def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
                         return_cutoff=False):
 
-    cutoff_index = int(len(test_predictions) * x_percent)
+    cutoff_index = int(len(test_predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(test_predictions) - 1)
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
@@ -65,8 +146,6 @@ def get_test_predictions_binary(test_predictions, cutoff_probability=0.8):
     return test_predictions_binary
 
 
-#test_predictions_binary = get_test_predictions_binary(test_predictions)
-
 def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary, time_for_model_in_seconds ):
     """ Calculate several evaluation metrics using sklearn for a set of
         labels and predictions.
@@ -78,27 +157,41 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
 
     all_metrics = dict()
 
-    # compute built-in sklearn metrics.
+    #Standard Metrics
     all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions_binary )
-    all_metrics["auc_score"] = compute_AUC(test_label, test_predictions)
-    all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
+    all_metrics["auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
     all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
     all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions_binary )
-    all_metrics["fbeta_score_favor_precision"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)
-    all_metrics["fbeta_score_favor_recall"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
+    all_metrics["fbeta_score_favor_precision__0.75__beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)
+    all_metrics["fbeta_score_favor_recall__1.25__beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
+
+    #Precision
     all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions_binary )
-    all_metrics["precision_score_at_top_point_01_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
-    all_metrics["precision_score_at_top_point_1_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.1)
-    all_metrics["precision_score_at_top_1_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=1.0)
-    all_metrics["precision_score_at_top_5_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=5.0)
-    all_metrics["precision_score_at_top_10_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=10.0)
+    all_metrics["precision_score_at_top__0.50__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.005)
+    all_metrics["precision_score_at_top__1.00__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.01)
+    all_metrics["precision_score_at_top__10.0__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.10)
+    all_metrics["precision_score_at_top__30.0__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.30)
+    all_metrics["precision_score_at_top__50.0__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.50)
+    all_metrics["precision_score_at_top__100.0__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=1.00)
+
+    #Recall
     all_metrics["recall_score_default"] = metrics.recall_score( test_label, test_predictions_binary )
-    all_metrics["recall_score_at_top_point_01_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.01)
-    all_metrics["recall_score_at_top_point_1_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.1)
-    all_metrics["recall_score_at_top_1_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=1.0)
-    all_metrics["recall_score_at_top_5_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=5.0)
-    all_metrics["recall_score_at_top_10_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=10.0)
+    all_metrics["recall_score_at_top__0.50__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.005)
+    all_metrics["recall_score_at_top__1.00__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.01)
+    all_metrics["recall_score_at_top__10.0__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.10)
+    all_metrics["recall_score_at_top__30.0__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.30)
+    all_metrics["recall_score_at_top__50.0__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.50)
+    all_metrics["recall_score_at_top__100.0__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=1.00)
     all_metrics["time_for_model_in_seconds"] = time_for_model_in_seconds
+
+    #False Positives, False Negatives
+    all_metrics["false_positive_rate_score__mean_under_roc_curve__"] = compute_avg_false_positive_rate( test_label, test_predictions )
+    all_metrics["true_positive_rate_score__mean_under_roc_curve__"] = compute_avg_true_positive_rate( test_label, test_predictions )
+    all_metrics["false_positives_at_top__1.00__percent"] = compute_result_at_x_proportion(test_label, test_predictions, 'FP', x_proportion=0.01)
+    all_metrics["false_negatives_at_top__1.00__percent"] = compute_result_at_x_proportion(test_label, test_predictions, 'FN', x_proportion=0.01)
+    all_metrics["true_positives_at_top__1.00__percent"] = compute_result_at_x_proportion(test_label, test_predictions, 'TP', x_proportion=0.01)
+    all_metrics["true_negatives_at_top__1.00__percent"] = compute_result_at_x_proportion(test_label, test_predictions, 'TN', x_proportion=0.01)
+
 
     return all_metrics
 
@@ -161,17 +254,17 @@ def compute_confusion(testid, testprobs, at_x_perc, start_date, end_date):
     return cm_eis, cm_dsapp
 
 
-def assign_classes(testid, predictions, x_percent):
+def assign_classes(testid, predictions, x_proportion):
     """
     Args:
     testid - list of ids
     predictions - list of probabilities
-    x_percent - probability cutoff for positive and negative classes
+    x_proportion - probability cutoff for positive and negative classes
 
     Returns:
     df - pandas DataFrame that contains test ids and integer class
     """
-    cutoff_index = int(len(predictions) * x_percent)
+    cutoff_index = int(len(predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(predictions) - 1)
 
     sorted_by_probability = np.sort(predictions)[::-1]

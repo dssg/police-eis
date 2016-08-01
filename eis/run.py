@@ -148,7 +148,21 @@ def main(config_file_name, args):
         # Store information about this experiment into the results schema.
         dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, model_data_pickle_object )
         dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
-        dataset.store_evaluation_metrics( timestamp, all_metrics )
+
+        #Insert Evaluation Metrics Into Table
+        for key in all_metrics:
+            evaluation = all_metrics[key]
+            comment = key
+            metric = comment.split('_score', 1)[0]
+            #metric_parameter = metric
+            try:
+                metric_parameter = comment.split('__', 1)[1].split('__')[0]
+            except:
+                metric_parameter='Null'
+
+            print(evaluation, comment, metric, metric_parameter )
+            dataset.store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter )
+
 
         if my_exp.config["auditing"]:
             audit_outputs = {"train_x": my_exp.exp_data["train_x"],
