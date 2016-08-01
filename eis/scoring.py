@@ -78,52 +78,27 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
 
     all_metrics = dict()
 
-    # compute built-in sklearn metrics.
-    #TODO Make all metrics go into tbd column "evaluation"
-
-
-    #all_metrics["evaluation"] = metrics.accuracy_score( test_label, test_predictions_binary )
-    #all_metrics["evaluation"] = compute_AUC(test_label, test_predictions)
-    #all_metrics["evaluation"] = metrics.roc_auc_score( test_label, test_predictions )
-    #all_metrics["evaluation"] = metrics.average_precision_score( test_label, test_predictions )
-    #all_metrics["evaluation"] = metrics.f1_score( test_label, test_predictions_binary )
-    #all_metrics["evaluation"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)
-    #all_metrics["evaluation"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
-    #all_metrics["evaluation"] = metrics.precision_score( test_label, test_predictions_binary )
-    #all_metrics["evaluation"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
-    #all_metrics["evaluation"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.1)
-    #all_metrics["evaluation"] = precision_at_x_percent(test_label, test_predictions, x_percent=1.0)
-    #all_metrics["evaluation"] = precision_at_x_percent(test_label, test_predictions, x_percent=5.0)
-    #all_metrics["evaluation"] = precision_at_x_percent(test_label, test_predictions, x_percent=10.0)
-    #all_metrics["evaluation"] = metrics.recall_score( test_label, test_predictions_binary )
-    #all_metrics["evaluation"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.01)
-    #all_metrics["evaluation"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.1)
-    #all_metrics["evaluation"] = recall_at_x_percent(test_label, test_predictions, x_percent=1.0)
-    #all_metrics["evaluation"] = recall_at_x_percent(test_label, test_predictions, x_percent=5.0)
-    #all_metrics["evaluation"] = recall_at_x_percent(test_label, test_predictions, x_percent=10.0)
-    #all_metrics["evaluation"] = time_for_model_in_seconds
-
-    #all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions_binary )
-    #all_metrics["auc_score"] = compute_AUC(test_label, test_predictions)
-    #all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
-    #all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
-    #all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions_binary )
-    #all_metrics["fbeta_score_favor_precision"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)
-    #all_metrics["fbeta_score_favor_recall"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
-    #all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions_binary )
-    #all_metrics["precision_score_at_top_point_01_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
+    #All Metrics Being Calculated
+    all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions_binary )
+    all_metrics["auc_score"] = compute_AUC(test_label, test_predictions)
+    all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
+    all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
+    all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions_binary )
+    all_metrics["fbeta_score_favor_precision__0.75__beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)
+    all_metrics["fbeta_score_favor_recall__1.25__beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
+    all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions_binary )
     all_metrics["precision_score_at_top__0.01__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
     all_metrics["precision_score_at_top__0.10__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.1)
-    #all_metrics["precision_score_at_top_1_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=1.0)
-    #all_metrics["precision_score_at_top_5_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=5.0)
-    #all_metrics["precision_score_at_top_10_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=10.0)
-    #all_metrics["recall_score_default"] = metrics.recall_score( test_label, test_predictions_binary )
-    #all_metrics["recall_score_at_top_point_01_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.01)
-    #all_metrics["recall_score_at_top_point_1_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.1)
-    #all_metrics["recall_score_at_top_1_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=1.0)
-    #all_metrics["recall_score_at_top_5_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=5.0)
-    #all_metrics["recall_score_at_top_10_percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=10.0)
-    #all_metrics["time_for_model_in_seconds"] = time_for_model_in_seconds
+    all_metrics["precision_score_at_top__1.0__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=1.0)
+    all_metrics["precision_score_at_top__5.0__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=5.0)
+    all_metrics["precision_score_at_top__10.0__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=10.0)
+    all_metrics["recall_score_default"] = metrics.recall_score( test_label, test_predictions_binary )
+    all_metrics["recall_score_at_top__0.01__percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.01)
+    all_metrics["recall_score_at_top__0.10__percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.1)
+    all_metrics["recall_score_at_top__1.0__percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=1.0)
+    all_metrics["recall_score_at_top__5.0__percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=5.0)
+    all_metrics["recall_score_at_top__10.0__percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=10.0)
+    all_metrics["time_for_model_in_seconds"] = time_for_model_in_seconds
 
     return all_metrics
 
