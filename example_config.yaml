@@ -70,6 +70,7 @@ officer_features:
     MeanHoursPerShift: True # Average number of hours per shift
     AllAllegations: True # Number of allegations made against an officer, time gated.
     NumberOfSuspensions: True # The number of times the officer has been suspended from work, time gated 
+    MandatoryCounsellingEvents: True # The number of mandatory counselling events an officer has received, time gated
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
