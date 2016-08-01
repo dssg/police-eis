@@ -21,6 +21,7 @@ pilot_dir: 'pilot/'
 ########################
 
 fake_today: ['01May2014', '01May2013']  # if you want a specific_today then pass this
+timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"]
 autogen_fake_todays: False  # set to off if you want a specific fake_today
 training_window: [365, 730, 10000]  # training, days, used for officer-level prediction
 prediction_window: [365, 180]  # prediction, days, used for officer-level prediction
@@ -44,9 +45,9 @@ def_adverse:
     dof: False  # unjustified discharge of firearm
     raid: False  # unjustified raid and search
     pursuit: False  # unjustified pursuit
-    complaint: True  # sustained complaints
+    complaint: True  # sustained complaints    
 
-labelling: 
+labelling:
     include_all_employed: True # include all officers who were employed during the specified period
     include_all_active: True # include all oficcers who made an arrest or stop during the specified period.
 
@@ -55,195 +56,45 @@ labelling:
 ########################
 try_feature_sets_by_group: False  # Turn on if you want the code to try removing each feature set in turn
 
-features:
-    basic:
-        academy_score: True # Performance score at the police academy.
-        divorce_count: True # Number of total divorces in this officer's past.
-        miles_from_post: True # Number of miles to post.
-        height_weight: False  # Height, weight of the officer
-        education: False # Education level of officer
-        yearsexperience: False  # Experience level of officer (number of years)
-        daysexperience: False  # Experience level of officer (number of days)
-        malefemale: False # Is officer male or female
-        race: False # What is officer race
-        officerage: False  # Age of officers
-        officerageathire: False  # Officer age when hired
-        maritalstatus: False  # Officer marital status
+officer_features:
+    AcademyScore: True # Performance score at the police academy.
+    DivorceCount: True # Number of total divorces in this officer's past.
+    MilesFromPost: True # Number of miles to post.
+    OfficerGender: True  # Officer gender code
+    ArrestCount: True # Number of arrests made by an officer, time gated.
+    IncidentCount: True # Officer investigatable incident count to fake_today
+    MeanHoursPerShift: True # Average number of hours per shift
+    TimeGatedDummyFeature: True # Time gated dummy feature.
+    NumberOfShiftsOfType: True # Time gated dummy feature.
+    SustainedRuleViolations: True # Officer investigatable incident count to fake_today
+    MeanHoursPerShift: True # Average number of hours per shift
+    AllAllegations: True # Number of allegations made against an officer, time gated.
+    NumberOfSuspensions: True # The number of times the officer has been suspended from work, time gated 
+    MandatoryCounsellingEvents: True # The number of mandatory counselling events an officer has received, time gated
 
-    ia:
-        1yrprioralladverse: False  # adverse incidents in past year
-        careerprioralladverse: False  # adverse incidents in career
-        1yrprioraccident: False  # preventable accidents in last year
-        careerprioraccident: False  # preventable accidents in career
-        1yrnumfilteredadverse: False  # filtered adverse incidents in past year
-        careernumfilteredadverse: False  # filtered adverse incidents in career
-        1yrroccoc: False  # rules of conduct COC violations in last year
-        careerroccoc: False  # rules of conduct COC violations in career
-        1yrrocia: False  # rules of conduct IA violations in last year
-        careerrocia: False  # rules of conduct IA violations in career
-        1yrpreventable: False  # number of preventable allegations in last year
-        careerpreventable: False  # number of preventable allegations in career
-        1yrunjustified: False  # number of unjustified allegations in last year
-        careerunjustified: False  # number of unjustified allegations in career
-        1yrsustaincompl: False  # number of sustained complaints in last year
-        careersustaincompl: False  # number of sustained complaints in career
-        1yriaconcerns: False  # ia concerns in last year
-        careeriaconcerns: False  # ia concerns in career
-        1yrinterventions: False  # Number and types of interventions (e.g. counseling, suspensions, etc.) in last year
-        careerinterventions: False  # Number and types of interventions (e.g. counseling, suspensions, etc.) in career
-        1yrweaponsuse: False  # Weapon types used and frequencies in last year
-        careerweaponsuse: False  # Weapon types used and frequencies in career
-        careeriarate: False  # Rate of IA allegations in career
-        1yrdofcounts: False  # DOF type counts in last year
-        careerdofcounts: False  # DOF type counts in career
-        1yrdirectivecounts: False  # Directive violated counts in last year
-        careerdirectivecounts: False  # Directive violated counts in career
-        1yriaeventtypes: False  # IA event types in last year
-        careeriaeventtypes: False  # IA event types in career
-
-    unit_div:
-        1yrdivisionhistory: False  # Division history in last year
-        careerdivisionhistory: False  # Division history in career
-        1yrunithistory: False  # Unit type history in last year
-        careerunithistory: False  # Unit type history in career
-
-    arrests:
-        arrest_count_career: True # Career arrests of officer
-        arrest_count_1yr: True # Number of arrests in last year.
-        careerNPCarrests: False  # Number of no probable cause (NPC) arrests in career
-        1yrNPCarrests: False  # Last year number of NPC arrests
-        careerdiscarrests: False  # Number of discretionary arrests in career
-        1yrdiscarrests: False  # Number of discretionary arrests in last year
-        arresttod: False  # Average arrest time of day
-        arresteeage: False  # Average arrestee age
-        disconlyarrests: False  # Number of disconly arrests
-        arrestratedelta: False  # Arrest rate delta
-        arresttimeseries: False  # Arrest time series
-        arrestcentroids: False  # Subbeats
-        
-    citations:
-        careernpccitations: False  # Career NPC citations
-        1yrnpccitations: False  # Recent NPC citations
-        careercitations: False  # Career citations
-        1yrcitations: False  # Recent citations
-                
-    incidents:
-        numsuicides: False  # Number of suicide incidents for officer in last year
-        numjuveniles: False  # Number of incidents involving juveniles for officer in last year
-        numdomesticviolence: False  # Number of domestic violence incidents in last year
-        numhate: False   # Number of hate incidents for officer in last year
-        numnarcotics: False  # Number of narcotics incidents for officer in last year
-        numgang: False  # Number of gang incidents for officer in last year
-        numgunknife: False  # Number of incidents involving guns, knives, clubs in last year
-        numpersweaps: False # Number of incidents involving hands, feet, teeth used as weapons in last year
-        avgagevictims: False  # Average age of victims in last year
-        minagevictims: False  # Minimum age of victims in last year
-                
-    field_interviews:
-        careerficount: False  # Number of field interviews in career
-        1yrficount: False  # Number of field interviews in last year
-        careernontrafficficount: False  # Number of non-traffic field interviews in career
-        1yrnontrafficficount: False  # Number of non-traffic field interviews in last year
-        careerhighcrimefi: False  # Number of field interviews in high crime areas in career
-        1yrhighcrimefi: False  # Number of field interviews in high crime areas in last year
-        1yrloiterfi: False  # Number of field interviews of people loitering without call for service in last year
-        careerloiterfi: False  # Number of field interviews of people loitering without call for service in career
-        careerblackfi: False  # Fraction of field interviews where suspects are black
-        careerwhitefi: False  # Fraction of field interviews where suspects are white
-        avgsuspectagefi: False  # Average age of suspects in field interviews
-        avgtimeofdayfi: False  # Average time of day for field interviews
-        fitimeseries: False  # Field interviews timeseries
-        
-    cad:
-        careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
-        1yrcadstats: False  # Slow # CAD statistics in last year
-        careercadterms: False  # CAD termination types in career
-        1yrcadterms: False  # CAD termination types in last year
-                
-    training:
-        careerelectivetrain: False  # Number of elective hours of training in career
-        1yrelectivetrain: False  # Number of elective hours of training in last year
-        careerhourstrain: False  # Number of hours of training in career
-        1yrhourstrain: False  # Number of hours of training in last year
-        careerworkouthours: False  # Number of hours working out in career
-        1yrworkouthours: False  # Number of hours working out in last year
-        careerrochours: False  # Number of hours in rules of conduct training in career
-        1yrrochours: False  # Number of hours in rules of conduct training in last year
-        careerproftrain: False  # Number of hours in profiling training in career
-        1yrproftrain: False  # Number of hours in profiling training in last year
-        careerdomvioltrain: False  # Number of hours of domestic violence training in career
-        1yrdomvioltrain: False  # Number of hours of domestic violence training in last year
-        careertasertrain: False  # Number of hours spent training with Tasers in career
-        1yrtasertrain: False  # Number of hours spent training with Tasers in last year
-        careerbiastrain: False  # Number of hours spent in bias training in career
-        1yrbiastrain: False  # Number of hours spent in bias training in last year
-        careerforcetrain: False  # Number of hours spent in use of force training in career
-        1yrforcetrain: False  # Number of hours spent in use of force training in last year
-        careermilitarytrain: False  # Number of hours spent in return from military training
-        1yrmilitarytrain: False  # Number of hours spent in return from military training in last year
-        
-    traffic_stops:
-        careertsuofarr: False  # Number of traffic stops in career where tags were run and then force was used or an arrest was made
-        1yrtsuofarr: False  # Number of traffic stops in last year where tags were run and then force was used or an arrest was made
-        careerforcetraffic: False  # Number of traffic stops in career where force is used
-        1yrforcetraffic: False  # Number of traffic stops in last year where force is used
-        careertsblackdaynight: False  # Ratio of traffic stops of black people in day vs night in career
-        1yrtsblackdaynight: False  # Ratio of traffic stops of black people in day vs night in last year
-        careertrafficstopnum: False  # Number of traffic stops overall in career
-        1yrtrafficstopnum: False  # Number of traffic stops in last year
-        careertrafstopresist: False  # Number of traffic stops where physical resistance is encountered in career
-        1yrtrafstopresist: False  # Number of traffic stops where physical resistance is encountered in last year
-        3yrtrafstopresist: False  # Number of traffic stops where physical resistance is encountered in last year
-        5yrtrafstopresist: False  # Number of traffic stops where physical resistance is encountered in last year
-        1yrtrafstopsearch: False  # Traffic stops where search was requested in the last year
-        3yrtrafstopsearch: False  # Traffic stops where search was requested in the last year
-        5yrtrafstopsearch: False  # Traffic stops where search was requested in the last year
-        careertrafstopsearch: False  # Traffic stops where search was requested in career
-        1yrtrafstopsearchreason: False  # Traffic stop search reasons in last year
-        3yrtrafstopsearchreason: False  # Traffic stop search reasons in last year
-        5yrtrafstopsearchreason: False  # Traffic stop search reasons in last year
-        careertrafstopsearchreason: False  # Traffic stop search reasons in career
-        1yrtrafstopruntagreason: False  # Traffic stop run tag reasons in last year
-        3yrtrafstopruntagreason: False  # Traffic stop run tag reasons in last year
-        5yrtrafstopruntagreason: False  # Traffic stop run tag reasons in last year
-        careertrafstopruntagreason: False  # Traffic stop run tag reasons in career
-        1yrtrafstopresult: False  # Traffic stop results in last year
-        3yrtrafstopresult: False  # Traffic stop results in last year
-        5yrtrafstopresult: False  # Traffic stop results in last year
-        careertrafstopresult: False   # Traffic stop results in career
-        1yrtrafstopbyrace: False  # Traffic stops by race in last year
-        3yrtrafstopbyrace: False  # Traffic stops by race in last year
-        5yrtrafstopbyrace: False  # Traffic stops by race in last year
-        careertrafstopbyrace: False  # Traffic stops by race in career
-        1yrtrafstopbygender: False  # Traffic stops by gender in last year
-        3yrtrafstopbygender: False  # Traffic stops by gender in last year
-        5yrtrafstopbygender: False  # Traffic stops by gender in last year
-        careertrafstopbygender: False  # Traffic stops by gender in career
-        trafficstoptimeseries: False  # Time series of traffic stops
-       
-    eis:
-        1yreiswarnings: False  # EIS warnings in last year
-        5yreiswarnings: False  # EIS warnings in last five years
-        careereiswarnings: False  # EIS warnings in career
-        1yreiswarningtypes: False  # Frac of EIS warnings by type in last year
-        careereiswarningtypes: False  # Frac of EIS warnings by type in career
-        1yreiswarninginterventions: False  # Frac of EIS warning interventions by type in last year
-        careereiswarninginterventions: False  # Frac of EIS warning interventions by type in career
-        
-    extraduty:
-        mean_hours_per_shift: True # Average number of hours per shift
-        1yrextradutyhours: False  # Number of extra duty hours in last year
-        careerextradutyhours: False  # Number of extra duty hours in career
-        1yrextradutyneighb1: False  # avg neighborhood features in extra duty hours places in last year
-        careerextradutyneighb1: False  # avg neighborhood features in extra duty hours places in career
-        1yrextradutyneighb2: False  # avg neighborhood features in extra duty hours places in last year
-        careerextradutyneighb2: False  # avg neighborhood features in extra duty hours places in career
-        
-    neighborhood:
-        1yrneighb1: False  # avg neighborhood features in where officer made their arrests in last year
-        careerneighb1: False  # avg neighborhood features in where officer made their arrests in career
-        1yrneighb2: False  # avg neighborhood features in where officer made their arrests in last year
-        careerneighb2: False  # avg neighborhood features in where officer made their arrests in career
+# empty feature groups break the code, so for now, we're
+# commenting out all feature groups that have no
+# features defined.
+#
+#    ia:
+#
+#    unit_div:
+#
+#    citations:
+#
+#    incidents:
+#
+#    field_interviews:
+#
+#    cad:
+#
+#    training:
+#
+#    traffic_stops:
+#
+#    eis:
+#
+#    neighborhood:
 
 ########################
 # Model selection      #

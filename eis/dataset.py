@@ -259,52 +259,34 @@ def convert_series(df):
     return newdf.astype(int), newcols
 
 
-def convert_categorical(df):
+def convert_categorical(feature_df, feature_columns):
     """
-    this function generates features from a nominal feature
+    Convert a dataframe with columns containing categorical variables to
+    a dataframe with dummy variables for each category.
 
-    Inputs:
-    df: a dataframe with two columns: id, and a feature which is 1
-    of n categories
+    Args:
+        feature_df(pd.DataFrame): A dataframe containing the features, some
+                                  of which may be categorical
+        feature_columns(list): A list of the feature column names
 
-    Outputs:
-    df: a dataframe with 1 + n columns: id and boolean features that are
-    "category n" or not
+    Returns:
+        feature_df_w_dummies(pd.DataFrame): The features dataframe, but with
+                        categorical features converted to dummy variables
     """
 
-    #onecol = df.columns[0]
-    #categories = pd.unique(df[onecol])
+    log.info('Converting categorical features to dummy variablles')
 
-    # Remove empty fields
-    # Replace Nones or empty fields with NaNs?
-    #categories = [x for x in categories if x is not None]
-    #try:
-    #    categories.remove(' ')
-    #except:
-    #    pass
+    categorical_features = class_map.find_categorical_features(feature_columns)
 
-    # Get rid of tricksy unicode strings
-    #categories = [str(x) for x in categories]
+    log.info('... {} categorical features'.format(len(categorical_features)))
 
-    # Get rid of capitalization differences
-    #categories = list(set([str.lower(x) for x in categories]))
+    # add dummy variables to feature dataframe
+    feature_df_w_dummies = pd.get_dummies(feature_df, columns=categorical_features, sparse=True)
 
-    # Set up new features
-    #featnames = []
-    #for i in range(len(categories)):
-    #    if type(categories[i]) is str:
-    #        newfeatstr = 'is_' + categories[i]
-    #        featnames.append(newfeatstr)
-    #        df[newfeatstr] = df[onecol] == int(categories[i])
+    log.info('... {} dummy variables added'.format(len(feature_df_w_dummies.columns) 
+                                                   - len(feature_df.columns)))
 
-    #df = df.drop(onecol, axis=1)
-    #return df.astype(int), list(df.columns)
-
-    #Finds all columns with type'object' (string)
-    categorical_columns = list(df.select_dtypes(include=['object']).columns)
-    #Df updated  where each category of each categorical var is now a new dummy col
-    df = pd.get_dummies(df, prefix=categorical_columns)
-    return df
+    return feature_df_w_dummies
 
 class FeatureLoader():
 
@@ -449,10 +431,10 @@ class FeatureLoader():
 
         log.debug("Loading dispatch labels...")
 
+        # TODO: change this back to the events_hub table once it's stable
         # select all dispatches within the specified time window
         query_all = (       "SELECT DISTINCT dispatch_id "
-                            "FROM events_hub "
-                            "WHERE event_type_code = 5 ")
+                            "FROM non_formatted_dispatches_data ")
 
         # select dispatches that led to events deemed adverse
         query_adverse = (   "SELECT DISTINCT dispatch_id "
@@ -462,9 +444,9 @@ class FeatureLoader():
                             "LEFT JOIN lookup_incident_types AS lookup "
                             "   ON lookup.code = incidents.grouped_incident_type_code "
                             "WHERE event_type_code = 4 "
-                            "AND      number_of_unjustified_allegations "
-                            "       + number_of_preventable_allegations "
-                            "       + number_of_sustained_allegations > 0")
+                            "AND (     number_of_unjustified_allegations > 0"
+                            "       OR number_of_preventable_allegations > 0"
+                            "       OR number_of_sustained_allegations > 0)")
 
         # add exclusions to the adverse query based on the definition
         # of 'adverse' supplied in the experiment file
@@ -485,13 +467,14 @@ class FeatureLoader():
 
         return dispatches
 
-    def loader(self, feature_to_load, ids_to_use, feature_type='officer'):
+    def loader(self, feature_to_load, ids_to_use, feature_type = 'officer'):
         """Get the feature values from the database
 
         Args:
             feature_to_load(str): name of feature to be loaded, must be in classmap
             ids_to_use(list): the subset of ids to return feature values for
-
+            feature_type(str): the type of feature being loaded, either officer or dispatch 
+            
         Returns:
             returns(pd.DataFrame): dataframe of the feature values indexed by id
             feature_name: the name of the feature
@@ -500,28 +483,25 @@ class FeatureLoader():
         kwargs = {"fake_today": self.fake_today,
                   "table_name": self.table_name,
                   "feat_time_window": 0}
-        feature = class_map.lookup(feature_to_load, **kwargs)
-
+        
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
-            table_name = 'officer_features'
         if feature_type == 'dispatch':
             id_column = 'dispatch_id'
-            table_name = 'dispatch_features'
 
         # Create the query for this feature.
         query = (   "SELECT {}, {} FROM features.{}"
                     .format(
                         id_column,
-                        feature.feature_name,
-                        table_name))
-
+                        feature_to_load, 
+                        self.table_name))
+    
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
         results = results.ix[ids_to_use]
 
-        return results, feature.feature_name
+        return results, feature_to_load 
 
 
     def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
@@ -533,7 +513,7 @@ class FeatureLoader():
             feature_type(str): the type of feature being loaded, one of ['officer', 'dispatch']
 
         Returns:
-            returns(pd.DataFrame): dataframe of the feature values indexed by id
+            returns(pd.DataFrame): dataframe of the feature values indexed by officer_id or dispatch_id
             """
 
         feature_name_list = ', '.join(features_to_load)
@@ -541,17 +521,15 @@ class FeatureLoader():
         # select the appropriate id column and feature table name for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
-            table_name = 'officer_features'
         if feature_type == 'dispatch':
             id_column = 'dispatch_id'
-            table_name = 'dispatch_features'
 
         # Create the query for this feature.
         query = (   "SELECT {}, {} FROM features.{}"
                     .format(
                         id_column,
                         feature_name_list,
-                        table_name))
+                        self.table_name))
 
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
@@ -584,7 +562,7 @@ class FeatureLoader():
 
 
 # TODO: make this use load_all_features() instead of loader()
-def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling, table_name):
+def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling, table_name ):
     """
     Function that defines the dataset.
 
@@ -605,27 +583,23 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     data = FeatureLoader(start_date, end_date, time_bound, table_name)
 
     officers = data.officer_labeller(labelling, def_adverse)
-    # officers.set_index(["officer_id"])
+    officers.set_index(["officer_id"])
 
     dataset = officers
     featnames = []
     for each_feat in features:
-        if features[each_feat] == True:
-            feature_df, names = data.loader(each_feat,
-                                            dataset["officer_id"])
-            log.info("Loaded feature {} with {} rows".format(
-                each_feat, len(feature_df)))
-            featnames = list(featnames) + list(names)
-            dataset = dataset.join(feature_df, how='left', on='officer_id')
+        feature_df, names = data.loader(each_feat,
+                                        dataset["officer_id"])
+        log.info("Loaded feature {} with {} rows".format(
+            each_feat, len(feature_df)))
+        featnames = list(featnames) + list(names)
+        dataset = dataset.join(feature_df, how='left', on='officer_id')
 
-    dataset = dataset.reset_index()
-    dataset = dataset.reindex(np.random.permutation(dataset.index))
-    dataset = dataset.set_index(["officer_id"])
-
+    dataset.set_index(["officer_id"], inplace=True)
     dataset = dataset.fillna(0)
 
     labels = dataset["adverse_by_ourdef"].values
-    feats = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
+    feats = dataset.drop(["adverse_by_ourdef"], axis=1)
     ids = dataset.index.values
 
     # make sure we return a non-zero number of labelled officers
@@ -668,18 +642,19 @@ def grab_dispatch_data(features, def_adverse, table_name):
                                                    ids_to_use = None,
                                                    feature_type = 'dispatch')
 
+    # encode categorical features with dummy variables
+    features_df_w_dummies = convert_categorical(features_df, features_to_use)
+                                                   
     # join the labels and the features
     log.debug('... merging labels and features in memory')
-    dataset = dispatch_labels.join(features_df, how='left', on='dispatch_id')
+    dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
+    log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
 
-    # shuffle the dataset rows for some reason
-    dataset = dataset.reset_index()
-    dataset = dataset.reindex(np.random.permutation(dataset.index))
-    dataset = dataset.set_index(["dispatch_id"])
+    # NOTE: its important to run these inplace, otherwise you get a MemoryError (on a 15G RAM machine)
+    dataset.set_index(["dispatch_id"], inplace=True)
+    dataset.fillna(0, inplace=True)
 
-    dataset = dataset.fillna(0)
-
-    features = dataset.drop(["adverse_by_ourdef", "index"], axis=1)
+    features = dataset.drop(["adverse_by_ourdef"], axis=1)
     labels = dataset["adverse_by_ourdef"].values
     ids = dataset.index.values
     feature_names = features.columns

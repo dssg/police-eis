@@ -26,13 +26,19 @@ def main(config_file_name, args):
     except:
         log.exception("Failed to get experiment configuration file!")
 
+    # if no features table name was set by the user, 
+    # set the features table name based on type of prediction (officer / dispatch)
+    if ( args.featuretable ):
+        table_name = args.featuretable
+    else:
+        table_name = '{}_features'.format(config['unit'])
+    config["feature_table_name"] = table_name
+
     # If asked to generate features, then do that and stop.
     if args.buildfeatures:
 
         log.info("Re-building features...")
 
-        # set the features table name based on type of prediction (officer / dispatch)
-        table_name = '{}_features'.format(config['unit'])
 
         # Create the features table.
         populate_features.create_features_table(config, table_name)
@@ -187,6 +193,7 @@ def pickle_results(pkl_file, to_save):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str, help="pass your config", default="default.yaml")
-    parser.add_argument( "-f", "--buildfeatures", help="build the features and stop", action='store_true' )
+    parser.add_argument( "-b", "--buildfeatures", help="build the features and stop", action='store_true' )
+    parser.add_argument( "-f", "--featuretable", help="set the name of the features table", default="features" )
     args = parser.parse_args()
     main(args.config, args)

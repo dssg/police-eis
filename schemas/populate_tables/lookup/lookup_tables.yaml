@@ -1,0 +1,285 @@
+lookup_races:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'black', 'Black / African American']
+        - [2, 'white', 'White']
+        - [3, 'american_indian', 'American Indian / Alaska Native']
+        - [4, 'asian', 'All asian']
+        - [5, 'pacific_islander', 'Native Hawaiian / Pacific Islander']
+        - [6, 'other', 'Other']
+        - [7, 'mixed', 'Mixed']
+
+
+lookup_genders:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'male', 'Male']
+        - [2, 'female', 'Female']
+
+
+lookup_marital_statuses:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'never_married', 'Never Married']
+        - [2, 'married', 'Married']
+        - [3, 'separated', 'Separated, but not divorced']
+        - [4, 'divorced', 'Divorced']
+        - [5, 'widowed', 'Widowed']
+        - [6, 'single', 'Single']
+
+
+lookup_hair_colors:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'sandy', 'Sandy']
+        - [2, 'red', 'Red or Auburn']
+        - [3, 'black', 'Black']
+        - [4, 'pink', 'Pink']
+        - [6, 'orange', 'Orange']
+        - [7, 'blue', 'Blue']
+        - [8, 'purple', 'Purple']
+        - [9, 'green', 'Green']
+        - [10, 'blonde', 'Blonde or Strawberry']
+        - [11, 'gray', 'Gray or partial gray']
+        - [12, 'white', 'White or partial gray']
+        - [13, 'brown', 'Brown']
+        - [14, 'bald', 'Bald']
+
+
+lookup_ethnicities:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'not_hispanic', 'Not Hispanic / Latino']
+        - [2, 'hispanic', 'Hispanic / Latino']
+
+
+lookup_eye_colors:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'violet', 'Violet']
+        - [2, 'brown', 'Brown']
+        - [3, 'gray', 'Gray']
+        - [4, 'hazel', 'Hazel']
+        - [5, 'blue', 'Blue']
+        - [6, 'green', 'Green']
+        - [7, 'black', 'Black']
+        - [8, 'multi', 'Multicolored']
+        - [9, 'pink', 'Pink']
+        - [10, 'maroon', 'Maroon']
+
+
+lookup_complaint_origins:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'internal', 'Internal']
+        - [2, 'external', 'External']
+        - [3, 'automatic', 'Automatic']
+
+
+lookup_incident_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'accident', 'accident involving the officer']
+        - [1, 'appearance', 'personal appearance or uniform violation']
+        - [2, 'bias_or_profiling', 'discrimination based on race, sexuality etc']
+        - [3, 'chain_of_command', 'insubordination, failing to submit to investigation by supervisor or inappropriate management']
+        - [4, 'conditions_of_employment', 'violation of employment terms e.g. association with criminals or inappropriate secondary employment']
+        - [5, 'conformance_to_rules', 'lack of understanding or breaking of department rules/law']
+        - [6, 'courtesy_and_behaviour', 'behaviour not becoming of police officer']
+        - [7, 'equipment', 'failure to use or care for equipment properly e.g. body cam, vehicle, firearms']
+        - [8, 'gift_policy', 'bribery or inappropriate acceptance/bestowing of gifts']
+        - [9, 'handling_of_civilians', 'failure to properly care for civilian suspects/victims']
+        - [10, 'harassment_or_intimidation', 'harassment or intimidation while on or off duty']
+        - [11, 'officer_injury', 'officer sustained injury']
+        - [12, 'promptness_or_absence', 'tardiness, absence or abuse of sick leave policy']
+        - [13, 'pursuit', 'vehicular or foot pursuit of suspect']
+        - [14, 'quality_of_work', 'substandard work quality']
+        - [15, 'raid', 'raid']
+        - [16, 'standard_procedures', 'failure to follow department procedural norms']
+        - [17, 'substance_abuse', 'alcoholism or drug abuse']
+        - [18, 'traffic_laws', 'breaking of traffic laws by officer']
+        - [19, 'unknown', 'unknown']
+        - [20, 'use_of_force', 'use of force']
+
+
+
+lookup_rules_violated:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+
+
+lookup_final_rulings:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'preventable', 'Preventable']
+        - [2, 'non_preventable', 'Non-preventable']
+        - [3, 'justified', 'Justified']
+        - [4, 'unjustified', 'Unjustified']
+        - [5, 'sustained', 'Sustained']
+        - [6, 'exonerated', 'Exonerated']
+        - [7, 'not_sustained', 'Not Sustained']
+        - [8, 'unfounded', 'Unfounded']
+
+lookup_intervention_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'counseling', 'Counseling']
+        - [2, 'training', 'Training']
+        - [3, 'suspension', 'Suspension']
+        - [4, 'termination', 'Termination']
+        - [5, 'reprimand', 'Reprimand']
+        - [6, 'loss_of_vacation', 'Loss of vacation']
+        - [7, 'none', 'No intervention required']
+
+
+lookup_reprimand_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'verbal', 'Verbal reprimand']
+        - [2, 'written', 'Written reprimand']
+
+
+lookup_event_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'unknown', 'Unknown']
+        - [1, 'traffic_stop', 'Traffic stop']
+        - [2, 'interview', 'Pedestrian interview']
+        - [3, 'arrest', 'Arrest']
+        - [4, 'investigatable_incident', 'An incident that could/should be investigated']
+        - [5, 'dispatch', 'Dispatch']
+        - [6, 'complaint', 'Citizen or Officer initiated conduct complaint']
+        - [7, 'use_of_force', 'Use of force']
+        - [8, 'injury', 'Officer injury']
+        - [9, 'report', 'a filed police report']
+        - [10, 'pursuit', 'A pursuit']
+        - [11, 'raid', 'A raid and or search']
+        - [12, 'accident', 'An accident']
+
+
+lookup_arrest_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'AR1', 'On-view arrest']
+        - [1, 'AR2', 'Order for Arrest (OFA)']
+        - [2, 'AR5', 'Warrant for Arrest']
+        - [3, 'AR6', 'Non-Arrest']
+
+
+lookup_education_levels:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'less_than_high_school', 'Less Than High School Education']
+        - [1, 'high_school', 'High School Education']
+        - [2, 'some_college', 'Some College Education']
+        - [3, 'two_year_degree', 'Two Year Degree or Associates Degree Education']
+        - [4, 'four_year_degree', 'Four Year Degree or Bachelors Degree Education']
+        - [5, 'graduate_degree', 'Graduate Degree Education']
+
+
+lookup_duty_statuses:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'active', 'Active']
+        - [1, 'death_non_duty', 'Death (Not Line of Duty)']
+        - [2, 'death_line_of_duty', 'Death - Statutory Line of Duty']
+        - [3, 'dismissed_during_probation', 'Dismissed During Probation']
+        - [4, 'dismissed_for_cause', 'Dismissed For Cause']
+        - [5, 'resigned_bad_standing', 'Resigned - Bad Standing']
+        - [6, 'resigned_good_standing', 'Resigned - Good Standing']
+        - [7, 'retired_disability', 'Retired - Disability']
+        - [8, 'retired_service', 'Retired - Service']
+        - [9, 'transferred', 'Transferred']
+        - [10, 'unknown', 'Unknown']
+
+
+lookup_ranks:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'cv', 'Civilian']
+        - [1, 'pt', 'Police Officer Trainee']
+        - [2, 'po', 'Police Officer']
+        - [3, 'st', 'Sergeant']
+        - [4, 'mp', 'Master Patrolman (Defunct)']
+        - [5, 'ct', 'Captain']
+        - [6, 'lt', 'Lietenant']
+        - [7, 'pc', 'Police Commander']
+        - [8, 'dc', 'Deputy Chief']
+        - [9, 'cf', 'Chief of Police']
+
+
+lookup_shift_overtimes:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'regular', 'Regularly Scheduled Work Time']
+        - [1, 'unpaid', 'Unpaid Time']
+        - [2, 'premium', 'Premium']
+        - [3, 'half_overtime', 'Half Time Overtime']
+        - [4, 'straight_overtime', 'Straight Overtime']
+        - [5, 'time_and_one_half', 'Time And One Half Overtime']
+        - [6, 'double_time', 'Double Time']
+
+lookup_shift_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'absent', 'Absent Without Leave/Not Working and No Balance']
+        - [1, 'adjustment', 'Adjustment Up To Min. 2 Hours']
+        - [2, 'admin', 'Admin Assignment']
+        - [3, 'admin_leave', 'Admin Leave With Pay/First Day of School']
+        - [4, 'bereavement', 'Bereavement - Formerly DIF (Death In Family)']
+        - [5, 'break', 'Break']
+        - [6, 'bubble', 'Bubble work after Inservice']
+        - [7, 'canine', 'Canine Maintenance']
+        - [8, 'comp_time', 'Comp Time/Comp Carryover Time']
+        - [9, 'court_jury', 'Court Time/Scheduled Court or Jury Time']
+        - [10, 'premium', 'Shift premium/Premium added/Daylight Savings Time Code Premium']
+        - [11, 'mission', 'Directed Mission 1']
+        - [12, 'double', 'Double Shift']
+        - [13, 'excused', 'Excused from Work']
+        - [14, 'special', 'Extended Special Assignment/Temporary Special Assignment']
+        - [15, 'outside', 'Extra Duty Outside Employment/Off Duty Outside/Seconday Employment']
+        - [16, 'family_medical', 'Family/Medical Excuse or Leave/Family Sick']
+        - [17, 'holiday', 'Holiday']
+        - [18, 'ebs', 'Hourly hours to be exported to EBS']
+        - [19, 'training', 'Training/Trainee Break']
+        - [20, 'injured', 'Injured on Duty']
+        - [21, 'kelly', 'Kelly Time Used']
+        - [22, 'doc_pay', 'Late to Work (DOC PAY)/Left Early (DOC PAY)']
+        - [23, 'leave_without_pay', 'Leave Without Pay']
+        - [24, 'light_duty_medical_disability', 'Light Duty Medical/Short Term Disability']
+        - [25, 'military', 'Military duty/training']
+        - [26, 'not_attended_court', 'Not Attended Court']
+        - [27, 'safer', 'Operation Safer Streets']
+        - [28, 'personal', 'Personal Bank Used']
+        - [29, 'sick_non_family', 'Sick Non Family']
+        - [30, 'suspension', 'Suspension/Suspension - Day Off']
+        - [31, 'suspension_with_pay', 'Suspension With Pay']
+        - [32, 'unallocated', 'Unallocated Time']
+        - [33, 'vacation', 'Vacation Time']
+        - [34, 'work', 'Work Regular']
+        - [35, 'work_holiday', 'Worked on Holiday']
+        - [99, 'other', 'Other Not in Other Shift Types']
+
+
+lookup_training_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'academy_score', 'Overall Officer Score from Police Academy']
+
+lookup_origination_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'police', 'An external police department']
+        - [1, 'civilian', 'A civilian']
+        - [2, 'internal', 'Internal']
