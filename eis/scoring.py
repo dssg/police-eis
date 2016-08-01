@@ -65,8 +65,6 @@ def get_test_predictions_binary(test_predictions, cutoff_probability=0.8):
     return test_predictions_binary
 
 
-#test_predictions_binary = get_test_predictions_binary(test_predictions)
-
 def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary, time_for_model_in_seconds ):
     """ Calculate several evaluation metrics using sklearn for a set of
         labels and predictions.

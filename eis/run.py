@@ -143,7 +143,7 @@ def main(config_file_name, args):
         dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, model_data_pickle_object )
         dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
 
-        print (type(all_metrics))
+        #Insert Evaluation Metrics Into Table
         for key in all_metrics:
             evaluation = all_metrics[key]
             comment = key
@@ -157,10 +157,6 @@ def main(config_file_name, args):
 
             dataset.store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter )
 
-
-        #all_metrics["precision_score_at_top_point_01_percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.01)
-
-        #dataset.store_evaluation_metrics( timestamp, all_evaluations, all_metrics, all_metric_parameters, all_descriptions )
 
         if my_exp.config["auditing"]:
             audit_outputs = {"train_x": my_exp.exp_data["train_x"],
