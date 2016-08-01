@@ -14,6 +14,22 @@ except:
 
 time_format = "%Y-%m-%d %X"
 
+### LABEL
+
+
+class Label(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Binary label, 1 if incident considered adverse occured during this dispatch"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "    as feature_column "
+                        "FROM "
+                        "   (select * from staging.events_hub where event_datetime > {} and dispatch_id is not null ) as events_hub "
+                        "   left join staging.incidents as incidents "
+                        "   on events_hub.dispatch_id = incidents.dispatch_id "
+                        "GROUP BY 1").format(from_date)
+
 
 ### Basic Dispatch Features
 
@@ -142,6 +158,20 @@ class DispatchYear(abstract.DispatchFeature):
                         "FROM "
                         "   staging.non_formatted_dispatches_data ")
 
+
+class OriginalPriority(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Original priority code of dispatch"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   max(dispatch_original_priority_code) as feature_column "
+                        "FROM "
+                        "   (select * from staging.events_hub where event_datetime > {} and dispatch_id is not null ) as events_hub "
+                        "   inner join staging.dispatches as dispatches "
+                        "   on events_hub.dispatch_id = dispatches.dispatch_id "
+                        "GROUP BY 1").format(from_date)
 #TODO beat
 
 #TODO event_type_code

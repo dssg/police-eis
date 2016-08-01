@@ -67,6 +67,7 @@ def lookup(feature, **kwargs):
                     'DispatchYearQuarter': dispatches.DispatchYearQuarter(**kwargs),
                     'DispatchYear': dispatches.DispatchYear(**kwargs),
                     'DispatchMinute': dispatches.DispatchMinute(**kwargs)
+                    'OriginalPriority': dispatches.OriginalPriority(**kwargs)
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),

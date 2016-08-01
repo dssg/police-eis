@@ -60,17 +60,18 @@ officer_features:
     arrest_count_1yr: False
 
 dispatch_features:
-    DummyFeature: True
-    RandomFeature: True
-    DivisionAssigned: True
-    Latitude: True
-    Longitude: True
-    DispatchMinute: True
-    DispatchHour: True
-    DispatchDayOfWeek: True
-    DispatchMonth: True
-    DispatchYearQuarter: True
-    DispatchYear: True
+    DummyFeature: False
+    RandomFeature: False
+    DivisionAssigned: False
+    Latitude: False
+    Longitude: False
+    DispatchMinute: False
+    DispatchHour: False
+    DispatchDayOfWeek: False
+    DispatchMonth: False
+    DispatchYearQuarter: False
+    DispatchYear: False
+    OriginalPriority: True
 
 features:
     basic:

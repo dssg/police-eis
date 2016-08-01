@@ -41,9 +41,13 @@ class OfficerTimeBoundedFeature(OfficerFeature):
 
 class DispatchFeature():
     def __init__(self, **kwargs):
+	try:
+            self.from_date = kwargs["from_date"]
+            self.table_name = kwargs["table_name"]
+        except KeyError:
+            pass
         self.description = ""
         self.description_long =""
-        self.table_name = kwargs["table_name"]
         self.feature_name = self.__class__.__name__
         self.is_categorical = False
         # self.query should return two columns, named 'dispatch_id' and '<feature_name>'
