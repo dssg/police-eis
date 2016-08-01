@@ -76,8 +76,33 @@ class TimeGatedCategoricalDummyFeature(abstract.TimeGatedCategoricalOfficerFeatu
                                 self.fake_today.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
 
 # Actual features.
+
+class NumberOfSuspensions(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of times an officer has been suspended")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.incidents "
+					  "         INNER JOIN staging.events_hub"
+					  "         ON incidents.event_id = events_hub.event_id"
+                      "         WHERE lower(reprimand_narrative) like '%%susp%%'"
+					  "         OR lower(reprimand_narrative) SIMILAR TO '%%\([0-9]{{1,2}}\)%%'"
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
 
 class IncidentCount(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -102,6 +127,7 @@ class IncidentCount(abstract.OfficerFeature):
                                 self.fake_today.strftime(time_format)))
         self.name_of_features = ["incident_count"]
         self.type_of_features = "categorical"
+        self.set_null_counts_to_zero = True
 
 class OfficerGender(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -165,6 +191,7 @@ class DivorceCount(abstract.OfficerFeature):
                       .format(  self.table_name,
                                 self.feature_name,
                                 self.fake_today.strftime(time_format) ) )
+        self.set_null_counts_to_zero = True
 
 class MilesFromPost(abstract.OfficerFeature):
     def __init__(self, **kwargs):
