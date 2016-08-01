@@ -66,11 +66,12 @@ officer_features:
     MeanHoursPerShift: True # Average number of hours per shift
     TimeGatedDummyFeature: True # Time gated dummy feature.
     NumberOfShiftsOfType: True # Time gated dummy feature.
-    SustainedRuleViolations: True # Officer investigatable incident count to fake_today
+    SustainedRuleViolations : True # Officer investigatable incident count to fake_today
     MeanHoursPerShift: True # Average number of hours per shift
     AllAllegations: True # Number of allegations made against an officer, time gated.
     NumberOfSuspensions: True # The number of times the officer has been suspended from work, time gated 
     MandatoryCounsellingEvents: True # The number of mandatory counselling events an officer has received, time gated
+    NumberOfIncidentsOfType: True # The number of incidents  of certain types, exploded into multiple columns and time gated 
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no

@@ -351,3 +351,50 @@ class AllAllegations(abstract.TimeGatedOfficerFeature):
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
+
+class NumberOfIncidentsOfType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 
+                            0: 'accident',
+                            1: 'appearance',
+                            2: 'bias_or_profiling',
+                            3: 'chain_of_command',
+                            4: 'conditions_of_employment',
+                            5: 'conformance_to_rules',
+                            6: 'courtesy_and_behaviour',
+                            7: 'equipment',
+                            8: 'gift_policy',
+                            9: 'handling_of_civilians',
+                            10: 'harassment_or_intimidation',
+                            11: 'officer_injury',
+                            12: 'promptness_or_absence',
+                            13: 'pursuit',
+                            14: 'quality_of_work',
+                            15: 'raid',
+                            16: 'standard_procedures',
+                            17: 'substance_abuse',
+                            18: 'traffic_laws',
+                            19: 'unknown',
+                            20: 'use_of_force'}
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Incident type categorical feature, time gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.incidents "
+                      "         INNER JOIN staging.events_hub"
+                      "         ON incidents.event_id = events_hub.event_id"
+                      "         WHERE staging.incidents.grouped_incident_type_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
