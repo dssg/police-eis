@@ -57,21 +57,28 @@ def setup(config):
     # in case train_X and test_X have different categorical values, and thus different
     # dummy columns added
     train_X, test_X = add_empty_categorical_columns(train_X, test_X)
+
+    # create some things that the EISExperiment class is supposed to return
+    train_x_index = train_X.index.values
+    test_x_index = test_X.index.values
     features = train_X.columns
     
     # Feature scaling
     scaler = preprocessing.StandardScaler().fit(train_X)
-    train_X = scaler.transform(train_X)
-    test_X = scaler.transform(test_X)
+    scaled_train_X = scaler.transform(train_X)
+    scaled_test_X = scaler.transform(test_X)
 
-    return {"train_x": train_X,
+    return {"train_x": scaled_train_X,
             "train_y": train_y,
             "train_id": train_id,
-            "test_x": test_X,
+            "test_x": scaled_test_X,
             "test_y": test_y,  # For pilot test_y will not be used
             "test_id": test_id,
+            "train_start_date": train_start_date,
+            "test_end_date": test_end_date,
+            "train_x_index": train_x_index,
+            "test_x_index": test_x_index,
             "features": features}
-
 
 def add_empty_categorical_columns(train_X, test_X):
     """Return versions of train_X and test_X that have the same number of columns
