@@ -20,10 +20,20 @@ def compute_avg_false_positive_rate(test_labels, test_predictions):
 def compute_avg_true_positive_rate(test_labels, test_predictions):
     fpr, tpr, thresholds = metrics.roc_curve(
         test_labels, test_predictions, pos_label=1)
+
+    #pdb.set_trace()
+    #print(fpr)
+    #print(tpr)
+    #print(thresholds)
     return statistics.mean(tpr)
 
-def compute_false_positive_rate_at_x_percent(test_labels, test_predictions, x_percent=50):
+def compute_result_rate_at_x_percent(test_labels, test_predictions, metric, x_percent=0.01):
 
+    """
+    Returns the metric
+    """
+
+    #Get Binary Predictions at Threshold
     cutoff_index = int(len(test_predictions) * x_percent)
     cutoff_index = min(cutoff_index, len(test_predictions) - 1)
 
@@ -34,10 +44,73 @@ def compute_false_positive_rate_at_x_percent(test_labels, test_predictions, x_pe
     test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
     test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
 
-    fpr, tpr, thresholds = metrics.roc_curve(
-        test_labels, test_predictions_binary, pos_label=1)
+
+    pdb.set_trace()
+    #print (fpr, tpr, thresholds)
     #return statistics.mean(fpr)
-    return fpr
+    #return fpr
+
+    #z = [x-y for x, y in test_labels, test_predictions]
+
+    #print(test_predictions_binary)
+    #[[x-1] for x in test_labels ]
+    #[[y-1] for y in test_predictions]
+    #[[y-0] for y in test_predictions_binary]
+    #[[x-y] for x in test_labels and for y in test_predictions ]
+    #[[x - y] for x in test_labels for y in test_predictions]
+
+    #[(x-y) for x,y in zip(test_labels,test_predictions)]
+
+    #Diff between Test Labels and Predictions
+    #[(x-y) for x,y in zip(test_labels,test_predictions_binary)]
+
+    #True Positive: Test_Label=1 and Test_Prediction = 1:: x-y ==0
+    #True Negative: Test_Label=0 and True_Prediction = 0:: x-y ==0
+
+
+
+    #False Positive: Test_Label=0 and Test_Prediction = 1::
+
+    #[99 for y in test_labels if y==1]
+    #Recode Test Labels
+    test = [99 if y==1 else 0 for y in test_labels]
+    pred = [99 if y==1 else 5 for y in test_predictions_binary]
+    results = [(x-y) for x,y in zip(test,pred)]
+    #results
+
+    #True Positive: Test_Label=99 and Test_Prediction = 99:: x-y == 0
+    #True Negative: Test_Label=0 and True_Prediction = 5:: x-y == -5
+    #False Positive: Test_Label=0 and Test_Prediction = 99:: x-y== -99
+    #False Negative: Test_Label=99 and Test_Prediction = 5:: x-y==94
+
+    #results = [(x-y) for x,y in zip(test,pred)]
+    #WHERE
+    #   0   = TP
+    #   -5  = TN
+    #   -99 = FP
+    #   94  = FN
+
+
+    TP = len([y for y in results if y==0])
+    TN = len([y for y in results if y==-5])
+    FP = len([y for y in results if y==-99])
+    FN = len([y for y in results if y==94])
+
+
+    if metric=='TP':
+        return TP
+    else:
+        pass
+
+
+
+    #True Positive: Test_Label=99 and Test_Prediction = 99:: x-y == 0
+    #True Negative: Test_Label=0 and True_Prediction = -5:: x-y ==  5
+    #False Positive: Test_Label=0 and Test_Prediction = 99:: x-y== -99
+    #False Negative: Test_Label=99 and Test_Prediction = -5:: x-y==104
+
+
+    #results = [(x-y) for x,y in zip(test,pred)]
 
 
 def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01,
@@ -111,6 +184,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
     all_metrics["false_positive_rate_score__mean_under_roc_curve__"] = compute_avg_false_positive_rate( test_label, test_predictions )
     #all_metrics["false_positive_rate_score__50.0__"] = compute_false_positive_rate_at_x_percent( test_label, test_predictions, 50.0 )
+    #all_metrics["false_positive_rate_score__4.0__"] = compute_false_positive_rate_at_x_percent( test_label, test_predictions, 4.0 )
     all_metrics["true_positive_rate_score__mean_under_roc_curve__"] = compute_avg_true_positive_rate( test_label, test_predictions )
     all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
     all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions_binary )
@@ -121,7 +195,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics["precision_score_at_top__0.10__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.1)
     all_metrics["precision_score_at_top__1.0__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=1.0)
     all_metrics["precision_score_at_top__5.0__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=5.0)
-    all_metrics["precision_score_at_top__10.0__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=10.0)
+    all_metrics["precision_score_at_top__10.0__percent"] = precision_at_x_percent(test_label, test_predictions, x_percent=0.10)
     all_metrics["recall_score_default"] = metrics.recall_score( test_label, test_predictions_binary )
     all_metrics["recall_score_at_top__0.01__percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.01)
     all_metrics["recall_score_at_top__0.10__percent"] = recall_at_x_percent(test_label, test_predictions, x_percent=0.1)
