@@ -22,74 +22,19 @@ class Label(abstract.DispatchFeature):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Binary label, 1 if incident considered adverse occured during this dispatch"
         self.query = (  "SELECT "
-                        "   dispatch_id, "                        
-                        " case when sum(coalesce(incidents.number_of_unjustified_allegations, 0)) + " 
-                        " sum(coalesce(incidents.number_of_preventable_allegations, 0)) + "
-                        " sum(coalesce(incidents.number_of_sustained_allegations, 0)) > 0 then 1 else 0 end as feature_column "
-                        " from (select * from staging.events_hub where event_datetime between '{}' and '{}' and event_type_code = 4 and dispatch_id is not null ) as events_hub " 
+                        "    dispatch_id, "
+                        "    case when sum(coalesce(incidents.number_of_unjustified_allegations, 0)) + "
+                        "    sum(coalesce(incidents.number_of_preventable_allegations, 0)) + "
+                        "    sum(coalesce(incidents.number_of_sustained_allegations, 0)) > 0 then 1 else 0 end as feature_column "
+                        "FROM (select * from staging.events_hub where event_datetime between '{}' and '{}' and event_type_code = 4 and dispatch_id is not null ) as events_hub "
                         "  left join staging.incidents as incidents "
-                        " on events_hub.event_id = incidents.event_id "
-                        " group by 1 ").format(self.from_date, self.to_date)
+                        "  on events_hub.event_id = incidents.event_id "
+                        "GROUP by 1 ").format(self.from_date, self.to_date)
 
-### Basic Dispatch Features
-
-class dummy_feature(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = ("Dummy feature for testing 2016 schema")
-        self.query = ("SELECT "
-                      "     dispatch_id, "
-                      "     COUNT(event_type_code) AS feature_column "
-                      "FROM staging.events_hub "
-                      "WHERE event_type_code = 4 "
-                      "GROUP BY dispatch_id")
-        self.type_of_imputation = "mean"
-
-
-class random_feature(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = ("Random feature for testing")
-        self.query = (  "SELECT "
-                        "   dispatch_id, "
-                        "   random() AS feature_column "
-                        "FROM staging.events_hub "
-                        "GROUP BY dispatch_id")
-        self.type_of_imputation = "mean"
-
-
-class DivisionAssigned(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.is_categorical = True
-        self.description = "Division in which the dispatch occurred"
-        self.query = (  "SELECT "
-                        "   dispatch_id, "
-                        "   unit_div as feature_column "
-                        "FROM "
-                        "   staging.non_formatted_dispatches_data ")
 
 #TODO
 #ALL CODE BELOW IS QUERYING NON-STAGING TABLES, FIX THIS ASAP!
-class Latitude(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Latitude of the original dispatch"
-        self.query = (  "SELECT "
-                        " dispatch_id, "
-                        " latitude as feature_column "
-                        "FROM "
-                        " staging.non_formatted_dispatches_data ")
 
-class Longitude(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Longitude of the original dispatch"
-        self.query = (  "SELECT "
-                        " dispatch_id, "
-                        " longitude as feature_column "
-                        "FROM "
-                        " staging.non_formatted_dispatches_data ")
 class DispatchMinute(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
@@ -99,7 +44,8 @@ class DispatchMinute(abstract.DispatchFeature):
                         "   dispatch_id, "
                         "   extract(minute FROM event_datetime) AS feature_column "
                         "FROM "
-                        "   staging.non_formatted_dispatches_data ")
+                        "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
+                        "GROUP BY 1 ").format(self.from_date, self.to_date)
 
 class DispatchHour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -110,7 +56,8 @@ class DispatchHour(abstract.DispatchFeature):
                         "   dispatch_id, "
                         "   extract(hour FROM event_datetime) AS feature_column "
                         "FROM "
-                        "   staging.non_formatted_dispatches_data ")
+                        "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
+                        "GROUP BY 1 ").format(self.from_date, self.to_date)
 
 
 class DispatchDayOfWeek(abstract.DispatchFeature):
@@ -122,7 +69,8 @@ class DispatchDayOfWeek(abstract.DispatchFeature):
                         "   dispatch_id, "
                         "   extract(DOW FROM event_datetime) AS feature_column "
                         "FROM "
-                        "   staging.non_formatted_dispatches_data ")
+                        "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
+                        "GROUP BY 1 ").format(self.from_date, self.to_date)
 
 
 class DispatchYearQuarter(abstract.DispatchFeature):
@@ -134,7 +82,8 @@ class DispatchYearQuarter(abstract.DispatchFeature):
                         "   dispatch_id, "
                         "   extract(QUARTER FROM event_datetime) AS feature_column "
                         "FROM "
-                        "   staging.non_formatted_dispatches_data ")
+                        "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
+                        "GROUP BY 1 ").format(self.from_date, self.to_date)
 
 class DispatchMonth(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -145,7 +94,8 @@ class DispatchMonth(abstract.DispatchFeature):
                         "   dispatch_id, "
                         "   extract(MONTH FROM event_datetime) AS feature_column "
                         "FROM "
-                        "   staging.non_formatted_dispatches_data ")
+                        "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
+                        "GROUP BY 1 ").format(self.from_date, self.to_date)
 
 class DispatchYear(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -156,7 +106,8 @@ class DispatchYear(abstract.DispatchFeature):
                         "   dispatch_id, "
                         "   extract(YEAR FROM event_datetime) AS feature_column "
                         "FROM "
-                        "   staging.non_formatted_dispatches_data ")
+                        "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
+                        "GROUP BY 1 ").format(self.from_date, self.to_date)
 
 
 class OriginalPriority(abstract.DispatchFeature):
@@ -168,10 +119,45 @@ class OriginalPriority(abstract.DispatchFeature):
                         "   dispatch_id, "
                         "   max(dispatch_original_priority_code) as feature_column "
                         "FROM "
-                        "   (select * from staging.events_hub where event_datetime between '{}' and '{}' and event_type_code = 5 and dispatch_id is not null ) as events_hub "
+                        "   (select * from staging.events_hub where event_datetime between '{}' and '{}' "
+                        "                                     and event_type_code = 5 "
+                        "                                     and dispatch_id is not null ) as events_hub "
                         "   inner join staging.dispatches as dispatches "
                         "   on events_hub.event_id = dispatches.event_id "
                         "GROUP BY 1").format(self.from_date, self.to_date)
+
+
+class DispatchType(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Type of dispatch"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   max(dispatch_original_type)  as feature_column "
+                        "FROM "
+                        "   (select * from staging.events_hub where event_datetime between '{}' and '{}' "
+                        "                                     and event_type_code = 5 "
+                        "                                     and dispatch_id is not null ) as events_hub "
+                        "   inner join staging.dispatches as dispatches "
+                        "   on events_hub.event_id = dispatches.event_id "
+                        "GROUP BY 1").format(self.from_date, self.to_date)
+
+class NumberOfUnitsAssigned(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of units assigned to dispatch"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   max(units_assigned)  as feature_column "
+                        "FROM "
+                        "   (select * from staging.events_hub where event_datetime between '{}' and '{}' "
+                        "                                     and event_type_code = 5 "
+                        "                                     and dispatch_id is not null ) as events_hub "
+                        "   inner join staging.dispatches as dispatches "
+                        "   on events_hub.event_id = dispatches.event_id "
+                        "GROUP BY 1").format(self.from_date, self.to_date)
+
 #TODO beat
 
 #TODO event_type_code

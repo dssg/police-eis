@@ -46,7 +46,7 @@ def_adverse:
     pursuit: False  # unjustified pursuit
     complaint: True  # sustained complaints
 
-labelling: 
+labelling:
     include_all_employed: True # include all officers who were employed during the specified period
     include_all_active: True # include all oficcers who made an arrest or stop during the specified period.
 
@@ -62,19 +62,17 @@ officer_features:
     arrest_count_1yr: False
 
 dispatch_features:
-    DummyFeature: False
-    RandomFeature: False
-    DivisionAssigned: False
-    Latitude: False
-    Longitude: False
-    DispatchMinute: False
-    DispatchHour: False
-    DispatchDayOfWeek: False
-    DispatchMonth: False
-    DispatchYearQuarter: False
-    DispatchYear: False
+    Label: True #TODO move this to somewhere more explicit
+    DispatchMinute: True
+    DispatchHour: True
+    DispatchDayOfWeek: True
+    DispatchMonth: True
+    DispatchYearQuarter: True
+    DispatchYear: True
     OriginalPriority: True
-    Label: True
+    DispatchType: True
+    NumberOfUnitsAssigned: True
+
 
 features:
     basic:
@@ -142,13 +140,13 @@ features:
         arrestratedelta: False  # Arrest rate delta
         arresttimeseries: False  # Arrest time series
         arrestcentroids: False  # Subbeats
-        
+
     citations:
         careernpccitations: False  # Career NPC citations
         1yrnpccitations: False  # Recent NPC citations
         careercitations: False  # Career citations
         1yrcitations: False  # Recent citations
-                
+
     incidents:
         numsuicides: False  # Number of suicide incidents for officer in last year
         numjuveniles: False  # Number of incidents involving juveniles for officer in last year
@@ -160,7 +158,7 @@ features:
         numpersweaps: False # Number of incidents involving hands, feet, teeth used as weapons in last year
         avgagevictims: False  # Average age of victims in last year
         minagevictims: False  # Minimum age of victims in last year
-                
+
     field_interviews:
         careerficount: False  # Number of field interviews in career
         1yrficount: False  # Number of field interviews in last year
@@ -175,13 +173,13 @@ features:
         avgsuspectagefi: False  # Average age of suspects in field interviews
         avgtimeofdayfi: False  # Average time of day for field interviews
         fitimeseries: False  # Field interviews timeseries
-        
+
     cad:
         careercadstats: False  # Slow # Career CAD statistics, e.g. time to scene, etc.
         1yrcadstats: False  # Slow # CAD statistics in last year
         careercadterms: False  # CAD termination types in career
         1yrcadterms: False  # CAD termination types in last year
-                
+
     training:
         careerelectivetrain: False  # Number of elective hours of training in career
         1yrelectivetrain: False  # Number of elective hours of training in last year
@@ -203,7 +201,7 @@ features:
         1yrforcetrain: False  # Number of hours spent in use of force training in last year
         careermilitarytrain: False  # Number of hours spent in return from military training
         1yrmilitarytrain: False  # Number of hours spent in return from military training in last year
-        
+
     traffic_stops:
         careertsuofarr: False  # Number of traffic stops in career where tags were run and then force was used or an arrest was made
         1yrtsuofarr: False  # Number of traffic stops in last year where tags were run and then force was used or an arrest was made
@@ -242,7 +240,7 @@ features:
         5yrtrafstopbygender: False  # Traffic stops by gender in last year
         careertrafstopbygender: False  # Traffic stops by gender in career
         trafficstoptimeseries: False  # Time series of traffic stops
-       
+
     eis:
         1yreiswarnings: False  # EIS warnings in last year
         5yreiswarnings: False  # EIS warnings in last five years
@@ -251,7 +249,7 @@ features:
         careereiswarningtypes: False  # Frac of EIS warnings by type in career
         1yreiswarninginterventions: False  # Frac of EIS warning interventions by type in last year
         careereiswarninginterventions: False  # Frac of EIS warning interventions by type in career
-        
+
     extraduty:
         1yrextradutyhours: False  # Number of extra duty hours in last year
         careerextradutyhours: False  # Number of extra duty hours in career
