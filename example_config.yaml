@@ -65,7 +65,7 @@ officer_features:
     IncidentCount: True # Officer investigatable incident count to fake_today
     MeanHoursPerShift: True # Average number of hours per shift
     TimeGatedDummyFeature: True # Time gated dummy feature.
-    TimeGatedCategoricalDummyFeature: True # Time gated dummy feature.
+    NumberOfShiftsOfType: True # Time gated dummy feature.
     SustainedRuleViolations: True # Officer investigatable incident count to fake_today
     MeanHoursPerShift: True # Average number of hours per shift
     AllAllegations: True # Number of allegations made against an officer, time gated.
