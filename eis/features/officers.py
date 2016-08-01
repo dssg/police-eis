@@ -80,6 +80,36 @@ class TimeGatedCategoricalDummyFeature(abstract.TimeGatedCategoricalOfficerFeatu
 
 # Actual features.
 
+class NumberOfShiftsOfType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "absent",
+                            4: "bereavement",
+                            16: "family medical",
+                            23: "leave without pay",
+                            29: "sick non family",
+                            30: "suspension",
+                            31: "suspension without pay",
+                            2: "admin" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of shifts of different types aggregated over time")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.officer_shifts "
+                      "         WHERE staging.officer_shifts.shift_type_code = {4} "
+                      "         AND start_datetime <= '{2}'::date "
+                      "         AND start_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
 class MandatoryCounsellingEvents(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
