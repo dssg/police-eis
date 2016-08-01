@@ -2,6 +2,7 @@ import sys
 import pdb
 import numpy as np
 import pandas as pd
+import statistics
 from sklearn import metrics
 from . import dataset
 
@@ -9,6 +10,34 @@ def compute_AUC(test_labels, test_predictions):
     fpr, tpr, thresholds = metrics.roc_curve(
         test_labels, test_predictions, pos_label=1)
     return metrics.auc(fpr, tpr)
+
+def compute_avg_false_positive_rate(test_labels, test_predictions):
+    fpr, tpr, thresholds = metrics.roc_curve(
+        test_labels, test_predictions, pos_label=1)
+    return statistics.mean(fpr)
+
+
+def compute_avg_true_positive_rate(test_labels, test_predictions):
+    fpr, tpr, thresholds = metrics.roc_curve(
+        test_labels, test_predictions, pos_label=1)
+    return statistics.mean(tpr)
+
+def compute_false_positive_rate_at_x_percent(test_labels, test_predictions, x_percent=50):
+
+    cutoff_index = int(len(test_predictions) * x_percent)
+    cutoff_index = min(cutoff_index, len(test_predictions) - 1)
+
+    sorted_by_probability = np.sort(test_predictions)[::-1]
+    cutoff_probability = sorted_by_probability[cutoff_index]
+
+    test_predictions_binary = np.copy(test_predictions)
+    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
+    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+
+    fpr, tpr, thresholds = metrics.roc_curve(
+        test_labels, test_predictions_binary, pos_label=1)
+    #return statistics.mean(fpr)
+    return fpr
 
 
 def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01,
@@ -78,8 +107,11 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
 
     #All Metrics Being Calculated
     all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions_binary )
-    all_metrics["auc_score"] = compute_AUC(test_label, test_predictions)
+    all_metrics["auc_score__roc_auc__curve"] = compute_AUC(test_label, test_predictions)
     all_metrics["roc_auc_score"]  = metrics.roc_auc_score( test_label, test_predictions )
+    all_metrics["false_positive_rate_score__mean_under_roc_curve__"] = compute_avg_false_positive_rate( test_label, test_predictions )
+    #all_metrics["false_positive_rate_score__50.0__"] = compute_false_positive_rate_at_x_percent( test_label, test_predictions, 50.0 )
+    all_metrics["true_positive_rate_score__mean_under_roc_curve__"] = compute_avg_true_positive_rate( test_label, test_predictions )
     all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
     all_metrics["f1_score"] = metrics.f1_score( test_label, test_predictions_binary )
     all_metrics["fbeta_score_favor_precision__0.75__beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)

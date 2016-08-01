@@ -91,7 +91,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     return None
 
 #def store_evaluation_metrics( timestamp, evaluation_metrics ):
-def store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter=None):
+def store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter):
     """ Write the model evaluation metrics into the results schema
 
     :param str timestamp: the timestamp at which this model was run.
@@ -105,24 +105,12 @@ def store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_par
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
-    # create query and insert into the evaluations table.
-    #columns = list(evaluation_metrics.keys())
-    #values  = list(evaluation_metrics.values())
-    #query = (   " INSERT INTO results_new.evaluations( model_id, " + ",".join(map(str, columns ) ) + " ) " +
-    #            " VALUES( " + str(this_model_id) + ", " + ",".join( map( str, values )) + " ) " )
 
-    # insert this prediction into the evaluations table.
-    #query = (   " INSERT INTO results_new.evaluations( model_id, evaluation, metric )"
-    #            " VALUES( '{}', '{}', '{}') ".format(   this_model_id,
-    #                                                        evaluation,
-    #                                                        metric ) )
-
-
-    if metric_parameter is None:
-        metric_parameter = 'Null'
+    #if metric_parameter is None:
+    #    metric_parameter = 'Null'
 
     query = (   "   INSERT INTO results_new.evaluations( model_id, evaluation, metric, metric_parameter, comment)"
-                "   VALUES( '{}', '{}', '{}', {}, '{}') ".format( this_model_id,
+                "   VALUES( '{}', '{}', '{}', '{}', '{}') ".format( this_model_id,
                                                                     evaluation,
                                                                     metric,
                                                                     metric_parameter,
