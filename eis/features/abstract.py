@@ -41,8 +41,9 @@ class OfficerTimeBoundedFeature(OfficerFeature):
 
 class DispatchFeature():
     def __init__(self, **kwargs):
-	try:
+        try:
             self.from_date = kwargs["from_date"]
+            self.to_date = kwargs["to_date"]
             self.table_name = kwargs["table_name"]
         except KeyError:
             pass

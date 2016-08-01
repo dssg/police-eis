@@ -26,10 +26,10 @@ class Label(abstract.DispatchFeature):
                         " case when sum(coalesce(incidents.number_of_unjustified_allegations, 0)) + " 
                         " sum(coalesce(incidents.number_of_preventable_allegations, 0)) + "
                         " sum(coalesce(incidents.number_of_sustained_allegations, 0)) > 0 then 1 else 0 end as feature_column "
-                        " from (select * from staging.events_hub where event_datetime > {} and dispatch_id is not null ) as events_hub " 
+                        " from (select * from staging.events_hub where event_datetime between '{}' and '{}' and event_type_code = 4 and dispatch_id is not null ) as events_hub " 
                         "  left join staging.incidents as incidents "
                         " on events_hub.event_id = incidents.event_id "
-                        " group by 1 ").format(from_date)
+                        " group by 1 ").format(self.from_date, self.to_date)
 
 ### Basic Dispatch Features
 
@@ -168,10 +168,10 @@ class OriginalPriority(abstract.DispatchFeature):
                         "   dispatch_id, "
                         "   max(dispatch_original_priority_code) as feature_column "
                         "FROM "
-                        "   (select * from staging.events_hub where event_datetime > {} and dispatch_id is not null ) as events_hub "
+                        "   (select * from staging.events_hub where event_datetime between '{}' and '{}' and event_type_code = 5 and dispatch_id is not null ) as events_hub "
                         "   inner join staging.dispatches as dispatches "
-                        "   on events_hub.dispatch_id = dispatches.dispatch_id "
-                        "GROUP BY 1").format(from_date)
+                        "   on events_hub.event_id = dispatches.event_id "
+                        "GROUP BY 1").format(self.from_date, self.to_date)
 #TODO beat
 
 #TODO event_type_code

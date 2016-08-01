@@ -31,7 +31,7 @@ def find_categorical_features(feature_list):
     """
 
     # TODO: make it so that we don't need to supply a bogus fake today to instantiate an OfficerFeature
-    dummy_kwargs = {'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
+    dummy_kwargs = {'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
     feature_classes = [lookup(feature, **dummy_kwargs) for feature in feature_list]
 
     categorical_features = [feature.feature_name for feature in feature_classes if feature.is_categorical]
@@ -66,8 +66,9 @@ def lookup(feature, **kwargs):
                     'DispatchMonth': dispatches.DispatchMonth(**kwargs),
                     'DispatchYearQuarter': dispatches.DispatchYearQuarter(**kwargs),
                     'DispatchYear': dispatches.DispatchYear(**kwargs),
-                    'DispatchMinute': dispatches.DispatchMinute(**kwargs)
-                    'OriginalPriority': dispatches.OriginalPriority(**kwargs)
+                    'DispatchMinute': dispatches.DispatchMinute(**kwargs),
+                    'OriginalPriority': dispatches.OriginalPriority(**kwargs),
+                    'Label': dispatches.Label(**kwargs)
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),

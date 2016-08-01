@@ -270,10 +270,12 @@ def convert_categorical(feature_df, feature_columns):
 
     log.info('Converting categorical features to dummy variablles')
 
-    categorical_features = class_map.find_categorical_features(feature_columns)
+    # note: feature names will be lowercased when returned from the db
+    categorical_features = [name.lower() for name in class_map.find_categorical_features(feature_columns)]
 
     log.info('... {} categorical features'.format(len(categorical_features)))
 
+    log.debug(feature_df.columns)
     # add dummy variables to feature dataframe
     feature_df_w_dummies = pd.get_dummies(feature_df, columns=categorical_features, sparse=True)
 
@@ -458,7 +460,7 @@ class FeatureLoader():
 
         # fill all the dispatch labels with 0s, then add 1s for the adverse incidents
         dispatches['adverse_by_ourdef'] = 0
-        dispatches.ix[adverse_dispatches.index] = 1
+        dispatches.loc[dispatches.dispatch_id.isin(adverse_dispatches)] = 1
 
         return dispatches
 
@@ -551,8 +553,9 @@ class FeatureLoader():
         # index by the relevant id
         results = results.set_index(id_column)
 
+        # -1 in feature count is b/c 'label' is also a column, but not a feature
         log.debug("... {} rows, {} features".format(len(results),
-                                                    len(results.columns)))
+                                                    len(results.columns) - 1))
         return results
 
 
@@ -625,10 +628,10 @@ def grab_dispatch_data(features, def_adverse, table_name):
         featnames(list): the list of feature column names
     """
 
-    feature_loader = FeatureLoader()
+    feature_loader = FeatureLoader(table_name = table_name)
 
     # load the labels for the relevant dispatches
-    dispatch_labels = feature_loader.dispatch_labeller(def_adverse)
+    #dispatch_labels = feature_loader.dispatch_labeller(def_adverse)
     
     # select all the features which are set to True in the config file
     # NOTE: dict.items() is python 3 specific. for python 2 use dict.iteritems()
@@ -643,15 +646,15 @@ def grab_dispatch_data(features, def_adverse, table_name):
                                                    
     # join the labels and the features
     log.debug('... merging labels and features in memory')
-    dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
+    #dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
+    dataset = features_df_w_dummies
     log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
 
     # NOTE: its important to run these inplace, otherwise you get a MemoryError (on a 15G RAM machine)
-    dataset.set_index(["dispatch_id"], inplace=True)
     dataset.fillna(0, inplace=True)
 
-    features = dataset.drop(["adverse_by_ourdef"], axis=1)
-    labels = dataset["adverse_by_ourdef"].values
+    features = dataset.drop(["label"], axis=1)
+    labels = dataset["label"].values
     ids = dataset.index.values
     feature_names = features.columns
 

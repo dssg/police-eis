@@ -31,7 +31,7 @@ def setup(config, today):
     features, labels, ids, feature_names = dataset.grab_dispatch_data(
                                             features = config['dispatch_features'],
                                             def_adverse = config['def_adverse'],
-                                            table_name = 'dispatch_features')
+                                            table_name = config['dispatch_feature_table_name'])
                                                 
     log.info("Splitting the data into training and testing subsets...")
 
