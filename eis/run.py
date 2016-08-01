@@ -150,10 +150,8 @@ def main(config_file_name, args):
             metric = comment.split('_score', 1)[0]
             try:
                 metric_parameter = str(comment.split('__', 1)[1].split('__')[0].replace('_', ''))
-
             except:
                 metric_parameter=None
-            print(evaluation, comment, metric, metric_parameter)
 
             dataset.store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter )
 
