@@ -58,6 +58,12 @@ class TimeGatedOfficerFeature(OfficerFeature):
     
 class DispatchFeature():
     def __init__(self, **kwargs):
+        try:
+            self.from_date = kwargs["from_date"]
+            self.to_date = kwargs["to_date"]
+            self.table_name = kwargs["table_name"]
+        except KeyError:
+            pass
         self.description = ""
         self.description_long =""
         self.feature_name = self.__class__.__name__

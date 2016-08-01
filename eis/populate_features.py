@@ -125,8 +125,11 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
     # add a column for each numeric feature in feature_list
     num_features = set(feature_list) - set(cat_features)
     num_feature_query = ', '.join(["{} numeric ".format(x) for x in num_features])
-
-    final_query = ', '.join([create_query, num_feature_query, cat_feature_query]) + ");"
+    
+    if len(cat_feature_query) > 0:
+        final_query = ', '.join([create_query, num_feature_query, cat_feature_query]) + ");"
+    else:
+        final_query = ', '.join([create_query, num_feature_query]) + ");"
     engine.execute(final_query)
 
     # TODO: for dispatch predictions we need to figure out an alternative to fake_today
@@ -139,11 +142,11 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
                 "   ({}) "
                 "SELECT DISTINCT "
                 "   staging.events_hub.dispatch_id "
-                "FROM staging.events_hub"
+                "FROM staging.events_hub "
+                "WHERE event_datetime between '2014-01-01' and '2014-02-01' "
                 .format(
                     table_name,
                     id_column))
-
     engine.execute(query)
 
 
@@ -155,11 +158,13 @@ def populate_dispatch_features_table(config, table_name):
 
     for feature_name in feature_list:
 
+       log.debug('Calculating and inserting feature {}'.format(feature_name))
+
        feature_class = class_map.lookup(feature_name, 
+                                        from_date = '2014-01-01',
+                                        to_date = '2014-02-01',
                                         fake_today = datetime.datetime.today(),
                                         table_name = table_name)
-
-       log.debug('Calculating and inserting feature {}'.format(feature_class.feature_name))
 
        feature_class.build_and_insert(engine)
 

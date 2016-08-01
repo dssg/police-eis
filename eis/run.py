@@ -102,7 +102,6 @@ def main(config_file_name, args):
         end = time.time()
         #pdb.set_trace()
         model_time_in_seconds = "%.3f" % (end-start)
-        print(model_time_in_seconds)
 
         if config['unit'] == 'officer':
             to_save = {"test_labels": my_exp.exp_data["test_y"],

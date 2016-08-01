@@ -43,7 +43,7 @@ def setup(config):
         start_date = train_start_date,
         end_date = fake_today,
         def_adverse = config["def_adverse"],
-        table_name = "dispatch_features")
+        table_name = config["dispatch_feature_table_name"])
 
     log.info("Loading dispatch feature TESTING data ...")
     # load the features and labels for the TESTING set
@@ -52,7 +52,7 @@ def setup(config):
         start_date = fake_today,
         end_date = test_end_date,
         def_adverse = config["def_adverse"],
-        table_name = "dispatch_features")
+        table_name = config["dispatch_feature_table_name"])
 
     # in case train_X and test_X have different categorical values, and thus different
     # dummy columns added

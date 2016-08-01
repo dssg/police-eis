@@ -10,7 +10,7 @@ distdir: dists  # Where to put them
 # Type of Experiment   #
 ########################
 
-unit: 'dispatch'  # possible options: [dispatch, officer]
+unit: 'officer'  # other options: 'dispatch'
 aggregation: False  # Also produce unit and division level risk scores
 pilot: False  # Turn on pilot experiment
 pilot_today: '01May2016'  # Do pilot beginning date
@@ -20,10 +20,10 @@ pilot_dir: 'pilot/'
 # Temporal parameters  #
 ########################
 
-fake_today: ['15Jan2014']  # if you want a specific_today then pass this
+fake_today: ['01May2014', '01May2013']  # if you want a specific_today then pass this
 autogen_fake_todays: False  # set to off if you want a specific fake_today
-training_window: [15]  # training, days, used for officer-level prediction
-prediction_window: [15]  # prediction, days, used for officer-level prediction
+training_window: [365, 730, 10000]  # training, days, used for officer-level prediction
+prediction_window: [365, 180]  # prediction, days, used for officer-level prediction
 testing_interval_days: 365  # days, used for dispatch-level prediction
 training_interval_days: 1460  # days, used for dispatch-level prediction
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
@@ -53,28 +53,7 @@ labelling:
 ########################
 # Feature selection    #
 ########################
-
-dispatch_feature_table_name: 'features'
-
-officer_features:
-    investigation_count_career: True
-    arrest_count_career: True
-    arrest_count_1yr: False
-
-dispatch_features:
-    DummyFeature: False
-    RandomFeature: False
-    DivisionAssigned: False
-    Latitude: False
-    Longitude: False
-    DispatchMinute: False
-    DispatchHour: False
-    DispatchDayOfWeek: False
-    DispatchMonth: False
-    DispatchYearQuarter: False
-    DispatchYear: False
-    OriginalPriority: True
-    Label: True
+try_feature_sets_by_group: False  # Turn on if you want the code to try removing each feature set in turn
 
 features:
     basic:
@@ -95,10 +74,6 @@ features:
         careerprioraccident: False  # preventable accidents in career
         1yrnumfilteredadverse: False  # filtered adverse incidents in past year
         careernumfilteredadverse: False  # filtered adverse incidents in career
-        1yrroccoc: False  # rules of conduct COC violations in last year
-        careerroccoc: False  # rules of conduct COC violations in career
-        1yrrocia: False  # rules of conduct IA violations in last year
-        careerrocia: False  # rules of conduct IA violations in career
         1yrroccoc: False  # rules of conduct COC violations in last year
         careerroccoc: False  # rules of conduct COC violations in career
         1yrrocia: False  # rules of conduct IA violations in last year
@@ -259,6 +234,10 @@ features:
         careerextradutyneighb1: False  # avg neighborhood features in extra duty hours places in career
         1yrextradutyneighb2: False  # avg neighborhood features in extra duty hours places in last year
         careerextradutyneighb2: False  # avg neighborhood features in extra duty hours places in career
+        
+    neighborhood:
+        1yrneighb1: False  # avg neighborhood features in where officer made their arrests in last year
+        careerneighb1: False  # avg neighborhood features in where officer made their arrests in career
         1yrneighb2: False  # avg neighborhood features in where officer made their arrests in last year
         careerneighb2: False  # avg neighborhood features in where officer made their arrests in career
 
