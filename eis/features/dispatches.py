@@ -22,14 +22,14 @@ class Label(abstract.DispatchFeature):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Binary label, 1 if incident considered adverse occured during this dispatch"
         self.query = (  "SELECT "
-                        "   dispatch_id, "
-                        "    as feature_column "
-                        "FROM "
-                        "   (select * from staging.events_hub where event_datetime > {} and dispatch_id is not null ) as events_hub "
-                        "   left join staging.incidents as incidents "
-                        "   on events_hub.dispatch_id = incidents.dispatch_id "
-                        "GROUP BY 1").format(from_date)
-
+                        "   dispatch_id, "                        
+                        " case when sum(coalesce(incidents.number_of_unjustified_allegations, 0)) + " 
+                        " sum(coalesce(incidents.number_of_preventable_allegations, 0)) + "
+                        " sum(coalesce(incidents.number_of_sustained_allegations, 0)) > 0 then 1 else 0 end as feature_column "
+                        " from (select * from staging.events_hub where event_datetime > {} and dispatch_id is not null ) as events_hub " 
+                        "  left join staging.incidents as incidents "
+                        " on events_hub.event_id = incidents.event_id "
+                        " group by 1 ").format(from_date)
 
 ### Basic Dispatch Features
 
