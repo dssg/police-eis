@@ -531,18 +531,22 @@ class FeatureLoader():
             id_column = 'dispatch_id'
 
         # Create the query for this feature.
-        query = (   "SELECT {}, {} FROM features.{}"
+        query = (   "SELECT {}, {} "
+                    "FROM features.{} "
                     .format(
                         id_column,
                         feature_name_list,
                         self.table_name))
-    
+
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
-        
+    
         # filter out the rows which aren't in ids_to_use
         if ids_to_use is not None:
             results = results.ix[ids_to_use]
+
+        log.debug("... {} rows, {} features".format(len(results),
+                                                    len(results.columns)))
 
         return results
 
@@ -562,8 +566,6 @@ class FeatureLoader():
         # index by the relevant id
         results = results.set_index(id_column)
 
-        log.debug("... {} rows, {} features".format(len(results),
-                                                    len(results.columns)))
         return results
 
 
@@ -618,13 +620,12 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     return feats, labels, ids, featnames
 
 
-def grab_dispatch_data(features, start_date, fake_today, end_date, def_adverse, table_name):
+def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
     """Function that returns the dataset to use in an experiment.
 
     Args:
         features: dict containing which features to use
         start_date(datetime.datetime): start date for selecting dispatch
-        fake_today(datetime.datetime): build features with respect to this date
         end_date(datetime.datetime): end date for selecting dispatch
         def_adverse: dict containing options for adverse incident definitions
         labelling: dict containing options to select which dispatches to use for labelling
@@ -637,7 +638,6 @@ def grab_dispatch_data(features, start_date, fake_today, end_date, def_adverse, 
     """
 
     feature_loader = FeatureLoader(start_date = start_date,
-                                   fake_today = fake_today,
                                    end_date = end_date,
                                    table_name = table_name)
 
@@ -649,7 +649,7 @@ def grab_dispatch_data(features, start_date, fake_today, end_date, def_adverse, 
     features_to_use = [feat for feat, is_used in features.items() if is_used]
 
     features_df = feature_loader.load_all_features(features_to_use,
-                                                   ids_to_use = None,
+                                                   ids_to_use = dispatch_labels.dispatch_id,
                                                    feature_type = 'dispatch')
 
     # encode categorical features with dummy variables

@@ -30,15 +30,17 @@ def main(config_file_name, args):
     # set the features table name based on type of prediction (officer / dispatch)
     if ( args.featuretable ):
         table_name = args.featuretable
+        log.debug("args.featuretable: {}".format(args.featuretable))
     else:
         table_name = '{}_features'.format(config['unit'])
     config["feature_table_name"] = table_name
+    log.debug("feature table name: {}".format(config["feature_table_name"]))
+    log.debug("table_name variable : {}".format(table_name))
 
     # If asked to generate features, then do that and stop.
     if args.buildfeatures:
 
         log.info("Re-building features...")
-
 
         # Create the features table.
         populate_features.create_features_table(config, table_name)

@@ -1,6 +1,8 @@
 import logging
 import datetime
 
+import pandas as pd
+
 from sklearn import cross_validation
 from sklearn import preprocessing
 
@@ -23,33 +25,39 @@ def setup(config):
                                   split on for temporal cross-validation
     """
 
-    today = datetime.datetime.strptime(config['fake_today', "%d%b%Y")
-    train_start_date = today - datetime.timedelta(days=config["training_window"])
-    test_end_date = today + datetime.timedelta(days=config["prediction_window"])
+    fake_today = datetime.datetime.strptime(config['fake_today'], "%d%b%Y")
+    train_start_date = fake_today - datetime.timedelta(days=config["training_window"])
+    test_end_date = fake_today + datetime.timedelta(days=config["prediction_window"])
 
     log.info("Train label window start: {}".format(train_start_date))
-    log.info("Train label window stop: {}".format(today))
-    log.info("Test label window start: {}".format(today))
+    log.info("Train label window stop: {}".format(fake_today))
+    log.info("Test label window start: {}".format(fake_today))
     log.info("Test label window stop: {}".format(test_end_date))
 
-    log.info("Loading dispatch feature and label data...")
+    log.info("feature table name: {}".format(config["feature_table_name"]))
 
-    # load the features and labels for all dispatches
-    features, labels, ids, feature_names = dataset.grab_dispatch_data(
-                                            features = config['dispatch_features'],
-                                            def_adverse = config['def_adverse'],
-                                            table_name = 'dispatch_features')
-                                                
-    log.info("Splitting the data into training and testing subsets...")
+    log.info("Loading dispatch feature TRAINING data ...")
+    # load the features and labels for the TRAINING set
+    train_X, train_y, train_id, train_names = dataset.grab_dispatch_data(
+        features = config["dispatch_features"], 
+        start_date = train_start_date,
+        end_date = fake_today,
+        def_adverse = config["def_adverse"],
+        table_name = "dispatch_features")
 
-    # NOTE: !!IMPORTANT!! the random_state must be the same for the following two train_test_splits
-    #                     so that the ids are correctly matched to their rows
-    
-    # split the features and labels
-    train_X, test_X, train_y, test_y = cross_validation.train_test_split(features, labels, test_size=0.4, random_state=0)
+    log.info("Loading dispatch feature TESTING data ...")
+    # load the features and labels for the TESTING set
+    test_X, test_y, test_id, test_names = dataset.grab_dispatch_data(
+        features = config["dispatch_features"], 
+        start_date = fake_today,
+        end_date = test_end_date,
+        def_adverse = config["def_adverse"],
+        table_name = "dispatch_features")
 
-    # split the row indexes (dispatch_ids) using same split as the feature / labels
-    train_id, test_id, _, _ = cross_validation.train_test_split(ids, labels, test_size=0.4, random_state=0)
+    # in case train_X and test_X have different categorical values, and thus different
+    # dummy columns added
+    train_X, test_X = add_empty_categorical_columns(train_X, test_X)
+    features = train_X.columns
     
     # Feature scaling
     scaler = preprocessing.StandardScaler().fit(train_X)
@@ -63,3 +71,31 @@ def setup(config):
             "test_y": test_y,  # For pilot test_y will not be used
             "test_id": test_id,
             "features": features}
+
+
+def add_empty_categorical_columns(train_X, test_X):
+    """Return versions of train_X and test_X that have the same number of columns
+    (in case they have different categorical categories, and different dummy variable columns
+    
+    Args:
+        train_X(pd.DataFrame): training X data, potentially with categorical dummy columns
+        test_X(pd.DataFrame): testing X data, potentially with categorical dummy columns
+    """
+
+    # get the columns in train_X and test_X separately
+    train_cols = set(train_X.columns)
+    test_cols = set(test_X.columns)
+
+    # figure out which columns are missing from train_X and test_X
+    all_cols = train_cols | test_cols
+    train_missing_cols = all_cols - train_cols
+    test_missing_cols = all_cols - test_cols
+
+    # add columns full of 0s for the missing categorical columns
+    for missing_col in test_missing_cols:
+        test_X[missing_col] = 0
+
+    for missing_col in train_missing_cols:
+        train_X[missing_col] = 0
+
+    return train_X, test_X

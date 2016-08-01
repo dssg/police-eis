@@ -21,7 +21,7 @@ class OfficerFeature():
         try:
             self.fake_today = kwargs["fake_today"]
             self.table_name = kwargs["table_name"]
-        except KeyError:
+        except (KeyError, AttributeError):
             pass
 
     def build_and_insert( self, engine ):
@@ -40,12 +40,12 @@ class TimeGatedOfficerFeature(OfficerFeature):
 
     def __init__(self, **kwargs):
         OfficerFeature.__init__(self, **kwargs)
-        self.type_of_imputation = "zero"
-        self.feature_column_names = [ self.feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_durations ]
 
         # allow instantiation without kwargs
         try:
             self.lookback_durations = kwargs[ "lookback_durations" ]
+            self.type_of_imputation = "zero"
+            self.feature_column_names = [ self.feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_durations ]
         except KeyError:
             pass
 

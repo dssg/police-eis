@@ -126,8 +126,6 @@ def generate_models_to_run(config, query_db=True):
             exp_data = officer.run_traintest(this_config)
 
         elif config["unit"] == "dispatch":
-            # get dispatch-level features to use
-            this_config["dispatch_features"] = [feat for feat, is_set_true in config['dispatch_features'].items() if is_set_true]
             exp_data = dispatch.run_traintest(this_config)
         else:
             log.error("Invalid 'unit' specified in config file: {}".format(config['unit']))

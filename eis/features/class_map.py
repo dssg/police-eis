@@ -52,15 +52,16 @@ def lookup(feature, **kwargs):
                     'DivorceCount': officers.DivorceCount(**kwargs),
                     'SustainedRuleViolations': officers.SustainedRuleViolations(**kwargs),
                     'IncidentCount': officers.IncidentCount(**kwargs),
-		    'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
+		            'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
                     'MilesFromPost': officers.MilesFromPost(**kwargs),
                     'OfficerGender': officers.OfficerGender(**kwargs),
-	            'RandomFeature': dispatches.RandomFeature(**kwargs),
-                    'DummyFeature': dispatches.DummyFeature(**kwargs),
                     'TimeGatedDummyFeature': officers.TimeGatedDummyFeature(**kwargs),
-		    'OfficerRace': officers.OfficerRace(**kwargs),
+		            'OfficerRace': officers.OfficerRace(**kwargs),
                     'AllAllegations': officers.AllAllegations(**kwargs),
-		    'DummyFeature': dispatches.DummyFeature(**kwargs)
+
+	                'random_feature': dispatches.random_feature(**kwargs),
+                    'dummy_feature': dispatches.dummy_feature(**kwargs),
+                    'division_assigned': dispatches.division_assigned(**kwargs),
                   }
 
     if feature not in dict_lookup.keys():
