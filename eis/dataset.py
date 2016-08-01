@@ -53,7 +53,7 @@ def store_model_info( timestamp, batch_timestamp, config, pickle_data ):
     :param str pkl_obj: the serialized pickle object string for this model run.
     """
 
-    query = ( "INSERT INTO results_new.models( run_time, batch_run_time, config, pickle_file ) VALUES( %s, %s, %s, %s )" )
+    query = ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) VALUES( %s, %s, %s, %s )" )
     db_conn.cursor().execute(query, ( timestamp, batch_timestamp, json.dumps(config), psycopg2.Binary(pickle_data) ) )
     db_conn.commit()
     return None
@@ -69,7 +69,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     """
 
     # get the model primary key corresponding to this timestamp.
-    query = ( " SELECT model_id FROM results_new.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
     cur = db_conn.cursor()
     cur.execute(query)
     this_model_id = cur.fetchone()
@@ -87,7 +87,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
                                             "unit_score": unit_predictions,
                                             "label_value": unit_labels } )
 
-    dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results_new", index=False )
+    dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False )
     return None
 
 #def store_evaluation_metrics( timestamp, evaluation_metrics ):
@@ -99,7 +99,7 @@ def store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_par
     """
 
     # get the model primary key corresponding to this timestamp.
-    query = ( " SELECT model_id FROM results_new.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
     cur = db_conn.cursor()
     cur.execute(query)
     this_model_id = cur.fetchone()
@@ -109,7 +109,7 @@ def store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_par
     #if metric_parameter is None:
     #    metric_parameter = 'Null'
 
-    query = (   "   INSERT INTO results_new.evaluations( model_id, evaluation, metric, metric_parameter, comment)"
+    query = (   "   INSERT INTO results.evaluations( model_id, evaluation, metric, metric_parameter, comment)"
                 "   VALUES( '{}', '{}', '{}', '{}', '{}') ".format( this_model_id,
                                                                     evaluation,
                                                                     metric,
