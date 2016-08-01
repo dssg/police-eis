@@ -15,7 +15,7 @@ except:
 
 time_format = "%Y-%m-%d %X"
 
-### Basic Officer Features
+### Dummy instances of the abstract classes to use as templates.
 
 class DummyFeature(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -47,6 +47,38 @@ class TimeGatedDummyFeature(abstract.TimeGatedOfficerFeature):
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
+
+class TimeGatedCategoricalDummyFeature(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "absent",
+                            4: "bereavement",
+                            16: "family medical",
+                            23: "leave without pay",
+                            29: "sick non family",
+                            30: "suspension",
+                            31: "suspension without pay",
+                            2: "admin" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Dummy time-gated categorical feature for testing 2016 schema")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.officer_shifts "
+                      "         WHERE staging.officer_shifts.shift_type_code = {4} "
+                      "         AND start_datetime <= '{2}'::date "
+                      "         AND start_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+# Actual features.
 
 class NumberOfSuspensions(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
@@ -217,10 +249,10 @@ class MeanHoursPerShift(abstract.OfficerFeature):
                                 self.feature_name,
                                 self.fake_today.strftime(time_format)))
 
-class SustainedRuleViolations(abstract.OfficerFeature):
+class SustainedRuleViolations(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = ("Number of sustained rule violatoins")
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of sustained rule violation over time")
         self.num_features = 1
         self.name_of_features = ["SustainedRuleViolations"]
         self.query = ("UPDATE features.{0} feature_table "
@@ -229,7 +261,8 @@ class SustainedRuleViolations(abstract.OfficerFeature):
                       "         FROM staging.incidents "
                       "         INNER JOIN staging.events_hub "
                       "         ON incidents.event_id = events_hub.event_id "
-                      "         WHERE event_datetime <= '{2}' "
+                      "         WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       # the following line must be removed when not-sworn officers are removed. GIANT HACK
                       "         AND officer_id IS NOT null "
                       "         GROUP BY officer_id "
@@ -237,8 +270,9 @@ class SustainedRuleViolations(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       "AND feature_table.fake_today = '{2}'::date "
                       .format(  self.table_name,
-                                self.feature_name,
-                                self.fake_today.strftime(time_format)))
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
         self.set_null_counts_to_zero = True
 
 class AllAllegations(abstract.TimeGatedOfficerFeature):
