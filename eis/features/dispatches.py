@@ -14,6 +14,22 @@ except:
 
 time_format = "%Y-%m-%d %X"
 
+### LABEL
+
+
+class Label(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Binary label, 1 if incident considered adverse occured during this dispatch"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "                        
+                        " case when sum(coalesce(incidents.number_of_unjustified_allegations, 0)) + " 
+                        " sum(coalesce(incidents.number_of_preventable_allegations, 0)) + "
+                        " sum(coalesce(incidents.number_of_sustained_allegations, 0)) > 0 then 1 else 0 end as feature_column "
+                        " from (select * from staging.events_hub where event_datetime > {} and dispatch_id is not null ) as events_hub " 
+                        "  left join staging.incidents as incidents "
+                        " on events_hub.event_id = incidents.event_id "
+                        " group by 1 ").format(from_date)
 
 ### Basic Dispatch Features
 
@@ -42,7 +58,7 @@ class RandomFeature(abstract.DispatchFeature):
         self.type_of_imputation = "mean"
 
 
-class division_assigned(abstract.DispatchFeature):
+class DivisionAssigned(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.is_categorical = True
@@ -53,6 +69,37 @@ class division_assigned(abstract.DispatchFeature):
                         "FROM "
                         "   staging.non_formatted_dispatches_data ")
 
+#TODO
+#ALL CODE BELOW IS QUERYING NON-STAGING TABLES, FIX THIS ASAP!
+class Latitude(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Latitude of the original dispatch"
+        self.query = (  "SELECT "
+                        " dispatch_id, "
+                        " latitude as feature_column "
+                        "FROM "
+                        " staging.non_formatted_dispatches_data ")
+
+class Longitude(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Longitude of the original dispatch"
+        self.query = (  "SELECT "
+                        " dispatch_id, "
+                        " longitude as feature_column "
+                        "FROM "
+                        " staging.non_formatted_dispatches_data ")
+class DispatchMinute(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Minute of the hour the dispatch occured"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(minute FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
 
 class DispatchHour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -88,3 +135,61 @@ class DispatchYearQuarter(abstract.DispatchFeature):
                         "   extract(QUARTER FROM event_datetime) AS feature_column "
                         "FROM "
                         "   staging.non_formatted_dispatches_data ")
+
+class DispatchMonth(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Month the dispatch occurred"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(MONTH FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
+
+class DispatchYear(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Year the dispatch occurred"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   extract(YEAR FROM event_datetime) AS feature_column "
+                        "FROM "
+                        "   staging.non_formatted_dispatches_data ")
+
+
+class OriginalPriority(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Original priority code of dispatch"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   max(dispatch_original_priority_code) as feature_column "
+                        "FROM "
+                        "   (select * from staging.events_hub where event_datetime > {} and dispatch_id is not null ) as events_hub "
+                        "   inner join staging.dispatches as dispatches "
+                        "   on events_hub.dispatch_id = dispatches.dispatch_id "
+                        "GROUP BY 1").format(from_date)
+#TODO beat
+
+#TODO event_type_code
+
+#TODO priority
+
+#TODO dispatch role
+
+#TODO dispatch delay
+
+#TODO travel time
+
+#TODO response time
+
+#TODO at scene time
+
+#TODO units assigned
+
+#TODO units arrived
+
+#TODO unit shift

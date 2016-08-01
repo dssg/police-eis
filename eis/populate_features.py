@@ -131,8 +131,12 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
     # add a column for each numeric feature in feature_list
     num_features = set(feature_list) - set(cat_features)
     num_feature_query = ', '.join(["{} numeric ".format(x) for x in num_features])
-
-    final_query = ', '.join([create_query, num_feature_query, cat_feature_query]) + ");"
+    
+    if len(cat_feature_query) > 0:
+        final_query = ', '.join([create_query, num_feature_query, cat_feature_query]) + ");"
+    else:
+        final_query = ', '.join([create_query, num_feature_query]) + ");"
+    print(final_query)
     engine.execute(final_query)
 
     # TODO: for dispatch predictions we need to figure out an alternative to fake_today
@@ -149,7 +153,6 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
                 .format(
                     table_name,
                     id_column))
-
     engine.execute(query)
 
 
