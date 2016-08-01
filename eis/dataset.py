@@ -91,7 +91,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     return None
 
 #def store_evaluation_metrics( timestamp, evaluation_metrics ):
-def store_evaluation_metrics( timestamp, evaluation, metric, description, metric_parameter=None):
+def store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter=None):
     """ Write the model evaluation metrics into the results schema
 
     :param str timestamp: the timestamp at which this model was run.
@@ -121,12 +121,12 @@ def store_evaluation_metrics( timestamp, evaluation, metric, description, metric
     if metric_parameter is None:
         metric_parameter = 'Null'
 
-    query = (   "   INSERT INTO results_new.evaluations( model_id, evaluation, metric, metric_parameter, description)"
+    query = (   "   INSERT INTO results_new.evaluations( model_id, evaluation, metric, metric_parameter, comment)"
                 "   VALUES( '{}', '{}', '{}', {}, '{}') ".format( this_model_id,
                                                                     evaluation,
                                                                     metric,
                                                                     metric_parameter,
-                                                                    description ) )
+                                                                    comment ) )
 
     db_conn.cursor().execute(query)
     db_conn.commit()
