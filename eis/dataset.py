@@ -53,9 +53,23 @@ def store_model_info( timestamp, batch_timestamp, config, pickle_data ):
     :param str pkl_obj: the serialized pickle object string for this model run.
     """
 
-    query = ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) VALUES( %s, %s, %s, %s )" )
-    db_conn.cursor().execute(query, ( timestamp, batch_timestamp, json.dumps(config), psycopg2.Binary(pickle_data) ) )
+    # insert into the models table.
+    query = ( "INSERT INTO results.models( run_time, batch_run_time, comment, batch_comment, config ) VALUES(  %s, %s, %s, %s, %s )" )
+    db_conn.cursor().execute(query, ( timestamp, batch_timestamp, config["model_comment"], config["batch_comment"], json.dumps(config) ) ) 
     db_conn.commit()
+
+    # get the model primary key corresponding to this entry, based on timestamp.
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    cur = db_conn.cursor()
+    cur.execute(query)
+    this_model_id = cur.fetchone()
+    this_model_id = this_model_id[0]
+
+    # insert into the data table.
+    query = ( "INSERT INTO results.data( model_id, pickle_file ) VALUES( %s, %s )" )
+    db_conn.cursor().execute(query, ( model_id, psycopg2.Binary(pickle_data) ) )
+    db_conn.commit()
+
     return None
 
 def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels ):

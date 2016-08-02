@@ -6,6 +6,13 @@
 make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes made of training set features
 distdir: dists  # Where to put them
 
+
+########################
+# Comment fields       #
+########################
+model_comment: 'test comment'
+batch_comment: 'batch comment'
+
 ########################
 # Type of Experiment   #
 ########################
