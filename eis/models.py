@@ -111,6 +111,42 @@ def define_model(model, parameters, n_cores):
             min_samples_split=parameters['min_samples_split'],
             n_jobs=n_cores)
 
+    elif model == "RandomForestBagging":
+        #TODO Make Model Bagging
+        return ensemble.BaggingClassifier(
+                    ensemble.RandomForestClassifier(
+                        n_estimators=parameters['n_estimators'],
+                        max_features=parameters['max_features'],
+                        criterion=parameters['criterion'],
+                        max_depth=parameters['max_depth'],
+                        min_samples_split=parameters['min_samples_split'],
+                        n_jobs=n_cores),
+                    #Bagging parameters
+                    n_estimators=parameters['n_estimators_bag'],
+                    max_samples=parameters['max_samples'],
+                    max_features=parameters['max_features_bag'],
+                    bootstrap=parameters['bootstrap'],
+                    bootstrap_features=parameters['bootstrap_features'],
+                    n_jobs=n_cores
+                    )
+
+    elif model == "RandomForestBoosting":
+        #TODO Make Model Boosting
+        return ensemble.AdaBoostClassifier(
+            ensemble.RandomForestClassifier(
+                n_estimators=parameters['n_estimators'],
+                max_features=parameters['max_features'],
+                criterion=parameters['criterion'],
+                max_depth=parameters['max_depth'],
+                min_samples_split=parameters['min_samples_split'],
+                n_jobs=n_cores),
+            #Boosting parameters
+            learning_rate=parameters['learning_rate'],
+            algorithm=parameters['algorithm'],
+            n_estimators=parameters['n_estimators_boost']
+            )
+
+
     elif model == 'SVM':
         return svm.SVC(C=parameters['C_reg'],
                        kernel=parameters['kernel'],
