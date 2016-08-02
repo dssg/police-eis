@@ -97,10 +97,10 @@ dispatch_features:
 #        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier',
 #        'SGDClassifier', 'KNeighborsClassifier']
-model: ['RandomForest'] # , 'LogisticRegression','SVM']
+model: ['RandomForest'] # ['RandomForest', 'LogisticRegression','SVM']
 parameters:
   RandomForest:
-    n_estimators: [10 ] # , 25, 50, 100]  # [1000, 10000]
+    n_estimators: [10] # [10, 25, 50, 100]  # [1000, 10000]
     max_depth: [5] # , 10, 20]  # 50, 100
     max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
     criterion: ['gini' ] #'entropy']
@@ -116,10 +116,10 @@ parameters:
     n_estimators: [1, 10, 100]  # [1000, 10000]
     learning_rate: [0.01, 0.1, 1, 10, 100]
   LogisticRegression:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1]  # [1, 10]
+    C_reg: [0.01] # [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
     penalty: ['l1'] #, 'l2']
   SVM:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1]  # [1, 10]
+    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
     kernel: ['linear']
   GradientBoostingClassifier:
     n_estimators: [1, 10, 100]  # [1000, 10000]

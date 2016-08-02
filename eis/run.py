@@ -140,8 +140,9 @@ def main(config_file_name, args):
         # get all model metrics.
         all_metrics = scoring.calculate_all_evaluation_metrics( list( my_exp.exp_data["test_y"]), list(result_y), list(result_y_binary), model_time_in_seconds )
 
-        # create a pickle object to store into the database.
-        model_data_pickle_object = pickle.dumps( to_save )
+        # pickle all the model data (everything in the to_save dict)
+        model_filename = "results/model_{}.pkl".format(timestamp)
+        pickle_results(model_filename, to_save)
 
         # package data for storing into results schema.
         unit_id_train    = list( my_exp.exp_data["train_x_index"] )

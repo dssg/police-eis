@@ -36,7 +36,7 @@ def setup(config):
     log.info("Test label window start: {}".format(fake_today))
     log.info("Test label window stop: {}".format(test_end_date))
 
-    log.info("feature table name: {}".format(config["feature_table_name"]))
+    log.info("feature table name: {}".format(config["dispatch_feature_table_name"]))
 
     log.info("Loading dispatch feature TRAINING data ...")
     # load the features and labels for the TRAINING set

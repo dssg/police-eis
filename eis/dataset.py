@@ -1,13 +1,10 @@
 import numpy as np
-import pdb
 import pandas as pd
 import yaml
 import logging
 import sys
 import datetime
 import json
-import psycopg2
-from IPython.core.debugger import Tracer
 
 from . import setup_environment
 from .features import class_map
@@ -86,7 +83,8 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
                                             "unit_score": unit_predictions,
                                             "label_value": unit_labels } )
                                             
-    dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False ) 
+    # hack-y: much faster to write to csv, then read csv with psql than to write straight to database from python
+    dataframe_for_insert.to_csv('results/predictions_{}.csv'.format(timestamp), index=False)
 
     return None
 
