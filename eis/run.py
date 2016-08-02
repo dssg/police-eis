@@ -141,7 +141,7 @@ def main(config_file_name, args):
         all_metrics = scoring.calculate_all_evaluation_metrics( list( my_exp.exp_data["test_y"]), list(result_y), list(result_y_binary), model_time_in_seconds )
 
         # pickle all the model data (everything in the to_save dict)
-        model_filename = "results/model_{}.pkl".format(timestamp)
+        model_filename = "{}/{}_{}.pkl".format(config["directory"].strip('/'), config["pkl_prefix"], timestamp)
         pickle_results(model_filename, to_save)
 
         # package data for storing into results schema.

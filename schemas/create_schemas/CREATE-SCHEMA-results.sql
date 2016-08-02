@@ -6,8 +6,10 @@ CREATE TABLE results.models(
 	model_id                    serial primary key,
     run_time                    timestamp,
     batch_run_time              timestamp,
+    model_type                  varchar(50),
+    model_params                json,
 	config 				        json,
-    pickle_file                 bytea 
+    pickle_filepath             varchar(100) 
 );
 
 -- predictions corresponding to each model.

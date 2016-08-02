@@ -49,9 +49,26 @@ def store_model_info( timestamp, batch_timestamp, config):
     :param dict config: the configuration dictionary that contains all model parameters.
     """
 
-    query = ( "INSERT INTO results.models( run_time, batch_run_time, config) VALUES( %s, %s, %s)" )
-    db_conn.cursor().execute(query, ( timestamp, batch_timestamp, json.dumps(config)))
+    pkl_filepath = "{}_{}".format(config["pkl_prefix"], timestamp)
+
+    query = ( "INSERT INTO results.models(  run_time, "
+              "                             batch_run_time, "
+              "                             model_type, "
+              "                             model_params,"
+              "                             config, "
+              "                             pickle_filepath) "
+              "VALUES({}, {}, {}, {}, {}, {})"
+              .format(
+                timestampe,
+                batch_timestamp,
+                config["model"],
+                json.dumps(config["parameters"]),
+                json.dumps(config),
+                pkl_filepath))
+
+    db_conn.cursor().execute(query)
     db_conn.commit()
+
     return None
 
 def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels ):

@@ -33,6 +33,7 @@ prediction_window: [182]  # prediction, days, used for officer-level prediction
 # Labelling Details    #
 ########################
 
+# NOTE: this ratio = n_label_1 / n_label_0, NOT n_label_1 / n_total
 under_sampling_ratio: 0.5
 
 # Select which events you want the model to use as adverse incidents (class 1)
@@ -150,7 +151,7 @@ n_cpus: 4
 # Output file details  #
 ########################
 directory: 'results/'
-pkl_prefix: 'police_eis_results'
+pkl_prefix: 'dispatch_results'
 
 ########################
 # Auditing hooks       #
