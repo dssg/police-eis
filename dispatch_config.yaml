@@ -20,6 +20,9 @@ pilot_dir: 'pilot/'
 # Temporal parameters  #
 ########################
 
+raw_data_from_date: '2014-01-01'
+raw_data_to_date: '2014-02-01'
+
 fake_today: ['15Jan2014']  # if you want a specific_today then pass this
 autogen_fake_todays: False  # set to off if you want a specific fake_today
 training_window: [15]  # training, days, used for officer-level prediction

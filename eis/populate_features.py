@@ -143,10 +143,12 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
                 "SELECT DISTINCT "
                 "   staging.events_hub.dispatch_id "
                 "FROM staging.events_hub "
-                "WHERE event_datetime between '2014-01-01' and '2014-02-01' "
+                "WHERE event_datetime between '{}' and '{}' "
                 .format(
                     table_name,
-                    id_column))
+                    id_column),
+                    config['raw_data_from_date'],
+                    config['raw_data_to_date'])
     engine.execute(query)
 
 
@@ -161,8 +163,8 @@ def populate_dispatch_features_table(config, table_name):
        log.debug('Calculating and inserting feature {}'.format(feature_name))
 
        feature_class = class_map.lookup(feature_name, 
-                                        from_date = '2014-01-01',
-                                        to_date = '2014-02-01',
+                                        from_date = config['raw_data_from_date'],
+                                        to_date = config['raw_data_to_date'],
                                         fake_today = datetime.datetime.today(),
                                         table_name = table_name)
 

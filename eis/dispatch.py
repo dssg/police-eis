@@ -62,6 +62,11 @@ def setup(config):
     train_x_index = train_X.index.values
     test_x_index = test_X.index.values
     features = train_X.columns
+
+    print(train_X.shape)
+    print(train_X.head(5))
+    print(train_y.shape)
+    print(pd.DataFrame(train_y).head(5))
     
     # Feature scaling
     scaler = preprocessing.StandardScaler().fit(train_X)

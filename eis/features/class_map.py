@@ -58,8 +58,6 @@ def lookup(feature, **kwargs):
                     'TimeGatedDummyFeature': officers.TimeGatedDummyFeature(**kwargs),
 		            'OfficerRace': officers.OfficerRace(**kwargs),
                     'AllAllegations': officers.AllAllegations(**kwargs),
-		            'Longitude': dispatches.Longitude(**kwargs),
-		            'Latitude': dispatches.Latitude(**kwargs),
                     'DispatchHour': dispatches.DispatchHour(**kwargs),
                     'DispatchDayOfWeek': dispatches.DispatchDayOfWeek(**kwargs),
                     'DispatchMonth': dispatches.DispatchMonth(**kwargs),
