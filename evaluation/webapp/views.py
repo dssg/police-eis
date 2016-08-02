@@ -122,14 +122,13 @@ def improvement_over_baseline_nothresh(timestamp):
     improve_fig = plot_fp_tp_percent_nothresh(eis_baseline, fpr, tpr, threshold_levels)
     return serve_matplotlib_fig(improve_fig)
 
-"""
+
 @app.route("/<timestamp>/importances")
 def feature_importances(timestamp):
     features, importances = get_feature_importances(timestamp)
     importance_fig = plot_feature_importances(features, importances)
-
     return serve_matplotlib_fig(importance_fig)
-"""
+
 
 @app.route("/<timestamp>/precision-recall")
 def precision_recall(timestamp):
