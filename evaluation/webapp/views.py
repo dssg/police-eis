@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from io import BytesIO
 from itertools import groupby
 import matplotlib as mpl
@@ -11,6 +12,7 @@ from webapp import app
 from webapp.evaluation import *
 from webapp.ioutils import *
 from webapp import config
+import pdb
 
 
 class SortedDisplayDict(dict):
@@ -40,15 +42,15 @@ def details(timestamp):
     # will fail with 404 if exp not known
     get_labels_predictions(timestamp)
     groups = get_aggregate_scores(timestamp)
-    groups["division_order"] = sorted(groups["divisions"].keys())
-    groups["unit_order"] = sorted(groups["units"].keys())
+    #groups["division_order"] = sorted(groups["divisions"].keys())
+    #groups["unit_order"] = sorted(groups["units"].keys())
     eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
     fpr_dict = SortedDisplayDict(fpr)
     tpr_dict = SortedDisplayDict(tpr)
     fnr_dict = SortedDisplayDict(fnr)
     tnr_dict = SortedDisplayDict(tnr)
     return render_template('details.html', timestamp=timestamp, groups=groups,
-                           eis_baseline=eis_baseline, fpr=fpr_dict, tpr=tpr_dict, 
+                           eis_baseline=eis_baseline, fpr=fpr_dict, tpr=tpr_dict,
                            fnr=fnr_dict, tnr=tnr_dict,
                            config=config, threshold_levels=threshold_levels)
 
@@ -120,20 +122,19 @@ def improvement_over_baseline_nothresh(timestamp):
     improve_fig = plot_fp_tp_percent_nothresh(eis_baseline, fpr, tpr, threshold_levels)
     return serve_matplotlib_fig(improve_fig)
 
-
+"""
 @app.route("/<timestamp>/importances")
 def feature_importances(timestamp):
     features, importances = get_feature_importances(timestamp)
     importance_fig = plot_feature_importances(features, importances)
 
     return serve_matplotlib_fig(importance_fig)
-
+"""
 
 @app.route("/<timestamp>/precision-recall")
 def precision_recall(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
     prec_recall_fig = plot_precision_recall_n(test_labels, test_predictions)
-
     return serve_matplotlib_fig(prec_recall_fig)
 
 
@@ -174,6 +175,7 @@ def serve_matplotlib_fig(fig):
     canvas = FigureCanvas(fig)
     png_output = BytesIO()
     canvas.print_png(png_output)
-    response = make_response(png_output.getvalue())
-    response.headers['Content-Type'] = 'image/png'
+    with app.app_context():
+        response = make_response(png_output.getvalue())
+        response.headers['Content-Type'] = 'image/png'
     return response

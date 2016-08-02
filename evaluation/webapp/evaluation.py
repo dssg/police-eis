@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from datetime import datetime
 
 import pdb
@@ -8,8 +9,8 @@ from sklearn import metrics
 
 from webapp import config, feature_strings
 
-plt.rc('font', family='sans-serif') 
-plt.rc('font', serif='Helvetica Neue') 
+plt.rc('font', family='sans-serif')
+plt.rc('font', serif='Helvetica Neue')
 
 
 def weighted_f1(scores):

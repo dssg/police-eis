@@ -1,16 +1,4 @@
-import sys, os, glob
+#!/usr/bin/python3
 # to be displayed in overview page
-results_folder = "../../results/"
-
-
-def get_files(folder_name):
-
-	#Get Files in Folder
-	folder = str(folder_name)
-	os.chdir(folder)
-	pickle_files = glob.glob("*.pkl")
-
-	for pickle in pickle_files:
-		print ("Analyzing file ", pickle, "...")
-
-#get_files(results_folder)
+#results_folder = "../../results/"
+results_folder = "/mnt/data/police/mnpd/repos/jmausolf_police/police-eis/results/"
