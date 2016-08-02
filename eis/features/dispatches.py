@@ -42,7 +42,7 @@ class DispatchMinute(abstract.DispatchFeature):
         self.description = "Minute of the hour the dispatch occured"
         self.query = (  "SELECT "
                         "   dispatch_id, "
-                        "   extract(minute FROM event_datetime) AS feature_column "
+                        "  max(extract(minute FROM event_datetime)) AS feature_column "
                         "FROM "
                         "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
                         "GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -54,7 +54,7 @@ class DispatchHour(abstract.DispatchFeature):
         self.description = "Hour during which the dispatch occurred (24 hour clock)"
         self.query = (  "SELECT "
                         "   dispatch_id, "
-                        "   extract(hour FROM event_datetime) AS feature_column "
+                        "   max(extract(hour FROM event_datetime)) AS feature_column "
                         "FROM "
                         "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
                         "GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -67,7 +67,7 @@ class DispatchDayOfWeek(abstract.DispatchFeature):
         self.description = "Day of week the dispatch occurred (Sunday=0)"
         self.query = (  "SELECT "
                         "   dispatch_id, "
-                        "   extract(DOW FROM event_datetime) AS feature_column "
+                        "  max(extract(DOW FROM event_datetime)) AS feature_column "
                         "FROM "
                         "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
                         "GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -80,7 +80,7 @@ class DispatchYearQuarter(abstract.DispatchFeature):
         self.description = "Year quarter the dispatch occurred"
         self.query = (  "SELECT "
                         "   dispatch_id, "
-                        "   extract(QUARTER FROM event_datetime) AS feature_column "
+                        "   max(extract(QUARTER FROM event_datetime)) AS feature_column "
                         "FROM "
                         "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
                         "GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -92,7 +92,7 @@ class DispatchMonth(abstract.DispatchFeature):
         self.description = "Month the dispatch occurred"
         self.query = (  "SELECT "
                         "   dispatch_id, "
-                        "   extract(MONTH FROM event_datetime) AS feature_column "
+                        "  max(extract(MONTH FROM event_datetime)) AS feature_column "
                         "FROM "
                         "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
                         "GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -104,7 +104,7 @@ class DispatchYear(abstract.DispatchFeature):
         self.description = "Year the dispatch occurred"
         self.query = (  "SELECT "
                         "   dispatch_id, "
-                        "   extract(YEAR FROM event_datetime) AS feature_column "
+                        "   max(extract(YEAR FROM event_datetime)) AS feature_column "
                         "FROM "
                         "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
                         "GROUP BY 1 ").format(self.from_date, self.to_date)
