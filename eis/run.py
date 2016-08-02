@@ -160,7 +160,6 @@ def main(config_file_name, args):
             except:
                 metric_parameter='Null'
 
-            print(evaluation, comment, metric, metric_parameter )
             dataset.store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter )
 
 
