@@ -143,6 +143,22 @@ class DispatchType(abstract.DispatchFeature):
                         "   on events_hub.event_id = dispatches.event_id "
                         "GROUP BY 1").format(self.from_date, self.to_date)
 
+class DispatchSubType(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.is_categorical = True
+        self.description = "Type of dispatch"
+        self.query = (  "SELECT "
+                        "   dispatch_id, "
+                        "   max(dispatch_original_subtype)  as feature_column "
+                        "FROM "
+                        "   (select * from staging.events_hub where event_datetime between '{}' and '{}' "
+                        "                                     and event_type_code = 5 "
+                        "                                     and dispatch_id is not null ) as events_hub "
+                        "   inner join staging.dispatches as dispatches "
+                        "   on events_hub.event_id = dispatches.event_id "
+                        "GROUP BY 1").format(self.from_date, self.to_date)
+
 class NumberOfUnitsAssigned(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)

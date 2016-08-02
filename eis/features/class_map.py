@@ -67,6 +67,7 @@ def lookup(feature, **kwargs):
                     'OriginalPriority': dispatches.OriginalPriority(**kwargs),
                     'Label': dispatches.Label(**kwargs),
                     'DispatchType': dispatches.DispatchType(**kwargs),
+                    'DispatchSubType': dispatches.DispatchSubType(**kwargs),
                     'NumberOfUnitsAssigned': dispatches.NumberOfUnitsAssigned(**kwargs)
 
                   }
