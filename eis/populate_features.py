@@ -106,17 +106,16 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
     assert len(feature_list) > 0, 'List of features to build is empty'
 
     # use the appropriate id column, depending on feature types (officer / dispatch)
-    id_column = '{}_id'.format(config['unit'])
+    id_column = 'dispatch_id'
 
     # Create and execute a query to create a table with a column for each of the features.
     log.info("Creating new dispatch feature table: {}".format(table_name))
 
     create_query = (    "CREATE TABLE features.{} ( "
-                        "   {}              varchar(20), "
+                        "   dispatch_id     varchar(20), "
                         "   created_on      timestamp"
                         .format(
-                            table_name,
-                            id_column))
+                            table_name))
 
     # add a column for each categorical feature in feature_list
     cat_features = class_map.find_categorical_features(feature_list)
@@ -139,16 +138,16 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
     log.info("Populating feature table {} with dispatch ids ".format(table_name))
 
     query = (   "INSERT INTO features.{} "
-                "   ({}) "
+                "   (dispatch_id) "
                 "SELECT DISTINCT "
                 "   staging.events_hub.dispatch_id "
                 "FROM staging.events_hub "
                 "WHERE event_datetime between '{}' and '{}' "
+                "AND dispatch_id IS NOT NULL "
                 .format(
                     table_name,
-                    id_column),
                     config['raw_data_from_date'],
-                    config['raw_data_to_date'])
+                    config['raw_data_to_date']))
     engine.execute(query)
 
 

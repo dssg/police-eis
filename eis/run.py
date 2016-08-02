@@ -28,14 +28,17 @@ def main(config_file_name, args):
 
     # if no features table name was set by the user, 
     # set the features table name based on type of prediction (officer / dispatch)
-    if ( args.featuretable ):
+    if ( args.featuretable):
         table_name = args.featuretable
         log.debug("args.featuretable: {}".format(args.featuretable))
     else:
         table_name = '{}_features'.format(config['unit'])
-    config["feature_table_name"] = table_name
-    log.debug("feature table name: {}".format(config["feature_table_name"]))
-    log.debug("table_name variable : {}".format(table_name))
+
+    # read table name from config file
+    # NOTE!!!! this breaks the command line passing of table name
+    table_name = config["dispatch_feature_table_name"]
+
+    log.debug("feature table name: {}".format(table_name))
 
     # If asked to generate features, then do that and stop.
     if args.buildfeatures:
@@ -147,8 +150,11 @@ def main(config_file_name, args):
         unit_labels      = list( my_exp.exp_data["test_y"] )
 
         # Store information about this experiment into the results schema.
-        dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, model_data_pickle_object )
+        log.debug("storing model information")
+        dataset.store_model_info( timestamp, batch_timestamp, my_exp.config)
+        log.debug("storing predictions information")
         dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
+        log.debug("storing evaluation metric information")
         dataset.store_evaluation_metrics( timestamp, all_metrics )
 
         if my_exp.config["auditing"]:

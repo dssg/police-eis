@@ -2,9 +2,11 @@ import logging
 import datetime
 
 import pandas as pd
+import numpy as np
 
 from sklearn import cross_validation
 from sklearn import preprocessing
+from imblearn.under_sampling import RandomUnderSampler
 
 from . import dataset
 
@@ -54,28 +56,42 @@ def setup(config):
         def_adverse = config["def_adverse"],
         table_name = config["dispatch_feature_table_name"])
 
+    # fill NAs with 0s
+    train_X = train_X.fillna(0)
+    train_y = train_y.fillna(0)
+    test_X = test_X.fillna(0)
+    test_y = test_y.fillna(0)
+
     # in case train_X and test_X have different categorical values, and thus different
     # dummy columns added
     train_X, test_X = add_empty_categorical_columns(train_X, test_X)
 
+    # downsample the training data
+    downsampler = RandomUnderSampler(ratio=config['under_sampling_ratio'],
+                                     random_state=42, 
+                                     return_indices=True)
+    _, _, train_X_indices = downsampler.fit_sample(train_X, train_y)
+
+    train_X_res = train_X.iloc[train_X_indices]
+    train_y_res = train_y.iloc[train_X_indices]
+
     # create some things that the EISExperiment class is supposed to return
-    train_x_index = train_X.index.values
     test_x_index = test_X.index.values
+    test_id = test_X.index.values
+    train_x_index = train_X_res.index.values
+    train_id = train_X_res.index.values
     features = train_X.columns
 
-    print(train_X.shape)
-    print(train_X.head(5))
-    print(train_y.shape)
-    print(pd.DataFrame(train_y).head(5))
-    
+    log.debug('Downsampled training data to {} rows'.format(len(train_X_res)))
+
     # Feature scaling
-    scaler = preprocessing.StandardScaler().fit(train_X)
-    scaled_train_X = scaler.transform(train_X)
+    scaler = preprocessing.StandardScaler().fit(train_X_res)
+    scaled_train_X = scaler.transform(train_X_res)
     scaled_test_X = scaler.transform(test_X)
 
     return {"train_x": scaled_train_X,
-            "train_y": train_y,
-            "train_id": train_id,
+            "train_y": train_y_res,
+            "train_id": train_x_index,
             "test_x": scaled_test_X,
             "test_y": test_y,  # For pilot test_y will not be used
             "test_id": test_id,

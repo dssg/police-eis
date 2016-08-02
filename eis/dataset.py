@@ -44,17 +44,16 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
-def store_model_info( timestamp, batch_timestamp, config, pickle_data ):
+def store_model_info( timestamp, batch_timestamp, config):
     """ Write model configuration into the results.model table
 
     :param str timestamp: the timestamp at which this model was run.
     :param str batch_timestamp: the timestamp that this batch of models was run.
     :param dict config: the configuration dictionary that contains all model parameters.
-    :param str pkl_obj: the serialized pickle object string for this model run.
     """
 
-    query = ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) VALUES( %s, %s, %s, %s )" )
-    db_conn.cursor().execute(query, ( timestamp, batch_timestamp, json.dumps(config), psycopg2.Binary(pickle_data) ) )
+    query = ( "INSERT INTO results.models( run_time, batch_run_time, config) VALUES( %s, %s, %s)" )
+    db_conn.cursor().execute(query, ( timestamp, batch_timestamp, json.dumps(config)))
     db_conn.commit()
     return None
 
@@ -76,18 +75,19 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     this_model_id = this_model_id[0]
 
     # round unit_id's to integer type.
-    #unit_id_train = list( map( int, unit_id_train ) )
-    #unit_id_test  = list( map( int, unit_id_test ) )
-    #unit_labels   = list( map( int, unit_labels ) )
+    unit_id_train = [int(unit_id) for unit_id in unit_id_train]
+    unit_id_test  = [int(unit_id) for unit_id in unit_id_test]
+    unit_labels   = [int(unit_id) for unit_id in unit_labels]
 
     # append data into predictions table. there is probably a faster way to do this than put it into a 
     # dataframe and then use .to_sql but this works for now.
-    #dataframe_for_insert = pd.DataFrame( {  "model_id": [this_model_id]*len(unit_id_test), 
-                                            #"unit_id": unit_id_test,
-                                            #"unit_score": unit_predictions,
-                                            #"label_value": unit_labels } )
+    dataframe_for_insert = pd.DataFrame( {  "model_id": this_model_id, 
+                                            "unit_id": unit_id_test,
+                                            "unit_score": unit_predictions,
+                                            "label_value": unit_labels } )
                                             
-    #dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False ) 
+    dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False ) 
+
     return None
 
 def store_evaluation_metrics( timestamp, evaluation_metrics ):
@@ -275,7 +275,6 @@ def convert_categorical(feature_df, feature_columns):
 
     log.info('... {} categorical features'.format(len(categorical_features)))
 
-    log.debug(feature_df.columns)
     # add dummy variables to feature dataframe
     feature_df_w_dummies = pd.get_dummies(feature_df, columns=categorical_features, sparse=True)
 
@@ -637,8 +636,8 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
 
     Returns:
         feats(pd.DataFrame): the array of features to train or test on 
-        labels(np.array): n x 1 array with 0 / 1 adverse labels 
-        ids(np.array): n x 1 array with dispatch ids
+        labels(pd.DataFrame): n x 1 array with 0 / 1 adverse labels 
+        ids(pd.DataFrame): n x 1 array with dispatch ids
         featnames(list): the list of feature column names
     """
 
@@ -660,7 +659,7 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
     features_df_w_dummies = convert_categorical(features_df, features_to_use)
                                                    
     # join the labels and the features
-    log.debug('... merging labels and features in memory')
+    #log.debug('... merging labels and features in memory')
     #dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
     dataset = features_df_w_dummies
     log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
@@ -669,12 +668,12 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
     dataset.fillna(0, inplace=True)
 
     features = dataset.drop(["label"], axis=1)
-    labels = dataset["label"].values
-    ids = dataset.index.values
+    labels = dataset["label"]
+    ids = dataset.index
     feature_names = features.columns
 
     # make sure we return a non-zero number of labelled dispatches
-    assert sum(labels) > 0, 'No dispatches were labelled adverse'
+    assert sum(labels.values) > 0, 'No dispatches were labelled adverse'
 
     log.debug("Dataset has {} rows and {} features".format(
        len(labels), len(feature_names)))
