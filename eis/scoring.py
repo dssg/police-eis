@@ -21,10 +21,6 @@ def compute_avg_true_positive_rate(test_labels, test_predictions):
     fpr, tpr, thresholds = metrics.roc_curve(
         test_labels, test_predictions, pos_label=1)
 
-    #pdb.set_trace()
-    #print(fpr)
-    #print(tpr)
-    #print(thresholds)
     return statistics.mean(tpr)
 
 def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_proportion=0.01):
@@ -187,10 +183,14 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     #False Positives, False Negatives
     all_metrics["false_positive_rate_score__mean_under_roc_curve__"] = compute_avg_false_positive_rate( test_label, test_predictions )
     all_metrics["true_positive_rate_score__mean_under_roc_curve__"] = compute_avg_true_positive_rate( test_label, test_predictions )
-    all_metrics["false_positives_at_top__1.00__percent"] = compute_result_at_x_proportion(test_label, test_predictions, 'FP', x_proportion=0.01)
-    all_metrics["false_negatives_at_top__1.00__percent"] = compute_result_at_x_proportion(test_label, test_predictions, 'FN', x_proportion=0.01)
-    all_metrics["true_positives_at_top__1.00__percent"] = compute_result_at_x_proportion(test_label, test_predictions, 'TP', x_proportion=0.01)
-    all_metrics["true_negatives_at_top__1.00__percent"] = compute_result_at_x_proportion(test_label, test_predictions, 'TN', x_proportion=0.01)
+
+    # Raw counts of officers we are flagging correctly and incorrectly at various fractions of the test set.
+    percents = [ 0.1, 1.0, 5.0, 10.0, 25.0, 50.0, 75.0 ]
+    for percent in percents:
+        all_metrics["false_positives_at_top_{}_percent.".format( str(percent)) ] = compute_result_at_x_proportion(test_label, test_predictions, 'FP', x_proportion=percent/100.0)
+        all_metrics["false_negatives_at_top_{}_percent.".format( str(percent)) ] = compute_result_at_x_proportion(test_label, test_predictions, 'FN', x_proportion=percent/100.0)
+        all_metrics["true_positives_at_top_{}_percent.".format( str(percent))  ] = compute_result_at_x_proportion(test_label, test_predictions, 'TP', x_proportion=percent/100.0)
+        all_metrics["true_negatives_at_top_{}_percent.".format( str(percent))  ] = compute_result_at_x_proportion(test_label, test_predictions, 'TN', x_proportion=percent/100.0)
 
 
     return all_metrics
