@@ -13,7 +13,7 @@ CREATE TABLE results.models(
 -- predictions corresponding to each model.
 CREATE TABLE results.predictions(
 		model_id                    								int references results.models(model_id),
-    unit_id                     								int,
+    unit_id                     								bigint,
     unit_score                  								numeric,
     label_value                 								int
 );
