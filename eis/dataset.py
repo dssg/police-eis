@@ -57,9 +57,9 @@ def store_model_info( timestamp, batch_timestamp, config):
               "                             model_params,"
               "                             config, "
               "                             pickle_filepath) "
-              "VALUES({}, {}, {}, {}, {}, {})"
+              "VALUES('{}', '{}', '{}', '{}', '{}', '{}')"
               .format(
-                timestampe,
+                timestamp,
                 batch_timestamp,
                 config["model"],
                 json.dumps(config["parameters"]),

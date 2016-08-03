@@ -58,7 +58,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_Jan2013-Jul2014'
+dispatch_feature_table_name: 'dispatch_features_Jan2013_Jul2014'
 
 officer_features:
     investigation_count_career: True
