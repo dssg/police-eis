@@ -113,6 +113,7 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
 
     create_query = (    "CREATE TABLE features.{} ( "
                         "   dispatch_id     varchar(20), "
+                        "   fake_today      timestamp, "
                         "   created_on      timestamp"
                         .format(
                             table_name))
@@ -135,15 +136,18 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
     #       temporal cross validation
 
     # Populate the features table with dispatch id.
-    log.info("Populating feature table {} with dispatch ids ".format(table_name))
+    log.info("Populating feature table {} with dispatch ids and fake_todays".format(table_name))
 
     query = (   "INSERT INTO features.{} "
-                "   (dispatch_id) "
-                "SELECT DISTINCT "
-                "   staging.events_hub.dispatch_id "
+                "   (dispatch_id, fake_today) "
+                "SELECT  "
+                "   events_hub.dispatch_id, "
+                "   MIN(events_hub.event_datetime) "
                 "FROM staging.events_hub "
                 "WHERE event_datetime between '{}' and '{}' "
                 "AND dispatch_id IS NOT NULL "
+                "AND event_type_code = 5 "
+                "GROUP BY dispatch_id "
                 .format(
                     table_name,
                     config['raw_data_from_date'],

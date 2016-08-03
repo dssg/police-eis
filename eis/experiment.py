@@ -150,7 +150,7 @@ def generate_models_to_run(config, query_db=True):
 
                 parameters = {name: value for name, value
                               in zip(parameter_names, each_param)}
-                log.info("Training model: {} with {}".format(this_config["model"],
+                log.info("Will train model: {} with {}".format(this_config["model"],
                      parameters))
 
                 this_config["parameters"] = parameters

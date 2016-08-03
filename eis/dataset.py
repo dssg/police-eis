@@ -49,7 +49,7 @@ def store_model_info( timestamp, batch_timestamp, config):
     :param dict config: the configuration dictionary that contains all model parameters.
     """
 
-    pkl_filepath = "{}_{}".format(config["pkl_prefix"], timestamp)
+    pkl_filepath = "{}_{}.pkl".format(config["pkl_prefix"], timestamp)
 
     query = ( "INSERT INTO results.models(  run_time, "
               "                             batch_run_time, "
@@ -101,7 +101,8 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
                                             "label_value": unit_labels } )
                                             
     # hack-y: much faster to write to csv, then read csv with psql than to write straight to database from python
-    dataframe_for_insert.to_csv('results/predictions_{}.csv'.format(timestamp), index=False)
+    csv_filepath = "{}/{}_{}.csv".format(config["directory"],config["pkl_prefix"], timestamp)
+    dataframe_for_insert.to_csv(csv_filepath, index=False)
 
     return None
 
@@ -549,10 +550,13 @@ class FeatureLoader():
         # Create the query for this feature.
         query = (   "SELECT {}, {} "
                     "FROM features.{} "
+                    "WHERE fake_today BETWEEN '{}' AND '{}'"
                     .format(
                         id_column,
                         feature_name_list,
-                        self.table_name))
+                        self.table_name,
+                        self.start_date,
+                        self.end_date))
 
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
@@ -560,9 +564,6 @@ class FeatureLoader():
         # filter out the rows which aren't in ids_to_use
         if ids_to_use is not None:
             results = results.ix[ids_to_use]
-
-        log.debug("... {} rows, {} features".format(len(results),
-                                                    len(results.columns)))
 
         return results
 

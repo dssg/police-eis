@@ -58,7 +58,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_Jan2013_Jul2014'
+dispatch_feature_table_name: 'dispatch_features_test'
 
 officer_features:
     investigation_count_career: True
@@ -99,10 +99,10 @@ dispatch_features:
 #        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier',
 #        'SGDClassifier', 'KNeighborsClassifier']
-model: ['RandomForest', 'LogisticRegression','ExtraTrees', 'AdaBoost', 'SVM']
+model: ['RandomForest'] # , 'LogisticRegression','ExtraTrees', 'AdaBoost', 'SVM']
 parameters:
   RandomForest:
-    n_estimators: [10, 25, 50, 100]  # [1000, 10000]
+    n_estimators: [10] # [10, 25, 50, 100]  # [1000, 10000]
     max_depth: [5, 10, 20]  # 50, 100
     max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
     criterion: ['gini' ] #'entropy']
