@@ -165,7 +165,8 @@ def main(config_file_name, args):
                 metric_parameter = None
 
 
-            comment='Null'
+            #comment='Null'
+            comment = None
 
             dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
 

@@ -136,6 +136,8 @@ def store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter=No
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
+    if comment is None:
+        comment = 'Null'
 
     if metric_parameter is None:
         metric_parameter = 'Null'
