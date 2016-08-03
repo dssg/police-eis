@@ -26,7 +26,7 @@ def main(config_file_name, args):
     except:
         log.exception("Failed to get experiment configuration file!")
 
-    # if no features table name was set by the user, 
+    # if no features table name was set by the user,
     # set the features table name based on type of prediction (officer / dispatch)
     if ( args.featuretable ):
         table_name = args.featuretable
@@ -98,9 +98,7 @@ def main(config_file_name, args):
 
         # TODO: make this more robust for officer vs dispatch level predictions
         end = time.time()
-        #pdb.set_trace()
         model_time_in_seconds = "%.3f" % (end-start)
-        print(model_time_in_seconds)
 
         if config['unit'] == 'officer':
             to_save = {"test_labels": my_exp.exp_data["test_y"],
@@ -145,22 +143,36 @@ def main(config_file_name, args):
         unit_predictions = list( result_y )
         unit_labels      = list( my_exp.exp_data["test_y"] )
 
+        # get user comments for this batch.
+        if "batch_comment" in config:
+            user_batch_model_comment = config["batch_comment"]
+        else:
+            user_batch_model_comment = ""
+
         # Store information about this experiment into the results schema.
-        dataset.store_model_info( timestamp, batch_timestamp, my_exp.config, model_data_pickle_object )
+        dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_obj=model_data_pickle_object )
         dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels )
 
         #Insert Evaluation Metrics Into Table
         for key in all_metrics:
             evaluation = all_metrics[key]
-            comment = key
-            metric = comment.split('_score', 1)[0]
-            #metric_parameter = metric
+            metric = key.split('|')[0]
             try:
-                metric_parameter = comment.split('__', 1)[1].split('__')[0]
+                metric_parameter = key.split('|')[1]
+                if metric_parameter=='':
+                    metric_parameter.replace('', None)
+                else:
+                    pass
             except:
-                metric_parameter='Null'
+                metric_parameter = None
 
-            dataset.store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter )
+            try:
+                comment = str(key.split('|')[2])
+            except:
+                comment = None
+
+            dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
+
 
 
         if my_exp.config["auditing"]:

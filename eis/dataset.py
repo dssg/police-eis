@@ -44,18 +44,49 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
-def store_model_info( timestamp, batch_timestamp, config, pickle_data ):
+def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_obj="", pickle_file="" ):
     """ Write model configuration into the results.model table
 
     :param str timestamp: the timestamp at which this model was run.
+    :param str batch_comment: the user-defined comment string.
     :param str batch_timestamp: the timestamp that this batch of models was run.
     :param dict config: the configuration dictionary that contains all model parameters.
-    :param str pkl_obj: the serialized pickle object string for this model run.
+    :param str pickle_obj: the serialized pickle object string for this model run.
+    :param str pickle_file: the path and name of the pickle file.
     """
 
-    query = ( "INSERT INTO results.models( run_time, batch_run_time, config, pickle_file ) VALUES( %s, %s, %s, %s )" )
-    db_conn.cursor().execute(query, ( timestamp, batch_timestamp, json.dumps(config), psycopg2.Binary(pickle_data) ) )
+    # set some parameters model comment.
+    model_comment = "" # TODO: feature not implemented, should read from config.
+
+    # insert into the models table.
+    query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config, pickle_file_path_name ) "
+                 " VALUES(  %s, %s, %s, %s, %s, %s, %s, %s )" )
+    db_conn.cursor().execute(query, (   timestamp,
+                                        batch_timestamp,
+                                        config["model"],
+                                        json.dumps(config["parameters"]),
+                                        model_comment,
+                                        batch_comment,
+                                        json.dumps(config),
+                                        pickle_file ) )
     db_conn.commit()
+
+    # if a pickle object was passed in, insert into the data table.
+
+    if pickle_obj:
+
+        # get the model primary key corresponding to this entry, based on timestamp.
+        query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+        cur = db_conn.cursor()
+        cur.execute(query)
+        this_model_id = cur.fetchone()
+        this_model_id = this_model_id[0]
+
+        # insert into the data table.
+        query = ( "INSERT INTO results.data( model_id, pickle_blob ) VALUES( %s, %s )" )
+        db_conn.cursor().execute(query, ( this_model_id, psycopg2.Binary(pickle_obj) ) )
+        db_conn.commit()
+
     return None
 
 def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels ):
@@ -91,7 +122,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     return None
 
 #def store_evaluation_metrics( timestamp, evaluation_metrics ):
-def store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter):
+def store_evaluation_metrics( timestamp, evaluation, metric, parameter=None, comment=None):
     """ Write the model evaluation metrics into the results schema
 
     :param str timestamp: the timestamp at which this model was run.
@@ -105,16 +136,47 @@ def store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_par
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
-
-    #if metric_parameter is None:
-    #    metric_parameter = 'Null'
-
-    query = (   "   INSERT INTO results.evaluations( model_id, evaluation, metric, metric_parameter, comment)"
-                "   VALUES( '{}', '{}', '{}', '{}', '{}') ".format( this_model_id,
-                                                                    evaluation,
+    #No parameter and no comment
+    if parameter is None and comment is None:
+        comment = 'Null'
+        parameter = 'Null'
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', {}, '{}', {}) ".format( this_model_id,
                                                                     metric,
-                                                                    metric_parameter,
+                                                                    parameter,
+                                                                    evaluation,
                                                                     comment ) )
+
+    #No parameter and a comment
+    elif parameter is None and comment is not None:
+        parameter = 'Null'
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', {}, '{}', '{}') ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
+
+    #No comment and a parameter
+    elif parameter is not None and comment is None:
+        comment = 'Null'
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', '{}', '{}', {}) ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
+
+    #A comment and a parameter
+    elif parameter is not None and comment is not None:
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', '{}', '{}', '{}') ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
+    else:
+        pass
 
     db_conn.cursor().execute(query)
     db_conn.commit()
@@ -283,7 +345,7 @@ def convert_categorical(feature_df, feature_columns):
     # add dummy variables to feature dataframe
     feature_df_w_dummies = pd.get_dummies(feature_df, columns=categorical_features, sparse=True)
 
-    log.info('... {} dummy variables added'.format(len(feature_df_w_dummies.columns) 
+    log.info('... {} dummy variables added'.format(len(feature_df_w_dummies.columns)
                                                    - len(feature_df.columns)))
 
     return feature_df_w_dummies
@@ -473,8 +535,8 @@ class FeatureLoader():
         Args:
             feature_to_load(str): name of feature to be loaded, must be in classmap
             ids_to_use(list): the subset of ids to return feature values for
-            feature_type(str): the type of feature being loaded, either officer or dispatch 
-            
+            feature_type(str): the type of feature being loaded, either officer or dispatch
+
         Returns:
             returns(pd.DataFrame): dataframe of the feature values indexed by id
             feature_name: the name of the feature
@@ -483,7 +545,7 @@ class FeatureLoader():
         kwargs = {"fake_today": self.fake_today,
                   "table_name": self.table_name,
                   "feat_time_window": 0}
-        
+
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
@@ -494,14 +556,14 @@ class FeatureLoader():
         query = (   "SELECT {}, {} FROM features.{}"
                     .format(
                         id_column,
-                        feature_to_load, 
+                        feature_to_load,
                         self.table_name))
-    
+
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
         results = results.ix[ids_to_use]
 
-        return results, feature_to_load 
+        return results, feature_to_load
 
 
     def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
@@ -644,7 +706,7 @@ def grab_dispatch_data(features, def_adverse, table_name):
 
     # encode categorical features with dummy variables
     features_df_w_dummies = convert_categorical(features_df, features_to_use)
-                                                   
+
     # join the labels and the features
     log.debug('... merging labels and features in memory')
     dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
