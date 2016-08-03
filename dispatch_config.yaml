@@ -20,13 +20,13 @@ pilot_dir: 'pilot/'
 # Temporal parameters  #
 ########################
 
-raw_data_from_date: '2013-01-01'
-raw_data_to_date: '2014-07-01'
+raw_data_from_date: '2008-01-01'
+raw_data_to_date: '2015-01-01'
 
 fake_today: ['01Jan2014']  # if you want a specific_today then pass this
 autogen_fake_todays: False  # set to off if you want a specific fake_today
-training_window: [365]  # training, days, used for officer-level prediction
-prediction_window: [182]  # prediction, days, used for officer-level prediction
+training_window: [2190]  # training, days, used for officer-level prediction
+prediction_window: [365]  # prediction, days, used for officer-level prediction
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
 ########################
@@ -57,7 +57,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_Jan2013-Jul2014'
+dispatch_feature_table_name: 'dispatch_features_Jan2008_Jan2015'
 
 officer_features:
     investigation_count_career: True
