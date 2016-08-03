@@ -429,66 +429,68 @@ class FeatureLoader():
         return outcomes
 
 
-    def dispatch_labeller(self, def_adverse):
-        """
-        Load the dispatch events which occured between two dates and their outcomes
+    # DEPRECATED: now generating the labels as a feature called 'Label'
 
-        Note that this uses the start_date and stop_date attributes of the FeatureLoader
-        to limit which dispatches are used.
+    #def dispatch_labeller(self, def_adverse):
+    #    """
+    #    Load the dispatch events which occured between two dates and their outcomes
 
-        Args:
-            def_adverse: dict of bools representing which event types are considered adverse for 
-                         the purposes of prediction
+    #    Note that this uses the start_date and stop_date attributes of the FeatureLoader
+    #    to limit which dispatches are used.
 
-        Returns:
-            labels: pandas dataframe with two columns, dispatch_id and adverse_by_ourdef
-        """
+    #    Args:
+    #        def_adverse: dict of bools representing which event types are considered adverse for 
+    #                     the purposes of prediction
 
-        log.debug("Loading dispatch labels...")
+    #    Returns:
+    #        labels: pandas dataframe with two columns, dispatch_id and adverse_by_ourdef
+    #    """
 
-        # select all dispatches within the specified time window
-        query_all = (       "SELECT DISTINCT dispatch_id "
-                            "FROM events_hub "
-                            "WHERE events_hub.event_type_code = 5 "
-                            "AND events_hub.event_datetime >= '{}'::date "
-                            "AND events_hub.event_datetime <= '{}'::date "
-                            .format(self.start_date,
-                                    self.end_date))
+    #    log.debug("Loading dispatch labels...")
 
-        # select dispatches that led to events deemed adverse
-        query_adverse = (   "SELECT DISTINCT dispatch_id "
-                            "FROM events_hub "
-                            "LEFT JOIN incidents AS incidents "
-                            "   ON events_hub.event_id = incidents.event_id "
-                            "LEFT JOIN lookup_incident_types AS lookup "
-                            "   ON lookup.code = incidents.grouped_incident_type_code "
-                            "WHERE event_type_code = 4 "
-                            "   AND events_hub.event_datetime >= '{}'::date "
-                            "   AND events_hub.event_datetime <= '{}'::date "
-                            "   AND (  number_of_unjustified_allegations > 0"
-                            "       OR number_of_preventable_allegations > 0"
-                            "       OR number_of_sustained_allegations > 0)"
-                            .format(self.start_date,
-                                    self.end_date))
+    #    # select all dispatches within the specified time window
+    #    query_all = (       "SELECT DISTINCT dispatch_id "
+    #                        "FROM events_hub "
+    #                        "WHERE events_hub.event_type_code = 5 "
+    #                        "AND events_hub.event_datetime >= '{}'::date "
+    #                        "AND events_hub.event_datetime <= '{}'::date "
+    #                        .format(self.start_date,
+    #                                self.end_date))
 
-        # add exclusions to the adverse query based on the definition 
-        # of 'adverse' supplied in the experiment file
+    #    # select dispatches that led to events deemed adverse
+    #    query_adverse = (   "SELECT DISTINCT dispatch_id "
+    #                        "FROM events_hub "
+    #                        "LEFT JOIN incidents AS incidents "
+    #                        "   ON events_hub.event_id = incidents.event_id "
+    #                        "LEFT JOIN lookup_incident_types AS lookup "
+    #                        "   ON lookup.code = incidents.grouped_incident_type_code "
+    #                        "WHERE event_type_code = 4 "
+    #                        "   AND events_hub.event_datetime >= '{}'::date "
+    #                        "   AND events_hub.event_datetime <= '{}'::date "
+    #                        "   AND (  number_of_unjustified_allegations > 0"
+    #                        "       OR number_of_preventable_allegations > 0"
+    #                        "       OR number_of_sustained_allegations > 0)"
+    #                        .format(self.start_date,
+    #                                self.end_date))
 
-        # TODO: implement filtering on event type that works with new incidents table
-        #if def_adverse['accidents'] == False:
-        #    query_adverse = query_adverse + "AND value != 'accident' "
+    #    # add exclusions to the adverse query based on the definition 
+    #    # of 'adverse' supplied in the experiment file
 
-        dispatches = pd.read_sql(query_all, con=db_conn)
-        adverse_dispatches = pd.read_sql(query_adverse, con=db_conn)
+    #    # TODO: implement filtering on event type that works with new incidents table
+    #    #if def_adverse['accidents'] == False:
+    #    #    query_adverse = query_adverse + "AND value != 'accident' "
 
-        log.debug('... number of dispatches to label: {}'.format(len(dispatches)))
-        log.debug('... number of dispatches with adverse : {}'.format(len(adverse_dispatches)))
+    #    dispatches = pd.read_sql(query_all, con=db_conn)
+    #    adverse_dispatches = pd.read_sql(query_adverse, con=db_conn)
 
-        # fill all the dispatch labels with 0s, then add 1s for the adverse incidents
-        dispatches['adverse_by_ourdef'] = 0
-        dispatches.loc[dispatches.dispatch_id.isin(adverse_dispatches)] = 1
+    #    log.debug('... number of dispatches to label: {}'.format(len(dispatches)))
+    #    log.debug('... number of dispatches with adverse : {}'.format(len(adverse_dispatches)))
 
-        return dispatches
+    #    # fill all the dispatch labels with 0s, then add 1s for the adverse incidents
+    #    dispatches['adverse_by_ourdef'] = 0
+    #    dispatches.loc[dispatches.dispatch_id.isin(adverse_dispatches)] = 1
+
+    #    return dispatches
 
     def loader(self, feature_to_load, ids_to_use, feature_type='officer'):
         """Get the feature values from the database
@@ -661,9 +663,6 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
                                    end_date = end_date,
                                    table_name = table_name)
 
-    # load the labels for the relevant dispatches
-    #dispatch_labels = feature_loader.dispatch_labeller(def_adverse)
-    
     # select all the features which are set to True in the config file
     # NOTE: dict.items() is python 3 specific. for python 2 use dict.iteritems()
     features_to_use = [feat for feat, is_used in features.items() if is_used]
@@ -674,14 +673,10 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
     # encode categorical features with dummy variables
     features_df_w_dummies = convert_categorical(features_df, features_to_use)
                                                    
-    # join the labels and the features
-    #log.debug('... merging labels and features in memory')
-    #dataset = dispatch_labels.join(features_df_w_dummies, how='left', on='dispatch_id')
     dataset = features_df_w_dummies
-    log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
+    dataset = dataset.fillna(0)
 
-    # NOTE: its important to run these inplace, otherwise you get a MemoryError (on a 15G RAM machine)
-    dataset.fillna(0, inplace=True)
+    log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
 
     features = dataset.drop(["label"], axis=1)
     labels = dataset["label"]

@@ -33,8 +33,8 @@ prediction_window: [180]  # prediction, days, used for officer-level prediction
 # Labelling Details    #
 ########################
 
-# NOTE: this ratio = n_label_1 / n_label_0, NOT n_label_1 / n_total
-under_sampling_ratio: 0.5
+# NOTE: this ratio = n_label_1 / n_total
+under_sampling_ratio: 0.333
 
 # Select which events you want the model to use as adverse incidents (class 1)
 
@@ -121,7 +121,7 @@ parameters:
     C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
     penalty: ['l1'] #, 'l2']
   SVM:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
+    C_reg: [0.001, 0.01, 0.1, 1] # [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
     kernel: ['linear']
   GradientBoostingClassifier:
     n_estimators: [1, 10, 100]  # [1000, 10000]

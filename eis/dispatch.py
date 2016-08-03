@@ -66,8 +66,12 @@ def setup(config):
     # dummy columns added
     train_X, test_X = add_empty_categorical_columns(train_X, test_X)
 
+    # the ratio that RandomUnderSampler accepts = num_1 / num_0. We want to specify ratio = num_1 / total
+    ratio_config = config["under_sampling_ratio"]
+    ratio_RUS = ratio_config / (1 - ratio_config)
+    
     # downsample the training data
-    downsampler = RandomUnderSampler(ratio=config['under_sampling_ratio'],
+    downsampler = RandomUnderSampler(ratio=ratio_RUS,
                                      random_state=42, 
                                      return_indices=True)
     _, _, train_X_indices = downsampler.fit_sample(train_X, train_y)
