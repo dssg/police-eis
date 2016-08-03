@@ -26,7 +26,7 @@ def main(config_file_name, args):
     except:
         log.exception("Failed to get experiment configuration file!")
 
-    # if no features table name was set by the user, 
+    # if no features table name was set by the user,
     # set the features table name based on type of prediction (officer / dispatch)
     if ( args.featuretable ):
         table_name = args.featuretable
@@ -162,10 +162,14 @@ def main(config_file_name, args):
             try:
                 metric_parameter = comment.split('__', 1)[1].split('__')[0]
             except:
-                metric_parameter='Null'
+                metric_parameter = None
 
-            dataset.store_evaluation_metrics( timestamp, evaluation, comment, metric, metric_parameter )
 
+            comment='Null'
+
+            dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
+
+            print(timestamp, evaluation, comment, metric, metric_parameter )
 
         if my_exp.config["auditing"]:
             audit_outputs = {"train_x": my_exp.exp_data["train_x"],
