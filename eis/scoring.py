@@ -152,51 +152,40 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     """
 
     all_metrics = dict()
+    #FORMAT FOR DICTIONARY KEY
+    #all_metrics["metric|parameter|comment"] OR
+    #all_metrics["metric|parameter"] OR
+    #all_metrics["metric||comment"] OR
+    #all_metrics["metric"]
 
     #Standard Metrics
-    #all_metrics["accuracy_score"] = metrics.accuracy_score( test_label, test_predictions_binary )
-    #all_metrics["auc_score__roc"]  = metrics.roc_auc_score( test_label, test_predictions )
-    #all_metrics["metric|parameter|comment"]
-    all_metrics["auc|roc|this is my comment"]  = metrics.roc_auc_score( test_label, test_predictions )
-    #all_metrics["average_precision_score"] = metrics.average_precision_score( test_label, test_predictions )
+    all_metrics["accuracy"] = metrics.accuracy_score( test_label, test_predictions_binary )
+    all_metrics["auc|roc"]  = metrics.roc_auc_score( test_label, test_predictions )
+    all_metrics["average precision score"] = metrics.average_precision_score( test_label, test_predictions )
     all_metrics["f1"] = metrics.f1_score( test_label, test_predictions_binary )
-    all_metrics["f1||a comment"] = metrics.f1_score( test_label, test_predictions_binary )
-    #all_metrics["fbeta_score_favor_precision__0.75__beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)
     all_metrics["fbeta@|0.75 beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 0.75)
-    #all_metrics["fbeta_score_favor_recall__1.25__beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
+    all_metrics["fbeta@|1.25 beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
+    all_metrics["precision@|default"] = metrics.precision_score( test_label, test_predictions_binary )
+    all_metrics["recall@|default"] = metrics.recall_score( test_label, test_predictions_binary )
+    all_metrics["time|seconds"] = time_for_model_in_seconds
 
-    #Precision
-    #all_metrics["precision_score_default"] = metrics.precision_score( test_label, test_predictions_binary )
-    #all_metrics["precision_score_at_top__0.50__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.005)
-    #all_metrics["precision_score_at_top__1.00__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.01)
-    #all_metrics["precision_score_at_top__10.0__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.10)
-    #all_metrics["precision_score_at_top__30.0__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.30)
-    #all_metrics["precision_score_at_top__50.0__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=0.50)
-    #all_metrics["precision_score_at_top__100.0__percent"] = precision_at_x_proportion(test_label, test_predictions, x_proportion=1.00)
 
-    #Recall
-    #all_metrics["recall_score_default"] = metrics.recall_score( test_label, test_predictions_binary )
-    #all_metrics["recall_score_at_top__0.50__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.005)
-    #all_metrics["recall_score_at_top__1.00__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.01)
-    #all_metrics["recall_score_at_top__10.0__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.10)
-    #all_metrics["recall_score_at_top__30.0__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.30)
-    #all_metrics["recall_score_at_top__50.0__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=0.50)
-    #all_metrics["recall_score_at_top__100.0__percent"] = recall_at_x_proportion(test_label, test_predictions, x_proportion=1.00)
-    #all_metrics["time_for_model_in_seconds"] = time_for_model_in_seconds
+    # Threshold Metrics by Percentage
+    percents = [ 0.01, 0.10, 0.25, 0.50, 1.0, 5.0, 10.0, 25.0, 50.0, 75.0 ]
+    for percent in percents:
 
-    #percents = [ 0.05, 0.10, 1.00, 5.00, 10.00, 25.00, 50.00, 75.00 ]
+        # Precision
+        all_metrics["precision@|{}".format( str(percent)) ] = precision_at_x_proportion(test_label, test_predictions, x_proportion=percent/100.00)
 
-    #False Positives, False Negatives
-    #all_metrics["false_positive_rate_score__mean_under_roc_curve__"] = compute_avg_false_positive_rate( test_label, test_predictions )
-    #all_metrics["true_positive_rate_score__mean_under_roc_curve__"] = compute_avg_true_positive_rate( test_label, test_predictions )
+        # Recall
+        all_metrics["recall@|{}".format( str(percent)) ] = recall_at_x_proportion(test_label, test_predictions, x_proportion=percent/100.00)
 
-    # Raw counts of officers we are flagging correctly and incorrectly at various fractions of the test set.
-    #percents = [ 0.1, 1.0, 5.0, 10.0, 25.0, 50.0, 75.0 ]
-    #for percent in percents:
-    #    all_metrics["false_positives_at_top__{}__percent.".format( str(percent)) ] = compute_result_at_x_proportion(test_label, test_predictions, 'FP', x_proportion=percent/100.0)
-    #    all_metrics["false_negatives_at_top__{}__percent.".format( str(percent)) ] = compute_result_at_x_proportion(test_label, test_predictions, 'FN', x_proportion=percent/100.0)
-    #    all_metrics["true_positives_at_top__{}__percent.".format( str(percent))  ] = compute_result_at_x_proportion(test_label, test_predictions, 'TP', x_proportion=percent/100.0)
-    #    all_metrics["true_negatives_at_top__{}__percent.".format( str(percent))  ] = compute_result_at_x_proportion(test_label, test_predictions, 'TN', x_proportion=percent/100.0)
+
+        # Raw counts of officers we are flagging correctly and incorrectly at various fractions of the test set.
+        all_metrics["false positives@|{}".format( str(percent)) ] = compute_result_at_x_proportion(test_label, test_predictions, 'FP', x_proportion=percent/100.0)
+        all_metrics["false negatives@|{}".format( str(percent)) ] = compute_result_at_x_proportion(test_label, test_predictions, 'FN', x_proportion=percent/100.0)
+        all_metrics["true positives@|{}".format( str(percent)) ] = compute_result_at_x_proportion(test_label, test_predictions, 'TP', x_proportion=percent/100.0)
+        all_metrics["true negatives@|{}".format( str(percent)) ] = compute_result_at_x_proportion(test_label, test_predictions, 'TN', x_proportion=percent/100.0)
 
 
     return all_metrics
