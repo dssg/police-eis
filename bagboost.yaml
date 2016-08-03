@@ -116,18 +116,18 @@ officer_features:
 #        'AdaBoost', 'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier', 'SGDClassifier', 'KNeighborsClassifier']
 
-model: ['RandomForestBagging', 'RandomForestBoosting']
+model: ['RandomForest']
 
 
 
 #model: ['RandomForest']
 parameters:
   RandomForest:
-    n_estimators: [10, 25, 50, 100, 1000, 10000]
-    max_depth: [5, 10, 20, 50, 100]
-    max_features: ['sqrt', 'log2', 2, 4, 8, 16, "auto"]
-    criterion: ['gini', 'entropy']
-    min_samples_split: [2, 5, 10]
+    n_estimators: [10 ] # , 25, 50, 100]  # [1000, 10000]
+    max_depth: [5] # , 10, 20]  # 50, 100
+    max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
+    criterion: ['gini' ] #'entropy']
+    min_samples_split: [2] # 5, 10]
   RandomForestBagging:
     n_estimators: [10] #, 25, 50, 100] #, 1000, 10000]
     max_depth: [5] #, 10, 20, 50, 100]
