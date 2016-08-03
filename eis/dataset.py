@@ -122,7 +122,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     return None
 
 #def store_evaluation_metrics( timestamp, evaluation_metrics ):
-def store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter=None, comment=None):
+def store_evaluation_metrics( timestamp, evaluation, metric, parameter=None, comment=None):
     """ Write the model evaluation metrics into the results schema
 
     :param str timestamp: the timestamp at which this model was run.
@@ -136,27 +136,77 @@ def store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter=No
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
-    if comment is None:
+
+    #if comment is None:
+    #    comment = 'Null'
+
+    #if metric_parameter is None:
+    #    metric_parameter = 'Null'
+
+    #    query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+    #                "   VALUES( '{}', '{}', {}, '{}', {}) ".format( this_model_id,
+    #                                                                    metric,
+    #                                                                    metric_parameter,
+    #                                                                    evaluation,
+    #                                                                    comment ) )
+    #else:
+
+    #    query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+    #                "   VALUES( '{}', '{}', '{}', '{}', {}) ".format( this_model_id,
+    #                                                                    metric,
+    #                                                                    metric_parameter,
+    #                                                                    evaluation,
+    #                                                                    comment ) )
+
+
+    #No parameter and no comment
+    if parameter is None and comment is None:
+        print("#No parameter and no comment")
         comment = 'Null'
-
-    if metric_parameter is None:
-        metric_parameter = 'Null'
-
+        parameter = 'Null'
         query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
                     "   VALUES( '{}', '{}', {}, '{}', {}) ".format( this_model_id,
-                                                                        metric,
-                                                                        metric_parameter,
-                                                                        evaluation,
-                                                                        comment ) )
-    else:
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
 
+
+    #No parameter and a comment
+    elif parameter is None and comment is not None:
+        print("#No parameter and a comment")
+        parameter = 'Null'
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', {}, '{}', '{}') ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
+
+    #No comment and a parameter
+    elif parameter is not None and comment is None:
+        print("#No comment and a parameter")
+        comment = 'Null'
         query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
                     "   VALUES( '{}', '{}', '{}', '{}', {}) ".format( this_model_id,
-                                                                        metric,
-                                                                        metric_parameter,
-                                                                        evaluation,
-                                                                        comment ) )
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
 
+    #A comment and a parameter
+    elif parameter is not None and comment is not None:
+        print("#A comment and a parameter")
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', '{}', '{}', '{}') ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
+
+    else:
+        print("PASS")
+        pass
 
     db_conn.cursor().execute(query)
     db_conn.commit()

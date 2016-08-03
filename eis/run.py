@@ -156,21 +156,45 @@ def main(config_file_name, args):
         #Insert Evaluation Metrics Into Table
         for key in all_metrics:
             evaluation = all_metrics[key]
+            metric = key.split('|')[0]
+            try:
+                #metric_parameter = key.split('|')[1].replace('', 1, None)
+                metric_parameter = key.split('|')[1]
+                if metric_parameter=='':
+                    metric_parameter.replace('', None)
+                else:
+                    pass
+            except:
+                metric_parameter = None
+
+            try:
+                comment = str(key.split('|')[2])
+                #print(comment)
+            except:
+                comment = None
+
+            dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
+
+            print(timestamp, evaluation, comment, metric, metric_parameter )
+
+
+        """
+        #Insert Evaluation Metrics Into Table
+        for key in all_metrics:
+            evaluation = all_metrics[key]
             comment = key
             metric = comment.split('_score', 1)[0]
-            #metric_parameter = metric
             try:
                 metric_parameter = comment.split('__', 1)[1].split('__')[0]
             except:
                 metric_parameter = None
 
-
-            #comment='Null'
             comment = None
-
             dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
 
             print(timestamp, evaluation, comment, metric, metric_parameter )
+
+        """
 
         if my_exp.config["auditing"]:
             audit_outputs = {"train_x": my_exp.exp_data["train_x"],
