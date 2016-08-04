@@ -549,7 +549,7 @@ class FeatureLoader():
         if feature_type == 'dispatch':
             id_column = 'dispatch_id'
 
-        # Create the query for this feature.
+        # Create the query for this feature list
         query = (   "SELECT {}, {} "
                     "FROM features.{} "
                     "WHERE fake_today BETWEEN '{}' AND '{}'"
@@ -670,16 +670,23 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
     features_df = feature_loader.load_all_features(features_to_use,
                                                    feature_type = 'dispatch')
 
-    # encode categorical features with dummy variables
-    features_df_w_dummies = convert_categorical(features_df, features_to_use)
-                                                   
-    dataset = features_df_w_dummies
+    # encode categorical features with dummy variables, and fill NAN with 0s
+    dataset = convert_categorical(features_df, features_to_use)
     dataset = dataset.fillna(0)
 
     log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
 
-    features = dataset.drop(["label"], axis=1)
-    labels = dataset["label"]
+    # determine which labels to use based on def_adverse
+    label_columns = classmap.find_label_features(features_to_use)
+    def_adverse_to_label = {'accidents': 'LabelPreventable',
+                            'useofforce': 'LabelUnjustified',
+                            'complaint': 'LabelSustained'}
+    label_cols_to_use = [def_adverse_to_label[key] for key, is_true in def_adverse.items() if is_true] 
+
+    # select the active label columns, sum for each row, and set true when sum > 0
+    labels = dataset[label_cols_to_use].sum(axis=1).apply(lambda x: x > 0)
+
+    features = dataset.drop(label_columns, axis=1)
     ids = dataset.index
     feature_names = features.columns
 

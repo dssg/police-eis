@@ -4,7 +4,7 @@
 ################################################
 
 make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes made of training set features
-distdir: dists  # Where to put them
+distdir: 'dists'  # Where to put them
 
 ########################
 # Type of Experiment   #
@@ -21,10 +21,12 @@ pilot_dir: 'pilot/'
 ########################
 
 # these control what subset of the raw data is used to calculate the features
+# used for feature CALCULATION
 raw_data_from_date: '2013-01-01'
 raw_data_to_date: '2014-07-01'
 
 # these control what subset of the feature rows will be used to train and test
+# used for row selection in MODELING
 fake_today: ['01Jan2014']  # if you want a specific_today then pass this
 training_window: [365]  # training, days
 prediction_window: [180]  # prediction, days
@@ -41,8 +43,8 @@ under_sampling_ratio: 0.333
 # Select which events you want the model to use as adverse incidents (class 1)
 
 def_adverse:
-    accidents: False  # preventable accidents
-    useofforce: False  # unjustified use of force
+    accidents: True  # preventable accidents
+    useofforce: True  # unjustified use of force
     injury: False  # preventable officer injuries
     icd: False  # preventable in custody deaths
     tdd: False  # unjustified use of tire deflation device
@@ -68,7 +70,9 @@ officer_features:
     arrest_count_1yr: False
 
 dispatch_features:
-    Label: True #TODO move this to somewhere more explicit
+    LabelSustained: True #TODO move this to somewhere more explicit
+    LabelUnjustified: True #TODO move this to somewhere more explicit
+    LabelPreventable: True #TODO move this to somewhere more explicit
     DispatchMinute: True
     DispatchHour: True
     DispatchDayOfWeek: True
@@ -79,6 +83,20 @@ dispatch_features:
     DispatchType: True
     DispatchSubType: True
     NumberOfUnitsAssigned: True
+    ArrestsInPast1Hour: True
+    ArrestsInPast6Hours: True
+    ArrestsInPast12Hours: True
+    ArrestsInPast24Hours: True
+    ArrestsInPast48Hours: True
+    ArrestsInPastWeek: True
+    ArrestsInPastMonth: True
+    FelonyArrestsInPast1Hour: True
+    FelonyArrestsInPast6Hours: True
+    FelonyArrestsInPast12Hours: True
+    FelonyArrestsInPast24Hours: True
+    FelonyArrestsInPast48Hours: True
+    FelonyArrestsInPastWeek: True
+    FelonyArrestsInPastMonth: True
 
 
 
@@ -105,10 +123,10 @@ model: ['RandomForest'] # , 'LogisticRegression','ExtraTrees', 'AdaBoost', 'SVM'
 parameters:
   RandomForest:
     n_estimators: [10] # [10, 25, 50, 100]  # [1000, 10000]
-    max_depth: [5, 10, 20]  # 50, 100
+    max_depth: [20] # [5, 10, 20]  # 50, 100
     max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
     criterion: ['entropy'] # ['gini' ] #'entropy']
-    min_samples_split: [2, 5] #, 10]
+    min_samples_split: [5] #[2, 5] #, 10]
   ExtraTrees:
     n_estimators: [10, 25, 50, 100]  # [1000, 10000]
     max_depth: [5, 10, 20]  # 50, 100

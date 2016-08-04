@@ -68,6 +68,7 @@ class DispatchFeature():
         self.description_long =""
         self.feature_name = self.__class__.__name__
         self.is_categorical = False
+        self.is_label = False
         # self.query should return two columns, named 'dispatch_id' and '<feature_name>'
         self.query = None
         # self.update_query take the result of the feature query and inserts it into the feature table

@@ -39,6 +39,25 @@ def find_categorical_features(feature_list):
     return categorical_features
 
 
+def find_label_features(feature_list):
+    """Given a list of feature names return the names of the
+    features which are labels
+
+    Args:
+        feature_list(list): list of feature names to check
+
+    Returns:
+        label_features(list): the features which are labels
+    """
+
+    # TODO: make it so that we don't need to supply a bogus fake today to instantiate an OfficerFeature
+    dummy_kwargs = {'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
+    feature_classes = [lookup(feature, **dummy_kwargs) for feature in feature_list]
+
+    label_features = [feature.feature_name for feature in feature_classes if feature.is_label]
+
+    return label_features
+
 def lookup(feature, **kwargs):
 
     if feature[1:3] == "yr":
@@ -52,12 +71,16 @@ def lookup(feature, **kwargs):
                     'DivorceCount': officers.DivorceCount(**kwargs),
                     'SustainedRuleViolations': officers.SustainedRuleViolations(**kwargs),
                     'IncidentCount': officers.IncidentCount(**kwargs),
-		            'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
+                    'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
                     'MilesFromPost': officers.MilesFromPost(**kwargs),
                     'OfficerGender': officers.OfficerGender(**kwargs),
                     'TimeGatedDummyFeature': officers.TimeGatedDummyFeature(**kwargs),
-		            'OfficerRace': officers.OfficerRace(**kwargs),
+                    'OfficerRace': officers.OfficerRace(**kwargs),
                     'AllAllegations': officers.AllAllegations(**kwargs),
+
+                    'LabelSustained': dispatches.LabelSustained(**kwargs),
+                    'LabelUnjustified': dispatches.LabelUnjustified(**kwargs),
+                    'LabelPreventable': dispatches.LabelPreventable(**kwargs),
                     'DispatchHour': dispatches.DispatchHour(**kwargs),
                     'DispatchDayOfWeek': dispatches.DispatchDayOfWeek(**kwargs),
                     'DispatchMonth': dispatches.DispatchMonth(**kwargs),
@@ -65,10 +88,23 @@ def lookup(feature, **kwargs):
                     'DispatchYear': dispatches.DispatchYear(**kwargs),
                     'DispatchMinute': dispatches.DispatchMinute(**kwargs),
                     'OriginalPriority': dispatches.OriginalPriority(**kwargs),
-                    'Label': dispatches.Label(**kwargs),
                     'DispatchType': dispatches.DispatchType(**kwargs),
                     'DispatchSubType': dispatches.DispatchSubType(**kwargs),
-                    'NumberOfUnitsAssigned': dispatches.NumberOfUnitsAssigned(**kwargs)
+                    'NumberOfUnitsAssigned': dispatches.NumberOfUnitsAssigned(**kwargs),
+                    'ArrestsInPast1Hour': dispatches.ArrestsInPast1Hour(**kwargs),
+                    'ArrestsInPast6Hours': dispatches.ArrestsInPast6Hours(**kwargs),
+                    'ArrestsInPast12Hours': dispatches.ArrestsInPast12Hours(**kwargs),
+                    'ArrestsInPast24Hours': dispatches.ArrestsInPast24Hours(**kwargs),
+                    'ArrestsInPast48Hours': dispatches.ArrestsInPast48Hours(**kwargs),
+                    'ArrestsInPastWeek': dispatches.ArrestsInPastWeek(**kwargs),
+                    'ArrestsInPastMonth': dispatches.ArrestsInPastMonth(**kwargs),
+                    'FelonyArrestsInPast1Hour': dispatches.FelonyArrestsInPast1Hour(**kwargs),
+                    'FelonyArrestsInPast6Hours': dispatches.FelonyArrestsInPast6Hours(**kwargs),
+                    'FelonyArrestsInPast12Hours': dispatches.FelonyArrestsInPast12Hours(**kwargs),
+                    'FelonyArrestsInPast24Hours': dispatches.FelonyArrestsInPast24Hours(**kwargs),
+                    'FelonyArrestsInPast48Hours': dispatches.FelonyArrestsInPast48Hours(**kwargs),
+                    'FelonyArrestsInPastWeek': dispatches.FelonyArrestsInPastWeek(**kwargs),
+                    'FelonyArrestsInPastMonth': dispatches.FelonyArrestsInPastMonth(**kwargs)
 
                   }
 

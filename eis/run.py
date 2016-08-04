@@ -25,6 +25,7 @@ def main(config_file_name, args):
         log.info("Loaded experiment file: {}".format(config_file_name))
     except:
         log.exception("Failed to get experiment configuration file!")
+        raise
 
     # if no features table name was set by the user, 
     # set the features table name based on type of prediction (officer / dispatch)
