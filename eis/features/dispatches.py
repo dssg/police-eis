@@ -545,3 +545,105 @@ class FelonyArrestsInPastMonth(abstract.DispatchFeature):
                            " where event_type_code = 5 and dispatch_id is not null "
                            " and event_datetime between '{}' and '{}' "
                        " GROUP by 1) as a ").format(self.from_date, self.to_date)
+
+#TEMPORAL Features
+#Dispatch time features - small time windows
+class OfficersDispatchedInPast1Minute(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of unique officers sent on dispatches in minute preceding the dispatch"
+        self.query = ( " SELECT "
+                       "    dispatch_id, "
+                       "    COUNT(dispatch_id) AS feature_column"
+                       " FROM "
+                       "    (SELECT "
+                       "        dispatch_id, "
+                       "        min(event_datetime) AS min_event_datetime  "
+                       "    FROM staging.events_hub "
+                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
+                       "    AND event_datetime BETWEEN '{}' AND '{}' "
+                       "    GROUP BY 1) AS a "
+                       "    LEFT JOIN "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 minutes'  "
+                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedInPast15Minutes(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of unique officers sent on dispatches in the 15 minutes preceding the dispatch"
+        self.query = ( " SELECT "
+                       "    dispatch_id, "
+                       "    COUNT(dispatch_id) AS feature_column"
+                       " FROM "
+                       "    (SELECT "
+                       "        dispatch_id, "
+                       "        min(event_datetime) AS min_event_datetime  "
+                       "    FROM staging.events_hub "
+                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
+                       "    AND event_datetime BETWEEN '{}' AND '{}' "
+                       "    GROUP BY 1) AS a "
+                       "    LEFT JOIN "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '15 minutes'  "
+                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedInPast30Minutes(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of unique officers sent on dispatches in the 30 minutes preceding the dispatch"
+        self.query = ( " SELECT "
+                       "    dispatch_id, "
+                       "    COUNT(dispatch_id) AS feature_column"
+                       " FROM "
+                       "    (SELECT "
+                       "        dispatch_id, "
+                       "        min(event_datetime) AS min_event_datetime  "
+                       "    FROM staging.events_hub "
+                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
+                       "    AND event_datetime BETWEEN '{}' AND '{}' "
+                       "    GROUP BY 1) AS a "
+                       "    LEFT JOIN "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '30 minutes'  "
+                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedInPast1Hour(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of unique officers sent on dispatches in the 1 hour preceding the dispatch"
+        self.query = ( " SELECT "
+                       "    dispatch_id, "
+                       "    COUNT(dispatch_id) AS feature_column"
+                       " FROM "
+                       "    (SELECT "
+                       "        dispatch_id, "
+                       "        min(event_datetime) AS min_event_datetime  "
+                       "    FROM staging.events_hub "
+                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
+                       "    AND event_datetime BETWEEN '{}' AND '{}' "
+                       "    GROUP BY 1) AS a "
+                       "    LEFT JOIN "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 hours'  "
+                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedInPast6Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of unique officers sent on dispatches in the 6 hours preceding the dispatch"
+        self.query = ( " SELECT "
+                       "    dispatch_id, "
+                       "    COUNT(dispatch_id) AS feature_column"
+                       " FROM "
+                       "    (SELECT "
+                       "        dispatch_id, "
+                       "        min(event_datetime) AS min_event_datetime  "
+                       "    FROM staging.events_hub "
+                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
+                       "    AND event_datetime BETWEEN '{}' AND '{}' "
+                       "    GROUP BY 1) AS a "
+                       "    LEFT JOIN "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '6 hours'  "
+                       " GROUP BY 1 ").format(self.from_date, self.to_date)

@@ -104,7 +104,12 @@ def lookup(feature, **kwargs):
                     'FelonyArrestsInPast24Hours': dispatches.FelonyArrestsInPast24Hours(**kwargs),
                     'FelonyArrestsInPast48Hours': dispatches.FelonyArrestsInPast48Hours(**kwargs),
                     'FelonyArrestsInPastWeek': dispatches.FelonyArrestsInPastWeek(**kwargs),
-                    'FelonyArrestsInPastMonth': dispatches.FelonyArrestsInPastMonth(**kwargs)
+                    'FelonyArrestsInPastMonth': dispatches.FelonyArrestsInPastMonth(**kwargs),
+                    'OfficersDispatchedInPast1Minute': dispatches.OfficersDispatchedInPast1Minute(**kwargs),
+                    'OfficersDispatchedInPast15Minutes': dispatches.OfficersDispatchedInPast15Minutes(**kwargs),
+                    'OfficersDispatchedInPast30Minutes': dispatches.OfficersDispatchedInPast30Minutes(**kwargs),
+                    'OfficersDispatchedInPast1Hour': dispatches.OfficersDispatchedInPast1Hour(**kwargs),
+                    'OfficersDispatchedInPast6Hours': dispatches.OfficersDispatchedInPast6Hours(**kwargs)
 
                   }
 
