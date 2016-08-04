@@ -70,18 +70,19 @@ officer_features:
     OfficerGender: True  # Officer gender code.
     OfficerRace: True # Officer race code.
     OfficerEthnicity: True # Officer ethnicity code.
-    ArrestCount: False # Number of arrests made by an officer, time gated.
-    IncidentCount: False # Officer investigatable incident count to fake_today
+    ArrestCount: True # Number of arrests made by an officer, time gated.
+    IncidentCount: True # Officer investigatable incident count to fake_today
     MeanHoursPerShift: True # Average number of hours per shift
-    TimeGatedDummyFeature: False # Time gated dummy feature.
-    NumberOfShiftsOfType: False # Time gated dummy feature.
-    SustainedRuleViolations : False  # Officer investigatable incident count to fake_today
-    MeanHoursPerShift: False # Average number of hours per shift
-    AllAllegations: False # Number of allegations made against an officer, time gated.
+    TimeGatedDummyFeature: True # Time gated dummy feature.
+    NumberOfShiftsOfType: True # Time gated dummy feature.
+    SustainedRuleViolations : True  # Officer investigatable incident count to fake_today
+    MeanHoursPerShift: True # Average number of hours per shift
+    AllAllegations: True # Number of allegations made against an officer, time gated.
     NumberOfSuspensions: True # The number of times the officer has been suspended from work, time gated
     MandatoryCounsellingEvents: True # The number of mandatory counselling events an officer has received, time gated
-    NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated
-    ComplaintToArrestRatio: True # The proportion of complaints per arrest
+    NumberOfIncidentsOfType: True # The number of incidents  of certain types, exploded into multiple columns and time gated
+    ComplaintToArrestRatio: True # The ratio of complaints per arrest
+    ComplaintsPerHourWorked: True # The rate of complaints per hour worked
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
