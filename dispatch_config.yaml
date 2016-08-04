@@ -91,6 +91,11 @@ dispatch_features:
     FelonyArrestsInPast48Hours: False
     FelonyArrestsInPastWeek: False
     FelonyArrestsInPastMonth: False
+    OfficersDispatchedInPast1Minute: True
+    OfficersDispatchedInPast15Minutes: True
+    OfficersDispatchedInPast30Minutes: True
+    OfficersDispatchedInPast1Hour: True
+    OfficersDispatchedInPast6Hours: True
 
 
 
