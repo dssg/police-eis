@@ -22,8 +22,8 @@ pilot_dir: 'pilot/'
 
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
-raw_data_from_date: '2013-06-01'
-raw_data_to_date: '2014-06-01'
+raw_data_from_date: '2013-01-01'
+raw_data_to_date: '2013-04-01'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
@@ -62,7 +62,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_test_year'
+dispatch_feature_table_name: 'dispatch_features_2013Q1'
 
 officer_features:
     investigation_count_career: True
