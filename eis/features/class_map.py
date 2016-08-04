@@ -115,7 +115,19 @@ def lookup(feature, **kwargs):
                     'OfficersDispatchedAverageSustainedAllegationsInPastYear': dispatches.OfficersDispatchedAverageSustainedAllegationsInPastYear(**kwargs),
                     'OfficersDispatchedAverageUnsustainedAllegationsInPastYear': dispatches.OfficersDispatchedAverageUnsustainedAllegationsInPastYear(**kwargs),
                     'OfficersDispatchedAveragePreventableIncidentsInPastYear': dispatches.OfficersDispatchedAveragePreventableIncidentsInPastYear(**kwargs),
-                    'OfficersDispatchedAverageNonPreventableIncidentsInPastYear': dispatches.OfficersDispatchedAverageNonPreventableIncidentsInPastYear(**kwargs)
+                    'OfficersDispatchedAverageNonPreventableIncidentsInPastYear': dispatches.OfficersDispatchedAverageNonPreventableIncidentsInPastYear(**kwargs),
+                    'OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months': dispatches.OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months(**kwargs),
+                    'OfficersDispatchedAverageJustifiedIncidentsInPast6Months': dispatches.OfficersDispatchedAverageJustifiedIncidentsInPast6Months(**kwargs),
+                    'OfficersDispatchedAverageSustainedAllegationsInPast6Months': dispatches.OfficersDispatchedAverageSustainedAllegationsInPast6Months(**kwargs),
+                    'OfficersDispatchedAverageUnsustainedAllegationsInPast6Months': dispatches.OfficersDispatchedAverageUnsustainedAllegationsInPast6Months(**kwargs),
+                    'OfficersDispatchedAveragePreventableIncidentsInPast6Months': dispatches.OfficersDispatchedAveragePreventableIncidentsInPast6Months(**kwargs),
+                    'OfficersDispatchedAverageNonPreventableIncidentsInPast6Months': dispatches.OfficersDispatchedAverageNonPreventableIncidentsInPast6Months(**kwargs),
+                    'OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month': dispatches.OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months(**kwargs),
+                    'OfficersDispatchedAverageJustifiedIncidentsInPast1Month': dispatches.OfficersDispatchedAverageJustifiedIncidentsInPast1Month(**kwargs),
+                    'OfficersDispatchedAverageSustainedAllegationsInPast1Month': dispatches.OfficersDispatchedAverageSustainedAllegationsInPast1Month(**kwargs),
+                    'OfficersDispatchedAverageUnsustainedAllegationsInPast1Month': dispatches.OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(**kwargs),
+                    'OfficersDispatchedAveragePreventableIncidentsInPast1Month': dispatches.OfficersDispatchedAveragePreventableIncidentsInPast1Month(**kwargs),
+                    'OfficersDispatchedAverageNonPreventableIncidentsInPast1Month': dispatches.OfficersDispatchedAverageNonPreventableIncidentsInPast1Month(**kwargs)
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
