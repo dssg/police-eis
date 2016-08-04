@@ -101,7 +101,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
                                             "label_value": unit_labels } )
                                             
     # hack-y: much faster to write to csv, then read csv with psql than to write straight to database from python
-    csv_filepath = "{}/{}_{}.csv".format(config["directory"],config["pkl_prefix"], timestamp)
+    csv_filepath = "{}/{}_{}.csv".format('results', 'dispatch_results', timestamp)
     dataframe_for_insert.to_csv(csv_filepath, index=False)
 
     return None
@@ -674,14 +674,15 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
     dataset = convert_categorical(features_df, features_to_use)
     dataset = dataset.fillna(0)
 
-    log.debug('... dataset dataframe is {} bytes'.format(dataset.memory_usage().sum()))
+    log.debug('... dataset dataframe is {} GB'.format(dataset.memory_usage().sum() / 1E9))
 
     # determine which labels to use based on def_adverse
-    label_columns = classmap.find_label_features(features_to_use)
+    # note: need to lowercase the column name b/c postgres lowercases everything
+    label_columns = [col.lower() for col in class_map.find_label_features(features_to_use)]
     def_adverse_to_label = {'accidents': 'LabelPreventable',
                             'useofforce': 'LabelUnjustified',
                             'complaint': 'LabelSustained'}
-    label_cols_to_use = [def_adverse_to_label[key] for key, is_true in def_adverse.items() if is_true] 
+    label_cols_to_use = [def_adverse_to_label[key].lower() for key, is_true in def_adverse.items() if is_true] 
 
     # select the active label columns, sum for each row, and set true when sum > 0
     labels = dataset[label_cols_to_use].sum(axis=1).apply(lambda x: x > 0)

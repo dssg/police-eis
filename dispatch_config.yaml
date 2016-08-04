@@ -23,13 +23,13 @@ pilot_dir: 'pilot/'
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
 raw_data_from_date: '2013-01-01'
-raw_data_to_date: '2014-07-01'
+raw_data_to_date: '2013-07-01'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
-fake_today: ['01Jan2014']  # if you want a specific_today then pass this
-training_window: [365]  # training, days
-prediction_window: [180]  # prediction, days
+fake_today: ['01Jun2013']  # if you want a specific_today then pass this
+training_window: [180]  # training, days
+prediction_window: [30]  # prediction, days
 autogen_fake_todays: False  # set to off if you want a specific fake_today
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
@@ -38,12 +38,12 @@ autogen_fake_todays: False  # set to off if you want a specific fake_today
 ########################
 
 # NOTE: this ratio = n_label_1 / n_total
-under_sampling_ratio: 0.333
+under_sampling_ratio: 0.1
 
 # Select which events you want the model to use as adverse incidents (class 1)
 
 def_adverse:
-    accidents: True  # preventable accidents
+    accidents: False  # preventable accidents
     useofforce: True  # unjustified use of force
     injury: False  # preventable officer injuries
     icd: False  # preventable in custody deaths
@@ -83,20 +83,20 @@ dispatch_features:
     DispatchType: True
     DispatchSubType: True
     NumberOfUnitsAssigned: True
-    ArrestsInPast1Hour: True
-    ArrestsInPast6Hours: True
-    ArrestsInPast12Hours: True
-    ArrestsInPast24Hours: True
-    ArrestsInPast48Hours: True
-    ArrestsInPastWeek: True
-    ArrestsInPastMonth: True
-    FelonyArrestsInPast1Hour: True
-    FelonyArrestsInPast6Hours: True
-    FelonyArrestsInPast12Hours: True
-    FelonyArrestsInPast24Hours: True
-    FelonyArrestsInPast48Hours: True
-    FelonyArrestsInPastWeek: True
-    FelonyArrestsInPastMonth: True
+    ArrestsInPast1Hour: False
+    ArrestsInPast6Hours: False
+    ArrestsInPast12Hours: False
+    ArrestsInPast24Hours: False
+    ArrestsInPast48Hours: False
+    ArrestsInPastWeek: False
+    ArrestsInPastMonth: False
+    FelonyArrestsInPast1Hour: False
+    FelonyArrestsInPast6Hours: False
+    FelonyArrestsInPast12Hours: False
+    FelonyArrestsInPast24Hours: False
+    FelonyArrestsInPast48Hours: False
+    FelonyArrestsInPastWeek: False
+    FelonyArrestsInPastMonth: False
 
 
 
