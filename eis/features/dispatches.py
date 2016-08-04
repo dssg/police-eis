@@ -26,7 +26,7 @@ class Label(abstract.DispatchFeature):
                         "    case when sum(coalesce(incidents.number_of_unjustified_allegations, 0)) + "
                         "    sum(coalesce(incidents.number_of_preventable_allegations, 0)) + "
                         "    sum(coalesce(incidents.number_of_sustained_allegations, 0)) > 0 then 1 else 0 end as feature_column "
-                        "FROM (select * from staging.events_hub where event_datetime between '{}' and '{}' ""
+                        "FROM (select * from staging.events_hub where event_datetime between '{}' and '{}' "
                         "  and event_type_code = 4 and dispatch_id is not null ) as events_hub "
                         "  left join staging.incidents as incidents "
                         "  on events_hub.event_id = incidents.event_id "
