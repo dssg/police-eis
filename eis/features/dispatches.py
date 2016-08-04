@@ -676,3 +676,138 @@ class OfficersDispatchedAverageUnjustifiedIncidentsInPastYear(abstract.DispatchF
                         " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 year' "
                         " GROUP BY 1,2 ) as e "
                         " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedAverageJustifiedIncidentsInPastYear(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The average number of justified incidents occuring in past year for officers dispatched"
+     self.query = ( " SELECT "
+                        " dispatch_id, "
+                        " avg(justified_allegations) as feature_column "
+                    "FROM "
+                        " (SELECT "
+                        " a.dispatch_id, "
+                        " a.officer_id, "
+                        " sum(coalesce(number_of_justified_allegations,0)) as justified_allegations "
+                    " FROM "
+                        " (SELECT "
+                        " dispatch_id, "
+                        " officer_id, "
+                        " min(event_datetime) as min_event_datetime "
+                    " FROM staging.events_hub where event_type_code = 5 and dispatch_id is not null and event_datetime between '{}' and '{}' "
+                        " GROUP BY 1,2) as a "
+                    " LEFT JOIN "
+                        " ((SELECT * FROM staging.events_hub where event_type_code = 4) as c "
+                    " INNER JOIN staging.incidents as d "
+                        " on c.event_id = d.event_id) as b "
+                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 year' "
+                        " GROUP BY 1,2 ) as e "
+                        " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedAveragePreventableIncidentsInPastYear(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The average number of preventable incidents occuring in past year for officers dispatched"
+     self.query = ( " SELECT "
+                        " dispatch_id, "
+                        " avg(preventable_allegations) as feature_column "
+                    "FROM "
+                        " (SELECT "
+                        " a.dispatch_id, "
+                        " a.officer_id, "
+                        " sum(coalesce(number_of_preventable_allegations,0)) as preventable_allegations "
+                    " FROM "
+                        " (SELECT "
+                        " dispatch_id, "
+                        " officer_id, "
+                        " min(event_datetime) as min_event_datetime "
+                    " FROM staging.events_hub where event_type_code = 5 and dispatch_id is not null and event_datetime between '{}' and '{}' "
+                        " GROUP BY 1,2) as a "
+                    " LEFT JOIN "
+                        " ((SELECT * FROM staging.events_hub where event_type_code = 4) as c "
+                    " INNER JOIN staging.incidents as d "
+                        " on c.event_id = d.event_id) as b "
+                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 year' "
+                        " GROUP BY 1,2 ) as e "
+                        " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedAverageNonPreventableIncidentsInPastYear(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The average number of non-preventable incidents occuring in past year for officers dispatched"
+     self.query = ( " SELECT "
+                        " dispatch_id, "
+                        " avg(non_preventable_allegations) as feature_column "
+                    "FROM "
+                        " (SELECT "
+                        " a.dispatch_id, "
+                        " a.officer_id, "
+                        " sum(coalesce(number_of_non_preventable_allegations,0)) as non_preventable_allegations "
+                    " FROM "
+                        " (SELECT "
+                        " dispatch_id, "
+                        " officer_id, "
+                        " min(event_datetime) as min_event_datetime "
+                    " FROM staging.events_hub where event_type_code = 5 and dispatch_id is not null and event_datetime between '{}' and '{}' "
+                        " GROUP BY 1,2) as a "
+                    " LEFT JOIN "
+                        " ((SELECT * FROM staging.events_hub where event_type_code = 4) as c "
+                    " INNER JOIN staging.incidents as d "
+                        " on c.event_id = d.event_id) as b "
+                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 year' "
+                        " GROUP BY 1,2 ) as e "
+                        " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedAverageSustainedAllegationsInPastYear(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The average number of sustained allegations occuring in past year for officers dispatched"
+     self.query = ( " SELECT "
+                        " dispatch_id, "
+                        " avg(sustained_allegations) as feature_column "
+                    "FROM "
+                        " (SELECT "
+                        " a.dispatch_id, "
+                        " a.officer_id, "
+                        " sum(coalesce(number_of_sustained_allegations,0)) as sustained_allegations "
+                    " FROM "
+                        " (SELECT "
+                        " dispatch_id, "
+                        " officer_id, "
+                        " min(event_datetime) as min_event_datetime "
+                    " FROM staging.events_hub where event_type_code = 5 and dispatch_id is not null and event_datetime between '{}' and '{}' "
+                        " GROUP BY 1,2) as a "
+                    " LEFT JOIN "
+                        " ((SELECT * FROM staging.events_hub where event_type_code = 4) as c "
+                    " INNER JOIN staging.incidents as d "
+                        " on c.event_id = d.event_id) as b "
+                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 year' "
+                        " GROUP BY 1,2 ) as e "
+                        " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+class OfficersDispatchedAverageUnsustainedAllegationsInPastYear(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The average number of unsustained allegations occuring in past year for officers dispatched"
+     self.query = ( " SELECT "
+                        " dispatch_id, "
+                        " avg(unsustained_allegations) as feature_column "
+                    "FROM "
+                        " (SELECT "
+                        " a.dispatch_id, "
+                        " a.officer_id, "
+                        " sum(coalesce(number_of_unsustained_allegations,0)) as unsustained_allegations "
+                    " FROM "
+                        " (SELECT "
+                        " dispatch_id, "
+                        " officer_id, "
+                        " min(event_datetime) as min_event_datetime "
+                    " FROM staging.events_hub where event_type_code = 5 and dispatch_id is not null and event_datetime between '{}' and '{}' "
+                        " GROUP BY 1,2) as a "
+                    " LEFT JOIN "
+                        " ((SELECT * FROM staging.events_hub where event_type_code = 4) as c "
+                    " INNER JOIN staging.incidents as d "
+                        " on c.event_id = d.event_id) as b "
+                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 year' "
+                        " GROUP BY 1,2 ) as e "
+                        " GROUP BY 1 ").format(self.from_date, self.to_date)

@@ -103,6 +103,11 @@ dispatch_features:
     OfficersDispatchedInPast1Hour: True
     OfficersDispatchedInPast6Hours: True
     OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: True
+    OfficersDispatchedAverageJustifiedIncidentsInPastYear: True
+    OfficersDispatchedAverageSustainedAllegationsInPastYear: True
+    OfficersDispatchedAverageUnsustainedAllegationsInPastYear: True
+    OfficersDispatchedAveragePreventableIncidentsInPastYear: True
+    OfficersDispatchedAverageNonPreventableIncidentsInPastYear: True
 
 
 
