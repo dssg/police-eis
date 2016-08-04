@@ -108,6 +108,19 @@ dispatch_features:
     OfficersDispatchedAverageUnsustainedAllegationsInPastYear: True
     OfficersDispatchedAveragePreventableIncidentsInPastYear: True
     OfficersDispatchedAverageNonPreventableIncidentsInPastYear: True
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months: True
+    OfficersDispatchedAverageJustifiedIncidentsInPast6Months: True
+    OfficersDispatchedAverageSustainedAllegationsInPast6Months: True
+    OfficersDispatchedAverageUnsustainedAllegationsInPast6Months: True
+    OfficersDispatchedAveragePreventableIncidentsInPast6Months: True
+    OfficersDispatchedAverageNonPreventableIncidentsInPast6Months: True
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month: True
+    OfficersDispatchedAverageJustifiedIncidentsInPast1Month: True
+    OfficersDispatchedAverageSustainedAllegationsInPast1Month: True
+    OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: True
+    OfficersDispatchedAveragePreventableIncidentsInPast1Month: True
+    OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: True
+
 
 
 
