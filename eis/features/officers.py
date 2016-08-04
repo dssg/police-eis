@@ -212,6 +212,21 @@ class OfficerRace(abstract.OfficerFeature):
                       .format(  self.table_name,
                                 self.feature_name ) )
 
+class OfficerEthnicity(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer ethnicity")
+        self.num_features = 1
+        self.name_of_features = ["OfficerEthnicity"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.ethnicity_code "
+                      "FROM (   SELECT officer_id, ethnicity_code "
+                      "         FROM staging.officers_hub "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
+
 class AcademyScore(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
@@ -354,7 +369,7 @@ class AllAllegations(abstract.TimeGatedOfficerFeature):
 
 class NumberOfIncidentsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { 
+        self.categories = {
                             0: 'accident',
                             1: 'appearance',
                             2: 'bias_or_profiling',
@@ -397,4 +412,3 @@ class NumberOfIncidentsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
-
