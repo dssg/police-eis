@@ -132,9 +132,6 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
         final_query = ', '.join([create_query, num_feature_query]) + ");"
     engine.execute(final_query)
 
-    # TODO: for dispatch predictions we need to figure out an alternative to fake_today
-    #       temporal cross validation
-
     # Populate the features table with dispatch id.
     log.info("Populating feature table {} with dispatch ids and fake_todays".format(table_name))
 

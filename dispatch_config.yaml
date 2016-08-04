@@ -20,13 +20,15 @@ pilot_dir: 'pilot/'
 # Temporal parameters  #
 ########################
 
+# these control what subset of the raw data is used to calculate the features
 raw_data_from_date: '2013-01-01'
 raw_data_to_date: '2014-07-01'
 
+# these control what subset of the feature rows will be used to train and test
 fake_today: ['01Jan2014']  # if you want a specific_today then pass this
+training_window: [365]  # training, days
+prediction_window: [180]  # prediction, days
 autogen_fake_todays: False  # set to off if you want a specific fake_today
-training_window: [365]  # training, days, used for officer-level prediction
-prediction_window: [180]  # prediction, days, used for officer-level prediction
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
 ########################
@@ -105,7 +107,7 @@ parameters:
     n_estimators: [10] # [10, 25, 50, 100]  # [1000, 10000]
     max_depth: [5, 10, 20]  # 50, 100
     max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
-    criterion: ['gini' ] #'entropy']
+    criterion: ['entropy'] # ['gini' ] #'entropy']
     min_samples_split: [2, 5] #, 10]
   ExtraTrees:
     n_estimators: [10, 25, 50, 100]  # [1000, 10000]
