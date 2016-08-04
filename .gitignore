@@ -75,3 +75,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# ignore the saved model .pkl files
+results/*

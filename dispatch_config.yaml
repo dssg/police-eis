@@ -20,20 +20,21 @@ pilot_dir: 'pilot/'
 # Temporal parameters  #
 ########################
 
-raw_data_from_date: '2008-01-01'
-raw_data_to_date: '2015-01-01'
+raw_data_from_date: '2015-02-01'
+raw_data_to_date: '2015-03-01'
 
-fake_today: ['01Jan2014']  # if you want a specific_today then pass this
+fake_today: ['01Feb2014']  # if you want a specific_today then pass this
 autogen_fake_todays: False  # set to off if you want a specific fake_today
-training_window: [2190]  # training, days, used for officer-level prediction
-prediction_window: [365]  # prediction, days, used for officer-level prediction
+training_window: [30]  # training, days, used for officer-level prediction
+prediction_window: [180]  # prediction, days, used for officer-level prediction
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
 ########################
 # Labelling Details    #
 ########################
 
-under_sampling_ratio: 0.5
+# NOTE: this ratio = n_label_1 / n_total
+under_sampling_ratio: 0.333
 
 # Select which events you want the model to use as adverse incidents (class 1)
 
@@ -57,7 +58,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_Jan2008_Jan2015'
+dispatch_feature_table_name: 'dispatch_features_FebMarch2015'
 
 officer_features:
     investigation_count_career: True
@@ -67,15 +68,29 @@ officer_features:
 dispatch_features:
     Label: True #TODO move this to somewhere more explicit
     DispatchMinute: True
-    DispatchHour: True
-    DispatchDayOfWeek: True
-    DispatchMonth: True
-    DispatchYearQuarter: True
-    DispatchYear: True
-    OriginalPriority: True
-    DispatchType: True
-    DispatchSubType: True
-    NumberOfUnitsAssigned: True
+    DispatchHour: False
+    DispatchDayOfWeek: False
+    DispatchMonth: False
+    DispatchYearQuarter: False
+    DispatchYear: False
+    OriginalPriority: False
+    DispatchType: False
+    DispatchSubType: False
+    NumberOfUnitsAssigned: False
+    ArrestsInPast1Hour: True
+    ArrestsInPast6Hours: False
+    ArrestsInPast12Hours: False
+    ArrestsInPast24Hours: False
+    ArrestsInPast48Hours: False
+    ArrestsInPastWeek: False
+    ArrestsInPastMonth: False
+    FelonyArrestsInPast1Hour: False
+    FelonyArrestsInPast6Hours: False
+    FelonyArrestsInPast12Hours: False
+    FelonyArrestsInPast24Hours: False
+    FelonyArrestsInPast48Hours: False
+    FelonyArrestsInPastWeek: False
+    FelonyArrestsInPastMonth: False
 
 
 
@@ -98,29 +113,29 @@ dispatch_features:
 #        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier',
 #        'SGDClassifier', 'KNeighborsClassifier']
-model: ['RandomForest'] # ['RandomForest', 'LogisticRegression','SVM']
+model: ['RandomForest'] # , 'LogisticRegression','ExtraTrees', 'AdaBoost', 'SVM']
 parameters:
   RandomForest:
     n_estimators: [10] # [10, 25, 50, 100]  # [1000, 10000]
-    max_depth: [5] # , 10, 20]  # 50, 100
+    max_depth: [5, 10, 20]  # 50, 100
     max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
     criterion: ['gini' ] #'entropy']
-    min_samples_split: [2] # 5, 10]
+    min_samples_split: [2, 5] #, 10]
   ExtraTrees:
-    n_estimators: [1, 10, 25, 50, 100]  # [1000, 10000]
-    max_depth: [1, 3, 5, 10, 20]  # 50, 100
-    max_features: ['sqrt', 'log2']  # [2, 4, 8, 16, "auto"]
-    criterion: ['gini', 'entropy']
-    min_samples_split: [2, 5, 10]
+    n_estimators: [10, 25, 50, 100]  # [1000, 10000]
+    max_depth: [5, 10, 20]  # 50, 100
+    max_features: ['sqrt'] # , 'log2']  # [2, 4, 8, 16, "auto"]
+    criterion: ['gini'] # , 'entropy']
+    min_samples_split: [2, 5] #, 10]
   AdaBoost:
     algorithm: ['SAMME', 'SAMME.R']
     n_estimators: [1, 10, 100]  # [1000, 10000]
     learning_rate: [0.01, 0.1, 1, 10, 100]
   LogisticRegression:
-    C_reg: [0.01] # [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
+    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
     penalty: ['l1'] #, 'l2']
   SVM:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
+    C_reg: [0.001, 0.01, 0.1, 1] # [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
     kernel: ['linear']
   GradientBoostingClassifier:
     n_estimators: [1, 10, 100]  # [1000, 10000]
@@ -150,7 +165,7 @@ n_cpus: 4
 # Output file details  #
 ########################
 directory: 'results/'
-pkl_prefix: 'police_eis_results'
+pkl_prefix: 'dispatch_results'
 
 ########################
 # Auditing hooks       #

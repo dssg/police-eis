@@ -52,11 +52,11 @@ def lookup(feature, **kwargs):
                     'DivorceCount': officers.DivorceCount(**kwargs),
                     'SustainedRuleViolations': officers.SustainedRuleViolations(**kwargs),
                     'IncidentCount': officers.IncidentCount(**kwargs),
-		            'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
+                    'MeanHoursPerShift': officers.MeanHoursPerShift(**kwargs),
                     'MilesFromPost': officers.MilesFromPost(**kwargs),
                     'OfficerGender': officers.OfficerGender(**kwargs),
                     'TimeGatedDummyFeature': officers.TimeGatedDummyFeature(**kwargs),
-		            'OfficerRace': officers.OfficerRace(**kwargs),
+                    'OfficerRace': officers.OfficerRace(**kwargs),
                     'AllAllegations': officers.AllAllegations(**kwargs),
                     'DispatchHour': dispatches.DispatchHour(**kwargs),
                     'DispatchDayOfWeek': dispatches.DispatchDayOfWeek(**kwargs),
@@ -68,7 +68,21 @@ def lookup(feature, **kwargs):
                     'Label': dispatches.Label(**kwargs),
                     'DispatchType': dispatches.DispatchType(**kwargs),
                     'DispatchSubType': dispatches.DispatchSubType(**kwargs),
-                    'NumberOfUnitsAssigned': dispatches.NumberOfUnitsAssigned(**kwargs)
+                    'NumberOfUnitsAssigned': dispatches.NumberOfUnitsAssigned(**kwargs),
+                    'ArrestsInPast1Hour': dispatches.ArrestsInPast1Hour(**kwargs),
+                    'ArrestsInPast6Hours': dispatches.ArrestsInPast6Hours(**kwargs),
+                    'ArrestsInPast12Hours': dispatches.ArrestsInPast12Hours(**kwargs),
+                    'ArrestsInPast24Hours': dispatches.ArrestsInPast24Hours(**kwargs),
+                    'ArrestsInPast48Hours': dispatches.ArrestsInPast48Hours(**kwargs),
+                    'ArrestsInPastWeek': dispatches.ArrestsInPastWeek(**kwargs),
+                    'ArrestsInPastMonth': dispatches.ArrestsInPastMonth(**kwargs),
+                    'FelonyArrestsInPast1Hour': dispatches.FelonyArrestsInPast1Hour(**kwargs),
+                    'FelonyArrestsInPast6Hours': dispatches.FelonyArrestsInPast6Hours(**kwargs),
+                    'FelonyArrestsInPast12Hours': dispatches.FelonyArrestsInPast12Hours(**kwargs),
+                    'FelonyArrestsInPast24Hours': dispatches.FelonyArrestsInPast24Hours(**kwargs),
+                    'FelonyArrestsInPast48Hours': dispatches.FelonyArrestsInPast48Hours(**kwargs),
+                    'FelonyArrestsInPastWeek': dispatches.FelonyArrestsInPastWeek(**kwargs),
+                    'FelonyArrestsInPastMonth': dispatches.FelonyArrestsInPastMonth(**kwargs)
 
                   }
 
