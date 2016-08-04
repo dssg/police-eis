@@ -82,6 +82,7 @@ officer_features:
     MandatoryCounsellingEvents: True # The number of mandatory counselling events an officer has received, time gated
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated
     ComplaintToArrestRatio: True # The proportion of complaints per arrest
+    OfficerMilitary: True # Whether or not the officer has had military experience
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
