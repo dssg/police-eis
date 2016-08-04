@@ -22,14 +22,14 @@ pilot_dir: 'pilot/'
 
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
-raw_data_from_date: '2013-01-01'
-raw_data_to_date: '2013-07-01'
+raw_data_from_date: '2013-06-01'
+raw_data_to_date: '2014-06-01'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
 fake_today: ['01Jun2013']  # if you want a specific_today then pass this
 training_window: [180]  # training, days
-prediction_window: [30]  # prediction, days
+prediction_window: [180]  # prediction, days
 autogen_fake_todays: False  # set to off if you want a specific fake_today
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
@@ -62,7 +62,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_test'
+dispatch_feature_table_name: 'dispatch_features_test_year'
 
 officer_features:
     investigation_count_career: True
