@@ -84,7 +84,7 @@ dispatch_features:
     ArrestsInPast48Hours: False
     ArrestsInPastWeek: False
     ArrestsInPastMonth: False
-    FelonyArrestsInPast1Hour: False
+    FelonyArrestsInPast1Hour: True
     FelonyArrestsInPast6Hours: False
     FelonyArrestsInPast12Hours: False
     FelonyArrestsInPast24Hours: False
