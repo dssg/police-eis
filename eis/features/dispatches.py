@@ -565,7 +565,7 @@ class OfficersDispatchedInPast1Minute(abstract.DispatchFeature):
                        "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
+                       "    INNER JOIN "
                        "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 minutes'  "
                        " GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -585,7 +585,7 @@ class OfficersDispatchedInPast15Minutes(abstract.DispatchFeature):
                        "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
+                       "    INNER JOIN "
                        "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '15 minutes'  "
                        " GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -605,7 +605,7 @@ class OfficersDispatchedInPast30Minutes(abstract.DispatchFeature):
                        "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
+                       "    INNER JOIN "
                        "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '30 minutes'  "
                        " GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -625,7 +625,7 @@ class OfficersDispatchedInPast1Hour(abstract.DispatchFeature):
                        "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
+                       "    INNER JOIN "
                        "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 hours'  "
                        " GROUP BY 1 ").format(self.from_date, self.to_date)
@@ -645,7 +645,7 @@ class OfficersDispatchedInPast6Hours(abstract.DispatchFeature):
                        "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
+                       "    INNER JOIN "
                        "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '6 hours'  "
                        " GROUP BY 1 ").format(self.from_date, self.to_date)
