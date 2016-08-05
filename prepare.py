@@ -14,10 +14,11 @@ examination.
 
 Examples:
 --------
-python prepare.py '2016-07-28' auc_score
-python prepare.py '2016-07-28' precision_score_at_top_point_01_percent
 
 python prepare.py '2016-08-03' 'auc'
+python prepare.py '2016-08-03' 'recall@' -p '0.01'
+python prepare.py '2016-08-03' 'precision@' -p '10.0' -n 10
+
 
 """
 
@@ -139,10 +140,12 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("timestamp", type=str, help="show models more recent than a given timestamp")
     parser.add_argument("metric", type=str, help="specify a desired metric to optimize")
+    parser.add_argument("-p", "--parameter", default=None, type=str, help="specify a desired parameter or threshold for your metric, default=None")
+    parser.add_argument("-n", "--number", default=25, type=int, help="maximum number of results to return, default=25")
     args = parser.parse_args()
 
     print("[*] Updating model list...")
-    metrics = get_metric_best_models(args.timestamp, args.metric)
+    metrics = get_metric_best_models(args.timestamp, args.metric, args.parameter, args.number)
     print("[*] Dumping requested pickle files to results...")
     #pickles = get_pickel_best_models(args.timestamp, args.metric)
     print("[*] Done!")
