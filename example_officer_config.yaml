@@ -9,6 +9,9 @@ distdir: dists  # Where to put them
 # Set the officer table name.
 officer_feature_table_name: "test_merge"
 
+# determine whether model objects get stored in the database or not.
+store_model_object_in_database: False
+
 ########################
 # Comment fields       #
 ########################

@@ -88,13 +88,13 @@ def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_prop
 
 
 
-def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01, return_cutoff=False):
+def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01, return_cutoff=False):
     """Return the precision at a specified percent cutoff
 
     Args:
         test_labels: ground truth labels for the predicted data
         test_predictions: prediction labels
-        x_percent: the percent of the prediction population to label. Must be between 0 and 1.
+        x_proportion: the percent of the prediction population to label. Must be between 0 and 1.
     """
 
     cutoff_index = int(len(test_predictions) * x_proportion)
