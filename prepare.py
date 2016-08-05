@@ -242,17 +242,6 @@ def get_pickle_best_models(timestamp, metric, parameter=None, number=25, directo
     return None
 
 
-def prepare_webapp_display(ids, src_dir, dest_dir):
-    """
-    Move the relevant webapp files into the directory that the evaluation
-    webapp pulls from.
-    """
-    for model in ids:
-        filename = '{}police_eis_results_{}.pkl'.format(src_dir, model)
-        subprocess.check_output(["cp", filename, dest_dir])
-    return None
-
-
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("timestamp", type=str, help="show models more recent than a given timestamp")
