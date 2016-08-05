@@ -270,7 +270,7 @@ class ArrestsInPast1Hour(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3 " 
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3 "
                        " and event_datetime between '{}' and '{}') "
                        " AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 hour'  "
@@ -568,7 +568,7 @@ class OfficersDispatchedInPast1Minute(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 " 
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 "
                        " and event_datetime between '{}' and '{}' "
                        " ) AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 minutes'  "
@@ -839,7 +839,7 @@ class OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months(abstract.Dispat
                         " ((SELECT * FROM staging.events_hub where event_type_code = 4) as c "
                     " INNER JOIN staging.incidents as d "
                         " on c.event_id = d.event_id) as b "
-                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 6 months' "
+                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '6 months' "
                         " GROUP BY 1,2 ) as e "
                         " GROUP BY 1 ").format(self.from_date, self.to_date)
 
