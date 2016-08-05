@@ -33,8 +33,21 @@ except:
 def get_metric_best_models(timestamp, metric, parameter=None, number=25):
 
     """
-    Get the evaluation results of the best recent models
+    --------------------------------------------------------
+    Get the EVALUATION METRIC VALUE of the best models
     by the specified timestamp and given metric
+    --------------------------------------------------------
+    ARGUMENTS:
+        timestamp:  models run on or after given timestamp
+                    example: '2016-08-03'
+        metric:     metric to be optimized
+                    example: 'precision@'
+        parameter:  parameter value or threshold if any
+                    default=None
+                    example: '10.0'
+        number:     maximum number of desired results
+                    default = 25
+    --------------------------------------------------------
     """
 
     if parameter is None:
@@ -64,46 +77,123 @@ def get_metric_best_models(timestamp, metric, parameter=None, number=25):
     return output
 
 
-def get_best_recent_models(timestamp, metric):
+def get_best_models_id(timestamp, metric, parameter=None, number=25):
+
     """
-    Get the model id of the best recent models
+    --------------------------------------------------------
+    Get the MODEL ID of the best models
     by the specified timestamp and given metric
+    --------------------------------------------------------
+    ARGUMENTS:
+        timestamp:  models run on or after given timestamp
+                    example: '2016-08-03'
+        metric:     metric to be optimized
+                    example: 'precision@'
+        parameter:  parameter value or threshold if any
+                    default=None
+                    example: '10.0'
+        number:     maximum number of desired results
+                    default = 25
+    --------------------------------------------------------
     """
 
-    query   =  ("   SELECT run_time FROM results.evaluations JOIN results.models \
-                    ON evaluations.model_id=models.model_id \
-                    WHERE run_time >= '{}' \
-                    AND {} is not null \
-                    ORDER BY {} DESC LIMIT 25; ").format(timestamp, metric, metric)
+    if parameter is None:
+        query = ("      SELECT run_time FROM results.evaluations JOIN results.models \
+                        ON evaluations.model_id=models.model_id \
+                        WHERE run_time >= '{}' \
+                        AND value is not null \
+                        AND metric = '{}' \
+                        ORDER BY value DESC LIMIT {} ; ").format(timestamp, metric, number)
+
+
+    elif parameter is not None:
+        query = ("      SELECT run_time FROM results.evaluations JOIN results.models \
+                        ON evaluations.model_id=models.model_id \
+                        WHERE run_time >= '{}' \
+                        AND value is not null \
+                        AND metric = '{}' \
+                        AND parameter = '{}' \
+                        ORDER BY value DESC LIMIT {} ; ").format(timestamp, metric, parameter, number)
+
 
     df_models = pd.read_sql(query, con=con)
     output = df_models['run_time'].apply(lambda x: str(x).replace(' ', 'T')).values
+    print(output)
     return output
 
 
-def get_best_models(metric):
+
+def get_best_models(timestamp, metric, parameter=None, number=25):
+
     """
-    Grab the identifiers of the best performing (top AUC) models
-    from the database.
+    --------------------------------------------------------
+    Get the REPORT of the best models
+    by the specified timestamp and given metric
+
+    RETURNS RUN TIME, MODEL TYPE, METRIC, and VALUE
+    OR
+    RUN TIME, MODEL TYPE, METRIC, PARAMETER, and VALUE
+    --------------------------------------------------------
+    ARGUMENTS:
+        timestamp:  models run on or after given timestamp
+                    example: '2016-08-03'
+        metric:     metric to be optimized
+                    example: 'precision@'
+        parameter:  parameter value or threshold if any
+                    default=None
+                    example: '10.0'
+        number:     maximum number of desired results
+                    default = 25
+    --------------------------------------------------------
     """
-    #query = "SELECT id_timestamp FROM models.full ORDER BY auc DESC LIMIT 25"
-    query   =  ("   SELECT run_time FROM results.evaluations JOIN results.models \
-                    ON evaluations.model_id=models.model_id \
-                    WHERE {} is not null \
-                    ORDER BY {} DESC LIMIT 25; ").format(metric, metric)
+
+    if parameter is None:
+        query = ("      SELECT run_time, model_type, metric, value FROM results.evaluations JOIN results.models \
+                        ON evaluations.model_id=models.model_id \
+                        WHERE run_time >= '{}' \
+                        AND value is not null \
+                        AND metric = '{}' \
+                        ORDER BY value DESC LIMIT {} ; ").format(timestamp, metric, number)
+
+
+    elif parameter is not None:
+        query = ("      SELECT run_time, model_type, metric, parameter, value FROM results.evaluations JOIN results.models \
+                        ON evaluations.model_id=models.model_id \
+                        WHERE run_time >= '{}' \
+                        AND value is not null \
+                        AND metric = '{}' \
+                        AND parameter = '{}' \
+                        ORDER BY value DESC LIMIT {} ; ").format(timestamp, metric, parameter, number)
+
+
 
     df_models = pd.read_sql(query, con=con)
-    output = df_models['run_time'].apply(lambda x: str(x).replace(' ', 'T')).values
+    output = df_models
+    statement = "Resulting top models with best {} run on or after {}: \n".format(metric, timestamp)
+    print (statement, output)
     return output
 
 
 def get_pickle_best_models(timestamp, metric, parameter=None, number=25):
 
     """
-    Get the pickle file of the best recent models
+    --------------------------------------------------------
+    Get the PICKLE FILE of the best models
     by the specified timestamp and given metric
 
-    Dumps top pickle files from database to results directory.
+    RETURNS the PICKLE FILE to a DIRECTORY
+    --------------------------------------------------------
+    ARGUMENTS:
+        timestamp:  models run on or after given timestamp
+                    example: '2016-08-03'
+        metric:     metric to be optimized
+                    example: 'precision@'
+        parameter:  parameter value or threshold if any
+                    default=None
+                    example: '10.0'
+        number:     maximum number of desired results
+                    default = 25
+    --------------------------------------------------------
     """
 
     if parameter is None:
@@ -145,7 +235,7 @@ def get_pickle_best_models(timestamp, metric, parameter=None, number=25):
         if parameter is None:
             full_file_name = "police_eis_results_"+"top_"+metric+"any"+"_"+file_name+".pkl"
         elif parameter is not None:
-            full_file_name = "police_eis_results_"+"top_"+metric+parameter+"_"+file_name+".pkl"    
+            full_file_name = "police_eis_results_"+"top_"+metric+parameter+"_"+file_name+".pkl"
         file_path = "results/"+full_file_name
         pickle.dump(pickle_file, open( file_path, "wb" ) )
 
@@ -172,7 +262,7 @@ if __name__=='__main__':
     args = parser.parse_args()
 
     print("[*] Updating model list...")
-    metrics = get_metric_best_models(args.timestamp, args.metric, args.parameter, args.number)
+    models = get_best_models(args.timestamp, args.metric, args.parameter, args.number)
     print("[*] Dumping requested pickle files to results...")
     pickles = get_pickle_best_models(args.timestamp, args.metric, args.parameter, args.number)
     print("[*] Done!")
