@@ -11,6 +11,7 @@ class OfficerFeature():
     def __init__(self, **kwargs):
         self.description = ""
         self.description_long =""
+        self.is_label = False
         self.query = None
         self.feature_name = self.__class__.__name__
         self.is_categorical = False
