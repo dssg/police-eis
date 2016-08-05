@@ -16,6 +16,9 @@ Examples:
 --------
 python prepare.py '2016-07-28' auc_score
 python prepare.py '2016-07-28' precision_score_at_top_point_01_percent
+
+python prepare.py '2016-08-03' 'auc'
+
 """
 
 engine, config = setup_environment.get_database()
@@ -26,21 +29,35 @@ except:
     pass
 
 
-def get_metric_best_models(timestamp, metric):
+def get_metric_best_models(timestamp, metric, parameter=None, number=25):
 
     """
     Get the evaluation results of the best recent models
     by the specified timestamp and given metric
     """
 
-    query   =  ("   SELECT {} FROM results.evaluations JOIN results.models \
-                    ON evaluations.model_id=models.model_id \
-                    WHERE run_time >= '{}' \
-                    AND {} is not null \
-                    ORDER BY {} DESC LIMIT 25; ").format(metric, timestamp, metric, metric)
+    if parameter is None:
+        query = ("      SELECT value FROM results.evaluations JOIN results.models \
+                        ON evaluations.model_id=models.model_id \
+                        WHERE run_time >= '{}' \
+                        AND value is not null \
+                        AND metric = '{}' \
+                        ORDER BY value DESC LIMIT {} ; ").format(timestamp, metric, number)
+
+
+    elif parameter is not None:
+        query = ("      SELECT value FROM results.evaluations JOIN results.models \
+                        ON evaluations.model_id=models.model_id \
+                        WHERE run_time >= '{}' \
+                        AND value is not null \
+                        AND metric = '{}' \
+                        AND parameter = '{}' \
+                        ORDER BY value DESC LIMIT {} ; ").format(timestamp, metric, parameter, number)
+
+
 
     df_models = pd.read_sql(query, con=con)
-    output = df_models[metric].apply(lambda x: str(x)).values
+    output = df_models["value"].apply(lambda x: str(x)).values
     statement = "Resulting metric for models with best {} run on or after {}: \n".format(metric, timestamp)
     print (statement, output)
     return output
@@ -127,5 +144,5 @@ if __name__=='__main__':
     print("[*] Updating model list...")
     metrics = get_metric_best_models(args.timestamp, args.metric)
     print("[*] Dumping requested pickle files to results...")
-    pickles = get_pickel_best_models(args.timestamp, args.metric)
+    #pickles = get_pickel_best_models(args.timestamp, args.metric)
     print("[*] Done!")
