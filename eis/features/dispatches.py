@@ -270,9 +270,11 @@ class ArrestsInPast1Hour(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3) AS b "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3 " 
+                       " and event_datetime between '{}' and '{}') "
+                       " AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 hour'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
 
 class ArrestsInPast6Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -566,9 +568,11 @@ class OfficersDispatchedInPast1Minute(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 " 
+                       " and event_datetime between '{}' and '{}' "
+                       " ) AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 minutes'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
 
 class OfficersDispatchedInPast15Minutes(abstract.DispatchFeature):
     def __init__(self, **kwargs):
