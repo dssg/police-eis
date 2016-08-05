@@ -39,7 +39,6 @@ def find_categorical_features(feature_list):
     return categorical_features
 
 
-<<<<<<< HEAD
 def lookup(feature_name, unit, **kwargs):
     
     '''

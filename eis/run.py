@@ -37,7 +37,10 @@ def main(config_file_name, args):
 
     # read table name from config file
     # NOTE!!!! this breaks the command line passing of table name
-    table_name = config["dispatch_feature_table_name"]
+    if config["unit"] == "dispatch":
+        table_name = config["dispatch_feature_table_name"]
+    else:
+        table_name = config["officer_feature_table_name"]
 
     log.debug("feature table name: {}".format(table_name))
 

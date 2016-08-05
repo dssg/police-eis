@@ -6,7 +6,7 @@ import numpy as np
 
 from sklearn import cross_validation
 from sklearn import preprocessing
-from imblearn.under_sampling import RandomUnderSampler
+#from imblearn.under_sampling import RandomUnderSampler
 
 from . import dataset
 
