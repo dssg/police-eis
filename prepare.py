@@ -18,6 +18,7 @@ Examples:
 python prepare.py '2016-08-03' 'auc'
 python prepare.py '2016-08-03' 'recall@' -p '0.01'
 python prepare.py '2016-08-03' 'precision@' -p '10.0' -n 10
+python prepare.py '2016-08-03' 'precision@' -p '10.0' -n 10 -d 'example_directory/'
 
 
 """
@@ -174,7 +175,7 @@ def get_best_models(timestamp, metric, parameter=None, number=25):
     return output
 
 
-def get_pickle_best_models(timestamp, metric, parameter=None, number=25):
+def get_pickle_best_models(timestamp, metric, parameter=None, number=25, directory="results/"):
 
     """
     --------------------------------------------------------
@@ -225,7 +226,6 @@ def get_pickle_best_models(timestamp, metric, parameter=None, number=25):
 
 
 
-
     df_models = pd.read_sql(query, con=con)
     N = len(df_models['pickle_blob'])
 
@@ -236,7 +236,7 @@ def get_pickle_best_models(timestamp, metric, parameter=None, number=25):
             full_file_name = "police_eis_results_"+"top_"+metric+"any"+"_"+file_name+".pkl"
         elif parameter is not None:
             full_file_name = "police_eis_results_"+"top_"+metric+parameter+"_"+file_name+".pkl"
-        file_path = "results/"+full_file_name
+        file_path = directory+full_file_name
         pickle.dump(pickle_file, open( file_path, "wb" ) )
 
     return None
@@ -259,10 +259,11 @@ if __name__=='__main__':
     parser.add_argument("metric", type=str, help="specify a desired metric to optimize")
     parser.add_argument("-p", "--parameter", default=None, type=str, help="specify a desired parameter or threshold for your metric, default=None")
     parser.add_argument("-n", "--number", default=25, type=int, help="maximum number of results to return, default=25")
+    parser.add_argument("-d", "--directory", default="results/", type=str, help="file directory for pickle files, default='results/'")
     args = parser.parse_args()
 
     print("[*] Updating model list...")
     models = get_best_models(args.timestamp, args.metric, args.parameter, args.number)
     print("[*] Dumping requested pickle files to results...")
-    pickles = get_pickle_best_models(args.timestamp, args.metric, args.parameter, args.number)
+    pickles = get_pickle_best_models(args.timestamp, args.metric, args.parameter, args.number, args.directory)
     print("[*] Done!")
