@@ -97,7 +97,7 @@ def get_best_models(metric):
     return output
 
 
-def get_pickel_best_models(timestamp, metric):
+def get_pickle_best_models(timestamp, metric, parameter=None, number=25):
 
     """
     Get the pickle file of the best recent models
@@ -106,19 +106,46 @@ def get_pickel_best_models(timestamp, metric):
     Dumps top pickle files from database to results directory.
     """
 
-    query   =  ("   SELECT pickle_file, run_time FROM results.evaluations JOIN results.models \
-                    ON evaluations.model_id=models.model_id \
-                    WHERE run_time >= '{}' \
-                    AND {} is not null \
-                    ORDER BY {} DESC LIMIT 25; ").format(timestamp, metric, metric)
+    if parameter is None:
+        query = ("SELECT pickle_blob, run_time  FROM \
+                    (SELECT evaluations.model_id, run_time \
+                        FROM results.evaluations JOIN results.models \
+                        ON evaluations.model_id=models.model_id \
+                        WHERE run_time >= '{}' \
+                        AND value is not null \
+                        AND metric = '{}' \
+                        ORDER BY value DESC LIMIT {}) \
+                    AS top_models \
+                    INNER JOIN results.data \
+                    ON top_models.model_id=data.model_id ; " ).format(timestamp, metric, number)
+
+    elif parameter is not None:
+        query = ("SELECT pickle_blob, run_time  FROM \
+                    (SELECT evaluations.model_id, run_time \
+                        FROM results.evaluations JOIN results.models \
+                        ON evaluations.model_id=models.model_id \
+                        WHERE run_time >= '{}' \
+                        AND value is not null \
+                        AND metric = '{}' \
+                        AND parameter = '{}' \
+                        ORDER BY value DESC LIMIT {}) \
+                    AS top_models \
+                    INNER JOIN results.data \
+                    ON top_models.model_id=data.model_id ; " ).format(timestamp, metric, parameter, number)
+
+
+
 
     df_models = pd.read_sql(query, con=con)
-    N = len(df_models['pickle_file'])
+    N = len(df_models['pickle_blob'])
 
     for file_number in range(0, N):
-        pickle_file = pickle.loads(df_models['pickle_file'].iloc[file_number])
+        pickle_file = pickle.loads(df_models['pickle_blob'].iloc[file_number])
         file_name = df_models['run_time'].apply(lambda x: str(x).replace(' ', 'T')).iloc[file_number]
-        full_file_name = "police_eis_results_"+"top_"+metric+"_"+file_name+".pkl"
+        if parameter is None:
+            full_file_name = "police_eis_results_"+"top_"+metric+"any"+"_"+file_name+".pkl"
+        elif parameter is not None:
+            full_file_name = "police_eis_results_"+"top_"+metric+parameter+"_"+file_name+".pkl"    
         file_path = "results/"+full_file_name
         pickle.dump(pickle_file, open( file_path, "wb" ) )
 
@@ -147,5 +174,5 @@ if __name__=='__main__':
     print("[*] Updating model list...")
     metrics = get_metric_best_models(args.timestamp, args.metric, args.parameter, args.number)
     print("[*] Dumping requested pickle files to results...")
-    #pickles = get_pickel_best_models(args.timestamp, args.metric)
+    pickles = get_pickle_best_models(args.timestamp, args.metric, args.parameter, args.number)
     print("[*] Done!")
