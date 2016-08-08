@@ -945,7 +945,7 @@ class OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month(abstract.Dispatc
                         " ((SELECT * FROM staging.events_hub where event_type_code = 4) as c "
                     " INNER JOIN staging.incidents as d "
                         " on c.event_id = d.event_id) as b "
-                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 1 months' "
+                        " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 months' "
                         " GROUP BY 1,2 ) as e "
                         " GROUP BY 1 ").format(self.from_date, self.to_date)
 
