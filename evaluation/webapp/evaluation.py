@@ -144,9 +144,9 @@ def plot_normalized_confusion_matrix(labels, predictions):
     return fig
 
 
-def plot_confusion_matrix_at_x_percent(labels, predictions, x_percent):
+def plot_confusion_matrix_at_x_proportion(labels, predictions, x_proportion):
 
-    cutoff_index = int(len(predictions) * x_percent)
+    cutoff_index = int(len(predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(predictions) - 1)
 
     sorted_by_probability = np.sort(predictions)[::-1]
@@ -173,9 +173,9 @@ def plot_confusion_matrix_at_x_percent(labels, predictions, x_percent):
     return fig
 
 
-def plot_normalized_confusion_matrix_at_x_percent(labels, predictions, x_percent):
+def plot_normalized_confusion_matrix_at_x_proportion(labels, predictions, x_proportion):
 
-    cutoff_index = int(len(predictions) * x_percent)
+    cutoff_index = int(len(predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(predictions) - 1)
 
     sorted_by_probability = np.sort(predictions)[::-1]
@@ -239,7 +239,7 @@ def plot_feature_importances(feature_names, feature_importances):
         ax.set_xlabel("Importance", fontsize=20)
         ax.set_ylabel("Feature", fontsize=20)
     plt.tight_layout()
-    plt.title("Top Feature Importances", fontsize=20)
+    plt.title("Top Feature Importances", fontsize=20).set_position([.5, 0.99])
     return fig
 
 
@@ -261,8 +261,8 @@ def plot_growth(results):
     return fig
 
 
-def fpr_tpr(labels, predictions, x_percent):
-    cutoff_index = int(len(predictions) * x_percent)
+def fpr_tpr(labels, predictions, x_proportion):
+    cutoff_index = int(len(predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(predictions) - 1)
 
     sorted_by_probability = np.sort(predictions)[::-1]
@@ -275,10 +275,10 @@ def fpr_tpr(labels, predictions, x_percent):
     return metrics.confusion_matrix(labels, predictions_binary)
 
 
-def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01,
+def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
                            return_cutoff=False):
 
-    cutoff_index = int(len(test_predictions) * x_percent)
+    cutoff_index = int(len(test_predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(test_predictions) - 1)
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
@@ -298,10 +298,10 @@ def precision_at_x_percent(test_labels, test_predictions, x_percent=0.01,
         return precision
 
 
-def recall_at_x_percent(test_labels, test_predictions, x_percent=0.01,
+def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
                         return_cutoff=False):
 
-    cutoff_index = int(len(test_predictions) * x_percent)
+    cutoff_index = int(len(test_predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(test_predictions) - 1)
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
@@ -339,7 +339,7 @@ def plot_precision_recall_n(test_labels, test_predictions):
         plt.clf()
         fig, ax1 = plt.subplots()
         ax1.plot(pct_above_per_thresh, precision_curve, "#000099")
-        ax1.set_xlabel('percent of population')
+        ax1.set_xlabel('proportion of population')
         ax1.set_ylabel('precision', color="#000099")
         plt.ylim([0.0, 1.0])
         ax2 = ax1.twinx()
@@ -347,22 +347,22 @@ def plot_precision_recall_n(test_labels, test_predictions):
         ax2.set_ylabel('recall', color="#CC0000")
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.0])
-    plt.title("Precision-recall for top x%")
+    plt.title("Precision-recall at x-proportion")
     return fig
 
 
 def plot_precision_cutoff(test_labels, test_predictions):
     percent_range = [0.001 * i for i in range(1, 10)] + \
         [0.01 * i for i in range(1, 101)]
-    precisions_and_cutoffs = [precision_at_x_percent(
-        test_labels, test_predictions, x_percent=p, return_cutoff=True)
+    precisions_and_cutoffs = [precision_at_x_proportion(
+        test_labels, test_predictions, x_proportion=p, return_cutoff=True)
                               for p in percent_range]
     precisions, cutoffs = zip(*precisions_and_cutoffs)
 
     with plt.style.context(('ggplot')):
         fig, ax = plt.subplots()
         ax.plot(percent_range, precisions, "#000099")
-        ax.set_xlabel('percent of population')
+        ax.set_xlabel('proportion of population')
         ax.set_ylabel('precision', color="#000099")
         plt.ylim([0.0, 1.0])
         ax2 = ax.twinx()
@@ -370,23 +370,25 @@ def plot_precision_cutoff(test_labels, test_predictions):
         ax2.set_ylabel('cutoff at', color="#CC0000")
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.0])
-    plt.title("Precision at x%")
+    plt.title("Precision at x-proportion")
     return fig
 
 
 def plot_ROC(test_labels, test_predictions):
     fpr, tpr, thresholds = metrics.roc_curve(
         test_labels, test_predictions, pos_label=1)
+    auc = "%.2f" % compute_AUC(test_labels, test_predictions)
+    title = 'ROC Curve, AUC = '+str(auc)
     with plt.style.context(('ggplot')):
         fig, ax = plt.subplots()
         ax.plot(fpr, tpr, "#000099", label='ROC curve')
-        ax.plot([0, 1], [0, 1], 'k--')
+        ax.plot([0, 1], [0, 1], 'k--', label='Baseline')
         plt.xlim([0.0, 1.0])
         plt.ylim([0.0, 1.05])
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
         plt.legend(loc='lower right')
-        plt.title('Receiver operating characteristic')
+        plt.title(title)
     return fig
 
 
