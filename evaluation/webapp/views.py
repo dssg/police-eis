@@ -66,7 +66,7 @@ def normalized_confusion_matrix(timestamp):
 @app.route("/<timestamp>/confusion_at_x")
 def confusion_at_x(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
-    new_matrix_fig = plot_confusion_matrix_at_x_percent(test_labels,
+    new_matrix_fig = plot_confusion_matrix_at_x_proportion(test_labels,
                                                   test_predictions, 0.10)
     return serve_matplotlib_fig(new_matrix_fig)
 
@@ -74,7 +74,7 @@ def confusion_at_x(timestamp):
 @app.route("/<timestamp>/top_normalized_confusion_at_x")
 def top_normalized_confusion_at_x(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
-    new_matrix_fig = plot_normalized_confusion_matrix_at_x_percent(test_labels,
+    new_matrix_fig = plot_normalized_confusion_matrix_at_x_proportion(test_labels,
                                                   test_predictions, 0.01)
     return serve_matplotlib_fig(new_matrix_fig)
 
@@ -82,7 +82,7 @@ def top_normalized_confusion_at_x(timestamp):
 @app.route("/<timestamp>/top_confusion_at_x")
 def top_confusion_at_x(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
-    new_matrix_fig = plot_confusion_matrix_at_x_percent(test_labels,
+    new_matrix_fig = plot_confusion_matrix_at_x_proportion(test_labels,
                                                   test_predictions, 0.01)
     return serve_matplotlib_fig(new_matrix_fig)
 
@@ -90,7 +90,7 @@ def top_confusion_at_x(timestamp):
 @app.route("/<timestamp>/normalized_confusion_at_x")
 def normalized_confusion_at_x(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
-    new_matrix_fig = plot_normalized_confusion_matrix_at_x_percent(test_labels,
+    new_matrix_fig = plot_normalized_confusion_matrix_at_x_proportion(test_labels,
                                                   test_predictions, 0.10)
     return serve_matplotlib_fig(new_matrix_fig)
 
