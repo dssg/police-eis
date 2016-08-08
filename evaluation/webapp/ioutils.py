@@ -9,8 +9,8 @@ from threading import Lock
 
 from flask import abort
 
-from webapp.evaluation import precision_at_x_percent, compute_AUC, fpr_tpr
-from webapp.evaluation import recall_at_x_percent
+from webapp.evaluation import precision_at_x_proportion, compute_AUC, fpr_tpr
+from webapp.evaluation import recall_at_x_proportion
 from webapp import config
 
 
@@ -47,9 +47,9 @@ def experiment_summary(pkl_file):
 
     #model_config["features"] = data["features"]
     #model_config["feature_summary"] = feature_summary(model_config["features"])
-    prec_at = precision_at_x_percent(
+    prec_at = precision_at_x_proportion(
         data["test_labels"], data["test_predictions"],
-        x_percent=0.01)
+        x_proportion=0.01)
     auc_model = compute_AUC(data["test_labels"], data["test_predictions"])
     num_units = len(data["test_labels"])
 
@@ -76,8 +76,8 @@ def experiment_summary(pkl_file):
 
     rec_list = []
     for rec_threshold in [10., 15., 20.]:
-        rec_list.append(recall_at_x_percent(data["test_labels"],
-            data["test_predictions"], x_percent=rec_threshold/100.))
+        rec_list.append(recall_at_x_proportion(data["test_labels"],
+            data["test_predictions"], x_proportion=rec_threshold/100.))
 
     try:
         aggregation = data["aggregation"]
