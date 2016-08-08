@@ -3,7 +3,7 @@
 #              Model experiments               #
 ################################################
 
-make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes made of training set features
+make_feat_dists: True  # Whether you would like distributions of 1 / 0 classes made of training set features
 distdir: 'dists'  # Where to put them
 
 ########################
@@ -11,8 +11,8 @@ distdir: 'dists'  # Where to put them
 ########################
 
 unit: 'dispatch'  # possible options: [dispatch, officer]
-aggregation: False  # Also produce unit and division level risk scores
-pilot: False  # Turn on pilot experiment
+aggregation: True  # Also produce unit and division level risk scores
+pilot: True  # Turn on pilot experiment
 pilot_today: '01May2016'  # Do pilot beginning date
 pilot_dir: 'pilot/'
 
@@ -30,7 +30,7 @@ raw_data_to_date: '2008-01-14'
 fake_today: ['08Jan2008']  # if you want a specific_today then pass this
 training_window: [7]  # training, days
 prediction_window: [45]  # prediction, days
-autogen_fake_todays: False  # set to off if you want a specific fake_today
+autogen_fake_todays: True  # set to off if you want a specific fake_today
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
 ########################
@@ -43,20 +43,20 @@ under_sampling_ratio: 0.1
 # Select which events you want the model to use as adverse incidents (class 1)
 
 def_adverse:
-    accidents: False # preventable accidents
-    useofforce: False  # unjustified use of force
-    injury: False  # preventable officer injuries
-    icd: False  # preventable in custody deaths
-    tdd: False  # unjustified use of tire deflation device
-    nfsi: False  # unjustified no force subject injury
-    dof: False  # unjustified discharge of firearm
-    raid: False  # unjustified raid and search
-    pursuit: False  # unjustified pursuit
-    complaint: False  # sustained complaints
+    accidents: True # preventable accidents
+    useofforce: True  # unjustified use of force
+    injury: True  # preventable officer injuries
+    icd: True  # preventable in custody deaths
+    tdd: True  # unjustified use of tire deflation device
+    nfsi: True  # unjustified no force subject injury
+    dof: True  # unjustified discharge of firearm
+    raid: True  # unjustified raid and search
+    pursuit: True  # unjustified pursuit
+    complaint: True  # sustained complaints
 
 labelling:
-    include_all_employed: False # include all officers who were employed during the specified period
-    include_all_active: False # include all oficcers who made an arrest or stop during the specified period.
+    include_all_employed: True # include all officers who were employed during the specified period
+    include_all_active: True # include all oficcers who made an arrest or stop during the specified period.
 
 ########################
 # Feature selection    #
@@ -65,62 +65,59 @@ labelling:
 dispatch_feature_table_name: 'dispatch_features_speedtest'
 
 officer_features:
-    investigation_count_career: False
-    arrest_count_career: False
-    arrest_count_1yr: False
+    investigation_count_career: True
+    arrest_count_career: True
+    arrest_count_1yr: True
 
 dispatch_features:
     LabelSustained: True #TODO move this to somewhere more explicit
     LabelUnjustified: True #TODO move this to somewhere more explicit
     LabelPreventable: True #TODO move this to somewhere more explicit
-    DispatchMinute: False
-    DispatchHour: False
-    DispatchDayOfWeek: False
-    DispatchMonth: False
-    DispatchYearQuarter: False
-    DispatchYear: False
-    OriginalPriority: False
-    DispatchType: False
-    DispatchSubType: False
-    NumberOfUnitsAssigned: False
-    ArrestsInPast1Hour: False
-    ArrestsInPast6Hours: False
-    ArrestsInPast12Hours: False
-    ArrestsInPast24Hours: False
-    ArrestsInPast48Hours: False
-    ArrestsInPastWeek: False
-    ArrestsInPastMonth: False
-    FelonyArrestsInPast1Hour: False
-    FelonyArrestsInPast6Hours: False
+    DispatchMinute: True
+    DispatchHour: True
+    DispatchDayOfWeek: True
+    DispatchMonth: True
+    DispatchYearQuarter: True
+    DispatchYear: True
+    OriginalPriority: True
+    DispatchType: True
+    DispatchSubType: True
+    NumberOfUnitsAssigned: True
+    ArrestsInPast1Hour: True
+    ArrestsInPast6Hours: True
+    ArrestsInPast12Hours: True
+    ArrestsInPast24Hours: True
+    ArrestsInPast48Hours: True
+    ArrestsInPastWeek: True
+    FelonyArrestsInPast1Hour: True
+    FelonyArrestsInPast6Hours: True
     FelonyArrestsInPast12Hours: True
-    FelonyArrestsInPast12Hours2: True #Testing new Sql query
-    FelonyArrestsInPast24Hours: False
-    FelonyArrestsInPast48Hours: False
-    FelonyArrestsInPastWeek: False
-    FelonyArrestsInPastMonth: False
-    OfficersDispatchedInPast1Minute: False
-    OfficersDispatchedInPast15Minutes: False
-    OfficersDispatchedInPast30Minutes: False
-    OfficersDispatchedInPast1Hour: False
-    OfficersDispatchedInPast6Hours: False
-    OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: False
-    OfficersDispatchedAverageJustifiedIncidentsInPastYear: False
-    OfficersDispatchedAverageSustainedAllegationsInPastYear: False
-    OfficersDispatchedAverageUnsustainedAllegationsInPastYear: False
-    OfficersDispatchedAveragePreventableIncidentsInPastYear: False
-    OfficersDispatchedAverageNonPreventableIncidentsInPastYear: False
-    OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months: False
-    OfficersDispatchedAverageJustifiedIncidentsInPast6Months: False
-    OfficersDispatchedAverageSustainedAllegationsInPast6Months: False
-    OfficersDispatchedAverageUnsustainedAllegationsInPast6Months: False
-    OfficersDispatchedAveragePreventableIncidentsInPast6Months: False
-    OfficersDispatchedAverageNonPreventableIncidentsInPast6Months: False
-    OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month: False
-    OfficersDispatchedAverageJustifiedIncidentsInPast1Month: False
-    OfficersDispatchedAverageSustainedAllegationsInPast1Month: False
-    OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: False
-    OfficersDispatchedAveragePreventableIncidentsInPast1Month: False
-    OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: False
+    FelonyArrestsInPast24Hours: True
+    FelonyArrestsInPast48Hours: True
+    FelonyArrestsInPastWeek: True
+    OfficersDispatchedInPast1Minute: True
+    OfficersDispatchedInPast15Minutes: True
+    OfficersDispatchedInPast30Minutes: True
+    OfficersDispatchedInPast1Hour: True
+    OfficersDispatchedInPast6Hours: True
+    OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: True
+    OfficersDispatchedAverageJustifiedIncidentsInPastYear: True
+    OfficersDispatchedAverageSustainedAllegationsInPastYear: True
+    OfficersDispatchedAverageUnsustainedAllegationsInPastYear: True
+    OfficersDispatchedAveragePreventableIncidentsInPastYear: True
+    OfficersDispatchedAverageNonPreventableIncidentsInPastYear: True
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months: True
+    OfficersDispatchedAverageJustifiedIncidentsInPast6Months: True
+    OfficersDispatchedAverageSustainedAllegationsInPast6Months: True
+    OfficersDispatchedAverageUnsustainedAllegationsInPast6Months: True
+    OfficersDispatchedAveragePreventableIncidentsInPast6Months: True
+    OfficersDispatchedAverageNonPreventableIncidentsInPast6Months: True
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month: True
+    OfficersDispatchedAverageJustifiedIncidentsInPast1Month: True
+    OfficersDispatchedAverageSustainedAllegationsInPast1Month: True
+    OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: True
+    OfficersDispatchedAveragePreventableIncidentsInPast1Month: True
+    OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: True
 
 
 
@@ -201,5 +198,5 @@ pkl_prefix: 'dispatch_results'
 ########################
 # Auditing hooks       #
 ########################
-auditing: False  # Turn on if you want auditing performed
+auditing: True  # Turn on if you want auditing performed
 audits: 'audits/'

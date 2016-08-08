@@ -1,4 +1,4 @@
-import logging
+mport logging
 import yaml
 import datetime
 
@@ -254,212 +254,41 @@ class ArrestsInPast1Hour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of arrests made in the hour preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3 "
-                       " and event_datetime between '{}' and '{}') "
-                       " AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 hour'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '1 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 class ArrestsInPast6Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of arrests made in the 6 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3) AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '6 hours'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '6 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 class ArrestsInPast12Hours(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the 12 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3) AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '12 hours'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
-
-
-class ArrestsInPast24Hours(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the 24 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3) AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '24 hours'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
-
-class ArrestsInPast48Hours(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the 48 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3) AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '48 hours'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
-
-class ArrestsInPastWeek(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the week preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3) AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 week'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
-
-class ArrestsInPastMonth(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the month preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    LEFT JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3) AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 month'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
-
-class FelonyArrestsInPast1Hour(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the hour preceding the dispatch"
-        self.query = ( " SELECT "
-                       " a.dispatch_id, "
-                       "(SELECT count(*) from (select * from staging.events_hub as b "
-                           " where b.event_type_code = 3 "
-                           " and b.event_datetime between (a.event_datetime - interval '1 hours') and a.event_datetime) "
-                           " as c "
-                           " inner join staging.arrests as d "
-                           " on c.event_id = d.event_id "
-                           " where d.felony_flag = true) as feature_column "
-                       " FROM "
-                       " (SELECT "
-                       " dispatch_id, "
-                       " min(event_datetime) as event_datetime "
-                       " FROM staging.events_hub "
-                           " where event_type_code = 5 and dispatch_id is not null "
-                           " and event_datetime between '{}' and '{}' "
-                       " GROUP by 1) as a ").format(self.from_date, self.to_date)
-
-class FelonyArrestsInPast6Hours(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the 6 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       " a.dispatch_id, "
-                       "(SELECT count(*) from (select * from staging.events_hub as b "
-                           " where b.event_type_code = 3 "
-                           " and b.event_datetime between (a.event_datetime - interval '6 hours') and a.event_datetime) "
-                           " as c "
-                           " inner join staging.arrests as d "
-                           " on c.event_id = d.event_id "
-                           " where d.felony_flag = true) as feature_column "
-                       " FROM "
-                       " (SELECT "
-                       " dispatch_id, "
-                       " min(event_datetime) as event_datetime "
-                       " FROM staging.events_hub "
-                           " where event_type_code = 5 and dispatch_id is not null "
-                           " and event_datetime between '{}' and '{}' "
-                       " GROUP by 1) as a ").format(self.from_date, self.to_date)
-
-class FelonyArrestsInPast12Hours(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the 12 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       " a.dispatch_id, "
-                       "(SELECT count(*) from (select * from staging.events_hub as b "
-                           " where b.event_type_code = 3 "
-                           " and b.event_datetime between (a.event_datetime - interval '12 hours') and a.event_datetime) "
-                           " as c "
-                           " inner join staging.arrests as d "
-                           " on c.event_id = d.event_id "
-                           " where d.felony_flag = true) as feature_column "
-                       " FROM "
-                       " (SELECT "
-                       " dispatch_id, "
-                       " min(event_datetime) as event_datetime "
-                       " FROM staging.events_hub "
-                           " where event_type_code = 5 and dispatch_id is not null "
-                           " and event_datetime between '{}' and '{}' "
-                       " GROUP by 1) as a ").format(self.from_date, self.to_date)
-
-class FelonyArrestsInPast12Hours2(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of arrests made in the 12 hours preceding the dispatch"
@@ -474,7 +303,128 @@ class FelonyArrestsInPast12Hours2(abstract.DispatchFeature):
                                    " WHERE event_type_code = 3 "
                                            " and earliest_dispatch_datetime between '{}' and '{}' "
                             " ) "
-                        " SELECT dispatch_id, count(dispatch_id) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
+
+class ArrestsInPast24Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of arrests made in the 24 hours preceding the dispatch"
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '24 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
+class ArrestsInPast48Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of arrests made in the 48 hours preceding the dispatch"
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '48 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
+class ArrestsInPastWeek(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of arrests made in the week preceding the dispatch"
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '1 week' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
+class FelonyArrestsInPast1Hour(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of arrests made in the hour preceding the dispatch"
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '1 hour' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " INNER JOIN staging.arrests b "
+                            " on a.event_id = b.event_id "
+                                " WHERE felony_flag = true "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
+class FelonyArrestsInPast6Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of arrests made in the 6 hours preceding the dispatch"
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '6 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " INNER JOIN staging.arrests b "
+                            " on a.event_id = b.event_id "
+                                " WHERE felony_flag = true "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
+class FelonyArrestsInPast12Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of arrests made in the 12 hours preceding the dispatch"
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '12 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
                             " FROM recent_events a "
                             " INNER JOIN staging.arrests b "
                             " on a.event_id = b.event_id "
@@ -485,89 +435,68 @@ class FelonyArrestsInPast24Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of arrests made in the 24 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       " a.dispatch_id, "
-                       "(SELECT count(*) from (select * from staging.events_hub as b "
-                           " where b.event_type_code = 3 "
-                           " and b.event_datetime between (a.event_datetime - interval '24 hours') and a.event_datetime) "
-                           " as c "
-                           " inner join staging.arrests as d "
-                           " on c.event_id = d.event_id "
-                           " where d.felony_flag = true) as feature_column "
-                       " FROM "
-                       " (SELECT "
-                       " dispatch_id, "
-                       " min(event_datetime) as event_datetime "
-                       " FROM staging.events_hub "
-                           " where event_type_code = 5 and dispatch_id is not null "
-                           " and event_datetime between '{}' and '{}' "
-                       " GROUP by 1) as a ").format(self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '24 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " INNER JOIN staging.arrests b "
+                            " on a.event_id = b.event_id "
+                                " WHERE felony_flag = true "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 class FelonyArrestsInPast48Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of arrests made in the 48 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       " a.dispatch_id, "
-                       "(SELECT count(*) from (select * from staging.events_hub as b "
-                           " where b.event_type_code = 3 "
-                           " and b.event_datetime between (a.event_datetime - interval '48 hours') and a.event_datetime) "
-                           " as c "
-                           " inner join staging.arrests as d "
-                           " on c.event_id = d.event_id "
-                           " where d.felony_flag = true) as feature_column "
-                       " FROM "
-                       " (SELECT "
-                       " dispatch_id, "
-                       " min(event_datetime) as event_datetime "
-                       " FROM staging.events_hub "
-                           " where event_type_code = 5 and dispatch_id is not null "
-                           " and event_datetime between '{}' and '{}' "
-                       " GROUP by 1) as a ").format(self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '48 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " INNER JOIN staging.arrests b "
+                            " on a.event_id = b.event_id "
+                                " WHERE felony_flag = true "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 class FelonyArrestsInPastWeek(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of arrests made in the week preceding the dispatch"
-        self.query = ( " SELECT "
-                       " a.dispatch_id, "
-                       "(SELECT count(*) from (select * from staging.events_hub as b "
-                           " where b.event_type_code = 3 "
-                           " and b.event_datetime between (a.event_datetime - interval '1 week') and a.event_datetime) "
-                           " as c "
-                           " inner join staging.arrests as d "
-                           " on c.event_id = d.event_id "
-                           " where d.felony_flag = true) as feature_column "
-                       " FROM "
-                       " (SELECT "
-                       " dispatch_id, "
-                       " min(event_datetime) as event_datetime "
-                       " FROM staging.events_hub "
-                           " where event_type_code = 5 and dispatch_id is not null "
-                           " and event_datetime between '{}' and '{}' "
-                       " GROUP by 1) as a ").format(self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '1 week' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column "
+                            " FROM recent_events a "
+                            " INNER JOIN staging.arrests b "
+                            " on a.event_id = b.event_id "
+                                " WHERE felony_flag = true "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
-class FelonyArrestsInPastMonth(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of arrests made in the month preceding the dispatch"
-        self.query = ( " SELECT "
-                       " a.dispatch_id, "
-                       "(SELECT count(*) from (select * from staging.events_hub as b "
-                           " where b.event_type_code = 3 "
-                           " and b.event_datetime between (a.event_datetime - interval '1 month') and a.event_datetime) "
-                           " as c "
-                           " inner join staging.arrests as d "
-                           " on c.event_id = d.event_id "
-                           " where d.felony_flag = true) as feature_column "
-                       " FROM "
-                       " (SELECT "
-                       " dispatch_id, "
-                       " min(event_datetime) as event_datetime "
-                       " FROM staging.events_hub "
-                           " where event_type_code = 5 and dispatch_id is not null "
-                           " and event_datetime between '{}' and '{}' "
-                       " GROUP by 1) as a ").format(self.from_date, self.to_date)
 
 #TEMPORAL Features
 #Dispatch time features - small time windows
@@ -575,82 +504,78 @@ class OfficersDispatchedInPast1Minute(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of unique officers sent on dispatches in minute preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 minutes'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '1 minute' "
+                                   " WHERE event_type_code = 5 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column"
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 class OfficersDispatchedInPast15Minutes(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of unique officers sent on dispatches in the 15 minutes preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '15 minutes'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '15 minutes' "
+                                   " WHERE event_type_code = 5 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column"
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 class OfficersDispatchedInPast30Minutes(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of unique officers sent on dispatches in the 30 minutes preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '30 minutes'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '30 minutes' "
+                                   " WHERE event_type_code = 5 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column"
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 
 class OfficersDispatchedInPast1Hour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
         self.description = "Number of unique officers sent on dispatches in the 1 hour preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 hour'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '60 minutes' "
+                                   " WHERE event_type_code = 5 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) as feature_column"
+                            " FROM recent_events a "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 class OfficersDispatchedInPast6Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
