@@ -233,10 +233,6 @@ class NumberOfUnitsAssigned(abstract.DispatchFeature):
 
 #TODO beat
 
-#TODO event_type_code
-
-#TODO priority
-
 #TODO dispatch role
 
 #TODO dispatch delay
@@ -253,7 +249,7 @@ class NumberOfUnitsAssigned(abstract.DispatchFeature):
 
 #TODO unit shift
 
-#TEMPORAL Features
+#GENERAL TEMPORAL Features
 class ArrestsInPast1Hour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
@@ -315,6 +311,7 @@ class ArrestsInPast12Hours(abstract.DispatchFeature):
                        "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 3) AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '12 hours'  "
                        " GROUP BY 1 ").format(self.from_date, self.to_date)
+
 
 class ArrestsInPast24Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -462,6 +459,28 @@ class FelonyArrestsInPast12Hours(abstract.DispatchFeature):
                            " and event_datetime between '{}' and '{}' "
                        " GROUP by 1) as a ").format(self.from_date, self.to_date)
 
+class FelonyArrestsInPast12Hours2(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Number of arrests made in the 12 hours preceding the dispatch"
+        self.query = ( " WITH recent_events AS "
+                       "( SELECT "
+                           " a.dispatch_id, "
+                           " b.event_id "
+                           " FROM staging.earliest_dispatch_time a "
+                               " INNER JOIN staging.events_hub b "
+                               " on b.event_datetime <= a.earliest_dispatch_datetime "
+                               " and b.event_datetime >= a.earliest_dispatch_datetime - interval '12 hours' "
+                                   " WHERE event_type_code = 3 "
+                                           " and earliest_dispatch_datetime between '{}' and '{}' "
+                            " ) "
+                        " SELECT dispatch_id, count(dispatch_id) "
+                            " FROM recent_events a "
+                            " INNER JOIN staging.arrests b "
+                            " on a.event_id = b.event_id "
+                                " WHERE felony_flag = true "
+                            " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
 class FelonyArrestsInPast24Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
@@ -568,9 +587,7 @@ class OfficersDispatchedInPast1Minute(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 "
-                       " and event_datetime between '{}' and '{}' "
-                       " ) AS b "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 minutes'  "
                        " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
 
@@ -590,9 +607,9 @@ class OfficersDispatchedInPast15Minutes(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '15 minutes'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
 
 class OfficersDispatchedInPast30Minutes(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -610,9 +627,10 @@ class OfficersDispatchedInPast30Minutes(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '30 minutes'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
+
 
 class OfficersDispatchedInPast1Hour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -630,9 +648,9 @@ class OfficersDispatchedInPast1Hour(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 hours'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
+                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '1 hour'  "
+                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
 
 class OfficersDispatchedInPast6Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -650,10 +668,11 @@ class OfficersDispatchedInPast6Hours(abstract.DispatchFeature):
                        "    AND event_datetime BETWEEN '{}' AND '{}' "
                        "    GROUP BY 1) AS a "
                        "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5) AS b "
+                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
                        "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '6 hours'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date)
+                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
 
+#DISPATCHED OFFICER SPECIFIC temporal
 class OfficersDispatchedAverageUnjustifiedIncidentsInPastYear(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
@@ -1139,3 +1158,8 @@ class OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(abstract.Dispa
                         " on a.officer_id = b.officer_id and b.event_datetime <= a.min_event_datetime and b.event_datetime >= a.min_event_datetime - interval '1 months' "
                         " GROUP BY 1,2 ) as e "
                         " GROUP BY 1 ").format(self.from_date, self.to_date)
+
+#TODO spatio-temporal, e.g. num dispatches in same division as ROs in past 1 hr
+#e.g. average priority of dispatches in division in past k hrs.
+
+#TODO Officer level fixed, e.g. average age, average education, etc.

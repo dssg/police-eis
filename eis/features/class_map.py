@@ -101,7 +101,8 @@ def lookup(feature, **kwargs):
                     'FelonyArrestsInPast1Hour': dispatches.FelonyArrestsInPast1Hour(**kwargs),
                     'FelonyArrestsInPast6Hours': dispatches.FelonyArrestsInPast6Hours(**kwargs),
                     'FelonyArrestsInPast12Hours': dispatches.FelonyArrestsInPast12Hours(**kwargs),
-                    'FelonyArrestsInPast24Hours': dispatches.FelonyArrestsInPast24Hours(**kwargs),
+                    'FelonyArrestsInPast12Hours2': dispatches.FelonyArrestsInPast12Hours2(**kwargs), #testing new SQL query
+                     'FelonyArrestsInPast24Hours': dispatches.FelonyArrestsInPast24Hours(**kwargs),
                     'FelonyArrestsInPast48Hours': dispatches.FelonyArrestsInPast48Hours(**kwargs),
                     'FelonyArrestsInPastWeek': dispatches.FelonyArrestsInPastWeek(**kwargs),
                     'FelonyArrestsInPastMonth': dispatches.FelonyArrestsInPastMonth(**kwargs),
