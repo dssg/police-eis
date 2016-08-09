@@ -1220,6 +1220,21 @@ class PercentageHispanicInCT(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
+class PercentageForeignBornInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Percentage of population born outside of the US (by census tract)"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b05002009 / c.b05002001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b05002 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+
 
 
 

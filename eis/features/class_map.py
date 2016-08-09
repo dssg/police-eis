@@ -135,8 +135,8 @@ def lookup(feature, **kwargs):
                     'PercentageWhiteInCT': dispatches.PercentageWhiteInCT(**kwargs),
                     'PercentageBlackInCT': dispatches.PercentageBlackInCT(**kwargs),
                     'PercentageAsianInCT': dispatches.PercentageAsianInCT(**kwargs),
-                    'PercentageHispanicInCT': dispatches.PercentageHispanicInCT(**kwargs)
-
+                    'PercentageHispanicInCT': dispatches.PercentageHispanicInCT(**kwargs),
+                    'PercentageForeignBornInCT': dispatches.PercentageForeignBornInCT(**kwargs)
 
                   }
 

@@ -128,6 +128,7 @@ dispatch_features:
     PercentageBlackInCT: True
     PercentageAsianInCT: True
     PercentageHispanicInCT: True
+    PercentageForeignBornInCT: True
 
 
 ########################
