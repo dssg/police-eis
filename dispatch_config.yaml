@@ -3,7 +3,7 @@
 #              Model experiments               #
 ################################################
 
-make_feat_dists: True  # Whether you would like distributions of 1 / 0 classes made of training set features
+make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes made of training set features
 distdir: 'dists'  # Where to put them
 
 ########################
@@ -23,13 +23,13 @@ pilot_dir: 'pilot/'
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
 raw_data_from_date: '2013-01-01'
-raw_data_to_date: '2015-01-01'
+raw_data_to_date: '2013-12-31'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
-fake_today: ['01Jan2014']  # if you want a specific_today then pass this
-training_window: [365]  # training, days
-prediction_window: [365]  # prediction, days
+fake_today: ['01Oct2013']  # if you want a specific_today then pass this
+training_window: [275]  # training, days
+prediction_window: [90]  # prediction, days
 autogen_fake_todays: False  # set to off if you want a specific fake_today
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
@@ -45,13 +45,13 @@ under_sampling_ratio: 0.1
 def_adverse:
     accidents: True # preventable accidents
     useofforce: True  # unjustified use of force
-    injury: True  # preventable officer injuries
-    icd: True  # preventable in custody deaths
-    tdd: True  # unjustified use of tire deflation device
-    nfsi: True  # unjustified no force subject injury
-    dof: True  # unjustified discharge of firearm
-    raid: True  # unjustified raid and search
-    pursuit: True  # unjustified pursuit
+    injury: False  # preventable officer injuries
+    icd: False  # preventable in custody deaths
+    tdd: False  # unjustified use of tire deflation device
+    nfsi: False  # unjustified no force subject injury
+    dof: False  # unjustified discharge of firearm
+    raid: False  # unjustified raid and search
+    pursuit: False  # unjustified pursuit
     complaint: True  # sustained complaints
 
 labelling:
@@ -62,7 +62,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_2013_2014'
+dispatch_feature_table_name: 'dispatch_2013_1yr'
 
 officer_features:
     investigation_count_career: True
@@ -150,20 +150,20 @@ dispatch_features:
 #        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier',
 #        'SGDClassifier', 'KNeighborsClassifier']
-model: ['RandomForest'  , 'LogisticRegression'] #,'ExtraTrees', 'AdaBoost', 'SVM']
+model: ['RandomForest'  , 'LogisticRegression','ExtraTrees'] #, 'AdaBoost', 'SVM']
 parameters:
   RandomForest:
-    n_estimators: [10] # [10, 25, 50, 100]  # [1000, 10000]
+    n_estimators: [100] # [10, 25, 50, 100]  # [1000, 10000]
     max_depth: [20] # [5, 10, 20]  # 50, 100
     max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
-    criterion: ['entropy'] # ['gini' ] #'entropy']
-    min_samples_split: [5] #[2, 5] #, 10]
+    criterion: ['gini'] # ['gini' ] #'entropy']
+    min_samples_split: [2] #[2, 5] #, 10]
   ExtraTrees:
-    n_estimators: [10, 25, 50, 100, 1000] #, 10000]
-    max_depth: [5, 10, 20]  # 50, 100
+    n_estimators: [50] #10, 25, 50, 100, 1000] #, 10000]
+    max_depth: [20] #[5, 10, 20]  # 50, 100
     max_features: ['sqrt'] # , 'log2']  # [2, 4, 8, 16, "auto"]
     criterion: ['gini'] # , 'entropy']
-    min_samples_split: [2, 5] #, 10]
+    min_samples_split: [2] #5, 10]
   AdaBoost:
     algorithm: ['SAMME', 'SAMME.R']
     n_estimators: [1, 10, 100]  # [1000, 10000]
