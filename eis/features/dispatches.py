@@ -1156,6 +1156,90 @@ class UnweightedSampleCountOfHousingUnits(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
+class PercentageMenInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Percentage of men (by census tract)"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b01001002 / c.b01001001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b01001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class PercentageWomenInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Percentage of women (by census tract)"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b01001026 / c.b01001001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b01001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class PercentageWhiteInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Percentage of white race (by census tract)"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b02001002 / c.b02001001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b02001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class PercentageBlackInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Percentage of black race (by census tract)"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b02001003 / c.b02001001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b02001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class PercentageAsianInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Percentage of Asian race (by census tract)"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b02001005 / c.b02001001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b02001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class PercentageHispanicInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Percentage of Hispanic ethnicity (by census tract)"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b03001003 / c.b03001001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b03001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
 
 
 
