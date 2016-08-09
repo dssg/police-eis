@@ -22,14 +22,14 @@ pilot_dir: 'pilot/'
 
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
-raw_data_from_date: '2008-01-01'
-raw_data_to_date: '2016-01-01'
+raw_data_from_date: '2013-01-01'
+raw_data_to_date: '2013-01-02'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
-fake_today: ['01Jan2015']  # if you want a specific_today then pass this
-training_window: [730]  # training, days
-prediction_window: [365]  # prediction, days
+fake_today: ['16Jan2013']  # if you want a specific_today then pass this
+training_window: [15]  # training, days
+prediction_window: [15]  # prediction, days
 autogen_fake_todays: True  # set to off if you want a specific fake_today
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
@@ -62,7 +62,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_complete_080816'
+dispatch_feature_table_name: 'dispatch_features_test'
 
 officer_features:
     investigation_count_career: True
@@ -99,7 +99,6 @@ dispatch_features:
     OfficersDispatchedInPast15Minutes: True
     OfficersDispatchedInPast30Minutes: True
     OfficersDispatchedInPast1Hour: True
-    OfficersDispatchedInPast6Hours: True
     OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: True
     OfficersDispatchedAverageJustifiedIncidentsInPastYear: True
     OfficersDispatchedAverageSustainedAllegationsInPastYear: True
@@ -118,6 +117,11 @@ dispatch_features:
     OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: True
     OfficersDispatchedAveragePreventableIncidentsInPast1Month: True
     OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: True
+    MedianAgeInCT: True
+    MedianAgeOfMenInCT: True
+    MedianAgeOfWomenInCT: True
+    UnweightedSampleCountOfPopulationInCT: True
+    UnweightedSampleCountOfHousingUnitsInCT: True
 
 
 ########################

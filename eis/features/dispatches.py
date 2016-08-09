@@ -577,26 +577,6 @@ class OfficersDispatchedInPast1Hour(abstract.DispatchFeature):
                             " FROM recent_events a "
                             " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
-class OfficersDispatchedInPast6Hours(abstract.DispatchFeature):
-    def __init__(self, **kwargs):
-        abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Number of unique officers sent on dispatches in the 6 hours preceding the dispatch"
-        self.query = ( " SELECT "
-                       "    dispatch_id, "
-                       "    COUNT(dispatch_id) AS feature_column"
-                       " FROM "
-                       "    (SELECT "
-                       "        dispatch_id, "
-                       "        min(event_datetime) AS min_event_datetime  "
-                       "    FROM staging.events_hub "
-                       "    WHERE event_type_code = 5 AND dispatch_id IS NOT NULL "
-                       "    AND event_datetime BETWEEN '{}' AND '{}' "
-                       "    GROUP BY 1) AS a "
-                       "    INNER JOIN "
-                       "    (SELECT event_datetime FROM staging.events_hub WHERE event_type_code = 5 and event_datetime between '{}' and '{}') AS b "
-                       "    ON b.event_datetime <= a.min_event_datetime AND b.event_datetime >= a.min_event_datetime - interval '6 hours'  "
-                       " GROUP BY 1 ").format(self.from_date, self.to_date, self.from_date, self.to_date)
-
 #DISPATCHED OFFICER SPECIFIC temporal
 class OfficersDispatchedAverageUnjustifiedIncidentsInPastYear(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -1086,7 +1066,7 @@ class OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(abstract.Dispa
 
 # Spatial Features
 
-class MedianAge(abstract.DispatchFeature):
+class MedianAgeInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Median age of the population (by census tract)"
@@ -1100,7 +1080,7 @@ class MedianAge(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class MedianAgeOfMen(abstract.DispatchFeature):
+class MedianAgeOfMenInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Median age of men (by census tract)"
@@ -1114,7 +1094,7 @@ class MedianAgeOfMen(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class MedianAgeOfWomen(abstract.DispatchFeature):
+class MedianAgeOfWomenInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Median age of women (by census tract)"
@@ -1128,7 +1108,7 @@ class MedianAgeOfWomen(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class UnweightedSampleCountOfPopulation(abstract.DispatchFeature):
+class UnweightedSampleCountOfPopulationInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Unweighted sample count of the population (by census tract)"
@@ -1142,7 +1122,7 @@ class UnweightedSampleCountOfPopulation(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class UnweightedSampleCountOfHousingUnits(abstract.DispatchFeature):
+class UnweightedSampleCountOfHousingUnitsInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Unweighted sample count of housing units (by census tract)"
