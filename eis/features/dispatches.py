@@ -1066,7 +1066,7 @@ class OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(abstract.Dispa
 
 # Spatial Features
 
-class MedianAge(abstract.DispatchFeature):
+class MedianAgeInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Median age of the population (by census tract)"
@@ -1080,7 +1080,7 @@ class MedianAge(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class MedianAgeOfMen(abstract.DispatchFeature):
+class MedianAgeOfMenInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Median age of men (by census tract)"
@@ -1094,7 +1094,7 @@ class MedianAgeOfMen(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class MedianAgeOfWomen(abstract.DispatchFeature):
+class MedianAgeOfWomenInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Median age of women (by census tract)"
@@ -1108,7 +1108,7 @@ class MedianAgeOfWomen(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class UnweightedSampleCountOfPopulation(abstract.DispatchFeature):
+class UnweightedSampleCountOfPopulationInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Unweighted sample count of the population (by census tract)"
@@ -1122,7 +1122,7 @@ class UnweightedSampleCountOfPopulation(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class UnweightedSampleCountOfHousingUnits(abstract.DispatchFeature):
+class UnweightedSampleCountOfHousingUnitsInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Unweighted sample count of housing units (by census tract)"
