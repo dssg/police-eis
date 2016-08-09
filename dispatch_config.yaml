@@ -99,7 +99,6 @@ dispatch_features:
     OfficersDispatchedInPast15Minutes: True
     OfficersDispatchedInPast30Minutes: True
     OfficersDispatchedInPast1Hour: True
-    OfficersDispatchedInPast6Hours: True
     OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: True
     OfficersDispatchedAverageJustifiedIncidentsInPastYear: True
     OfficersDispatchedAverageSustainedAllegationsInPastYear: True
