@@ -1084,6 +1084,25 @@ class OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(abstract.Dispa
                         " GROUP BY 1,2 ) as e "
                         " GROUP BY 1 ").format(self.from_date, self.to_date)
 
+# Spatial Features
+
+class MedianAge(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Median age of the population (by census tract)"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b01002001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b01002 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+
+
+
 #TODO spatio-temporal, e.g. num dispatches in same division as ROs in past 1 hr
 #e.g. average priority of dispatches in division in past k hrs.
 
