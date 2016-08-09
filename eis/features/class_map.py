@@ -107,7 +107,6 @@ def lookup(feature, **kwargs):
                     'OfficersDispatchedInPast15Minutes': dispatches.OfficersDispatchedInPast15Minutes(**kwargs),
                     'OfficersDispatchedInPast30Minutes': dispatches.OfficersDispatchedInPast30Minutes(**kwargs),
                     'OfficersDispatchedInPast1Hour': dispatches.OfficersDispatchedInPast1Hour(**kwargs),
-                    'OfficersDispatchedInPast6Hours': dispatches.OfficersDispatchedInPast6Hours(**kwargs),
                     'OfficersDispatchedAverageUnjustifiedIncidentsInPastYear': dispatches.OfficersDispatchedAverageUnjustifiedIncidentsInPastYear(**kwargs),
                     'OfficersDispatchedAverageJustifiedIncidentsInPastYear': dispatches.OfficersDispatchedAverageJustifiedIncidentsInPastYear(**kwargs),
                     'OfficersDispatchedAverageSustainedAllegationsInPastYear': dispatches.OfficersDispatchedAverageSustainedAllegationsInPastYear(**kwargs),
