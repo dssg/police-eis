@@ -124,7 +124,13 @@ def lookup(feature, **kwargs):
                     'OfficersDispatchedAverageSustainedAllegationsInPast1Month': dispatches.OfficersDispatchedAverageSustainedAllegationsInPast1Month(**kwargs),
                     'OfficersDispatchedAverageUnsustainedAllegationsInPast1Month': dispatches.OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(**kwargs),
                     'OfficersDispatchedAveragePreventableIncidentsInPast1Month': dispatches.OfficersDispatchedAveragePreventableIncidentsInPast1Month(**kwargs),
-                    'OfficersDispatchedAverageNonPreventableIncidentsInPast1Month': dispatches.OfficersDispatchedAverageNonPreventableIncidentsInPast1Month(**kwargs)
+                    'OfficersDispatchedAverageNonPreventableIncidentsInPast1Month': dispatches.OfficersDispatchedAverageNonPreventableIncidentsInPast1Month(**kwargs),
+                    'MedianAgeInCT': dispatches.MedianAgeInCT(**kwargs),
+                    'MedianAgeOfMenInCT': dispatches.MedianAgeOfMenInCT(**kwargs),
+                    'MedianAgeOfWomenInCT': dispatches.MedianAgeOfWomenInCT(**kwargs),
+                    'UnweightedSampleCountOfPopulationInCT': dispatches.UnweightedSampleCountOfPopulationInCT(**kwargs),
+                    'UnweightedSampleCountOfHousingUnitsInCT': dispatches.UnweightedSampleCountOfHousingUnitsInCT(**kwargs)
+
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
