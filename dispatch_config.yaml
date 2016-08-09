@@ -122,6 +122,12 @@ dispatch_features:
     MedianAgeOfWomenInCT: True
     UnweightedSampleCountOfPopulationInCT: True
     UnweightedSampleCountOfHousingUnitsInCT: True
+    PercentageMenInCT: True
+    PercentageWomenInCT: True
+    PercentageWhiteInCT: True
+    PercentageBlackInCT: True
+    PercentageAsianInCT: True
+    PercentageHispanicInCT: True
 
 
 ########################

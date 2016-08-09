@@ -129,7 +129,14 @@ def lookup(feature, **kwargs):
                     'MedianAgeOfMenInCT': dispatches.MedianAgeOfMenInCT(**kwargs),
                     'MedianAgeOfWomenInCT': dispatches.MedianAgeOfWomenInCT(**kwargs),
                     'UnweightedSampleCountOfPopulationInCT': dispatches.UnweightedSampleCountOfPopulationInCT(**kwargs),
-                    'UnweightedSampleCountOfHousingUnitsInCT': dispatches.UnweightedSampleCountOfHousingUnitsInCT(**kwargs)
+                    'UnweightedSampleCountOfHousingUnitsInCT': dispatches.UnweightedSampleCountOfHousingUnitsInCT(**kwargs),
+                    'PercentageWomenInCT': dispatches.PercentageWomenInCT(**kwargs),
+                    'PercentageMenInCT': dispatches.PercentageMenInCT(**kwargs),
+                    'PercentageWhiteInCT': dispatches.PercentageWhiteInCT(**kwargs),
+                    'PercentageBlackInCT': dispatches.PercentageBlackInCT(**kwargs),
+                    'PercentageAsianInCT': dispatches.PercentageAsianInCT(**kwargs),
+                    'PercentageHispanicInCT': dispatches.PercentageHispanicInCT(**kwargs)
+
 
                   }
 
