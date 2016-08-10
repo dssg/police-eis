@@ -1248,6 +1248,68 @@ class ProportionOfPopulationUnderAge18InCT(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
+class ProportionOfPopulationEnrolledInSchoolInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Proportion of the population over age 3 enrolled in school in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b14001002/(c.b14001001+0.0001) AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b14001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Proportion of the population over age 25 who have less than a high school education in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    " ((c.b15003001)-(c.b15003017+c.b15003018+c.b15003019+c.b15003020+c.b15003021+c.b15003022+c.b15003023+c.b15003024+c.b15003025))/(c.b15003001+0.00001) AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b15003 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Proportion of the population who have had an income below poverty level in past year in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    " c.b17001002/(c.b17001001+0.00001) AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b17001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Proportion of the population who have had an income below $45,000 (in 2014 inflation-adjusted dollars) in past year in census tract of dispatch origin"
+     #Note that the 2014 median income in NC was $46,556, so this is really below state median income
+     #except it excludes people who earn 45,000-46,556 as they are included in the next category 45-49
+     #See http://www.deptofnumbers.com/income/north-carolina/
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    " (c.b19001002+c.b19001003+c.b19001004+c.b19001005+c.b19001006+c.b19001007+c.b19001008+c.b19001009)/(c.b19001001+0.00001) AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b19001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+
+
+
 
 #TODO spatio-temporal, e.g. num dispatches in same division as ROs in past 1 hr
 #e.g. average priority of dispatches in division in past k hrs.
