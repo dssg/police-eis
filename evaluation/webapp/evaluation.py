@@ -122,9 +122,10 @@ def plot_fp_tp_percent_nothresh(eis_baseline, fpr, tpr, threshold_levels):
 
 def plot_normalized_confusion_matrix(labels, predictions):
     cutoff = 0.5
-    predictions_binary = np.copy(predictions)
-    predictions_binary[predictions_binary >= cutoff] = 1
-    predictions_binary[predictions_binary < cutoff] = 0
+    #predictions_binary = np.copy(predictions)
+    #predictions_binary[predictions_binary >= cutoff] = 1
+    #predictions_binary[predictions_binary < cutoff] = 0
+    predictions_binary = [ 1 if x > cutoff_probability else 0 for x in predictions ]
 
     cm = metrics.confusion_matrix(labels, predictions_binary)
     np.set_printoptions(precision=2)
@@ -152,9 +153,10 @@ def plot_confusion_matrix_at_x_proportion(labels, predictions, x_proportion):
     sorted_by_probability = np.sort(predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
 
-    predictions_binary = np.copy(predictions)
-    predictions_binary[predictions_binary >= cutoff_probability] = 1
-    predictions_binary[predictions_binary < cutoff_probability] = 0
+    #predictions_binary = np.copy(predictions)
+    #predictions_binary[predictions_binary >= cutoff_probability] = 1
+    #predictions_binary[predictions_binary < cutoff_probability] = 0
+    predictions_binary = [ 1 if x > cutoff_probability else 0 for x in predictions ]
 
     cm = metrics.confusion_matrix(labels, predictions_binary)
     np.set_printoptions(precision=2)
@@ -181,9 +183,10 @@ def plot_normalized_confusion_matrix_at_x_proportion(labels, predictions, x_prop
     sorted_by_probability = np.sort(predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
 
-    predictions_binary = np.copy(predictions)
-    predictions_binary[predictions_binary >= cutoff_probability] = 1
-    predictions_binary[predictions_binary < cutoff_probability] = 0
+    #predictions_binary = np.copy(predictions)
+    #predictions_binary[predictions_binary >= cutoff_probability] = 1
+    #predictions_binary[predictions_binary < cutoff_probability] = 0
+    predictions_binary = [ 1 if x > cutoff_probability else 0 for x in predictions ]
 
     cm = metrics.confusion_matrix(labels, predictions_binary)
     np.set_printoptions(precision=2)
@@ -268,9 +271,10 @@ def fpr_tpr(labels, predictions, x_proportion):
     sorted_by_probability = np.sort(predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
 
-    predictions_binary = np.copy(predictions)
-    predictions_binary[predictions_binary >= cutoff_probability] = 1
-    predictions_binary[predictions_binary < cutoff_probability] = 0
+    #predictions_binary = np.copy(predictions)
+    #predictions_binary[predictions_binary >= cutoff_probability] = 1
+    #predictions_binary[predictions_binary < cutoff_probability] = 0
+    predictions_binary = [ 1 if x > cutoff_probability else 0 for x in predictions ]
 
     return metrics.confusion_matrix(labels, predictions_binary)
 
@@ -284,9 +288,10 @@ def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
     sorted_by_probability = np.sort(test_predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
 
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    #test_predictions_binary = np.copy(test_predictions)
+    #test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
+    #test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    test_predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
     precision, _, _, _ = metrics.precision_recall_fscore_support(
         test_labels, test_predictions_binary)
@@ -307,9 +312,10 @@ def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
     sorted_by_probability = np.sort(test_predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
 
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    #test_predictions_binary = np.copy(test_predictions)
+    #test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
+    #test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    test_predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
     _, recall, _, _ = metrics.precision_recall_fscore_support(
         test_labels, test_predictions_binary)
