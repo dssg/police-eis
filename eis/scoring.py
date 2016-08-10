@@ -44,35 +44,20 @@ def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_prop
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
+    test_predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    #Compute true and false positives and negatives.
+    true_positive  = [ 1 if x==1 and y==1 else 0 for (x,y) in zip(test_predictions_binary, test_labels) ]
+    false_positive = [ 1 if x==1 and y==0 else 0 for (x,y) in zip(test_predictions_binary, test_labels) ]
+    true_negative  = [ 1 if x==0 and y==0 else 0 for (x,y) in zip(test_predictions_binary, test_labels) ]
+    false_negative = [ 1 if x==0 and y==1 else 0 for (x,y) in zip(test_predictions_binary, test_labels) ]
 
+    TP = np.sum( true_positive )
+    TN = np.sum( true_negative )
+    FP = np.sum( false_positive )
+    FN = np.sum( false_negative )
+    print( x_proportion, len(test_predictions), TP, TN, FP, FN )
 
-    #Recode Test Labels to Correctly id TP, TN, FP, FN from a Difference of Lists
-    test = [99 if y==1 else 0 for y in test_labels]
-    pred = [99 if y==1 else 5 for y in test_predictions_binary]
-    results = [(x-y) for x,y in zip(test,pred)]
-
-
-    # KEY WORKED OUT
-    #True Positive:     Test_Label=99 and Test_Prediction   = 99::  x-y == 0
-    #True Negative:     Test_Label=0 and True_Prediction    = 5::   x-y == -5
-    #False Positive:    Test_Label=0 and Test_Prediction    = 99::  x-y== -99
-    #False Negative:    Test_Label=99 and Test_Prediction   = 5::   x-y==94
-
-    # KEY RESULTS
-    #   0   = TP
-    #   -5  = TN
-    #   -99 = FP
-    #   94  = FN
-
-    #Get Counts of Results
-    TP = len([y for y in results if y==0])
-    TN = len([y for y in results if y==-5])
-    FP = len([y for y in results if y==-99])
-    FN = len([y for y in results if y==94])
 
     #Return Requested Metric
     if metric=='TP':
@@ -96,10 +81,7 @@ def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
-
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    test_predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
     precision, _, _, _ = metrics.precision_recall_fscore_support(
         test_labels, test_predictions_binary)
@@ -119,10 +101,7 @@ def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
-
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    test_predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
     _, recall, _, _ = metrics.precision_recall_fscore_support(
         test_labels, test_predictions_binary)
@@ -133,13 +112,6 @@ def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
     else:
         return recall
 
-def get_test_predictions_binary(test_predictions, cutoff_probability=0.8):
-
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
-
-    return test_predictions_binary
 
 
 def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary, time_for_model_in_seconds ):
@@ -264,10 +236,8 @@ def assign_classes(testid, predictions, x_proportion):
 
     sorted_by_probability = np.sort(predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
+    predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
-    predictions_binary = np.copy(predictions)
-    predictions_binary[predictions_binary >= cutoff_probability] = 1
-    predictions_binary[predictions_binary < cutoff_probability] = 0
 
     df = pd.DataFrame({'officer_id': testid, 'ourflag': predictions_binary})
 
