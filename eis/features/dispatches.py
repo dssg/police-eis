@@ -1244,7 +1244,7 @@ class ProportionOfPopulationUnderAge18InCT(abstract.DispatchFeature):
                     " FROM staging.dispatch_geoid as a "
                     " INNER JOIN staging.earliest_dispatch_time AS b "
                     " ON a.dispatch_id = b.dispatch_id "
-                    " INNER JOIN acs2013_5yr.b01002 AS c "
+                    " INNER JOIN acs2013_5yr.b01001 AS c "
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
