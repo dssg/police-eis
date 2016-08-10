@@ -137,7 +137,31 @@ def lookup(feature, **kwargs):
                     'PercentageAsianInCT': dispatches.PercentageAsianInCT(**kwargs),
                     'PercentageHispanicInCT': dispatches.PercentageHispanicInCT(**kwargs),
                     'PercentageForeignBornInCT': dispatches.PercentageForeignBornInCT(**kwargs),
-                    'ProportionOfPopulationUnderAge18InCT': dispatches.ProportionOfPopulationUnderAge18InCT(**kwargs)
+                    'ProportionOfPopulationUnderAge18InCT': dispatches.ProportionOfPopulationUnderAge18InCT(**kwargs),
+                    'ProportionOfPopulationEnrolledInSchoolInCT': dispatches.ProportionOfPopulationEnrolledInSchoolInCT(**kwargs),
+                    'ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT': dispatches.ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT(**kwargs),
+                    'ProportionOfPopulationVeteransInCT': dispatches.ProportionOfPopulationVeteransInCT(**kwargs),
+                    'ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT': dispatches.ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT(**kwargs),
+                    'ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT': dispatches.ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT(**kwargs),
+                    'MedianIncomeInPast12MonthsInCT': dispatches.MedianIncomeInPast12MonthsInCT(**kwargs),
+                    'MedianHouseholdIncomeInPast12MonthsInCT': dispatches.MedianHouseholdIncomeInPast12MonthsInCT(**kwargs),
+                    'ProportionOfHouseholdsReceivingAssistanceOrFoodStampsInCT': dispatches.ProportionOfHouseholdsReceivingAssistanceOrFoodStampsInCT(**kwargs),
+                    'ProportionOfHousingUnitsVacantInCT': dispatches.ProportionOfHousingUnitsVacantInCT(**kwargs),
+                    'ProportionOfHousingUnitsOccupiedByOwnerInCT': dispatches.ProportionOfHousingUnitsOccupiedByOwnerInCT(**kwargs),
+                    'MedianYearStructureBuildInCT': dispatches.MedianYearStructureBuildInCT(**kwargs),
+                    'MedianYearRenterMovedIntoHousingUnitInCT': dispatches.MedianYearRenterMovedIntoHousingUnitInCT(**kwargs),
+                    'MedianYearOwnerMovedIntoHousingUnitInCT': dispatches.MedianYearOwnerMovedIntoHousingUnitInCT(**kwargs),
+                    'MedianGrossRentInCT': dispatches.MedianGrossRentInCT(**kwargs),
+                    'MedianPropertyValueInCT': dispatches.MedianPropertyValueInCT(**kwargs),
+                    'LowerQuartilePropertyValueInCT': dispatches.LowerQuartilePropertyValueInCT(**kwargs),
+                    'UpperQuartilePropertyValueInCT': dispatches.UpperQuartilePropertyValueInCT(**kwargs),
+                    'AverageHouseholdSizeInCT': dispatches.AverageHouseholdSizeInCT(**kwargs),
+                    'ProportionOfChildrenUnder18LivingWithSingleParentInCT': dispatches.ProportionOfChildrenUnder18LivingWithSingleParentInCT(**kwargs),
+                    'ProportionOfChildrenUnder18LivingWithMotherInCT': dispatches.ProportionOfChildrenUnder18LivingWithMotherInCT(**kwargs),
+                    'ProportionOfPopulationNeverMarriedInCT': dispatches.ProportionOfPopulationNeverMarriedInCT(**kwargs),
+                    'ProportionOfPopulationDivorcedOrSeparatedInCT': dispatches.ProportionOfPopulationDivorcedOrSeparatedInCT(**kwargs),
+                    'ProportionOfPopulationWithoutHealthInsuranceInCT': dispatches.ProportionOfPopulationWithoutHealthInsuranceInCT(**kwargs),
+                    ' ProportionOfWomenWhoGaveBirthInPast12MonthsInCT': dispatches. ProportionOfWomenWhoGaveBirthInPast12MonthsInCT(**kwargs)
 
                   }
 

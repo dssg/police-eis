@@ -1276,6 +1276,21 @@ class ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT(abstract.D
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
+class ProportionOfPopulationVeteransInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Proportion of the population who list themselves as veterans in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     (c.b21001002)/(c.b21001001+0.00001) AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b21001 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+
 class ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
@@ -1377,6 +1392,105 @@ class ProportionOfHousingUnitsOccupiedByOwnerInCT(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
+
+class MedianYearStructureBuildInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Median year that existing structures were built in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b25035001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b25035 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class MedianYearRenterMovedIntoHousingUnitInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Median year resident moved into current property (renter occupied properties) in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b25039003 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b25039 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class MedianYearOwnerMovedIntoHousingUnitInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Median year resident moved into current property (owner occupied properties) in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b25039002 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b25039 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class MedianGrossRentInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Median gross rent measured in 2014 inflation-adjusted dollars in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b25064001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b25064 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class MedianPropertyValueInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Median property value in dollars in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b25077001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b25077 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class LowerQuartilePropertyValueInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Lower quartile property value in dollars in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b25076001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b25076 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class UpperQuartilePropertyValueInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Upper quartile property value in dollars in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b25078001 AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b25078 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
 class AverageHouseholdSizeInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
@@ -1419,7 +1533,7 @@ class ProportionOfChildrenUnder18LivingWithMotherInCT(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class ProportionOfPeopleNeverMarriedInCT(abstract.DispatchFeature):
+class ProportionOfPopulationNeverMarriedInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Proportion of people over age 15 who report their marital status as never been married in census tract of dispatch origin"
@@ -1433,7 +1547,7 @@ class ProportionOfPeopleNeverMarriedInCT(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-class ProportionOfPeopleDivorcedOrSeparatedInCT(abstract.DispatchFeature):
+class ProportionOfPopulationDivorcedOrSeparatedInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Proportion of people over age 15 who report their marital status as divorced or separated in census tract of dispatch origin"
@@ -1447,6 +1561,33 @@ class ProportionOfPeopleDivorcedOrSeparatedInCT(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
+class ProportionOfPopulationWithoutHealthInsuranceInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Proportion of population with no health insurance in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     (c.b27020006+c.b27020017)/(c.b27020001+0.00001) AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b27020 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
+
+class ProportionOfWomenWhoGaveBirthInPast12MonthsInCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Proportion of women aged between 15 and 50 who gave birth in the last 12 months in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     c.b13002002 / (c.b13002011+0.0001) AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b13002 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
 
 

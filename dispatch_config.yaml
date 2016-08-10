@@ -130,6 +130,30 @@ dispatch_features:
     PercentageHispanicInCT: True
     PercentageForeignBornInCT: True
     ProportionOfPopulationUnderAge18InCT: True
+    ProportionOfPopulationEnrolledInSchoolInCT: True
+    ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: True
+    ProportionOfPopulationVeteransInCT: True
+    ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: True
+    ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT: True
+    MedianIncomeInPast12MonthsInCT: True
+    MedianHouseholdIncomeInPast12MonthsInCT: True
+    ProportionOfHouseholdsReceivingAssistanceOrFoodStampsInCT: True
+    ProportionOfHousingUnitsVacantInCT: True
+    ProportionOfHousingUnitsOccupiedByOwnerInCT: True
+    MedianYearStructureBuildInCT: True
+    MedianYearRenterMovedIntoHousingUnitInCT: True
+    MedianYearOwnerMovedIntoHousingUnitInCT: True
+    MedianGrossRentInCT: True
+    MedianPropertyValueInCT: True
+    LowerQuartilePropertyValueInCT: True
+    UpperQuartilePropertyValueInCT: True
+    AverageHouseholdSizeInCT: True
+    ProportionOfChildrenUnder18LivingWithSingleParentInCT: True
+    ProportionOfChildrenUnder18LivingWithMotherInCT: True
+    ProportionOfPopulationNeverMarriedInCT: True
+    ProportionOfPopulationDivorcedOrSeparatedInCT: True
+    ProportionOfPopulationWithoutHealthInsuranceInCT: True
+    ProportionOfWomenWhoGaveBirthInPast12MonthsInCT: True
 
 
 ########################
