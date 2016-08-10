@@ -7,7 +7,7 @@ make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes 
 distdir: dists  # Where to put them
 
 # Set the officer table name.
-officer_feature_table_name: "test_merge"
+officer_feature_table_name: "objectify_officer_labels"
 
 # determine whether model objects get stored in the database or not.
 store_model_object_in_database: False
@@ -16,7 +16,7 @@ store_model_object_in_database: False
 # Comment fields       #
 ########################
 model_comment: ''
-batch_comment: 'example officer modeling run'
+batch_comment: 'objectify_officer_labels'
 
 ########################
 # Type of Experiment   #
@@ -60,8 +60,20 @@ def_adverse:
     complaint: True  # sustained complaints
 
 labelling:
-    include_all_employed: True # include all officers who were employed during the specified period
-    include_all_active: True # include all oficcers who made an arrest or stop during the specified period.
+
+officer_labels:                     # note: the labels below are combined with a logical OR. 
+    include_all_employed: True      # include all officers who were employed during the specified period
+    include_all_active: True        # include all oficcers who made an arrest or stop during the specified period.
+    AllAllegations: False           # all allegations.
+    SustainedAllegations: False     # all sustained allegations.
+    MajorAllegations: True # all allegations of type: {accident, bias, insubordination, gift policy, handling of civs, substance abuse, harrassment, force}
+    SustainedMajorAllegations: True  # all allegations of major type that were sustained.
+    MinorAllegations: False # all allegations of type: {appearance, standard procedures, traffic laws, tardiness, equipment, quality, conditions of employment }
+    SustainedMinorAllegations: False # all allegations of minor type that were sustained.
+    ForceAllegations: False         # all force allegations.
+    SustainedForceAllegations: False # all sustained force allegations.
+    UnknownAllegations: False # allegations categorized as "unknown".
+    SustainedUnknownAllegations: False # allegations categorized as "unknown" and sustained.
 
 ########################
 # Feature selection    #
@@ -70,13 +82,13 @@ try_feature_sets_by_group: False  # Turn on if you want the code to try removing
 
 officer_features:
     TimeGatedDummyFeature: False # Time gated dummy feature. Example feature.
-    AcademyScore: True # Performance score at the police academy.
-    DivorceCount: True # Number of total divorces in this officer's past.
-    MilesFromPost: True # Number of miles to post.
-    OfficerGender: True  # Officer gender code.
-    OfficerRace: True # Officer race code.
+    AcademyScore: False # Performance score at the police academy.
+    DivorceCount: False # Number of total divorces in this officer's past.
+    MilesFromPost: False # Number of miles to post.
+    OfficerGender: False # Officer gender code.
+    OfficerRace: False # Officer race code.
     OfficerEthnicity: True # Officer ethnicity code.
-    ArrestCount: True # Number of arrests made by an officer, time gated.
+    ArrestCount: False # Number of arrests made by an officer, time gated.
     IncidentCount: False # Officer investigatable incident count to fake_today
     MeanHoursPerShift: True # Average number of hours per shift
     TimeGatedDummyFeature: False # Time gated dummy feature.
@@ -124,7 +136,7 @@ officer_features:
 #        'AdaBoost', 'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier', 'SGDClassifier', 'KNeighborsClassifier']
 
-model: ['RandomForestBagging', 'RandomForestBoosting', 'ExtraTrees']
+model: ['ExtraTrees']
 parameters:
   RandomForest:
     n_estimators: [10 ] # [25, 50, 100, 1000, 10000]
@@ -153,9 +165,9 @@ parameters:
     learning_rate: [0.01] # [0.1, 1, 10, 100]
     n_estimators_boost: [10] # [25, 50, 100, 1000, 10000]
   ExtraTrees:
-    n_estimators: [1, 10] # [25, 50, 100, 1000, 10000]
-    max_depth: [1, 3, 5, 10] # [20, 50, 100]
-    max_features: ['sqrt', 'log2', 2] # [4, 8, 16, "auto"]
+    n_estimators: [ 10] # [25, 50, 100, 1000, 10000]
+    max_depth: [3 ]#  5, 10] # [20, 50, 100]
+    max_features: ['log2'] # [4, 8, 16, "auto"]
     criterion: ['gini'] #, 'entropy']
     min_samples_split: [2] #, 5, 10]
   AdaBoost:
