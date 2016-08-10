@@ -161,7 +161,7 @@ def lookup(feature, **kwargs):
                     'ProportionOfPopulationNeverMarriedInCT': dispatches.ProportionOfPopulationNeverMarriedInCT(**kwargs),
                     'ProportionOfPopulationDivorcedOrSeparatedInCT': dispatches.ProportionOfPopulationDivorcedOrSeparatedInCT(**kwargs),
                     'ProportionOfPopulationWithoutHealthInsuranceInCT': dispatches.ProportionOfPopulationWithoutHealthInsuranceInCT(**kwargs),
-                    ' ProportionOfWomenWhoGaveBirthInPast12MonthsInCT': dispatches. ProportionOfWomenWhoGaveBirthInPast12MonthsInCT(**kwargs)
+                    'ProportionOfWomenWhoGaveBirthInPast12MonthsInCT': dispatches. ProportionOfWomenWhoGaveBirthInPast12MonthsInCT(**kwargs)
 
                   }
 
