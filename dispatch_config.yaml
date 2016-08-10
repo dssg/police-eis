@@ -207,5 +207,5 @@ pkl_prefix: 'dispatch_results'
 ########################
 # Auditing hooks       #
 ########################
-auditing: True  # Turn on if you want auditing performed
+auditing: False  # Turn on if you want auditing performed
 audits: 'audits/'
