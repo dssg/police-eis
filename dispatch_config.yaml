@@ -129,6 +129,7 @@ dispatch_features:
     PercentageAsianInCT: True
     PercentageHispanicInCT: True
     PercentageForeignBornInCT: True
+    ProportionOfPopulationUnderAge18InCT: True
 
 
 ########################

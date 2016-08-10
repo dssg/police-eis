@@ -136,8 +136,9 @@ def lookup(feature, **kwargs):
                     'PercentageBlackInCT': dispatches.PercentageBlackInCT(**kwargs),
                     'PercentageAsianInCT': dispatches.PercentageAsianInCT(**kwargs),
                     'PercentageHispanicInCT': dispatches.PercentageHispanicInCT(**kwargs),
-                    'PercentageForeignBornInCT': dispatches.PercentageForeignBornInCT(**kwargs)
-                     
+                    'PercentageForeignBornInCT': dispatches.PercentageForeignBornInCT(**kwargs),
+                    'ProportionOfPopulationUnderAge18InCT': dispatches.ProportionOfPopulationUnderAge18InCT(**kwargs)
+
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),

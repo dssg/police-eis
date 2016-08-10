@@ -1069,7 +1069,7 @@ class OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(abstract.Dispa
 class MedianAgeInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Median age of the population (by census tract)"
+     self.description = "Median age of the population in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b01002001 AS feature_column "
@@ -1083,7 +1083,7 @@ class MedianAgeInCT(abstract.DispatchFeature):
 class MedianAgeOfMenInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Median age of men (by census tract)"
+     self.description = "Median age of men in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b01002002 AS feature_column "
@@ -1097,7 +1097,7 @@ class MedianAgeOfMenInCT(abstract.DispatchFeature):
 class MedianAgeOfWomenInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Median age of women (by census tract)"
+     self.description = "Median age of women in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b01002003 AS feature_column "
@@ -1111,7 +1111,7 @@ class MedianAgeOfWomenInCT(abstract.DispatchFeature):
 class UnweightedSampleCountOfPopulationInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Unweighted sample count of the population (by census tract)"
+     self.description = "Unweighted sample count of the population in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b00001001 AS feature_column "
@@ -1125,7 +1125,7 @@ class UnweightedSampleCountOfPopulationInCT(abstract.DispatchFeature):
 class UnweightedSampleCountOfHousingUnitsInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Unweighted sample count of housing units (by census tract)"
+     self.description = "Unweighted sample count of housing units in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b00002001 AS feature_column "
@@ -1139,7 +1139,7 @@ class UnweightedSampleCountOfHousingUnitsInCT(abstract.DispatchFeature):
 class PercentageMenInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Percentage of men (by census tract)"
+     self.description = "Percentage of men in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b01001002 / (c.b01001001 + 0.00001) AS feature_column "
@@ -1153,7 +1153,7 @@ class PercentageMenInCT(abstract.DispatchFeature):
 class PercentageWomenInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Percentage of women (by census tract)"
+     self.description = "Percentage of women in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b01001026 / (c.b01001001 + 0.00001) AS feature_column "
@@ -1167,7 +1167,7 @@ class PercentageWomenInCT(abstract.DispatchFeature):
 class PercentageWhiteInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Percentage of white race (by census tract)"
+     self.description = "Percentage of white race in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b02001002 / (c.b02001001 + 0.00001) AS feature_column "
@@ -1181,7 +1181,7 @@ class PercentageWhiteInCT(abstract.DispatchFeature):
 class PercentageBlackInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Percentage of black race (by census tract)"
+     self.description = "Percentage of black race in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b02001003 / (c.b02001001 + 0.00001) AS feature_column "
@@ -1195,7 +1195,7 @@ class PercentageBlackInCT(abstract.DispatchFeature):
 class PercentageAsianInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Percentage of Asian race (by census tract)"
+     self.description = "Percentage of Asian race in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b02001005 / (c.b02001001 + 0.00001) AS feature_column "
@@ -1209,7 +1209,7 @@ class PercentageAsianInCT(abstract.DispatchFeature):
 class PercentageHispanicInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Percentage of Hispanic ethnicity (by census tract)"
+     self.description = "Percentage of Hispanic ethnicity in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b03001003 / (c.b03001001 + 0.00001) AS feature_column "
@@ -1223,7 +1223,7 @@ class PercentageHispanicInCT(abstract.DispatchFeature):
 class PercentageForeignBornInCT(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Percentage of population born outside of the US (by census tract)"
+     self.description = "Percentage of population born outside of the US in census tract of dispatch origin"
      self.query = ( " SELECT "
                     "     a.dispatch_id,  "
                     "     c.b05002009 / (c.b05002001 + 0.00001) AS feature_column "
@@ -1234,9 +1234,19 @@ class PercentageForeignBornInCT(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
-
-
-
+class ProportionOfPopulationUnderAge18InCT(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Proportion of the population under the age of 18 in census tract of dispatch origin"
+     self.query = ( " SELECT "
+                    "     a.dispatch_id,  "
+                    "     (c.b01001003+c.b01001004+c.b01001005+c.b01001006+c.b01001027+c.b01001028+c.b01001029+c.b01001030) / (c.b01001001 + 0.0001) AS feature_column "
+                    " FROM staging.dispatch_geoid as a "
+                    " INNER JOIN staging.earliest_dispatch_time AS b "
+                    " ON a.dispatch_id = b.dispatch_id "
+                    " INNER JOIN acs2013_5yr.b01002 AS c "
+                    " ON a.acs_geoid_long = c.geoid "
+                    " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
 
 #TODO spatio-temporal, e.g. num dispatches in same division as ROs in past 1 hr
