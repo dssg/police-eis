@@ -136,8 +136,9 @@ def lookup(feature, **kwargs):
                     'PercentageBlackInCT': dispatches.PercentageBlackInCT(**kwargs),
                     'PercentageAsianInCT': dispatches.PercentageAsianInCT(**kwargs),
                     'PercentageHispanicInCT': dispatches.PercentageHispanicInCT(**kwargs),
-                    'PercentageForeignBornInCT': dispatches.PercentageForeignBornInCT(**kwargs)
-                     
+                    'PercentageForeignBornInCT': dispatches.PercentageForeignBornInCT(**kwargs),
+                    'DispatchesWithin1kmRadiusInPast15Minutes': dispatches.DispatchesWithin1kmRadiusInPast15Minutes(**kwargs),
+                    'ArrestsWithin1kmRadiusInPast12Hours': dispatches.ArrestsWithin1kmRadiusInPast12Hours(**kwargs)
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),

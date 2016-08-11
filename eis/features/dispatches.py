@@ -1234,6 +1234,57 @@ class PercentageForeignBornInCT(abstract.DispatchFeature):
                     " ON a.acs_geoid_long = c.geoid "
                     " WHERE b.earliest_dispatch_datetime BETWEEN '{}' AND '{}' ").format(self.from_date, self.to_date)
 
+# Spatio-temporal features
+
+
+class DispatchesWithin1kmRadiusInPast15Minutes(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Number of dispatches within a 1 km radius within the past 15 minutes"
+     self.query = ( " WITH dispatches_to_include AS "
+                    " (SELECT "
+                    "      dispatch_id AS this_dispatch, dispatch_location AS this_loc, earliest_dispatch_datetime AS this_datetime "
+                    " FROM staging.dispatch_geo_time "
+                    " WHERE earliest_dispatch_datetime BETWEEN '{}' AND '{}'), "
+                    " time_restrained AS "
+                    " (SELECT "
+                    "      a.this_dispatch, a.this_loc, a.this_datetime, "
+                    "      b.dispatch_id, b.dispatch_location, b.earliest_dispatch_datetime "
+                    " FROM dispatches_to_include AS a "
+                    " INNER JOIN staging.dispatch_geo_time AS b "
+                    "      ON b.earliest_dispatch_datetime < a.this_datetime "
+                    "      AND b.earliest_dispatch_datetime >= a.this_datetime - interval '15 minutes') "
+                    " SELECT "
+                    "     this_dispatch AS dispatch_id, "
+                    "     COUNT(dispatch_id) AS feature_column "
+                    " FROM time_restrained "
+                    " WHERE ST_DWithin(this_loc,  dispatch_location, 0.009) "
+                    " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
+
+class ArrestsWithin1kmRadiusInPast12Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Number of arrests within a 1 km radius within the past 12 hours"
+     self.query = ( " WITH dispatches_to_include AS "
+                    " (SELECT "
+                    "      dispatch_id AS this_dispatch, dispatch_location AS this_loc, earliest_dispatch_datetime AS this_datetime "
+                    " FROM staging.dispatch_geo_time "
+                    " WHERE earliest_dispatch_datetime BETWEEN '{}' AND '{}'), "
+                    " time_restrained AS "
+                    " (SELECT "
+                    "      a.this_dispatch, a.this_loc, a.this_datetime, "
+                    "      b.event_id, b.arrest_location, b.arrest_datetime "
+                    " FROM dispatches_to_include AS a "
+                    " INNER JOIN staging.arrests_geo_time AS b "
+                    "      ON b.arrest_datetime < a.this_datetime "
+                    "      AND b.arrest_datetime >= a.this_datetime - interval '15 minutes') "
+                    " SELECT "
+                    "     this_dispatch AS dispatch_id, "
+                    "     COUNT(event_id) AS feature_column "
+                    " FROM time_restrained "
+                    " WHERE ST_DWithin(this_loc,  arrest_location, 0.009) "
+                    " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
+
 
 
 
