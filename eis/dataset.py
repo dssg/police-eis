@@ -341,7 +341,7 @@ def convert_categorical(feature_df, feature_columns):
                         categorical features converted to dummy variables
     """
 
-    log.info('Converting categorical features to dummy variablles')
+    log.info('Converting categorical features to dummy variables')
 
     # note: feature names will be lowercased when returned from the db
     categorical_features = [name.lower() for name in class_map.find_categorical_features(feature_columns)]
