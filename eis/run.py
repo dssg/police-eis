@@ -149,7 +149,7 @@ def main(config_file_name, args):
 
         # pickle all the model data (everything in the to_save dict)
         model_filename = "{}/{}_{}.pkl".format(config["directory"].strip('/'), config["pkl_prefix"], timestamp)
-        
+
         # store the pickle data to disk or prepare it to save into the results.data table.
         log.debug("storing model information and data")
         if config["store_model_object_in_database"]:
