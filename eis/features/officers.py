@@ -28,6 +28,31 @@ class DummyFeature(abstract.OfficerFeature):
                       "WHERE event_type_code = 4 "
                       "GROUP BY officer_id")
 
+class DummyCategoricalFeature(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "unknown",
+                            1: "black",
+                            2: "white",
+                            3: "american_indian",
+                            4: "asian",
+                            5: "pacific_islander",
+                            6: "other",
+                            7: "mixed" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Categorical dummy feature for testing 2016 schema")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.officers_hub "
+                      "         WHERE staging.officers_hub.race_code = {2} "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
 class TimeGatedDummyFeature(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
@@ -86,8 +111,8 @@ class ArrestMonthlyVariance(abstract.TimeGatedOfficerFeature):
         self.description = ("The variance in the number of arrests an officer has made per month, time-gated")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.variance "
-                      "FROM (   SELECT officer_id, variance(count) " 
-                      "         FROM ( " 
+                      "FROM (   SELECT officer_id, variance(count) "
+                      "         FROM ( "
                       "                 SELECT officer_id,  count(officer_id) "
                       "                 FROM staging.events_hub "
                       "                 WHERE event_type_code=3 "
@@ -95,7 +120,7 @@ class ArrestMonthlyVariance(abstract.TimeGatedOfficerFeature):
                       "                 AND event_datetime >= '{2}'::date - interval '{3}' "
                       "                 GROUP BY officer_id, date_trunc( 'month', event_datetime ) "
                       "             ) AS monthlyarrests  "
-                      "         GROUP BY officer_id " 
+                      "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       "AND feature_table.fake_today = '{2}'::date"
@@ -111,12 +136,12 @@ class ArrestMonthlyCOV(abstract.TimeGatedOfficerFeature):
         self.description = ("The STDDEV/MEAN in the number of arrests an officer has made per month, time-gated")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.cov "
-                      "FROM (   SELECT officer_id, " 
+                      "FROM (   SELECT officer_id, "
                       "     CASE avg(count) "
                       "         WHEN 0 THEN 0  "
                       "         ELSE stddev(count) / avg(count) "
                       "     END as cov "
-                      "         FROM ( " 
+                      "         FROM ( "
                       "                 SELECT officer_id,  count(officer_id) "
                       "                 FROM staging.events_hub "
                       "                 WHERE event_type_code=3 "
@@ -124,7 +149,7 @@ class ArrestMonthlyCOV(abstract.TimeGatedOfficerFeature):
                       "                 AND event_datetime >= '{2}'::date - interval '{3}' "
                       "                 GROUP BY officer_id, date_trunc( 'month', event_datetime ) "
                       "             ) AS monthlyarrests  "
-                      "         GROUP BY officer_id " 
+                      "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       "AND feature_table.fake_today = '{2}'::date"
@@ -236,50 +261,71 @@ class IncidentCount(abstract.OfficerFeature):
         self.type_of_features = "categorical"
         self.set_null_counts_to_zero = True
 
-class OfficerGender(abstract.OfficerFeature):
+class OfficerGender(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = ("Officer gender")
-        self.num_features = 1
-        self.name_of_features = ["OfficerGender"]
-        self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = staging_table.gender_code "
-                      "FROM (   SELECT officer_id, gender_code "
+        self.categories = { 0: "unknown",
+                            1: "male",
+                            2: "female" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer gender, categorical")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.officer_characteristics "
+                      "         WHERE staging.officer_characteristics.gender_code = {2} "
+                      "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
-                                self.feature_name ) )
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
 
-class OfficerRace(abstract.OfficerFeature):
+class OfficerRace(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = ("Officer race")
-        self.num_features = 1
-        self.name_of_features = ["OfficerRace"]
-        self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = staging_table.race_code "
-                      "FROM (   SELECT officer_id, race_code "
+        self.categories = { 0: "unknown",
+                            1: "black",
+                            2: "white",
+                            3: "american_indian",
+                            4: "asian",
+                            5: "pacific_islander",
+                            6: "other",
+                            7: "mixed" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer race, categorical")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.officers_hub "
+                      "         WHERE staging.officers_hub.race_code = {2} "
+                      "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
-                                self.feature_name ) )
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
 
-class OfficerEthnicity(abstract.OfficerFeature):
+class OfficerEthnicity(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = ("Officer ethnicity")
-        self.num_features = 1
-        self.name_of_features = ["OfficerEthnicity"]
-        self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = staging_table.ethnicity_code "
-                      "FROM (   SELECT officer_id, ethnicity_code "
+        self.categories = { 0: "unknown",
+                            1: "non_hispanic",
+                            2: "hispanic" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer ethnicity, categorical")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.officers_hub "
+                      "         WHERE staging.officers_hub.ethnicity_code = {2} "
+                      "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
-                                self.feature_name ) )
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
 
 class AcademyScore(abstract.OfficerFeature):
     def __init__(self, **kwargs):
