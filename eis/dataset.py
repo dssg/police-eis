@@ -3,6 +3,7 @@ import pandas as pd
 import yaml
 import logging
 import sys
+import psycopg2
 import datetime
 import json
 
