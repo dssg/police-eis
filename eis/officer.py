@@ -36,18 +36,17 @@ def setup(config, today):
     log.info("Test label window stop: {}".format(test_end_date))
 
     log.info("Loading officers and features to use as training...")
-    table_name = config["feature_table_name"]
+    table_name = config["officer_feature_table_name"]
     train_x, train_y, train_id, names = dataset.grab_officer_data(
         config["officer_features"], 
         train_start_date,
         today,
         train_start_date,
-        config["def_adverse"],
-        config["labelling"],
+        config["officer_labels"],
         table_name)
 
     # Testing data should include ALL officers, ignoring "noinvest" keyword
-    testing_labelling_config = config["labelling"].copy()
+    testing_labelling_config = config["officer_labels"].copy()
     testing_labelling_config["noinvest"] = True
 
     log.info("Loading officers and features to use as testing...")
@@ -56,7 +55,6 @@ def setup(config, today):
         today,
         test_end_date,
         today,
-        config["def_adverse"],
         testing_labelling_config,
         table_name)
 
