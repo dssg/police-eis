@@ -11,13 +11,19 @@ class OfficerFeature():
     def __init__(self, **kwargs):
         self.description = ""
         self.description_long =""
-        self.fake_today = kwargs["fake_today"]
+        self.is_label = False
         self.query = None
         self.feature_name = self.__class__.__name__
-        self.table_name = kwargs["table_name"]
         self.is_categorical = False
         self.type_of_imputation = None
         self.set_null_counts_to_zero = False
+        
+        # allow instantiation without kwargs
+        try:
+            self.fake_today = kwargs["fake_today"]
+            self.table_name = kwargs["table_name"]
+        except (KeyError, AttributeError):
+            pass
 
     def build_and_insert( self, engine ):
         engine.execute( self.query )
@@ -77,9 +83,14 @@ class TimeGatedOfficerFeature(OfficerFeature):
 
     def __init__(self, **kwargs):
         OfficerFeature.__init__(self, **kwargs)
-        self.lookback_durations = kwargs[ "lookback_durations" ]
-        self.type_of_imputation = "zero"
-        self.feature_column_names = [ self.feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_durations ]
+
+        # allow instantiation without kwargs
+        try:
+            self.lookback_durations = kwargs[ "lookback_durations" ]
+            self.type_of_imputation = "zero"
+            self.feature_column_names = [ self.feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_durations ]
+        except KeyError:
+            pass
 
     def build_and_insert( self, engine ):
         for duration, column in zip( self.lookback_durations, self.feature_column_names):
@@ -99,11 +110,17 @@ class TimeGatedOfficerFeature(OfficerFeature):
 
 class DispatchFeature():
     def __init__(self, **kwargs):
+        try:
+            self.from_date = kwargs["from_date"]
+            self.to_date = kwargs["to_date"]
+            self.table_name = kwargs["table_name"]
+        except KeyError:
+            pass
         self.description = ""
         self.description_long =""
-        self.table_name = kwargs["table_name"]
         self.feature_name = self.__class__.__name__
         self.is_categorical = False
+        self.is_label = False
         # self.query should return two columns, named 'dispatch_id' and '<feature_name>'
         self.query = None
         # self.update_query take the result of the feature query and inserts it into the feature table
@@ -111,6 +128,12 @@ class DispatchFeature():
                             "SET {} = staging_table.feature_column "
                             "FROM ({}) AS staging_table "
                             "WHERE feature_table.dispatch_id = staging_table.dispatch_id ")
+        
+        # allow instantiation without kwargs
+        try:
+            self.table_name = kwargs["table_name"]
+        except KeyError:
+            pass
 
     def build_and_insert(self, engine):
         build_query = self.update_query.format(
