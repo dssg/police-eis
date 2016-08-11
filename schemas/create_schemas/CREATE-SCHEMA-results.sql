@@ -3,6 +3,7 @@ CREATE SCHEMA results;
 
 -- model table containing each of the models run.
 CREATE TABLE results.models(
+<<<<<<< HEAD
     model_id                    									serial primary key,
     run_time                    									timestamp,
     batch_run_time              									timestamp,
@@ -17,7 +18,7 @@ CREATE TABLE results.models(
 -- predictions corresponding to each model.
 CREATE TABLE results.predictions(
     model_id                    								int references results.models(model_id),
-    unit_id                     								int,
+    unit_id                     								bigint,
     unit_score                  								numeric,
     label_value                 								int
 );

@@ -15,6 +15,31 @@ except:
 
 time_format = "%Y-%m-%d %X"
 
+### Officer labels.
+class LabelSustained(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = "Binary label, 1 if an officer led to a sustained complaint"
+        self.is_label = True
+        self.query = ()
+        self.query = (  "UPDATE features.{0} feature_table "
+                        "SET {1} = staging_table.feature_column "
+                        "FROM (     "
+                        "       SELECT officer_id, CASE WHEN SUM(COALESCE(incidents.number_of_sustained_allegations, 0)) > 0 "
+                        "                               THEN 1 "  #
+                        "                               ELSE 0 "  # COALESCE here maps NULL values to zero.
+                        "       END AS sustained_flag from staging.events_hub LEFT JOIN staging.incidents "
+                        "       ON events_hub.event_id=incidents.event_id "
+                        "       WHERE events_hub.event_datetime >= '{2}'::date "
+                        "       WHERE events_hub.event_datetime <= '{3}'::date "
+                        "       GROUP BY officer_id ) AS staging_table"
+                        " WHERE feature_table.officer_id = staging_table.officer_id "
+                        " AND feature_table.fake_today = '{2}'::date "
+                        .format(self.table_name,
+                                self.feature_name,
+                                self.fake_today,
+                                self.to_date))
+
 ### Dummy instances of the abstract classes to use as templates.
 
 class DummyFeature(abstract.OfficerFeature):
