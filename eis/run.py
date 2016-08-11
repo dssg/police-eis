@@ -27,13 +27,6 @@ def main(config_file_name, args):
         log.exception("Failed to get experiment configuration file!")
         raise
 
-    # if no features table name was set by the user,
-    # set the features table name based on type of prediction (officer / dispatch)
-    if ( args.featuretable):
-        table_name = args.featuretable
-        log.debug("args.featuretable: {}".format(args.featuretable))
-    else:
-        table_name = '{}_features'.format(config['unit'])
 
     # read table name from config file
     # NOTE!!!! this breaks the command line passing of table name
@@ -157,7 +150,7 @@ def main(config_file_name, args):
 
         # pickle all the model data (everything in the to_save dict)
         model_filename = "{}/{}_{}.pkl".format(config["directory"].strip('/'), config["pkl_prefix"], timestamp)
-        
+
         # store the pickle data to disk or prepare it to save into the results.data table.
         log.debug("storing model information and data")
         if config["store_model_object_in_database"]:

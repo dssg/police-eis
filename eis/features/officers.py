@@ -186,14 +186,43 @@ class ArrestMonthlyCOV(abstract.TimeGatedOfficerFeature):
 
 class NumberOfShiftsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { 0: "absent",
-                            4: "bereavement",
-                            16: "family medical",
-                            23: "leave without pay",
-                            29: "sick non family",
-                            30: "suspension",
-                            31: "suspension without pay",
-                            2: "admin" }
+        self.categories = { 0: 'absent',
+                            1: 'adjustment',
+                            2: 'admin',
+                            3: 'admin_leave',
+                            4: 'bereavement',
+                            5: 'break',
+                            6: 'bubble',
+                            7: 'canine',
+                            8: 'comp_time',
+                            9: 'court_jury',
+                            10: 'premium',
+                            11: 'mission',
+                            12: 'double',
+                            13: 'excused',
+                            14: 'special',
+                            15: 'outside',
+                            16: 'family_medical',
+                            17: 'holiday',
+                            18: 'ebs',
+                            19: 'training',
+                            20: 'injured',
+                            21: 'kelly',
+                            22: 'doc_pay',
+                            23: 'leave_without_pay',
+                            24: 'light_duty_medical_disability',
+                            25: 'military',
+                            26: 'not_attended_court',
+                            27: 'safer',
+                            28: 'personal',
+                            29: 'sick_non_family',
+                            30: 'suspension',
+                            31: 'suspension_with_pay',
+                            32: 'unallocated',
+                            33: 'vacation',
+                            34: 'work',
+                            35: 'work_holiday',
+                            99: 'other'}
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of shifts of different types aggregated over time")
         self.query = ("UPDATE features.{0} feature_table "
@@ -351,6 +380,33 @@ class OfficerEthnicity(abstract.CategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+class OfficerRank(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = {
+                0: "Civilian",
+                1: "Police Officer Trainee",
+                2: "Police Officer",
+                3: "Sergeant",
+                4: "Master Patrolman",
+                5: "Captain",
+                6: "Lietenant",
+                7: "Police Commander",
+                8: "Deputy Chief",
+                9: "Chief of Police" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer Rank")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.officer_roles "
+                      "         WHERE staging.officer_roles.rank_code = {2} "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
 
 class AcademyScore(abstract.OfficerFeature):
     def __init__(self, **kwargs):

@@ -61,7 +61,7 @@ def_adverse:
 
 labelling:
 
-officer_labels:                     # note: the labels below are combined with a logical OR. 
+officer_labels:                     # note: the labels below are combined with a logical OR.
     include_all_employed: True      # include all officers who were employed during the specified period
     include_all_active: True        # include all oficcers who made an arrest or stop during the specified period.
     AllAllegations: False           # all allegations.
@@ -89,9 +89,10 @@ officer_features:
     ArrestMonthlyCOV: False # month-by-month coefficient of variation in arrest counts.
     DivorceCount: False # Number of total divorces in this officer's past.
     MilesFromPost: False # Number of miles to post.
-    OfficerGender: False # Officer gender code.
-    OfficerRace: False # Officer race code.
-    OfficerEthnicity: False # Officer ethnicity code.
+    OfficerGender: True # Officer gender code.
+    OfficerRace: True # Officer race code.
+    OfficerEthnicity: True # Officer ethnicity code.
+    OfficerRank: True # Officer rank.
     ArrestCount: True # Number of arrests made by an officer, time gated.
     IncidentCount: False # Officer investigatable incident count to fake_today
     NumberOfShiftsOfType: False # Time gated dummy feature.
@@ -143,7 +144,7 @@ parameters:
     n_estimators_boost: [10] # [25, 50, 100, 1000, 10000]
   ExtraTrees:
     n_estimators: [ 10] # [25, 50, 100, 1000, 10000]
-    max_depth: [3 ]#  5, 10] # [20, 50, 100]
+    max_depth: [3 ] #  5, 10] # [20, 50, 100]
     max_features: ['log2'] # [4, 8, 16, "auto"]
     criterion: ['gini'] #, 'entropy']
     min_samples_split: [2] #, 5, 10]
