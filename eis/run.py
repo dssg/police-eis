@@ -27,7 +27,6 @@ def main(config_file_name, args):
         log.exception("Failed to get experiment configuration file!")
         raise
 
-
     # read table name from config file
     # NOTE!!!! this breaks the command line passing of table name
     if config["unit"] == "dispatch":
