@@ -129,6 +129,7 @@ dispatch_features:
     PercentageAsianInCT: True
     PercentageHispanicInCT: True
     PercentageForeignBornInCT: True
+    DispatchesWithin1kmRadiusInPastHour: True
 
 
 ########################
