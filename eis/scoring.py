@@ -56,7 +56,6 @@ def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_prop
     TN = np.sum( true_negative )
     FP = np.sum( false_positive )
     FN = np.sum( false_negative )
-    print( x_proportion, len(test_predictions), TP, TN, FP, FN )
 
 
     #Return Requested Metric
