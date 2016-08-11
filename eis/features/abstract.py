@@ -23,6 +23,7 @@ class OfficerFeature():
             self.fake_today = kwargs["fake_today"]
             self.table_name = kwargs["table_name"]
         except (KeyError, AttributeError):
+            log.info("WARNING: no fake today set for officer feature: {}".format(self.feature_name))
             pass
 
     def build_and_insert( self, engine ):
