@@ -14,7 +14,7 @@ except:
 
 time_format = "%Y-%m-%d %X"
 
-### LABEL
+### LABELS
 
 class LabelSustained(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -87,10 +87,10 @@ class LabelPreventable(abstract.DispatchFeature):
                         .format(self.from_date, self.to_date))
 
 
-
+### FEATURES
 
 #TODO
-#ALL CODE BELOW IS QUERYING NON-STAGING TABLES, FIX THIS ASAP!
+# CODE BELOW IS QUERYING NON-STAGING TABLES, FIX THIS ASAP!
 
 class DispatchMinute(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -231,25 +231,41 @@ class NumberOfUnitsAssigned(abstract.DispatchFeature):
                         "   on events_hub.event_id = dispatches.event_id "
                         "GROUP BY 1").format(self.from_date, self.to_date)
 
-#TODO beat
+#TODO average age of responding officers
 
-#TODO dispatch role
+#TODO average time on force of responding officers
 
-#TODO dispatch delay
+#TODO proportion of responding officers with a bachelor's degree or higher
 
-#TODO travel time
+#TODO proportion of responding officers that are male
 
-#TODO response time
+#TODO proportion of responding officers that are african american
 
-#TODO at scene time
+#TODO proportion of responding officers that are Hispanic
 
-#TODO units assigned
+#TODO proportion of responding officers that are asian or other
 
-#TODO units arrived
+#TODO proportion of responding officers that are married
 
-#TODO unit shift
+#TODO proportion of responding officers that are divorced
 
-#GENERAL TEMPORAL Features
+#TODO average travel time of responding officers in minutes
+
+#TODO time difference between first and last arrival at scene
+
+#TODO variance in travel time for responding officers
+
+#TODO average time on shift of responding officers at time of dispatch
+
+#TODO average number of dispatches attended in current shift by responding officers
+#and do 12 hours, 24 hours, 1 week
+
+#TODO average priority of dispatches attended in current shift by responding officers
+
+#TODO average number of arrests in current shift by responding officers
+
+#TODO average number of felony arrests in current shift by responding officers
+
 class ArrestsInPast1Hour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
@@ -1591,10 +1607,5 @@ class ProportionOfWomenWhoGaveBirthInPast12MonthsInCT(abstract.DispatchFeature):
 
 
 
-
-
-
 #TODO spatio-temporal, e.g. num dispatches in same division as ROs in past 1 hr
 #e.g. average priority of dispatches in division in past k hrs.
-
-#TODO Officer level fixed, e.g. average age, average education, etc.
