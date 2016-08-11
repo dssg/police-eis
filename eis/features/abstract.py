@@ -27,6 +27,42 @@ class OfficerFeature():
                             "WHERE {1} IS null; ".format(self.table_name, self.feature_name))
             engine.execute( update_query )
 
+class CategoricalOfficerFeature(OfficerFeature):
+
+    # class-defined wildcards for writing template queries.
+    COLUMN     = "columnwildcardstring"
+    LOOKUPCODE = "lookupcodewildcardstring"
+
+    def __init__(self, **kwargs):
+        OfficerFeature.__init__(self, **kwargs)
+        self.type_of_imputation = "zero"
+
+        # generate a list of column names to insert into.
+        self.feature_column_names = []
+        for key in self.categories:
+            self.feature_column_names.append( self.feature_name + "_" + self.categories[key].replace( " ", "_" ) )
+
+    def build_and_insert( self, engine ):
+        for key in self.categories:
+
+            # get the column name.
+            column = self.feature_name + "_" + self.categories[key].replace(" ", "_")
+
+            # insert.
+            this_query = self.query
+            this_query = this_query.replace( self.COLUMN, column )
+            this_query = this_query.replace( self.LOOKUPCODE, str(key) )
+            engine.execute( this_query )
+
+            # if set_null_counts_to_zero update the column. This is similar to
+            # the build and execute above, and might could need to be refactored
+            # to deduplicate
+            if self.set_null_counts_to_zero:
+                # option to set all nulls to zeros (for use with counts)
+                update_query = ("UPDATE features.{0} SET {1} = 0 "
+                                "WHERE {1} IS null; ".format(self.table_name, column))
+                engine.execute( update_query )
+
 class TimeGatedCategoricalOfficerFeature(OfficerFeature):
 
     # class-defined wildcards for writing template queries.
@@ -39,7 +75,7 @@ class TimeGatedCategoricalOfficerFeature(OfficerFeature):
         self.lookback_durations = kwargs[ "lookback_durations" ]
         self.type_of_imputation = "zero"
         self.feature_column_names = [ self.feature_name + "_" + duration.replace(" ","_") for duration in self.lookback_durations ]
-        
+
         # generate a list of column names to insert into.
         self.feature_column_names = []
         for duration in self.lookback_durations:
@@ -51,7 +87,7 @@ class TimeGatedCategoricalOfficerFeature(OfficerFeature):
             for key in self.categories:
 
                 # get the column name.
-                column = self.feature_name + "_" + self.categories[key].replace(" ", "_") + "_" + duration.replace(" ","_") 
+                column = self.feature_name + "_" + self.categories[key].replace(" ", "_") + "_" + duration.replace(" ","_")
 
                 # insert.
                 this_query = self.query
