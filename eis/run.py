@@ -227,6 +227,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str, help="pass your config", default="default.yaml")
     parser.add_argument( "-b", "--buildfeatures", help="build the features and stop", action='store_true' )
-    parser.add_argument( "-f", "--featuretable", help="set the name of the features table", default="features" )
     args = parser.parse_args()
     main(args.config, args)
