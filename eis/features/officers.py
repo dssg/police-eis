@@ -261,20 +261,25 @@ class IncidentCount(abstract.OfficerFeature):
         self.type_of_features = "categorical"
         self.set_null_counts_to_zero = True
 
-class OfficerGender(abstract.OfficerFeature):
+class OfficerGender(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = ("Officer gender")
-        self.num_features = 1
-        self.name_of_features = ["OfficerGender"]
-        self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = staging_table.gender_code "
-                      "FROM (   SELECT officer_id, gender_code "
+        self.categories = { 0: "unknown",
+                            1: "male",
+                            2: "female" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer gender, categorical")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.officer_characteristics "
+                      "         WHERE staging.officer_characteristics.gender_code = {2} "
+                      "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
-                                self.feature_name ) )
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
 
 class OfficerRace(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
