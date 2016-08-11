@@ -408,6 +408,29 @@ class OfficerRank(abstract.CategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+class OfficerEducation(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "less_than_high_school",
+                            1: "high_school",
+                            2: "some_college",
+                            3: "two_year_degree",
+                            4: "four_year_degree",
+                            5: "graduate_degree" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer Education")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.officer_characteristics "
+                      "         WHERE staging.officer_characteristics.education_level_code = {2} "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
 class AcademyScore(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)

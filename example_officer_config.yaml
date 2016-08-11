@@ -89,10 +89,11 @@ officer_features:
     ArrestMonthlyCOV: False # month-by-month coefficient of variation in arrest counts.
     DivorceCount: False # Number of total divorces in this officer's past.
     MilesFromPost: False # Number of miles to post.
-    OfficerGender: True # Officer gender code.
-    OfficerRace: True # Officer race code.
-    OfficerEthnicity: True # Officer ethnicity code.
+    OfficerGender: False # Officer gender code.
+    OfficerRace: False # Officer race code.
+    OfficerEthnicity: False # Officer ethnicity code.
     OfficerRank: True # Officer rank.
+    OfficerEducation: True # Officer education level.
     ArrestCount: True # Number of arrests made by an officer, time gated.
     IncidentCount: False # Officer investigatable incident count to fake_today
     NumberOfShiftsOfType: False # Time gated dummy feature.
