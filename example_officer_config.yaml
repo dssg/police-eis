@@ -7,16 +7,16 @@ make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes 
 distdir: dists  # Where to put them
 
 # Set the officer table name.
-officer_feature_table_name: "sumedh"
+officer_feature_table_name: "officer_feature_table"
 
 # determine whether model objects get stored in the database or not.
-store_model_object_in_database: False
+store_model_object_in_database: True
 
 ########################
 # Comment fields       #
 ########################
-model_comment: ''
-batch_comment: 'objectify_officer_labels'
+model_comment: ""
+batch_comment: ""
 
 ########################
 # Type of Experiment   #
