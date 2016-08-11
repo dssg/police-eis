@@ -26,8 +26,8 @@ class LabelSustained(abstract.OfficerFeature):
                         "SET {1} = staging_table.feature_column "
                         "FROM (     "
                         "       SELECT officer_id, CASE WHEN SUM(COALESCE(incidents.number_of_sustained_allegations, 0)) > 0 "
-                        "                               THEN 1 "
-                        "                               ELSE 0 "
+                        "                               THEN 1 "  #
+                        "                               ELSE 0 "  # COALESCE here maps NULL values to zero.
                         "       END AS sustained_flag from staging.events_hub LEFT JOIN staging.incidents "
                         "       ON events_hub.event_id=incidents.event_id "
                         "       WHERE events_hub.event_datetime >= '{2}'::date "
