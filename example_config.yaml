@@ -11,7 +11,7 @@ distdir: dists  # Where to put them
 # Comment fields       #
 ########################
 model_comment: ''
-batch_comment: 'test batch comment'
+batch_comment: ''
 
 ########################
 # Type of Experiment   #
@@ -65,6 +65,8 @@ try_feature_sets_by_group: False  # Turn on if you want the code to try removing
 
 officer_features:
     TimeGatedDummyFeature: False # Time gated dummy feature. Example feature.
+    ArrestMonthlyVariance: True
+    ArrestMonthlyCOV: True
     AcademyScore: True # Performance score at the police academy.
     DivorceCount: True # Number of total divorces in this officer's past.
     MilesFromPost: True # Number of miles to post.

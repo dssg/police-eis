@@ -80,6 +80,60 @@ class TimeGatedCategoricalDummyFeature(abstract.TimeGatedCategoricalOfficerFeatu
 
 # Actual features.
 
+class ArrestMonthlyVariance(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The variance in the number of arrests an officer has made per month, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.variance "
+                      "FROM (   SELECT officer_id, variance(count) " 
+                      "         FROM ( " 
+                      "                 SELECT officer_id,  count(officer_id) "
+                      "                 FROM staging.events_hub "
+                      "                 WHERE event_type_code=3 "
+                      "                 AND event_datetime <= '{2}'::date "
+                      "                 AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "                 GROUP BY officer_id, date_trunc( 'month', event_datetime ) "
+                      "             ) AS monthlyarrests  "
+                      "         GROUP BY officer_id " 
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class ArrestMonthlyCOV(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The STDDEV/MEAN in the number of arrests an officer has made per month, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.cov "
+                      "FROM (   SELECT officer_id, " 
+                      "     CASE avg(count) "
+                      "         WHEN 0 THEN 0  "
+                      "         ELSE stddev(count) / avg(count) "
+                      "     END as cov "
+                      "         FROM ( " 
+                      "                 SELECT officer_id,  count(officer_id) "
+                      "                 FROM staging.events_hub "
+                      "                 WHERE event_type_code=3 "
+                      "                 AND event_datetime <= '{2}'::date "
+                      "                 AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "                 GROUP BY officer_id, date_trunc( 'month', event_datetime ) "
+                      "             ) AS monthlyarrests  "
+                      "         GROUP BY officer_id " 
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
 class NumberOfShiftsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "absent",
