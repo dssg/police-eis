@@ -7,8 +7,7 @@ make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes 
 distdir: dists  # Where to put them
 
 # Set the officer table name.
-#officer_feature_table_name: "officer_feature_table"
-officer_feature_table_name: "josh_test_arrests2"
+officer_feature_table_name: "officer_feature_table"
 
 # determine whether model objects get stored in the database or not.
 store_model_object_in_database: True
@@ -91,7 +90,7 @@ officer_features:
     DivorceCount: False # Number of total divorces in this officer's past.
     MilesFromPost: False # Number of miles to post.
     OfficerGender: False # Officer gender code.
-    OfficerRace: False # Officer race code.
+    OfficerRace: True # Officer race code.
     OfficerEthnicity: False # Officer ethnicity code.
     OfficerRank: True # Officer rank.
     OfficerEducation: True # Officer education level.
@@ -100,7 +99,8 @@ officer_features:
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type
     NumberOfArrestsOfType: False # Number of time-gated arrests by categorical type
     NumberOfArrestsON: False # Number of time-gated arrests by day of week
-    NumberOfSuspectsArrestedOfRaceType: True #Number of suspects arrested by race type, time-gated periods
+    NumberOfSuspectsArrestedOfRaceType: False #Number of suspects arrested by race type, time-gated periods
+    NumberOfSuspectsArrestedOfEthnicityType: False #Number of suspects arrested by ethnicity type, time-gated periods
     SustainedRuleViolations: False  # Officer investigatable incident count to fake_today
     MeanHoursPerShift: False # Average number of hours per shift
     AllAllegations: False # Number of allegations made against an officer, time gated.
