@@ -162,6 +162,7 @@ def lookup(feature, **kwargs):
                     'ProportionOfPopulationWithoutHealthInsuranceInCT': dispatches.ProportionOfPopulationWithoutHealthInsuranceInCT(**kwargs),
                     'ProportionOfWomenWhoGaveBirthInPast12MonthsInCT': dispatches.ProportionOfWomenWhoGaveBirthInPast12MonthsInCT(**kwargs),
                     'DispatchesWithin1kmRadiusInPast15Minutes': dispatches.DispatchesWithin1kmRadiusInPast15Minutes(**kwargs),
+                    'DispatchesWithin1kmRadiusInPast30Minutes': dispatches.DispatchesWithin1kmRadiusInPast30Minutes(**kwargs),
                     'ArrestsWithin1kmRadiusInPast12Hours': dispatches.ArrestsWithin1kmRadiusInPast12Hours(**kwargs),
                     'AvgOfficerDispatchesWithin100mRadiusInPastHour': dispatches.AvgOfficerDispatchesWithin100mRadiusInPastHour(**kwargs)
                   }

@@ -1632,6 +1632,31 @@ class DispatchesWithin1kmRadiusInPast15Minutes(abstract.DispatchFeature):
                     " WHERE ST_DWithin(this_loc,  dispatch_location, 0.009) "
                     " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
 
+class DispatchesWithin1kmRadiusInPast30Minutes(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Number of dispatches within a 1 km radius within the past 15 minutes"
+     self.query = ( " WITH dispatches_to_include AS "
+                    " (SELECT "
+                    "      dispatch_id AS this_dispatch, dispatch_location AS this_loc, earliest_dispatch_datetime AS this_datetime "
+                    " FROM staging.dispatch_geo_time "
+                    " WHERE earliest_dispatch_datetime BETWEEN '{}' AND '{}'), "
+                    " time_restrained AS "
+                    " (SELECT "
+                    "      a.this_dispatch, a.this_loc, a.this_datetime, "
+                    "      b.dispatch_id, b.dispatch_location, b.earliest_dispatch_datetime "
+                    " FROM dispatches_to_include AS a "
+                    " INNER JOIN staging.dispatch_geo_time AS b "
+                    "      ON b.earliest_dispatch_datetime < a.this_datetime "
+                    "      AND b.earliest_dispatch_datetime >= a.this_datetime - interval '30 minutes') "
+                    " SELECT "
+                    "     this_dispatch AS dispatch_id, "
+                    "     COUNT(dispatch_id) AS feature_column "
+                    " FROM time_restrained "
+                    " WHERE ST_DWithin(this_loc,  dispatch_location, 0.009) "
+                    " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
+
+
 class ArrestsWithin1kmRadiusInPast12Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
