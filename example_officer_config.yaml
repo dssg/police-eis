@@ -92,6 +92,7 @@ officer_features:
     OfficerGender: False # Officer gender code.
     OfficerRace: False # Officer race code.
     OfficerEthnicity: False # Officer ethnicity code.
+    OfficerAge: True # Age of officer in years.
     OfficerRank: True # Officer rank.
     OfficerEducation: True # Officer education level.
     ArrestCount: True # Number of arrests made by an officer, time gated.
