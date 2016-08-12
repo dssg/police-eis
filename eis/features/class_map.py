@@ -166,7 +166,7 @@ def lookup(feature, **kwargs):
                     'DispatchesWithin1kmRadiusInPast1Hour': dispatches.DispatchesWithin1kmRadiusInPast1Hour(**kwargs),
                     'ArrestsWithin1kmRadiusInPast6Hours': dispatches.ArrestsWithin1kmRadiusInPast6Hours(**kwargs),
                     'ArrestsWithin1kmRadiusInPast12Hours': dispatches.ArrestsWithin1kmRadiusInPast12Hours(**kwargs),
-                    'AverageOfficerDispatchesWithin100mRadiusInPastHour': dispatches.AverageOfficerDispatchesWithin100mRadiusInPastHour(**kwargs),
+                    'AverageOfficerDispatchesWithin100mRadiusIn1PastHour': dispatches.AverageOfficerDispatchesWithin100mRadiusInPast1Hour(**kwargs),
                     'AverageOfficerDispatchesWithin100mRadiusInPast6Hours': dispatches.AverageOfficerDispatchesWithin100mRadiusInPast6Hours(**kwargs),
                     'AverageOfficerDispatchesWithin100mRadiusInPast48Hours': dispatches.AverageOfficerDispatchesWithin100mRadiusInPast48Hours(**kwargs),
                     'AverageAgeOfRespondingOfficers': dispatches.AverageAgeOfRespondingOfficers(**kwargs),

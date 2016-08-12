@@ -100,7 +100,7 @@ dispatch_features:
     OfficersDispatchedInPast30Minutes: False
     OfficersDispatchedInPast1Hour: False
     OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: False
-    OfficersDispatchedAverageJustifiedIncidentsInPastYear: False
+    OfficersDispatchedAverageJustifiedIncidentsInPastYear: True
     OfficersDispatchedAverageSustainedAllegationsInPastYear: False
     OfficersDispatchedAverageUnsustainedAllegationsInPastYear: False
     OfficersDispatchedAveragePreventableIncidentsInPastYear: False
@@ -132,7 +132,7 @@ dispatch_features:
     DispatchesWithin1kmRadiusInPast15Minutes: False
     DispatchesWithin1kmRadiusInPast30Minutes: False
     ArrestsWithin1kmRadiusInPast12Hours: False
-    AvgOfficerDispatchesWithin100mRadiusInPastHour: True
+    AvgOfficerDispatchesWithin100mRadiusInPastHour: False
 
 
 ########################
