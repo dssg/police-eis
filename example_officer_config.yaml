@@ -7,7 +7,8 @@ make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes 
 distdir: dists  # Where to put them
 
 # Set the officer table name.
-officer_feature_table_name: "officer_feature_table"
+#officer_feature_table_name: "officer_feature_table"
+officer_feature_table_name: "josh_test_arrests"
 
 # determine whether model objects get stored in the database or not.
 store_model_object_in_database: True
@@ -82,10 +83,10 @@ try_feature_sets_by_group: False  # Turn on if you want the code to try removing
 
 officer_features:
     TimeGatedDummyFeature: False # Time gated dummy feature. Example feature.
-    ArrestMonthlyVariance: True
-    ArrestMonthlyCOV: True
+    ArrestMonthlyVariance: False
+    ArrestMonthlyCOV: False
     AcademyScore: True # Performance score at the police academy.
-    ArrestMonthlyVariance: True # month-by-month variance of arrest counts.
+    ArrestMonthlyVariance: False # month-by-month variance of arrest counts.
     ArrestMonthlyCOV: False # month-by-month coefficient of variation in arrest counts.
     DivorceCount: False # Number of total divorces in this officer's past.
     MilesFromPost: False # Number of miles to post.
@@ -96,7 +97,9 @@ officer_features:
     OfficerEducation: True # Officer education level.
     ArrestCount: True # Number of arrests made by an officer, time gated.
     IncidentCount: False # Officer investigatable incident count to fake_today
-    NumberOfShiftsOfType: False # Time gated dummy feature.
+    NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type
+    NumberOfArrestsOfType: True # Number of time-gated arrests by categorical type
+    NumberOfArrestsON: True # Number of time-gated arrests by day of week
     SustainedRuleViolations: False  # Officer investigatable incident count to fake_today
     MeanHoursPerShift: False # Average number of hours per shift
     AllAllegations: False # Number of allegations made against an officer, time gated.
