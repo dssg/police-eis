@@ -163,6 +163,12 @@ dispatch_features:
     'AverageOfficerDispatchesWithin100mRadiusInPast6Hours': True
     'AverageOfficerDispatchesWithin100mRadiusInPast48Hours': True
     'AverageAgeOfRespondingOfficers': True
+    'HighestEducationLevelAmongRespondingOfficers': True
+    'LowestEducationLevelAmongRespondingOfficers': True
+    'ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher': True
+    'ProportionOfRespondingOfficersMale': True
+    'ProportionOfRespondingOfficersDivorcedOrSeparated': True
+    'ProportionOfRespondingOfficersMarried': True
 
 
 

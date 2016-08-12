@@ -1045,7 +1045,7 @@ class OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(abstract.Dispa
                         " GROUP BY 1,2 ) as e "
                         " GROUP BY 1 ").format(self.from_date, self.to_date)
 
-#TODO average age of responding officers
+#TODO fix to deal with officers with null/or extreme values
 class AverageAgeOfRespondingOfficers(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
@@ -1058,14 +1058,78 @@ class AverageAgeOfRespondingOfficers(abstract.DispatchFeature):
                     " FROM staging.dispatch_geo_time_officer as a "
                     " INNER JOIN staging.officers_hub as b "
                     " ON a.officer_id = b.officer_id "
-                    " WHERE a.dispatch_datetime between '2013-01-01' and '2013-02-01') as a "
+                    " WHERE a.dispatch_datetime between '{}' and '{}') as a "
                     " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 #TODO average time on force of responding officers
 
-#TODO proportion of responding officers with a bachelor's degree or higher
+class HighestEducationLevelAmongRespondingOfficers(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The highest education level attained amongst all the responding officers"
+     self.query = ( " SELECT "
+                    " dispatch_id, "
+                    " max(education) "
+                    " FROM (SELECT a.dispatch_id, a.officer_id, "
+                    " c.education_level_code as education "
+                    " FROM staging.dispatch_geo_time_officer as a "
+                    " INNER JOIN staging.officers_hub as b "
+                    " ON a.officer_id = b.officer_id "
+                    " INNER JOIN staging.officer_characteristics as c "
+                    " ON b.officer_id = c.officer_id "
+                    " WHERE a.dispatch_datetime between '{}' and '{}') as a "
+                    " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
-#TODO proportion of responding officers that are male
+class LowestEducationLevelAmongRespondingOfficers(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The lowest education level attained amongst all the responding officers"
+     self.query = ( " SELECT "
+                    " dispatch_id, "
+                    " min(education) "
+                    " FROM (SELECT a.dispatch_id, a.officer_id, "
+                    " c.education_level_code as education "
+                    " FROM staging.dispatch_geo_time_officer as a "
+                    " INNER JOIN staging.officers_hub as b "
+                    " ON a.officer_id = b.officer_id "
+                    " INNER JOIN staging.officer_characteristics as c "
+                    " ON b.officer_id = c.officer_id "
+                    " WHERE a.dispatch_datetime between '{}' and '{}') as a "
+                    " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
+class ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The proportion of the responding officers with a four-year college degree or higher"
+     self.query = ( " SELECT "
+                    " dispatch_id, "
+                    " sum(case when education >= 4 then 1 else 0 end)/(count(education)+0.00001) "
+                    " FROM (SELECT a.dispatch_id, a.officer_id, "
+                    " c.education_level_code as education "
+                    " FROM staging.dispatch_geo_time_officer as a "
+                    " INNER JOIN staging.officers_hub as b "
+                    " ON a.officer_id = b.officer_id "
+                    " INNER JOIN staging.officer_characteristics as c "
+                    " ON b.officer_id = c.officer_id "
+                    " WHERE a.dispatch_datetime between '{}' and '{}') as a "
+                    " GROUP BY dispatch_id").format(self.from_date, self.to_date)
+
+class ProportionOfRespondingOfficersMale(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The proportion of the responding officers whose gender is designated as male"
+     self.query = ( " SELECT "
+                    " dispatch_id, "
+                    " sum(case when gender = 1 then 1 else 0 end)/(count(gender)+0.00001)"
+                    " FROM (SELECT a.dispatch_id, a.officer_id, "
+                    " c.gender_code as gender "
+                    " FROM staging.dispatch_geo_time_officer as a "
+                    " INNER JOIN staging.officers_hub as b "
+                    " ON a.officer_id = b.officer_id "
+                    " INNER JOIN staging.officer_characteristics as c "
+                    " ON b.officer_id = c.officer_id "
+                    " WHERE a.dispatch_datetime between '{}' and '{}') as a "
+                    " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 #TODO proportion of responding officers that are african american
 
@@ -1073,9 +1137,39 @@ class AverageAgeOfRespondingOfficers(abstract.DispatchFeature):
 
 #TODO proportion of responding officers that are asian or other
 
-#TODO proportion of responding officers that are married
+class ProportionOfRespondingOfficersDivorcedOrSeparated(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The proportion of the responding officers whose marital status is listed as divorced or separated"
+     self.query = ( " SELECT "
+                    " dispatch_id, "
+                    " sum(case when status = 3 then 1 else 0 end)+sum(case when status = 4 then 1 else 0 end)/(count(status)+0.00001) "
+                    " FROM (SELECT a.dispatch_id, a.officer_id, "
+                    " c.marital_status_code as status "
+                    " FROM staging.dispatch_geo_time_officer as a "
+                    " INNER JOIN staging.officers_hub as b "
+                    " ON a.officer_id = b.officer_id "
+                    " INNER JOIN staging.officer_marital as c "
+                    " ON b.officer_id = c.officer_id "
+                    " WHERE a.dispatch_datetime between '{}' and '{}') as a "
+                    " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
-#TODO proportion of responding officers that are divorced
+class ProportionOfRespondingOfficersMarried(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The proportion of the responding officers whose marital status is married"
+     self.query = ( " SELECT "
+                    " dispatch_id, "
+                    " sum(case when status = 2 then 1 else 0 end)/(count(status)+0.00001) "
+                    " FROM (SELECT a.dispatch_id, a.officer_id, "
+                    " c.marital_status_code as status "
+                    " FROM staging.dispatch_geo_time_officer as a "
+                    " INNER JOIN staging.officers_hub as b "
+                    " ON a.officer_id = b.officer_id "
+                    " INNER JOIN staging.officer_marital as c "
+                    " ON b.officer_id = c.officer_id "
+                    " WHERE a.dispatch_datetime between '{}' and '{}') as a "
+                    " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 #TODO average travel time of responding officers in minutes
 

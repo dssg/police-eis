@@ -169,7 +169,13 @@ def lookup(feature, **kwargs):
                     'AverageOfficerDispatchesWithin100mRadiusInPastHour': dispatches.AverageOfficerDispatchesWithin100mRadiusInPastHour(**kwargs),
                     'AverageOfficerDispatchesWithin100mRadiusInPast6Hours': dispatches.AverageOfficerDispatchesWithin100mRadiusInPast6Hours(**kwargs),
                     'AverageOfficerDispatchesWithin100mRadiusInPast48Hours': dispatches.AverageOfficerDispatchesWithin100mRadiusInPast48Hours(**kwargs),
-                    'AverageAgeOfRespondingOfficers': dispatches.AverageAgeOfRespondingOfficers(**kwargs)
+                    'AverageAgeOfRespondingOfficers': dispatches.AverageAgeOfRespondingOfficers(**kwargs),
+                    'LowestEducationLevelAmongRespondingOfficers': dispatches.LowestEducationLevelAmongRespondingOfficers(**kwargs),
+                    'HighestEducationLevelAmongRespondingOfficers': dispatches.HighestEducationLevelAmongRespondingOfficers(**kwargs),
+                    'ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher': dispatches.ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher(**kwargs),
+                    'ProportionOfRespondingOfficersMale': dispatches.ProportionOfRespondingOfficersMale(**kwargs),
+                    'ProportionOfRespondingOfficersDivorcedOrSeparated': dispatches.ProportionOfRespondingOfficersDivorcedOrSeparated(**kwargs),
+                    'ProportionOfRespondingOfficersMarried': dispatches.ProportionOfRespondingOfficersMarried(**kwargs)
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
