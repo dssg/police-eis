@@ -1692,7 +1692,7 @@ class AvgOfficerDispatchesWithin100mRadiusInPastHour(abstract.DispatchFeature):
                     "      dispatch_id AS this_dispatch, officer_id AS this_officer, "
                     "      dispatch_location AS this_loc, dispatch_datetime AS this_datetime "
                     " FROM staging.dispatch_geo_time_officer "
-                    " WHERE dispatch_datetime BETWEEN '2013-01-01' AND '2013-02-01'), "
+                    " WHERE dispatch_datetime BETWEEN '{}' AND '{}'), "
                     " officer_time_restrained AS "
                     " (SELECT "
                     "      a.this_dispatch, a.this_officer, a.this_loc, a.this_datetime, "
