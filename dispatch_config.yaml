@@ -154,8 +154,15 @@ dispatch_features:
     ProportionOfPopulationDivorcedOrSeparatedInCT: True
     ProportionOfPopulationWithoutHealthInsuranceInCT: True
     ProportionOfWomenWhoGaveBirthInPast12MonthsInCT: True
-    DispatchesWithin1kmRadiusInPastHour: True
-    ArrestsWithin1kmRadiusInPast12Hours: True
+    'DispatchesWithin1kmRadiusInPast15Minutes': True
+    'DispatchesWithin1kmRadiusInPast30Minutes': True
+    'DispatchesWithin1kmRadiusInPast1Hour': True
+    'ArrestsWithin1kmRadiusInPast6Hours': True
+    'ArrestsWithin1kmRadiusInPast12Hours': True
+    'AvgOfficerDispatchesWithin100mRadiusInPastHour': True
+    'AvgOfficerDispatchesWithin100mRadiusInPast6Hours': True
+    'AvgOfficerDispatchesWithin100mRadiusInPast48Hours': True
+
 
 
 ########################

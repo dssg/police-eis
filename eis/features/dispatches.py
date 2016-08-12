@@ -1635,7 +1635,7 @@ class DispatchesWithin1kmRadiusInPast15Minutes(abstract.DispatchFeature):
 class DispatchesWithin1kmRadiusInPast30Minutes(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
-     self.description = "Number of dispatches within a 1 km radius within the past 15 minutes"
+     self.description = "Number of dispatches within a 1 km radius within the past 30 minutes"
      self.query = ( " WITH dispatches_to_include AS "
                     " (SELECT "
                     "      dispatch_id AS this_dispatch, dispatch_location AS this_loc, earliest_dispatch_datetime AS this_datetime "
@@ -1656,6 +1656,53 @@ class DispatchesWithin1kmRadiusInPast30Minutes(abstract.DispatchFeature):
                     " WHERE ST_DWithin(this_loc,  dispatch_location, 0.009) "
                     " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
 
+class DispatchesWithin1kmRadiusInPast1Hour(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Number of dispatches within a 1 km radius within the past 1 hour"
+     self.query = ( " WITH dispatches_to_include AS "
+                    " (SELECT "
+                    "      dispatch_id AS this_dispatch, dispatch_location AS this_loc, earliest_dispatch_datetime AS this_datetime "
+                    " FROM staging.dispatch_geo_time "
+                    " WHERE earliest_dispatch_datetime BETWEEN '{}' AND '{}'), "
+                    " time_restrained AS "
+                    " (SELECT "
+                    "      a.this_dispatch, a.this_loc, a.this_datetime, "
+                    "      b.dispatch_id, b.dispatch_location, b.earliest_dispatch_datetime "
+                    " FROM dispatches_to_include AS a "
+                    " INNER JOIN staging.dispatch_geo_time AS b "
+                    "      ON b.earliest_dispatch_datetime < a.this_datetime "
+                    "      AND b.earliest_dispatch_datetime >= a.this_datetime - interval '1 hour') "
+                    " SELECT "
+                    "     this_dispatch AS dispatch_id, "
+                    "     COUNT(dispatch_id) AS feature_column "
+                    " FROM time_restrained "
+                    " WHERE ST_DWithin(this_loc,  dispatch_location, 0.009) "
+                    " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
+
+class ArrestsWithin1kmRadiusInPast6Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Number of arrests within a 1 km radius within the past 6 hours"
+     self.query = ( " WITH dispatches_to_include AS "
+                    " (SELECT "
+                    "      dispatch_id AS this_dispatch, dispatch_location AS this_loc, earliest_dispatch_datetime AS this_datetime "
+                    " FROM staging.dispatch_geo_time "
+                    " WHERE earliest_dispatch_datetime BETWEEN '{}' AND '{}'), "
+                    " time_restrained AS "
+                    " (SELECT "
+                    "      a.this_dispatch, a.this_loc, a.this_datetime, "
+                    "      b.event_id, b.arrest_location, b.arrest_datetime "
+                    " FROM dispatches_to_include AS a "
+                    " INNER JOIN staging.arrests_geo_time AS b "
+                    "      ON b.arrest_datetime < a.this_datetime "
+                    "      AND b.arrest_datetime >= a.this_datetime - interval '6 hours') "
+                    " SELECT "
+                    "     this_dispatch AS dispatch_id, "
+                    "     COUNT(event_id) AS feature_column "
+                    " FROM time_restrained "
+                    " WHERE ST_DWithin(this_loc,  arrest_location, 0.009) "
+                    " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
 
 class ArrestsWithin1kmRadiusInPast12Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -1673,7 +1720,7 @@ class ArrestsWithin1kmRadiusInPast12Hours(abstract.DispatchFeature):
                     " FROM dispatches_to_include AS a "
                     " INNER JOIN staging.arrests_geo_time AS b "
                     "      ON b.arrest_datetime < a.this_datetime "
-                    "      AND b.arrest_datetime >= a.this_datetime - interval '15 minutes') "
+                    "      AND b.arrest_datetime >= a.this_datetime - interval '12 hours') "
                     " SELECT "
                     "     this_dispatch AS dispatch_id, "
                     "     COUNT(event_id) AS feature_column "
@@ -1683,7 +1730,7 @@ class ArrestsWithin1kmRadiusInPast12Hours(abstract.DispatchFeature):
 
 # Officer-spatio-temporal features
 
-class AvgOfficerDispatchesWithin100mRadiusInPastHour(abstract.DispatchFeature):
+class AvgOfficerDispatchesWithin100mRadiusInPast1Hour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Average number of times the officers on this dispatch have attended other dispatches within 100m in the past hour"
@@ -1702,6 +1749,72 @@ class AvgOfficerDispatchesWithin100mRadiusInPastHour(abstract.DispatchFeature):
                     "      ON b.officer_id = a.this_officer "
                     "      AND b.dispatch_datetime < a.this_datetime "
                     "      AND b.dispatch_datetime >= a.this_datetime - INTERVAL '1 hour'), "
+                    " officers_grouped AS "
+                    " (SELECT  "
+                    "      this_dispatch, "
+                    "      this_officer, "
+                    "      COUNT(officer_id) AS dispatch_count "
+                    " FROM officer_time_restrained "
+                    " WHERE ST_DWithin(this_loc, dispatch_location, 0.0009) "
+                    " GROUP BY this_dispatch, this_officer) "
+                    " SELECT "
+                    " this_dispatch AS dispatch_id, "
+                    " AVG(dispatch_count) AS feature_column "
+                    " FROM officers_grouped "
+                    " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
+
+class AvgOfficerDispatchesWithin100mRadiusInPast6Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Average number of times the officers on this dispatch have attended other dispatches within 100m in the past 6 hours"
+     self.query = ( " WITH dispatches_to_include AS "
+                    " (SELECT "
+                    "      dispatch_id AS this_dispatch, officer_id AS this_officer, "
+                    "      dispatch_location AS this_loc, dispatch_datetime AS this_datetime "
+                    " FROM staging.dispatch_geo_time_officer "
+                    " WHERE dispatch_datetime BETWEEN '{}' AND '{}'), "
+                    " officer_time_restrained AS "
+                    " (SELECT "
+                    "      a.this_dispatch, a.this_officer, a.this_loc, a.this_datetime, "
+                    "      b.dispatch_id, b.officer_id, b.dispatch_location, b.dispatch_datetime "
+                    " FROM dispatches_to_include AS a "
+                    " INNER JOIN staging.dispatch_geo_time_officer AS b "
+                    "      ON b.officer_id = a.this_officer "
+                    "      AND b.dispatch_datetime < a.this_datetime "
+                    "      AND b.dispatch_datetime >= a.this_datetime - INTERVAL '6 hours'), "
+                    " officers_grouped AS "
+                    " (SELECT  "
+                    "      this_dispatch, "
+                    "      this_officer, "
+                    "      COUNT(officer_id) AS dispatch_count "
+                    " FROM officer_time_restrained "
+                    " WHERE ST_DWithin(this_loc, dispatch_location, 0.0009) "
+                    " GROUP BY this_dispatch, this_officer) "
+                    " SELECT "
+                    " this_dispatch AS dispatch_id, "
+                    " AVG(dispatch_count) AS feature_column "
+                    " FROM officers_grouped "
+                    " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
+
+class AvgOfficerDispatchesWithin100mRadiusInPast48Hours(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Average number of times the officers on this dispatch have attended other dispatches within 100m in the past 48 hours"
+     self.query = ( " WITH dispatches_to_include AS "
+                    " (SELECT "
+                    "      dispatch_id AS this_dispatch, officer_id AS this_officer, "
+                    "      dispatch_location AS this_loc, dispatch_datetime AS this_datetime "
+                    " FROM staging.dispatch_geo_time_officer "
+                    " WHERE dispatch_datetime BETWEEN '{}' AND '{}'), "
+                    " officer_time_restrained AS "
+                    " (SELECT "
+                    "      a.this_dispatch, a.this_officer, a.this_loc, a.this_datetime, "
+                    "      b.dispatch_id, b.officer_id, b.dispatch_location, b.dispatch_datetime "
+                    " FROM dispatches_to_include AS a "
+                    " INNER JOIN staging.dispatch_geo_time_officer AS b "
+                    "      ON b.officer_id = a.this_officer "
+                    "      AND b.dispatch_datetime < a.this_datetime "
+                    "      AND b.dispatch_datetime >= a.this_datetime - INTERVAL '48 hours'), "
                     " officers_grouped AS "
                     " (SELECT  "
                     "      this_dispatch, "
