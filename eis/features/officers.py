@@ -306,6 +306,40 @@ class NumberOfArrestsON(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+class NumberOfSuspectsArrestedOfRaceType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "unknown",
+                            1: "black",
+                            2: "white",
+                            3: "american_indian",
+                            4: "asian",
+                            5: "pacific_islander",
+                            6: "other",
+                            7: "mixed" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of suspects arrested by race type, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.arrests "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON arrests.event_id = events_hub.event_id "
+                      "         WHERE arrests.suspect_race_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      # the following line must be removed when not-sworn officers are removed. GIANT HACK
+                      "         AND officer_id IS NOT null "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
 class MandatoryCounsellingEvents(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
