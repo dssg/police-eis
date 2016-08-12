@@ -1046,6 +1046,20 @@ class OfficersDispatchedAverageUnsustainedAllegationsInPast1Month(abstract.Dispa
                         " GROUP BY 1 ").format(self.from_date, self.to_date)
 
 #TODO average age of responding officers
+class AverageAgeOfRespondingOfficers(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "The average age of the officers dispatched"
+     self.query = ( " SELECT "
+                    " dispatch_id, "
+                    " avg(age_in_years) "
+                    " FROM (SELECT a.dispatch_id, a.officer_id, "
+                    " round(extract(days from dispatch_datetime - date_of_birth)/365) as age_in_years "
+                    " FROM staging.dispatch_geo_time_officer as a "
+                    " INNER JOIN staging.officers_hub as b "
+                    " ON a.officer_id = b.officer_id "
+                    " WHERE a.dispatch_datetime between '2013-01-01' and '2013-02-01') as a "
+                    " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 #TODO average time on force of responding officers
 
@@ -1730,7 +1744,7 @@ class ArrestsWithin1kmRadiusInPast12Hours(abstract.DispatchFeature):
 
 # Officer-spatio-temporal features
 
-class AvgOfficerDispatchesWithin100mRadiusInPast1Hour(abstract.DispatchFeature):
+class AverageOfficerDispatchesWithin100mRadiusInPast1Hour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Average number of times the officers on this dispatch have attended other dispatches within 100m in the past hour"
@@ -1763,7 +1777,7 @@ class AvgOfficerDispatchesWithin100mRadiusInPast1Hour(abstract.DispatchFeature):
                     " FROM officers_grouped "
                     " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
 
-class AvgOfficerDispatchesWithin100mRadiusInPast6Hours(abstract.DispatchFeature):
+class AverageOfficerDispatchesWithin100mRadiusInPast6Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Average number of times the officers on this dispatch have attended other dispatches within 100m in the past 6 hours"
@@ -1796,7 +1810,7 @@ class AvgOfficerDispatchesWithin100mRadiusInPast6Hours(abstract.DispatchFeature)
                     " FROM officers_grouped "
                     " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
 
-class AvgOfficerDispatchesWithin100mRadiusInPast48Hours(abstract.DispatchFeature):
+class AverageOfficerDispatchesWithin100mRadiusInPast48Hours(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
      self.description = "Average number of times the officers on this dispatch have attended other dispatches within 100m in the past 48 hours"

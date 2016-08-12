@@ -159,9 +159,11 @@ dispatch_features:
     'DispatchesWithin1kmRadiusInPast1Hour': True
     'ArrestsWithin1kmRadiusInPast6Hours': True
     'ArrestsWithin1kmRadiusInPast12Hours': True
-    'AvgOfficerDispatchesWithin100mRadiusInPastHour': True
-    'AvgOfficerDispatchesWithin100mRadiusInPast6Hours': True
-    'AvgOfficerDispatchesWithin100mRadiusInPast48Hours': True
+    'AverageOfficerDispatchesWithin100mRadiusInPastHour': True
+    'AverageOfficerDispatchesWithin100mRadiusInPast6Hours': True
+    'AverageOfficerDispatchesWithin100mRadiusInPast48Hours': True
+    'AverageAgeOfRespondingOfficers': True
+
 
 
 

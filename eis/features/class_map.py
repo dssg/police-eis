@@ -166,9 +166,10 @@ def lookup(feature, **kwargs):
                     'DispatchesWithin1kmRadiusInPast1Hour': dispatches.DispatchesWithin1kmRadiusInPast1Hour(**kwargs),
                     'ArrestsWithin1kmRadiusInPast6Hours': dispatches.ArrestsWithin1kmRadiusInPast6Hours(**kwargs),
                     'ArrestsWithin1kmRadiusInPast12Hours': dispatches.ArrestsWithin1kmRadiusInPast12Hours(**kwargs),
-                    'AvgOfficerDispatchesWithin100mRadiusInPastHour': dispatches.AvgOfficerDispatchesWithin100mRadiusInPastHour(**kwargs),
-                    'AvgOfficerDispatchesWithin100mRadiusInPast6Hours': dispatches.AvgOfficerDispatchesWithin100mRadiusInPast6Hours(**kwargs),
-                    'AvgOfficerDispatchesWithin100mRadiusInPast48Hours': dispatches.AvgOfficerDispatchesWithin100mRadiusInPast48Hours(**kwargs)
+                    'AverageOfficerDispatchesWithin100mRadiusInPastHour': dispatches.AverageOfficerDispatchesWithin100mRadiusInPastHour(**kwargs),
+                    'AverageOfficerDispatchesWithin100mRadiusInPast6Hours': dispatches.AverageOfficerDispatchesWithin100mRadiusInPast6Hours(**kwargs),
+                    'AverageOfficerDispatchesWithin100mRadiusInPast48Hours': dispatches.AverageOfficerDispatchesWithin100mRadiusInPast48Hours(**kwargs),
+                    'AverageAgeOfRespondingOfficers': dispatches.AverageAgeOfRespondingOfficers(**kwargs)
                   }
 
     #dict_lookup = {'dummyfeature': officers.dummyfeature(**kwargs),
@@ -188,7 +189,7 @@ def lookup(feature, **kwargs):
     #                '1yrNPCarrests': officers.NPCArrests(**kwargs),
     #                'careerdiscarrests': officers.DiscArrests(**kwargs),
     #                '1yrdiscarrests': officers.DiscArrests(**kwargs),
-    #                'arresttod': officers.AvgTimeOfDayArrests(**kwargs),
+    #                'arresttod': officers.AverageTimeOfDayArrests(**kwargs),
     #                'arresteeage': officers.AvgAgeArrests(**kwargs),
     #                'disconlyarrests': officers.DiscOnlyArrestsCount(**kwargs),
     #                'arrestratedelta': officers.ArrestRateDelta(**kwargs),
