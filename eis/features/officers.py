@@ -335,6 +335,22 @@ class OfficerGender(abstract.CategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+class OfficerAge(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer age in years")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.age "
+                      "FROM (   SELECT officer_id, extract(day from '{2}'::timestamp - date_of_birth)/365 AS age "
+                      "         FROM staging.officers_hub"
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
 class OfficerRace(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "unknown",
