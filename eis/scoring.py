@@ -38,27 +38,26 @@ def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_prop
 
     """
 
-    #Get Binary Predictions at Threshold
-    cutoff_index = int(len(test_predictions) * x_proportion)
-    cutoff_index = min(cutoff_index, len(test_predictions) - 1)
+    # sort officers label list by risk score.
+    sorted_officer_labels = [ x for (y,x) in sorted( zip( test_predictions, test_labels ), reverse=True ) ] 
 
-    sorted_by_probability = np.sort(test_predictions)[::-1]
-    cutoff_probability = sorted_by_probability[cutoff_index]
-    test_predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
+    # get index of officers to intervene on.
+    intervene_on                 = int( len(test_predictions) * x_proportion )
+    is_intervened                = [0]*len(sorted_officer_labels)
+    is_intervened[:intervene_on] = [1]*(intervene_on)
 
-    #Compute true and false positives and negatives.
-    true_positive  = [ 1 if x==1 and y==1 else 0 for (x,y) in zip(test_predictions_binary, test_labels) ]
-    false_positive = [ 1 if x==1 and y==0 else 0 for (x,y) in zip(test_predictions_binary, test_labels) ]
-    true_negative  = [ 1 if x==0 and y==0 else 0 for (x,y) in zip(test_predictions_binary, test_labels) ]
-    false_negative = [ 1 if x==0 and y==1 else 0 for (x,y) in zip(test_predictions_binary, test_labels) ]
+    # compute true and false positives and negatives.
+    true_positive  = [ 1 if x==1 and y==1 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    false_positive = [ 1 if x==1 and y==0 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    true_negative  = [ 1 if x==0 and y==0 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    false_negative = [ 1 if x==0 and y==1 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
 
     TP = np.sum( true_positive )
     TN = np.sum( true_negative )
     FP = np.sum( false_positive )
     FN = np.sum( false_negative )
 
-
-    #Return Requested Metric
+    # return Requested Metric
     if metric=='TP':
         return TP
     elif metric=='TN':
@@ -69,8 +68,6 @@ def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_prop
         return FN
     else:
         pass
-
-
 
 def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01, return_cutoff=False):
     """Return the precision at a specified percent cutoff
