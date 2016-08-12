@@ -1656,5 +1656,37 @@ class ArrestsWithin1kmRadiusInPast12Hours(abstract.DispatchFeature):
                     " WHERE ST_DWithin(this_loc,  arrest_location, 0.009) "
                     " GROUP BY this_dispatch ").format(self.from_date, self.to_date)
 
+# Officer-spatio-temporal features
 
-
+class AvgOfficerDispatchesWithin100mRadiusInPastHour(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+     abstract.DispatchFeature.__init__(self, **kwargs)
+     self.description = "Average number of times the officers on this dispatch have attended other dispatches within 100m in the past hour"
+     self.query = ( " WITH dispatches_to_include AS "
+                    " (SELECT "
+                    "      dispatch_id AS this_dispatch, officer_id AS this_officer, "
+                    "      dispatch_location AS this_loc, dispatch_datetime AS this_datetime "
+                    " FROM staging.dispatch_geo_time_officer "
+                    " WHERE dispatch_datetime BETWEEN '2013-01-01' AND '2013-02-01'), "
+                    " officer_time_restrained AS "
+                    " (SELECT "
+                    "      a.this_dispatch, a.this_officer, a.this_loc, a.this_datetime, "
+                    "      b.dispatch_id, b.officer_id, b.dispatch_location, b.dispatch_datetime "
+                    " FROM dispatches_to_include AS a "
+                    " INNER JOIN staging.dispatch_geo_time_officer AS b "
+                    "      ON b.officer_id = a.this_officer "
+                    "      AND b.dispatch_datetime < a.this_datetime "
+                    "      AND b.dispatch_datetime >= a.this_datetime - INTERVAL '1 hour'), "
+                    " officers_grouped AS "
+                    " (SELECT  "
+                    "      this_dispatch, "
+                    "      this_officer, "
+                    "      COUNT(officer_id) AS dispatch_count "
+                    " FROM officer_time_restrained "
+                    " WHERE ST_DWithin(this_loc, dispatch_location, 0.0009) "
+                    " GROUP BY this_dispatch, this_officer) "
+                    " SELECT "
+                    " this_dispatch AS dispatch_id, "
+                    " AVG(dispatch_count) AS feature_column "
+                    " FROM officers_grouped "
+                    " GROUP BY this_dispatch ").format(self.from_date, self.to_date)

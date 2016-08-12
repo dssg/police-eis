@@ -130,7 +130,8 @@ dispatch_features:
     PercentageHispanicInCT: False
     PercentageForeignBornInCT: False
     DispatchesWithin1kmRadiusInPast15Minutes: False
-    ArrestsWithin1kmRadiusInPast12Hours: True
+    ArrestsWithin1kmRadiusInPast12Hours: False
+    AvgOfficerDispatchesWithin100mRadiusInPastHour: True
 
 
 ########################
