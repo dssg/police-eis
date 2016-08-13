@@ -14,7 +14,9 @@ except:
 
 time_format = "%Y-%m-%d %X"
 
-### LABELS
+################
+#    LABELS    #
+################
 
 class LabelSustained(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -86,11 +88,9 @@ class LabelPreventable(abstract.DispatchFeature):
                         "GROUP BY 1 "
                         .format(self.from_date, self.to_date))
 
-
-### FEATURES
-
-#TODO
-# CODE BELOW IS QUERYING NON-STAGING TABLES, FIX THIS ASAP!
+############################
+#   TIME OF DAY FEATURES   #
+############################
 
 class DispatchMinute(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -166,6 +166,9 @@ class DispatchYear(abstract.DispatchFeature):
                         "   staging.events_hub where event_datetime between '{}' and '{}' and dispatch_id is not null "
                         "GROUP BY 1 ").format(self.from_date, self.to_date)
 
+#########################################
+#   DISPATCH CHARACTERISTICS FEATURES   # i.e. what priority/type is the dispatch?
+#########################################
 
 class OriginalPriority(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -182,7 +185,6 @@ class OriginalPriority(abstract.DispatchFeature):
                         "   inner join staging.dispatches as dispatches "
                         "   on events_hub.event_id = dispatches.event_id "
                         "GROUP BY 1").format(self.from_date, self.to_date)
-
 
 class DispatchType(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -230,6 +232,58 @@ class NumberOfUnitsAssigned(abstract.DispatchFeature):
                         "   inner join staging.dispatches as dispatches "
                         "   on events_hub.event_id = dispatches.event_id "
                         "GROUP BY 1").format(self.from_date, self.to_date)
+
+class AverageOfficerTravelTime(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Average amount of time it takes the attending officers to arrive"
+        self.query = (" SELECT "
+                          " dispatch_id, "
+                          " avg(travel_time_minutes) AS feature_column "
+                      " FROM staging.events_hub AS a "
+                      " INNER JOIN staging.dispatches AS b "
+                      " ON a.event_id = b.event_id "
+                      " WHERE a.event_datetime BETWEEN '{}' AND '{}' "
+                      " AND a.event_type_code = 5 "
+                      " AND travel_time_minutes < 60 "
+                      " GROUP BY dispatch_id ").format(self.from_date, self.to_date)
+
+class MinimumOfficerTravelTime(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Minimum travel time out of the attending officers"
+        self.query = (" SELECT "
+                          " dispatch_id, "
+                          " min(travel_time_minutes) AS feature_column "
+                      " FROM staging.events_hub AS a "
+                      " INNER JOIN staging.dispatches AS b "
+                      " ON a.event_id = b.event_id "
+                      " WHERE a.event_datetime BETWEEN '{}' AND '{}' "
+                      " AND a.event_type_code = 5 "
+                      " AND travel_time_minutes < 60 "
+                      " GROUP BY dispatch_id ").format(self.from_date, self.to_date)
+
+class MaximumOfficerTravelTime(abstract.DispatchFeature):
+    def __init__(self, **kwargs):
+        abstract.DispatchFeature.__init__(self, **kwargs)
+        self.description = "Minimum travel time out of the attending officers"
+        self.query = (" SELECT "
+                          " dispatch_id, "
+                          " max(travel_time_minutes) AS feature_column "
+                      " FROM staging.events_hub AS a "
+                      " INNER JOIN staging.dispatches AS b "
+                      " ON a.event_id = b.event_id "
+                      " WHERE a.event_datetime BETWEEN '{}' AND '{}' "
+                      " AND a.event_type_code = 5 "
+                      " AND travel_time_minutes < 60 "
+                      " GROUP BY dispatch_id ").format(self.from_date, self.to_date)
+
+# TODO - OI vs CI (dispatch_category)
+
+################################
+#   GENERAL HISTORY FEATURES   #
+#           ARRESTS            #    # i.e. what has been happening in Charlotte over past few hours?
+################################
 
 class ArrestsInPast1Hour(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -479,7 +533,13 @@ class FelonyArrestsInPastWeek(abstract.DispatchFeature):
                             " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
 
-#TEMPORAL Features
+# TODO - all the other types of arrests we have
+
+
+################################
+#   GENERAL HISTORY FEATURES   #
+#           DISPATCHES         #    # i.e. what has been happening in Charlotte over past few hours?
+################################
 #Dispatch time features - small time windows
 class OfficersDispatchedInPast1Minute(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -558,7 +618,10 @@ class OfficersDispatchedInPast1Hour(abstract.DispatchFeature):
                             " FROM recent_events a "
                             " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
-#DISPATCHED OFFICER SPECIFIC temporal
+##################################
+#   DISPATCHED OFFICER HISTORY   #
+##################################
+
 class OfficersDispatchedAverageUnjustifiedIncidentsInPastYear(abstract.DispatchFeature):
     def __init__(self, **kwargs):
      abstract.DispatchFeature.__init__(self, **kwargs)
@@ -622,8 +685,6 @@ class OfficersDispatchedAverageJustifiedIncidentsInPastYear(abstract.DispatchFea
                     "     AVG(allegations) AS feature_column "
                     " FROM dispatch_officer_sums "
                     " GROUP BY 1 ").format(self.from_date, self.to_date)
-
-
 
 class OfficersDispatchedAveragePreventableIncidentsInPastYear(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -1330,7 +1391,6 @@ class ProportionOfRespondingOfficersMarried(abstract.DispatchFeature):
                     " WHERE a.dispatch_datetime between '{}' and '{}') as a "
                     " GROUP BY dispatch_id").format(self.from_date, self.to_date)
 
-#TODO average travel time of responding officers in minutes
 
 #TODO time difference between first and last arrival at scene
 
