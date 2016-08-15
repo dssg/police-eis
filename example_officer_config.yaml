@@ -115,6 +115,8 @@ officer_features:
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated
     ComplaintToArrestRatio: False # The ratio of complaints per arrest
     ComplaintsPerHourWorked: False # The rate of complaints per hour worked
+    DaysSinceLastAllegation: True # Ther number of days since the last allegation was made against the officer. 
+    DaysSinceLastSustainedAllegation: True # The number of days since the last sustained allegation was made against the officer.
 
 ########################
 # Model selection      #
