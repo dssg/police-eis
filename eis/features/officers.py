@@ -919,3 +919,39 @@ class ForUnjustUOFNumInterventionsOfType(abstract.TimeGatedCategoricalOfficerFea
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
+
+class ForAnyUOFNumInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "Unknown",
+                            1: "Counseling",
+                            2: "Training",
+                            3: "Suspension",
+                            4: "Termination",
+                            5: "Reprimand",
+                            6: "Loss of vacation",
+                            7: "No intervention required" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of interventions of type X following any use of force, time gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) FROM "
+                              "( SELECT incidents.event_id, intervention_type_code  "
+                              "	FROM staging.use_of_force "
+                              "	INNER JOIN staging.incidents "
+                              "	ON use_of_force.event_id = incidents.event_id ) "
+                      "AS any_force "
+                      "INNER JOIN staging.events_hub "
+                      "ON any_force.event_id=events_hub.event_id "
+                      "         WHERE any_force.intervention_type_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
