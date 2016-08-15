@@ -91,11 +91,11 @@ officer_features:
     DivorceCount: False # Number of total divorces in this officer's past.
     MilesFromPost: False # Number of miles to post.
     OfficerGender: False # Officer gender code.
-    OfficerRace: True # Officer race code.
+    OfficerRace: False # Officer race code.
     OfficerEthnicity: False # Officer ethnicity code.
     OfficerAge: True # Age of officer in years.
     OfficerRank: True # Officer rank.
-    OfficerEducation: True # Officer education level.
+    OfficerEducation: False # Officer education level.
     ArrestCount: True # Number of arrests made by an officer, time gated.
     IncidentCount: False # Officer investigatable incident count to fake_today.
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
@@ -111,8 +111,10 @@ officer_features:
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated.
     ComplaintToArrestRatio: False # The ratio of complaints per arrest.
     ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
-    NumberOfUsesOfForceOfType: True # The number of uses of force by type of force over time-gated periods.
-    NumberOfUnjustifiedUsesOfForceOfType: True # The number of unjustified uses of force by time over time-gated periods.
+    NumOfUsesOfForceOfType: False # The number of uses of force by type of force over time-gated periods.
+    NumOfUnjustifiedUsesOfForceOfType: False # The number of unjustified uses of force by time over time-gated periods.
+    ForUnjustUOFNumInterventionsOfType: True #Number of interventions of type X following an unjustified force, time gated.
+
 
 ########################
 # Model selection      #
