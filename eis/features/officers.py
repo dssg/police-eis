@@ -789,7 +789,20 @@ class ComplaintToArrestRatio(abstract.TimeGatedOfficerFeature):
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
-
+class OfficerMilitary(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Whether or not officer has had military experience")
+        self.num_features = 1
+        self.name_of_features = ["OfficerMilitary"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.military_service_flag "
+                      "FROM (   SELECT officer_id, military_service_flag::int "
+                      "         FROM staging.officer_characteristics "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
 
 class ComplaintsPerHourWorked(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
