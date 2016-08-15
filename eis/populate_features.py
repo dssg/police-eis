@@ -151,6 +151,10 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
                     config['raw_data_to_date']))
     engine.execute(query)
 
+    # Create an index on the dispatch_id column to speed up joins
+    log.info("Creating index on dispatch_id column")
+    indexing_query = ("CREATE INDEX ON features.{} (dispatch_id)").format(table_name)
+    engine.execute(indexing_query)
 
 def populate_dispatch_features_table(config, table_name):
     """Calculate all the feature values and store them in the features table in the database"""
