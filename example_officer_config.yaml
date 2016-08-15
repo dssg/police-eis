@@ -152,6 +152,31 @@ officer_features:
 #    neighborhood:
 
 
+# empty feature groups break the code, so for now, we're
+# commenting out all feature groups that have no
+# features defined.
+#
+#    ia:
+#
+#    unit_div:
+#
+#    citations:
+#
+#    incidents:
+#
+#    field_interviews:
+#
+#    cad:
+#
+#    training:
+#
+#    traffic_stops:
+#
+#    eis:
+#
+#    neighborhood:
+
+
 ########################
 # Model selection      #
 ########################
