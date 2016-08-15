@@ -30,18 +30,18 @@ os.chdir(directory)
 # NOTE: postgres schema creation statement is excluded here
 sql_files = os.listdir(directory)
 table_sql_files = [filename for filename in sql_files if ('CREATE' in filename and 'SCHEMA' not in filename)]
-schema_sql_file = [filename for filename in sql_files if ('CREATE' in filename and 'SCHEMA' in filename)]
 
-# run the CREATE-SCHEMA-<schema name>.sql files for the hubs through psql.
-for sql_file in schema_sql_file:
-    bash_cmd = """psql -f {}""".format(sql_file)
-    print(bash_cmd)
-    subprocess.call(bash_cmd, shell=True)
-
-# Since the hubs will drop all dependent tables via CASCADE because of foreign primary key relations,
-# drop them first.
-#
+# Since the hubs and the addresses tables will drop all dependent tables via CASCADE 
+# because of foreign primary key relations, drop them first. Also 
 # run each CREATE-<table name>.sql file through psql for all of the hubs.
+
+# Addresses table
+table_sql_files.remove('CREATE-staging-addresses.sql')
+bash_cmd = """psql -f  CREATE-staging-addresses.sql"""
+print(bash_cmd)
+subprocess.call(bash_cmd, shell=True)
+
+# Hub tables
 for sql_file in [ filename for filename in table_sql_files if ('hub' in filename)]:
     bash_cmd = """psql -f {}""".format(sql_file)
     print(bash_cmd)
