@@ -111,10 +111,15 @@ officer_features:
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated.
     ComplaintToArrestRatio: False # The ratio of complaints per arrest.
     ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
+    UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
     NumOfUsesOfForceOfType: False # The number of uses of force by type of force over time-gated periods.
     NumOfUnjustifiedUsesOfForceOfType: False # The number of unjustified uses of force by time over time-gated periods.
-    ForUnjustUOFNumInterventionsOfType: True #Number of interventions of type X following an unjustified force, time gated.
-
+    ForUnjustUOFNumInterventionsOfType: False #Number of interventions of type X following an unjustified force, time gated.
+    ForAnyUOFNumInterventionsOfType: False #Number of interventions of type X following any use of force, time gated.
+    CountUOFwithSuspectInjury: False #Number of uses of force by whether the suspect was injured, time gated
+    CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
+    SuspectInjuryToUOFRatio: True #Ratio of suspect injuries to uses of force that an officer has, time gated.
+    ResistingArrestToUOFRatio: True #Ratio of resisting arrest to uses of force that an officer has, time gated.
 
 ########################
 # Model selection      #
