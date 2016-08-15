@@ -822,7 +822,7 @@ class ComplaintsPerHourWorked(abstract.TimeGatedOfficerFeature):
 
 class NumberOfUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { 0: "Taser both dart and stun",
+        self.categories = { 0: "Taser dart or stun",
                             1: "Firearm",
                             2: "Canine",
                             3: "Pepper spray",
@@ -836,6 +836,40 @@ class NumberOfUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         INNER JOIN staging.events_hub "
                       "         ON use_of_force.event_id = events_hub.event_id "
                       "         WHERE staging.use_of_force.use_of_force_type_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumberOfUnjustifiedUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "Taser dart or stun",
+                            1: "Firearm",
+                            2: "Canine",
+                            3: "Pepper spray",
+                            4: "Any other use of force" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of uses of unjustified force by type, time gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) FROM "
+                              "( SELECT incidents.event_id, use_of_force_type_code  "
+                              "	FROM staging.use_of_force "
+                              "	INNER JOIN staging.incidents "
+                              "	ON use_of_force.event_id = incidents.event_id  "
+                              "	WHERE number_of_unjustified_allegations >0 ) "
+                      "AS unjustified_force "
+                      "INNER JOIN staging.events_hub "
+                      "ON unjustified_force.event_id=events_hub.event_id "
+                      "         WHERE unjustified_force.use_of_force_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
