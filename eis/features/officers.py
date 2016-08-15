@@ -849,6 +849,32 @@ class NumOfUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+class CountUOFwithSuspectInjury(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { "false": "False no suspect injured",
+                            "true": "True suspect injured" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of uses of force by whether the suspect was injured, time gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.use_of_force "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON use_of_force.event_id = events_hub.event_id "
+                      "         WHERE staging.use_of_force.suspect_injury is {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
 class NumOfUnjustifiedUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "Taser dart or stun",
