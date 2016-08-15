@@ -113,11 +113,11 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
 
     # append data into predictions table. there is probably a faster way to do this than put it into a
     # dataframe and then use .to_sql but this works for now.
-    dataframe_for_insert = pd.DataFrame( {  "model_id": this_model_id, 
+    dataframe_for_insert = pd.DataFrame( {  "model_id": this_model_id,
                                             "unit_id": unit_id_test,
                                             "unit_score": unit_predictions,
                                             "label_value": unit_labels } )
-                                            
+
     if store_as_csv:
         # hack-y: much faster to write to csv, then read csv with psql than to write straight to database from python
         csv_filepath = "{}/{}_{}.csv".format('results', 'dispatch_results', timestamp)
@@ -377,7 +377,7 @@ class FeatureLoader():
 
         Inputs:
         officer_labels: dict of bools representing which event types are considered adverse for
-                        the purposes of prediction, and also what mask to apply to officers 
+                        the purposes of prediction, and also what mask to apply to officers
                         with respect to whether or not they are active.
         ids_to_label: (Optional) a list of officer_ids to return labels for. Note that if a
                       given officer_id is not included in [start_date, end_date] it will
@@ -416,10 +416,10 @@ class FeatureLoader():
                                           self.end_date))
 
         # create the query to find all officer ID's associated with an adverse incident.
-        query_base = (  "SELECT officer_id " 
+        query_base = (  "SELECT officer_id "
                         "FROM staging.events_hub "
-                        "JOIN staging.incidents " 
-                        "ON staging.events_hub.event_id = staging.incidents.event_id " ) 
+                        "JOIN staging.incidents "
+                        "ON staging.events_hub.event_id = staging.incidents.event_id " )
 
         # create the query to mask in time.
         query_time =  (  "WHERE events_hub.event_datetime >= '{}'::date "
@@ -427,55 +427,68 @@ class FeatureLoader():
                          .format(    self.start_date,
                                     self.end_date ) )
 
-        # set the individual queries for each type of label.            
+        # set the individual queries for each type of label.
         query_sustained = "final_ruling_code in ( 1, 4, 5 ) "
+        query_sustained_and_unknown_outcome = "final_ruling_code in (0, 1, 4, 5 ) "
         query_all       = "number_of_allegations > 0 "
         query_major     = "grouped_incident_type_code in ( 0, 2, 3, 4, 8, 9, 10, 11, 17, 20 ) "
         query_minor     = "grouped_incident_type_code in ( 1, 6, 16, 18, 12, 7, 14 ) "
-        query_force     = "grouped_incident_type_code = 20 " 
+        query_force     = "grouped_incident_type_code = 20 "
         query_unknown   = "grouped_incident_type_code = 19 "
 
         # construct the query to get officer ID's with adverse incidents as defined by the user.
-        queries_for_adverse = [] 
+        queries_for_adverse = []
         if officer_labels["ForceAllegations"]:
-            queries_for_adverse.append( query_force  ) 
+            queries_for_adverse.append( query_force  )
 
         if officer_labels["SustainedForceAllegations"]:
-            queries_for_adverse.append( query_force + " AND " +  query_sustained ) 
+            queries_for_adverse.append( query_force + " AND " +  query_sustained )
 
         if officer_labels["AllAllegations"]:
-            queries_for_advsere.append( query_all ) 
+            queries_for_advsere.append( query_all )
 
         if officer_labels["SustainedAllegations"]:
-            queries_for_adverse.append( query_sustained ) 
+            queries_for_adverse.append( query_sustained )
+
+        if officer_labels["SustainedandUnknownOutcomeAllegations"]:
+            queries_for_adverse.append( query_sustained_and_unknown_outcome )
 
         if officer_labels["MajorAllegations"]:
-            queries_for_adverse.append( query_major ) 
-        
+            queries_for_adverse.append( query_major )
+
         if officer_labels["SustainedMajorAllegations"]:
-            queries_for_adverse.append( query_major + " AND " + query_sustained ) 
+            queries_for_adverse.append( query_major + " AND " + query_sustained )
+
+        if officer_labels["SustainedUnknownMajorAllegations"]:
+            queries_for_adverse.append( query_major + " AND " + query_sustained_and_unknown_outcome )
 
         if officer_labels["MinorAllegations"]:
-            queries_for_adverse.append( query_minor ) 
-        
+            queries_for_adverse.append( query_minor )
+
         if officer_labels["SustainedMinorAllegations"]:
-            queries_for_adverse.append( query_minor + " AND " + query_sustained ) 
+            queries_for_adverse.append( query_minor + " AND " + query_sustained )
+
+        if officer_labels["SustainedUnkownMinorAllegations"]:
+            queries_for_adverse.append( query_minor + " AND " + query_sustained_and_unknown_outcome )
 
         if officer_labels["UnknownAllegations"]:
-            queries_for_adverse.append( query_unknown ) 
-        
+            queries_for_adverse.append( query_unknown )
+
         if officer_labels["SustainedUnknownAllegations"]:
-            queries_for_adverse.append( query_unknown + " AND " + query_sustained ) 
+            queries_for_adverse.append( query_unknown + " AND " + query_sustained )
+
+        if officer_labels["SustainedUnknownUnknownAllegations"]:
+            queries_for_adverse.append( query_unknown + " AND " + query_sustained_and_unknown_outcome )
 
         # join together the adverse queries into a single mask.
-        if len(queries_for_adverse) > 0: 
-            query_adverse = " ( " + " ) \n OR ( ".join(queries_for_adverse) + " ) " 
+        if len(queries_for_adverse) > 0:
+            query_adverse = " ( " + " ) \n OR ( ".join(queries_for_adverse) + " ) "
         else:
             query_adverse = ""
 
         # setup the full query for getting the labels.
         if query_adverse:
-            query_labels = query_base + query_time + " AND ( " + query_adverse + " ) " 
+            query_labels = query_base + query_time + " AND ( " + query_adverse + " ) "
         else:
             query_labels = query_base + query_time
 
@@ -570,7 +583,7 @@ class FeatureLoader():
 
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
-    
+
         # filter out the rows which aren't in ids_to_use
         if ids_to_use is not None:
             results = results.ix[ids_to_use]
@@ -659,8 +672,8 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
         labelling: dict containing options to select which dispatches to use for labelling
 
     Returns:
-        feats(pd.DataFrame): the array of features to train or test on 
-        labels(pd.DataFrame): n x 1 array with 0 / 1 adverse labels 
+        feats(pd.DataFrame): the array of features to train or test on
+        labels(pd.DataFrame): n x 1 array with 0 / 1 adverse labels
         ids(pd.DataFrame): n x 1 array with dispatch ids
         featnames(list): the list of feature column names
     """
@@ -687,7 +700,7 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
     def_adverse_to_label = {'accidents': 'LabelPreventable',
                             'useofforce': 'LabelUnjustified',
                             'complaint': 'LabelSustained'}
-    label_cols_to_use = [def_adverse_to_label[key].lower() for key, is_true in def_adverse.items() if is_true] 
+    label_cols_to_use = [def_adverse_to_label[key].lower() for key, is_true in def_adverse.items() if is_true]
 
     # select the active label columns, sum for each row, and set true when sum > 0
     labels = dataset[label_cols_to_use].sum(axis=1).apply(lambda x: x > 0)
