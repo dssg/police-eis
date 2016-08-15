@@ -26,7 +26,7 @@ CREATE UNLOGGED TABLE staging.arrests (
 	resisted_arrest_flag                                                  bool,               --did the suspect resist arrest?
 	assaulted_officer_flag                                                bool,               --did the suspect assault the officer?
 	officer_injured_flag                                                  bool,               --Was an officer injured
-	arrest_address_id                                                     int,                --Address of arrest
+	arrest_address_id                                                     bigint,                --Address of arrest
 	arrest_finest_area_id                                                 int,                --id of the smallest geographic unit we have police department shape information for
 	suspect_address_id                                                    int,                --Address of suspect
 	assisting_officer_id                                                  int,                --the id of the officer assisting with the arrest
