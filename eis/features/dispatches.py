@@ -266,7 +266,7 @@ class MinimumOfficerTravelTime(abstract.DispatchFeature):
 class MaximumOfficerTravelTime(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Minimum travel time out of the attending officers"
+        self.description = "Maximum travel time out of the attending officers"
         self.query = (" SELECT "
                           " dispatch_id, "
                           " max(travel_time_minutes) AS feature_column "
@@ -281,7 +281,7 @@ class MaximumOfficerTravelTime(abstract.DispatchFeature):
 class DispatchCategory(abstract.DispatchFeature):
     def __init__(self, **kwargs):
         abstract.DispatchFeature.__init__(self, **kwargs)
-        self.description = "Minimum travel time out of the attending officers"
+        self.description = "Dispatch category, e.g. OI or CI"
         self.is_categorical = True
         self.query = (" SELECT "
                           " department_defined_dispatch_id AS dispatch_id, "
@@ -3352,7 +3352,7 @@ class ProportionOfRespondingOfficersBlack(abstract.DispatchFeature):
                     "     inner join staging.officers_hub as b "
                     "     on a.officer_id = b.officer_id "
                     "     where a.dispatch_datetime between '{}' and '{}') as a "
-                    " group by dispatch_id").format(self.from_date, self.to_date) 
+                    " group by dispatch_id").format(self.from_date, self.to_date)
 
 class ProportionOfRespondingOfficersHispanic(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -3370,7 +3370,7 @@ class ProportionOfRespondingOfficersHispanic(abstract.DispatchFeature):
                     "     inner join staging.officers_hub as b "
                     "     on a.officer_id = b.officer_id "
                     "     where a.dispatch_datetime between '{}' and '{}') as a "
-                    " group by dispatch_id").format(self.from_date, self.to_date) 
+                    " group by dispatch_id").format(self.from_date, self.to_date)
 
 class ProportionOfRespondingOfficersAsian(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -3388,7 +3388,7 @@ class ProportionOfRespondingOfficersAsian(abstract.DispatchFeature):
                     "     inner join staging.officers_hub as b "
                     "     on a.officer_id = b.officer_id "
                     "     where a.dispatch_datetime between '{}' and '{}') as a "
-                    " group by dispatch_id").format(self.from_date, self.to_date) 
+                    " group by dispatch_id").format(self.from_date, self.to_date)
 
 class ProportionOfRespondingOfficersOtherRace(abstract.DispatchFeature):
     def __init__(self, **kwargs):
@@ -3406,7 +3406,7 @@ class ProportionOfRespondingOfficersOtherRace(abstract.DispatchFeature):
                     "     inner join staging.officers_hub as b "
                     "     on a.officer_id = b.officer_id "
                     "     where a.dispatch_datetime between '{}' and '{}') as a "
-                    " group by dispatch_id").format(self.from_date, self.to_date) 
+                    " group by dispatch_id").format(self.from_date, self.to_date)
 
 class ProportionOfRespondingOfficersDivorcedOrSeparated(abstract.DispatchFeature):
     def __init__(self, **kwargs):
