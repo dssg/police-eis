@@ -569,7 +569,7 @@ class FeatureLoader():
 
         return results
 
-    def __read_feature_table(self, query, id_column, drop_duplicates=True, drop_OI=True):
+    def __read_feature_table(self, query, id_column, drop_duplicates=True, drop_OI=True, has_geolocation=True):
         """Return a dataframe with data from the features table, indexed by the relevant id (officer or dispatch)"""
 
         log.debug("Loading features for events from {} to {}".format(
@@ -584,6 +584,10 @@ class FeatureLoader():
         # Remove dispatches that are officer initiated
         if drop_OI:
             results = results[results.dispatchcategory != "OI"]
+
+        # Remove dispatches that do not have geolocation (median age in census tract is proxy as it will be assigned to all with a geolocation)
+        if has_geolocation:
+            results = results[~results.MedianAgeInCT.isnull()]
 
         # index by the relevant id
         results = results.set_index(id_column)
