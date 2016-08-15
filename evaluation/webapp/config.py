@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # to be displayed in overview page
-#results_folder = "/Users/redshiftzero/Documents/Github/police-eis/results/"
-results_folder = "/Users/redshiftzero/Documents/Github/police-eis/results_all/"
+#results_folder = "../../results/"
+results_folder = "/mnt/data/police/mnpd/repos/jmausolf_police/police-eis/results/"

@@ -1,2 +1,2 @@
 from webapp import app
-app.run(debug=True, host='localhost', port=4000)
+app.run(debug=True, host='localhost', port=5002)

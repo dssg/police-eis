@@ -283,3 +283,13 @@ lookup_origination_types:
         - [0, 'police', 'An external police department']
         - [1, 'civilian', 'A civilian']
         - [2, 'internal', 'Internal']
+
+
+lookup_use_of_force_type:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'taser', 'Taser (both dart and stun)']
+        - [1, 'firearm', 'Firearm']
+        - [2, 'canine', 'Canine']
+        - [3, 'pepper_spray', 'Pepper spray']
+        - [4, 'other', 'any type of force not listed above']

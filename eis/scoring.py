@@ -38,43 +38,26 @@ def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_prop
 
     """
 
-    #Get Binary Predictions at Threshold
-    cutoff_index = int(len(test_predictions) * x_proportion)
-    cutoff_index = min(cutoff_index, len(test_predictions) - 1)
+    # sort officers label list by risk score.
+    sorted_officer_labels = [ x for (y,x) in sorted( zip( test_predictions, test_labels ), reverse=True ) ] 
 
-    sorted_by_probability = np.sort(test_predictions)[::-1]
-    cutoff_probability = sorted_by_probability[cutoff_index]
+    # get index of officers to intervene on.
+    intervene_on                 = int( len(test_predictions) * x_proportion )
+    is_intervened                = [0]*len(sorted_officer_labels)
+    is_intervened[:intervene_on] = [1]*(intervene_on)
 
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    # compute true and false positives and negatives.
+    true_positive  = [ 1 if x==1 and y==1 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    false_positive = [ 1 if x==1 and y==0 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    true_negative  = [ 1 if x==0 and y==0 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    false_negative = [ 1 if x==0 and y==1 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
 
+    TP = np.sum( true_positive )
+    TN = np.sum( true_negative )
+    FP = np.sum( false_positive )
+    FN = np.sum( false_negative )
 
-    #Recode Test Labels to Correctly id TP, TN, FP, FN from a Difference of Lists
-    test = [99 if y==1 else 0 for y in test_labels]
-    pred = [99 if y==1 else 5 for y in test_predictions_binary]
-    results = [(x-y) for x,y in zip(test,pred)]
-
-
-    # KEY WORKED OUT
-    #True Positive:     Test_Label=99 and Test_Prediction   = 99::  x-y == 0
-    #True Negative:     Test_Label=0 and True_Prediction    = 5::   x-y == -5
-    #False Positive:    Test_Label=0 and Test_Prediction    = 99::  x-y== -99
-    #False Negative:    Test_Label=99 and Test_Prediction   = 5::   x-y==94
-
-    # KEY RESULTS
-    #   0   = TP
-    #   -5  = TN
-    #   -99 = FP
-    #   94  = FN
-
-    #Get Counts of Results
-    TP = len([y for y in results if y==0])
-    TN = len([y for y in results if y==-5])
-    FP = len([y for y in results if y==-99])
-    FN = len([y for y in results if y==94])
-
-    #Return Requested Metric
+    # return Requested Metric
     if metric=='TP':
         return TP
     elif metric=='TN':
@@ -86,20 +69,21 @@ def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_prop
     else:
         pass
 
+def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01, return_cutoff=False):
+    """Return the precision at a specified percent cutoff
 
-
-def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
-                           return_cutoff=False):
+    Args:
+        test_labels: ground truth labels for the predicted data
+        test_predictions: prediction labels
+        x_proportion: the percent of the prediction population to label. Must be between 0 and 1.
+    """
 
     cutoff_index = int(len(test_predictions) * x_proportion)
     cutoff_index = min(cutoff_index, len(test_predictions) - 1)
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
-
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    test_predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
     precision, _, _, _ = metrics.precision_recall_fscore_support(
         test_labels, test_predictions_binary)
@@ -119,10 +103,7 @@ def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
 
     sorted_by_probability = np.sort(test_predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
-
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
+    test_predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
     _, recall, _, _ = metrics.precision_recall_fscore_support(
         test_labels, test_predictions_binary)
@@ -133,13 +114,6 @@ def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
     else:
         return recall
 
-def get_test_predictions_binary(test_predictions, cutoff_probability=0.8):
-
-    test_predictions_binary = np.copy(test_predictions)
-    test_predictions_binary[test_predictions_binary >= cutoff_probability] = 1
-    test_predictions_binary[test_predictions_binary < cutoff_probability] = 0
-
-    return test_predictions_binary
 
 
 def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary, time_for_model_in_seconds ):
@@ -264,10 +238,8 @@ def assign_classes(testid, predictions, x_proportion):
 
     sorted_by_probability = np.sort(predictions)[::-1]
     cutoff_probability = sorted_by_probability[cutoff_index]
+    predictions_binary = [ 1 if x > cutoff_probability else 0 for x in test_predictions ]
 
-    predictions_binary = np.copy(predictions)
-    predictions_binary[predictions_binary >= cutoff_probability] = 1
-    predictions_binary[predictions_binary < cutoff_probability] = 0
 
     df = pd.DataFrame({'officer_id': testid, 'ourflag': predictions_binary})
 
