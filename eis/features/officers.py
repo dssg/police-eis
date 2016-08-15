@@ -933,6 +933,38 @@ class CountUOFwithResistingArrest(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+class ResistingArrestToUOFRatio(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Ratio of resisting arrest to uses of force that an officer has, time gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.uofdensity "
+                      "FROM ( SELECT num_resisting.officer_id, num_resisting.count/num_uof.count uofdensity FROM "
+                      "(SELECT officer_id, COUNT(officer_id)::float "
+                        "FROM staging.use_of_force "
+                        "INNER JOIN staging.events_hub "
+                        "ON use_of_force.event_id = events_hub.event_id "
+                        "WHERE staging.use_of_force.in_response_to_resisting_arrest is true "
+                        "AND event_datetime <= '{2}'::date "
+                        "AND event_datetime >= '{2}'::date - interval '{3}' "
+                        "GROUP by officer_id) num_resisting "
+                        "full outer join "
+                        "(SELECT officer_id, COUNT(officer_id)::float "
+                        "FROM staging.events_hub "
+                        "WHERE event_type_code = 7 "
+                        "AND event_datetime <= '{2}'::date "
+                        "AND event_datetime >= '{2}'::date - interval '{3}' "
+                        "GROUP by officer_id) num_uof "
+                        "ON num_resisting.officer_id = num_uof.officer_id "
+                      ") AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
 class NumOfUnjustifiedUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "Taser dart or stun",
