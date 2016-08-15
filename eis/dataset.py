@@ -444,6 +444,9 @@ class FeatureLoader():
         if officer_labels["SustainedForceAllegations"]:
             queries_for_adverse.append( query_force + " AND " +  query_sustained )
 
+        if officer_labels["SustainedandUnknownForceAllegations"]:
+            queries_for_adverse.append( query_force + " AND " +  query_sustained_and_unknown_outcome )
+
         if officer_labels["AllAllegations"]:
             queries_for_advsere.append( query_all )
 
