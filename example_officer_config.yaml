@@ -101,6 +101,7 @@ officer_features:
     OfficerRank: True # Officer rank.
     OfficerEducation: True # Officer education level.
     ArrestCount: True # Number of arrests made by an officer, time gated.
+    OfficerMilitary: True # Whether or not the officer has had military experience
     IncidentCount: False # Officer investigatable incident count to fake_today
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type
     NumberOfArrestsOfType: False # Number of time-gated arrests by categorical type
@@ -115,6 +116,31 @@ officer_features:
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated
     ComplaintToArrestRatio: False # The ratio of complaints per arrest
     ComplaintsPerHourWorked: False # The rate of complaints per hour worked
+
+# empty feature groups break the code, so for now, we're
+# commenting out all feature groups that have no
+# features defined.
+#
+#    ia:
+#
+#    unit_div:
+#
+#    citations:
+#
+#    incidents:
+#
+#    field_interviews:
+#
+#    cad:
+#
+#    training:
+#
+#    traffic_stops:
+#
+#    eis:
+#
+#    neighborhood:
+
 
 ########################
 # Model selection      #
