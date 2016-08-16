@@ -39,7 +39,7 @@ def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_prop
     """
 
     # sort officers label list by risk score.
-    sorted_officer_labels = [ x for (y,x) in sorted( zip( test_predictions, test_labels ), reverse=True ) ] 
+    sorted_officer_labels = [ x for (y,x) in sorted( zip( test_predictions, test_labels ), reverse=True ) ]
 
     # get index of officers to intervene on.
     intervene_on                 = int( len(test_predictions) * x_proportion )
@@ -145,7 +145,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
 
 
     # Threshold Metrics by Percentage
-    percents = [ 0.01, 0.10, 0.25, 0.50, 1.0, 5.0, 10.0, 25.0, 50.0, 75.0 ]
+    percents = [ 0.01, 0.10, 0.25, 0.50, 1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0 ]
     for percent in percents:
 
         # Precision
