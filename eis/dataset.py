@@ -49,7 +49,6 @@ def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_
     :param str batch_comment: the user-defined comment string.
     :param str batch_timestamp: the timestamp that this batch of models was run.
     :param dict config: the configuration dictionary that contains all model parameters.
-<<<<<<< HEAD
     :param str pickle_obj: the serialized pickle object string for this model run.
     :param str pickle_file: the path and name of the pickle file.
     """
