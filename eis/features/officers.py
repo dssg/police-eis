@@ -392,18 +392,25 @@ class MandatoryCounsellingEvents(abstract.TimeGatedOfficerFeature):
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
-class NumberOfSuspensions(abstract.TimeGatedOfficerFeature):
+class TotalInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
-        self.description = ("The number of times an officer has been suspended")
+        self.categories = { 0: "Unknown",
+                            1: "Counseling",
+                            2: "Training",
+                            3: "Suspension",
+                            4: "Termination",
+                            5: "Reprimand",
+                            6: "Loss of vacation",
+                            7: "No intervention required" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Total interventions of each type an officer has received")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.incidents "
 					  "         INNER JOIN staging.events_hub"
 					  "         ON incidents.event_id = events_hub.event_id"
-                      "         WHERE lower(reprimand_narrative) like '%%susp%%'"
-					  "         OR lower(reprimand_narrative) SIMILAR TO '%%\([0-9]{{1,2}}\)%%'"
+                      "         WHERE staging.incidents.intervention_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
@@ -413,7 +420,8 @@ class NumberOfSuspensions(abstract.TimeGatedOfficerFeature):
                       .format(  self.table_name,
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
-                                self.DURATION ))
+                                self.DURATION,
+                                self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
 class IncidentCount(abstract.OfficerFeature):
