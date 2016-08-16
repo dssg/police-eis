@@ -1042,7 +1042,7 @@ class NumOfUnjustifiedUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeat
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class ForUnjustUOFNumInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
+class UnjustUOFInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "Unknown",
                             1: "Counseling",
@@ -1079,7 +1079,7 @@ class ForUnjustUOFNumInterventionsOfType(abstract.TimeGatedCategoricalOfficerFea
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class ForAnyUOFNumInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
+class UOFInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "Unknown",
                             1: "Counseling",
