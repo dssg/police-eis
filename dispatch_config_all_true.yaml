@@ -22,14 +22,14 @@ pilot_dir: 'pilot/'
 
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
-raw_data_from_date: '2012-01-01'
-raw_data_to_date: '2015-12-31'
+raw_data_from_date: '2014-01-01'
+raw_data_to_date: '2015-01-01'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
-fake_today: ['07Jan2015']  # if you want a specific_today then pass this
-training_window: [7]  # training, days
-prediction_window: [7]  # prediction, days
+fake_today: ['15Jan2014']  # if you want a specific_today then pass this
+training_window: [15]  # training, days
+prediction_window: [15]  # prediction, days
 autogen_fake_todays: False  # set to off if you want a specific fake_today
 # 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
@@ -62,7 +62,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatches_Jan2012_Dec2015'
+dispatch_feature_table_name: 'dispatches_create_as_test_indexed'
 
 officer_features:
     investigation_count_career: True
@@ -192,7 +192,7 @@ dispatch_features:
     MinimumAgeOfRespondingOfficers: True
     HighestEducationLevelAmongRespondingOfficers: True
     LowestEducationLevelAmongRespondingOfficers: True
-    ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher: True
+    ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher: False
     ProportionOfRespondingOfficersMale: True
     ProportionOfRespondingOfficersBlack: True
     ProportionOfRespondingOfficersHispanic: True
@@ -214,10 +214,10 @@ dispatch_features:
     PercentageForeignBornInCT: True
     ProportionOfPopulationUnderAge18InCT: True
     ProportionOfPopulationEnrolledInSchoolInCT: True
-    ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: True
+    ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: False
     ProportionOfPopulationVeteransInCT: True
-    ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: True
-    ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT: True
+    ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: False
+    ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT: False
     MedianIncomeInPast12MonthsInCT: True
     MedianHouseholdIncomeInPast12MonthsInCT: True
     ProportionOfHouseholdsReceivingAssistanceOrFoodStampsInCT: True
@@ -330,7 +330,7 @@ parameters:
     n_estimators: [1, 10, 100]  # [1000, 10000]
     learning_rate: [0.01, 0.1, 1, 10, 100]
   LogisticRegression:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
+    C_reg: [0.01] # [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
     penalty: ['l1'] #, 'l2']
   SVM:
     C_reg: [0.001, 0.01, 0.1, 1] # [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
