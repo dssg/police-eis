@@ -621,7 +621,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
 
     Inputs:
     -------
-    features: dict containing which features to use
+    features: list containing which features to use
     start_date: start date for selecting officers
     end_date: end date for selecting officers
     time_bound: build features with respect to this date
@@ -634,20 +634,29 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
     end_date = end_date.strftime('%Y-%m-%d')
     data = FeatureLoader(start_date, end_date, time_bound, table_name)
 
+    # get the officer labels and make them the key in the dataframe.
     officers = data.officer_labeller(labelling)
-    officers.set_index(["officer_id"])
+    officers.officer_id = officers.officer_id.astype(int)
+    #officers.set_index(["officer_id"], inplace=True)
 
+    # select all the features which are set to True in the config file
+    features_data = data.load_all_features( features, feature_type="officer" )
+#    dataset = officers
+#    featnames = []
+#    for each_feat in features:
+#        feature_df, names = data.loader(each_feat,
+#                                        dataset["officer_id"])
+#        log.info("Loaded feature {} with {} rows".format(
+#            each_feat, len(feature_df)))
+#        featnames = list(featnames) + list(names)
+#        dataset = dataset.join(feature_df, how='left', on='officer_id')
+#
+#    dataset.set_index(["officer_id"], inplace=True)
+
+    # join the data to the officer labels.
     dataset = officers
-    featnames = []
-    for each_feat in features:
-        feature_df, names = data.loader(each_feat,
-                                        dataset["officer_id"])
-        log.info("Loaded feature {} with {} rows".format(
-            each_feat, len(feature_df)))
-        featnames = list(featnames) + list(names)
-        dataset = dataset.join(feature_df, how='left', on='officer_id')
-
-    dataset.set_index(["officer_id"], inplace=True)
+    dataset = dataset.join( features_data, how='left', on="officer_id" )
+    dataset.set_index(["officer_id"], inplace=True )
     dataset = dataset.fillna(0)
 
     labels = dataset["adverse_by_ourdef"].values
@@ -660,7 +669,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
     log.debug("Dataset has {} rows and {} features".format(
        len(labels), len(feats.columns)))
 
-    return feats, labels, ids, featnames
+    return feats, labels, ids, features
 
 
 def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
