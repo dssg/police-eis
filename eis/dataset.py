@@ -551,7 +551,6 @@ class FeatureLoader():
 
         return results, feature_to_load
 
-
     def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
         """Get the feature values from the database
 
@@ -637,21 +636,9 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
     # get the officer labels and make them the key in the dataframe.
     officers = data.officer_labeller(labelling)
     officers.officer_id = officers.officer_id.astype(int)
-    #officers.set_index(["officer_id"], inplace=True)
 
     # select all the features which are set to True in the config file
     features_data = data.load_all_features( features, feature_type="officer" )
-#    dataset = officers
-#    featnames = []
-#    for each_feat in features:
-#        feature_df, names = data.loader(each_feat,
-#                                        dataset["officer_id"])
-#        log.info("Loaded feature {} with {} rows".format(
-#            each_feat, len(feature_df)))
-#        featnames = list(featnames) + list(names)
-#        dataset = dataset.join(feature_df, how='left', on='officer_id')
-#
-#    dataset.set_index(["officer_id"], inplace=True)
 
     # join the data to the officer labels.
     dataset = officers
