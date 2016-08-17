@@ -235,7 +235,36 @@ class ETL_ChargesDismissed(abstract.TimeGatedOfficerFeature):
         self.set_null_counts_to_zero = True
 
 
-
+class ETL_NumberDispatchedInitiatedBy(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { "No": "None",
+                            "Schedule": "Schedule",
+                            "Phone": "Phone",
+                            "Mobile": "Mobile",
+                            "Field": "Field",
+                            "911": "911" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number dispatches by initiation source over time gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM etl.dispatch "
+                      "         FULL JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "         WHERE init_source like '%%{4}%%' "
+                      "         AND call_rec <= '{2}'::date "
+                      "         AND call_rec >= '{2}'::date - interval '{3}' "
+                      "         AND officer_id is not null "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
 
 
 
