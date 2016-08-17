@@ -7,7 +7,7 @@ make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes 
 distdir: dists  # Where to put them
 
 # Set the officer table name.
-officer_feature_table_name: "etl_officer_feature_table"
+officer_feature_table_name: "officer_feature_table"
 
 
 # determine whether model objects get stored in the database or not.
@@ -90,7 +90,7 @@ officer_features:
     TimeGatedDummyFeature: False # Time gated dummy feature. Example feature.
     ArrestMonthlyVariance: False
     ArrestMonthlyCOV: False
-    AcademyScore: True # Performance score at the police academy.
+    AcademyScore: False # Performance score at the police academy.
     ArrestMonthlyVariance: False # month-by-month variance of arrest counts.
     ArrestMonthlyCOV: False # month-by-month coefficient of variation in arrest counts.
     DivorceCount: False # Number of total divorces in this officer's past.
@@ -98,10 +98,10 @@ officer_features:
     OfficerGender: False # Officer gender code.
     OfficerRace: False # Officer race code.
     OfficerEthnicity: False # Officer ethnicity code.
-    OfficerAge: True # Age of officer in years.
-    OfficerRank: True # Officer rank.
+    OfficerAge: False # Age of officer in years.
+    OfficerRank: False # Officer rank.
     OfficerEducation: False # Officer education level.
-    ArrestCount: True # Number of arrests made by an officer, time gated.
+    ArrestCount: False # Number of arrests made by an officer, time gated.
     OfficerMilitary: False # Whether or not the officer has had military experience
     IncidentCount: False # Officer investigatable incident count to fake_today.
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
@@ -124,8 +124,8 @@ officer_features:
     UOFInterventionsOfType: False #Number of interventions of type X following any use of force, time gated.
     CountUOFwithSuspectInjury: False #Number of uses of force by whether the suspect was injured, time gated
     CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
-    SuspectInjuryToUOFRatio: True #Ratio of suspect injuries to uses of force that an officer has, time gated.
-    ResistingArrestToUOFRatio: True #Ratio of resisting arrest to uses of force that an officer has, time gated.
+    SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.
+    ResistingArrestToUOFRatio: False #Ratio of resisting arrest to uses of force that an officer has, time gated.
 
 
     ############################
@@ -134,8 +134,9 @@ officer_features:
 
     ETL_dummyfeature1: False #Dummy etl feature 1
     ETL_dummyfeature2: False #Dummy etl feature 2
-    ETL_YearsOfService: True #Officer's years of service.
-    ETL_NumberTransfers: True #Number of officer transfers, time-gated
+    ETL_YearsOfService: False #Officer's years of service.
+    ETL_NumberTransfers: False #Number of officer transfers, time-gated
+    ETL_NumberTransfers: True # number of arrests where the only charges are resisting or evading arrest
 
 
 
