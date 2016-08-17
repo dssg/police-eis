@@ -136,14 +136,15 @@ officer_features:
     ETL_dummyfeature2: False #Dummy etl feature 2
     ETL_ChargesDismissed: False # proportion of charges that are dismissed
     ETL_YearsOfService: True #Officer's years of service.
-    ETL_NumberTransfers: False #Number of officer transfers, time-gated.
-    ETL_NumberTransfersNotOnNewYears: False #Number of officer transfers not starting on New Years, YYYY-01-01, time-gated.
-    ETL_NumberTransfersNotInJanuary: False #Number of officer transfers not starting in January, time-gated.
-    ETL_NumberTransfersLessThanOneYear: False #Number of officer transfers less than one year in length, time-gated.
-    ETL_NumberTransfersLessThanOneMonth: False #Number of officer transfers less than one month in length, time-gated.
+    ETL_NumberTransfers: True #Number of officer transfers, time-gated.
+    ETL_NumberTransfersNotOnNewYears: True #Number of officer transfers not starting on New Years, YYYY-01-01, time-gated.
+    ETL_NumberTransfersNotInJanuary: True #Number of officer transfers not starting in January, time-gated.
+    ETL_NumberTransfersLessThanOneYear: True #Number of officer transfers less than one year in length, time-gated.
+    ETL_NumberTransfersLessThanOneMonth: True #Number of officer transfers less than one month in length, time-gated.
+    ETL_ArrestOnlyResist: True # Number of officer arrests where the only charge was resisting or evading, time-gated.
+    ETL_ChargesQuasiGuilty: True # proportion of charges that are something like guilty (quasi-guilty)
+    ETL_ChargesNotGuilty: True # proportion of charges that are not guilty
     ETL_NumberDispatchedInitiatedBy: True #Number dispatches by initiation source over time gated periods.
-    ETL_ArrestOnlyResist: False #Number of officer arrests where the only charge was resisting or evading, time-gated.
-
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no

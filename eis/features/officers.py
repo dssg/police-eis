@@ -198,6 +198,20 @@ class ETL_NumberTransfersLessThanOneMonth(abstract.TimeGatedOfficerFeature):
         self.set_null_counts_to_zero = True
 
 
+
+##### charges that were dismissed.
+### Any charges with the dispositions below are considered dismissed
+### in other words, these are charges where no trial has or will take place.
+### The selection of these categories should be varified with MNPD
+###	'DISMISSED ROS',
+###	'DISMISSED - COSTS TO PROSECUTOR',
+###	'RETIRED ON COSTS',
+###	'DISMISSED ON COST',
+###	'RETIRED',
+###	'NOT GUILTY - REASON OF INSANITY',
+###	'NOLLE PROSEQUI',
+###	'NO TRUE BILL'
+####################################
 class ETL_ChargesDismissed(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
@@ -234,7 +248,6 @@ class ETL_ChargesDismissed(abstract.TimeGatedOfficerFeature):
             self.DURATION )
         self.set_null_counts_to_zero = True
 
-
 class ETL_NumberDispatchedInitiatedBy(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { "No": "None",
@@ -264,6 +277,92 @@ class ETL_NumberDispatchedInitiatedBy(abstract.TimeGatedCategoricalOfficerFeatur
                                 self.fake_today.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+    
+##### charges that resulted in some disposition like guilty
+### Any charges with the dispositions below are guilty or similar to guilty
+### The selection of these categories should be varified with MNPD
+# 'GUILTY',
+# 'PROBATION',
+# 'GUILTY PLEA - LESSER CHARGE`',
+# 'NOLO CONTENDERE',
+# 'CONCLUDE PROBATION',
+# 'NOLO CONTENDERE 40-35-313',
+# 'PRE-TRIAL DIVERSION (40-15-105)',
+# 'GUILTY AFTER TRIAL',
+# 'PROBATION VIOLATION'
+####################################
+class ETL_ChargesQuasiGuilty(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Proportion of arrested charges that were found quasi-guilty, time-gated")
+        self.query = """
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.propdismissed
+            FROM (SELECT officers_hub.officer_id,
+                case when COUNT(disposition_desc) > 0 then
+                	SUM(CASE WHEN disposition_desc IN (
+                    		'GUILTY',
+                    		'PROBATION',
+                    		'GUILTY PLEA - LESSER CHARGE`',
+                    		'NOLO CONTENDERE',
+                    		'CONCLUDE PROBATION',
+                    		'NOLO CONTENDERE 40-35-313',
+                    		'PRE-TRIAL DIVERSION (40-15-105)',
+                    		'GUILTY AFTER TRIAL',
+                    		'PROBATION VIOLATION'
+                		) THEN 1 ELSE 0 END) / COUNT(disposition_desc)::float
+                when COUNT(disposition_desc) = 0 then 0
+                end as propDismissed
+                FROM etl.arrests
+                FULL JOIN staging.officers_hub
+                ON cast( arrests.anonid as text)=department_defined_officer_id
+                WHERE arr_date <= '{2}'::date
+                AND arr_date >= '{2}'::date - interval '{3}'
+                group by officer_id
+            ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(  self.table_name,
+            self.COLUMN,
+            self.fake_today.strftime(time_format),
+            self.DURATION )
+        self.set_null_counts_to_zero = True
+
+##### charges that resulted in some disposition not guilty
+### Any charges with the dispositions below are not guilty
+### The selection of these categories should be varified with MNPD
+# 		'NOT GUILTY',
+# 	    'NOT GUILTY - REASON OF INSANITY'
+####################################
+class ETL_ChargesNotGuilty(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Proportion of arrested charges that were found not guilty, time-gated")
+        self.query = """
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.propdismissed
+            FROM (SELECT officers_hub.officer_id,
+                case when COUNT(disposition_desc) > 0 then
+                	SUM(CASE WHEN disposition_desc IN (
+                    				'NOT GUILTY',
+		                            'NOT GUILTY - REASON OF INSANITY'
+                		) THEN 1 ELSE 0 END) / COUNT(disposition_desc)::float
+                when COUNT(disposition_desc) = 0 then 0
+                end as propDismissed
+                FROM etl.arrests
+                FULL JOIN staging.officers_hub
+                ON cast( arrests.anonid as text)=department_defined_officer_id
+                WHERE arr_date <= '{2}'::date
+                AND arr_date >= '{2}'::date - interval '{3}'
+                group by officer_id
+            ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(  self.table_name,
+            self.COLUMN,
+            self.fake_today.strftime(time_format),
+            self.DURATION )
         self.set_null_counts_to_zero = True
 
 
