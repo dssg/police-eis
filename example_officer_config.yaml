@@ -120,8 +120,8 @@ officer_features:
     UOFtoArrestRatio: False #Ratio of uses of force per arrest ratio, time gated.
     NumOfUsesOfForceOfType: False # The number of uses of force by type of force over time-gated periods.
     NumOfUnjustifiedUsesOfForceOfType: False # The number of unjustified uses of force by time over time-gated periods.
-    UnjustUOFInterventionsOfType: True #Number of interventions of type X following an unjustified force, time gated.
-    UOFInterventionsOfType: True #Number of interventions of type X following any use of force, time gated.
+    UnjustUOFInterventionsOfType: False #Number of interventions of type X following an unjustified force, time gated.
+    UOFInterventionsOfType: False #Number of interventions of type X following any use of force, time gated.
     CountUOFwithSuspectInjury: False #Number of uses of force by whether the suspect was injured, time gated
     CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
     SuspectInjuryToUOFRatio: True #Ratio of suspect injuries to uses of force that an officer has, time gated.
@@ -134,6 +134,7 @@ officer_features:
 
     ETLdummyfeature1: False #Dummy etl feature 1
     ETLdummyfeature2: False #Dummy etl feature 2
+    ETLYearsOfService: True #Officer's years of service.
 
 
 
