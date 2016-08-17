@@ -3,7 +3,6 @@ CREATE SCHEMA results;
 
 -- model table containing each of the models run.
 CREATE TABLE results.models(
-<<<<<<< HEAD
     model_id                    									serial primary key,
     run_time                    									timestamp,
     batch_run_time              									timestamp,
