@@ -30,23 +30,7 @@ class ETLdummyfeature1(abstract.OfficerFeature):
                       "WHERE event_type_code = 4 "
                       "GROUP BY officer_id")
 
-class AcademyScore(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = ("Officer's score at the police academy")
-        self.num_features = 1
-        self.name_of_features = ["AcademyScore"]
-        self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = staging_table.score "
-                      "FROM (   SELECT officer_id, score "
-                      "         FROM staging.officer_trainings "
-                      "     ) AS staging_table "
-                      "WHERE feature_table.officer_id = staging_table.officer_id "
-                      .format(  self.table_name,
-                                self.feature_name ) )
-
-
-class ETLYearsOfService(abstract.OfficerFeature):
+class ETL_YearsOfService(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Officer's years of service")
@@ -64,6 +48,27 @@ class ETLYearsOfService(abstract.OfficerFeature):
                                 self.feature_name ) )
 
 
+class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of officer transfers, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM etl.transfers "
+                      "         FULL JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "         WHERE startdate <= '{2}'::date "
+                      "         AND startdate >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
 
 #####################################################################
 #####                   STAGING FEATURES                        #####
