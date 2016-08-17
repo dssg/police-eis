@@ -7,7 +7,7 @@ make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes 
 distdir: dists  # Where to put them
 
 # Set the officer table name.
-officer_feature_table_name: "officer_feature_table"
+officer_feature_table_name: "etl_officer_feature_table"
 
 
 # determine whether model objects get stored in the database or not.
@@ -134,7 +134,7 @@ officer_features:
 
     ETL_dummyfeature1: False #Dummy etl feature 1
     ETL_dummyfeature2: False #Dummy etl feature 2
-    ETL_ChargesDismissed: True # proportion of charges that are dismissed
+    ETL_ChargesDismissed: False # proportion of charges that are dismissed
     ETL_YearsOfService: True #Officer's years of service.
     ETL_NumberTransfers: True #Number of officer transfers, time-gated.
     ETL_NumberTransfersNotOnNewYears: True #Number of officer transfers not starting on New Years, YYYY-01-01, time-gated.
@@ -144,6 +144,7 @@ officer_features:
     ETL_ArrestOnlyResist: True # Number of officer arrests where the only charge was resisting or evading, time-gated.
     ETL_ChargesQuasiGuilty: True # proportion of charges that are something like guilty (quasi-guilty)
     ETL_ChargesNotGuilty: True # proportion of charges that are not guilty
+    ETL_NumberDispatchedInitiatedBy: True #Number dispatches by initiation source over time gated periods.
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
