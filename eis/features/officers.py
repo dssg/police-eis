@@ -48,7 +48,7 @@ class ETL_YearsOfService(abstract.OfficerFeature):
                                 self.feature_name ) )
 
 
-class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
+class ETL_ArrestOnlyResist(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of officer arrests where the only charge was resisting or evading, time-gated")
@@ -79,17 +79,18 @@ class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
         self.set_null_counts_to_zero = True
 
 
-class ETL_ArrestOnlyResist(abstract.TimeGatedOfficerFeature):
+class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Number of arrests an officer has made, time gated")
+        self.description = ("Number of officer transfers, time-gated)
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
-                      "         FROM staging.events_hub "
-                      "         WHERE event_type_code=3 "
-                      "         AND event_datetime <= '{2}'::date "
-                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         FROM etl.transfers "
+                      "         FULL JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "         WHERE startdate <= '{2}'::date "
+                      "         AND startdate >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
