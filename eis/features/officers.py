@@ -51,15 +51,45 @@ class ETL_YearsOfService(abstract.OfficerFeature):
 class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Number of officer transfers, time-gated")
+        self.description = ("Number of officer arrests where the only charge was resisting or evading, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (SELECT officers_hub.officer_id, count( distinct arrests.arr_nbr) "
+                              "FROM etl.arrests "
+                              "LEFT JOIN ( "
+                                  "SELECT arr_nbr, "
+                                  "true AS no_resist_evade "
+                                  "FROM etl.arrests resist_evade_charges "
+                                  "WHERE NOT lower(w_chgdesc) SIMILAR TO '%%(resist|evad)%%' "
+                              " ) AS no_resist_evade_charges "
+                              "ON arrests.arr_nbr = no_resist_evade_charges.arr_nbr "
+                              "FULL JOIN staging.officers_hub "
+                              "ON cast( arrests.anonid as text)=department_defined_officer_id "
+                              "WHERE no_resist_evade is null "
+                              "AND arr_date <= '{2}'::date "
+                              "AND arr_date >= '{2}'::date - interval '{3}' "
+                              "GROUP BY officer_id, arrests.arr_nbr "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+
+class ETL_ArrestOnlyResist(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of arrests an officer has made, time gated")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
-                      "         FROM etl.transfers "
-                      "         FULL JOIN staging.officers_hub "
-                      "         ON cast( anonid as text)=department_defined_officer_id "
-                      "         WHERE startdate <= '{2}'::date "
-                      "         AND startdate >= '{2}'::date - interval '{3}' "
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code=3 "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
@@ -69,6 +99,7 @@ class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
+
 
 #####################################################################
 #####                   STAGING FEATURES                        #####
