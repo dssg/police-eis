@@ -141,8 +141,9 @@ officer_features:
     ETL_NumberTransfersNotInJanuary: True #Number of officer transfers not starting in January, time-gated.
     ETL_NumberTransfersLessThanOneYear: True #Number of officer transfers less than one year in length, time-gated.
     ETL_NumberTransfersLessThanOneMonth: True #Number of officer transfers less than one month in length, time-gated.
-    ETL_ArrestOnlyResist: True #Number of officer arrests where the only charge was resisting or evading, time-gated.
-
+    ETL_ArrestOnlyResist: True # Number of officer arrests where the only charge was resisting or evading, time-gated.
+    ETL_ChargesQuasiGuilty: True # proportion of charges that are something like guilty (quasi-guilty)
+    ETL_ChargesNotGuilty: True # proportion of charges that are not guilty
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
