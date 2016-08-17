@@ -30,7 +30,38 @@ class ETLdummyfeature1(abstract.OfficerFeature):
                       "WHERE event_type_code = 4 "
                       "GROUP BY officer_id")
 
+class AcademyScore(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer's score at the police academy")
+        self.num_features = 1
+        self.name_of_features = ["AcademyScore"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.score "
+                      "FROM (   SELECT officer_id, score "
+                      "         FROM staging.officer_trainings "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
 
+
+class ETLYearsOfService(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer's years of service")
+        self.num_features = 1
+        self.name_of_features = ["ETLYearsOfService"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = etl_table.years_service "
+                      "FROM (   SELECT officer_id, years_service "
+                      "         FROM etl.officers "
+                      "         JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "     ) AS etl_table "
+                      "WHERE feature_table.officer_id = etl_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
 
 
 
