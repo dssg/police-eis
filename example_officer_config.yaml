@@ -136,7 +136,8 @@ officer_features:
     ETL_dummyfeature2: False #Dummy etl feature 2
     ETL_YearsOfService: False #Officer's years of service.
     ETL_NumberTransfers: False #Number of officer transfers, time-gated
-    ETL_NumberTransfers: True # number of arrests where the only charges are resisting or evading arrest
+    ETL_ArrestOnlyResist: False # number of arrests where the only charges are resisting or evading arrest
+    ETL_ChargesDismissed: True # proportion of charges that are dismissed
 
 
 
