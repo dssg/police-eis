@@ -140,7 +140,8 @@ lookup_intervention_types:
         - [5, 'reprimand', 'Reprimand']
         - [6, 'loss_of_vacation', 'Loss of vacation']
         - [7, 'none', 'No intervention required']
-
+        - [8, 'reassignment', 'Reassignment to a different division']
+        - [9, 'demotion', 'Demotion']
 
 lookup_reprimand_types:
     columns: ['code', 'value', 'description']
