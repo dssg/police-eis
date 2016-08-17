@@ -132,9 +132,10 @@ officer_features:
     #   ETL Feature Selection  #
     ############################
 
-    ETLdummyfeature1: False #Dummy etl feature 1
-    ETLdummyfeature2: False #Dummy etl feature 2
-    ETLYearsOfService: True #Officer's years of service.
+    ETL_dummyfeature1: False #Dummy etl feature 1
+    ETL_dummyfeature2: False #Dummy etl feature 2
+    ETL_YearsOfService: True #Officer's years of service.
+    ETL_NumberTransfers: True #Number of officer transfers, time-gated
 
 
 
