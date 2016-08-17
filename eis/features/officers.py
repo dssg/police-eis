@@ -82,7 +82,7 @@ class ETL_ArrestOnlyResist(abstract.TimeGatedOfficerFeature):
 class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Number of officer transfers, time-gated)
+        self.description = ("Number of officer transfers, time-gated")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
