@@ -134,11 +134,14 @@ officer_features:
 
     ETL_dummyfeature1: False #Dummy etl feature 1
     ETL_dummyfeature2: False #Dummy etl feature 2
-    ETL_YearsOfService: False #Officer's years of service.
-    ETL_NumberTransfers: False #Number of officer transfers, time-gated
-    ETL_ArrestOnlyResist: False # number of arrests where the only charges are resisting or evading arrest
     ETL_ChargesDismissed: True # proportion of charges that are dismissed
-
+    ETL_YearsOfService: True #Officer's years of service.
+    ETL_NumberTransfers: True #Number of officer transfers, time-gated.
+    ETL_NumberTransfersNotOnNewYears: True #Number of officer transfers not starting on New Years, YYYY-01-01, time-gated.
+    ETL_NumberTransfersNotInJanuary: True #Number of officer transfers not starting in January, time-gated.
+    ETL_NumberTransfersLessThanOneYear: True #Number of officer transfers less than one year in length, time-gated.
+    ETL_NumberTransfersLessThanOneMonth: True #Number of officer transfers less than one month in length, time-gated.
+    ETL_ArrestOnlyResist: True #Number of officer arrests where the only charge was resisting or evading, time-gated.
 
 
 # empty feature groups break the code, so for now, we're

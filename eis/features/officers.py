@@ -30,24 +30,6 @@ class ETLdummyfeature1(abstract.OfficerFeature):
                       "WHERE event_type_code = 4 "
                       "GROUP BY officer_id")
 
-class ETL_YearsOfService(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = ("Officer's years of service")
-        self.num_features = 1
-        self.name_of_features = ["ETLYearsOfService"]
-        self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = etl_table.years_service "
-                      "FROM (   SELECT officer_id, years_service "
-                      "         FROM etl.officers "
-                      "         JOIN staging.officers_hub "
-                      "         ON cast( anonid as text)=department_defined_officer_id "
-                      "     ) AS etl_table "
-                      "WHERE feature_table.officer_id = etl_table.officer_id "
-                      .format(  self.table_name,
-                                self.feature_name ) )
-
-
 class ETL_ArrestOnlyResist(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
@@ -78,6 +60,22 @@ class ETL_ArrestOnlyResist(abstract.TimeGatedOfficerFeature):
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
+class ETL_YearsOfService(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer's years of service")
+        self.num_features = 1
+        self.name_of_features = ["ETLYearsOfService"]
+        self.query = ("UPDATE features.{} feature_table "
+                      "SET {} = staging_table.years_service "
+                      "FROM (   SELECT officer_id, years_service "
+                      "         FROM etl.officers "
+                      "         JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name ) )
 
 class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
@@ -91,6 +89,7 @@ class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
                       "         ON cast( anonid as text)=department_defined_officer_id "
                       "         WHERE startdate <= '{2}'::date "
                       "         AND startdate >= '{2}'::date - interval '{3}' "
+                      "         AND officer_id is not null "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
@@ -101,6 +100,102 @@ class ETL_NumberTransfers(abstract.TimeGatedOfficerFeature):
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
+class ETL_NumberTransfersNotOnNewYears(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of officer transfers not starting on New Years, YYYY-01-01, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM etl.transfers "
+                      "         FULL JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "         WHERE extract(doy from startdate) != 1 "
+                      "         AND startdate <= '{2}'::date "
+                      "         AND startdate >= '{2}'::date - interval '{3}' "
+                      "         AND officer_id is not null "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class ETL_NumberTransfersNotInJanuary(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of officer transfers not starting in January, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM etl.transfers "
+                      "         FULL JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "         WHERE extract(month from startdate) != 01 "
+                      "         AND startdate <= '{2}'::date "
+                      "         AND startdate >= '{2}'::date - interval '{3}' "
+                      "         AND officer_id is not null "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class ETL_NumberTransfersLessThanOneYear(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of officer transfers less than one year in length, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM etl.transfers "
+                      "         FULL JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "         WHERE extract(year from age(enddate, startdate )) < 1 "
+                      "         AND startdate <= '{2}'::date "
+                      "         AND startdate >= '{2}'::date - interval '{3}' "
+                      "         AND officer_id is not null "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class ETL_NumberTransfersLessThanOneMonth(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of officer transfers less than one month in length, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM etl.transfers "
+                      "         FULL JOIN staging.officers_hub "
+                      "         ON cast( anonid as text)=department_defined_officer_id "
+                      "         WHERE extract(year from age(enddate, startdate )) < 1 "
+                      "         AND extract(month from age(enddate, startdate )) < 1 "
+                      "         AND startdate <= '{2}'::date "
+                      "         AND startdate >= '{2}'::date - interval '{3}' "
+                      "         AND officer_id is not null "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
 
 
 class ETL_ChargesDismissed(abstract.TimeGatedOfficerFeature):
