@@ -7,7 +7,7 @@ make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes 
 distdir: dists  # Where to put them
 
 # Set the officer table name.
-officer_feature_table_name: "etl_officer_feature_table_jon"
+officer_feature_table_name: "officer_feature_table"
 
 
 # determine whether model objects get stored in the database or not.
