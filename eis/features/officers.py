@@ -15,6 +15,30 @@ except:
 
 time_format = "%Y-%m-%d %X"
 
+#####################################################################
+#####                      ETL FEATURES                         #####
+#####################################################################
+
+class ETLdummyfeature1(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Dummy feature for testing 2016 schema")
+        self.num_features = 1
+        self.name_of_features = ["DummyFeature"]
+        self.query = ("SELECT officer_id, COUNT(event_type_code) "
+                      "FROM events_hub "
+                      "WHERE event_type_code = 4 "
+                      "GROUP BY officer_id")
+
+
+
+
+
+#####################################################################
+#####                   STAGING FEATURES                        #####
+#####################################################################
+
+
 ### Officer labels.
 class LabelSustained(abstract.OfficerFeature):
     def __init__(self, **kwargs):

@@ -7,7 +7,7 @@ make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes 
 distdir: dists  # Where to put them
 
 # Set the officer table name.
-officer_feature_table_name: "Josh2_officer_feature_table"
+officer_feature_table_name: "etl_officer_feature_table"
 
 
 # determine whether model objects get stored in the database or not.
@@ -102,7 +102,7 @@ officer_features:
     OfficerRank: True # Officer rank.
     OfficerEducation: False # Officer education level.
     ArrestCount: True # Number of arrests made by an officer, time gated.
-    OfficerMilitary: True # Whether or not the officer has had military experience
+    OfficerMilitary: False # Whether or not the officer has had military experience
     IncidentCount: False # Officer investigatable incident count to fake_today.
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
     NumberOfArrestsOfType: False # Number of time-gated arrests by categorical type.
@@ -117,7 +117,7 @@ officer_features:
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated.
     ComplaintToArrestRatio: False # The ratio of complaints per arrest.
     ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
-    UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
+    UOFtoArrestRatio: False #Ratio of uses of force per arrest ratio, time gated.
     NumOfUsesOfForceOfType: False # The number of uses of force by type of force over time-gated periods.
     NumOfUnjustifiedUsesOfForceOfType: False # The number of unjustified uses of force by time over time-gated periods.
     UnjustUOFInterventionsOfType: True #Number of interventions of type X following an unjustified force, time gated.
@@ -126,6 +126,16 @@ officer_features:
     CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
     SuspectInjuryToUOFRatio: True #Ratio of suspect injuries to uses of force that an officer has, time gated.
     ResistingArrestToUOFRatio: True #Ratio of resisting arrest to uses of force that an officer has, time gated.
+
+
+    ############################
+    #   ETL Feature Selection  #
+    ############################
+
+    ETLdummyfeature1: False #Dummy etl feature 1
+    ETLdummyfeature2: False #Dummy etl feature 2
+
+
 
 # empty feature groups break the code, so for now, we're
 # commenting out all feature groups that have no
