@@ -111,11 +111,10 @@ officer_features:
     SustainedRuleViolations: False  # Officer investigatable incident count to fake_today.
     MeanHoursPerShift: False # Average number of hours per shift.
     AllAllegations: False # Number of allegations made against an officer, time gated.
-    NumberOfSuspensions: False # The number of times the officer has been suspended from work, time gated
-    MandatoryCounsellingEvents: False # The number of mandatory counselling events an officer has received, time gated
-    NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated
-    ComplaintToArrestRatio: False # The ratio of complaints per arrest
-    ComplaintsPerHourWorked: False # The rate of complaints per hour worked
+    TotalInterventionsOfType: True # The number of interventions of each type an officer has had, exploded into multiple columns and time gated.
+    NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated.
+    ComplaintToArrestRatio: False # The ratio of complaints per arrest.
+    ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
     DaysSinceLastAllegation: True # Ther number of days since the last allegation was made against the officer. 
     DaysSinceLastSustainedAllegation: True # The number of days since the last sustained allegation was made against the officer.
     UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
