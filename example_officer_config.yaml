@@ -138,6 +138,9 @@ officer_features:
     # for MNPD, the injuries data is not loaded in such a way that it is available for the ThresholdInjuryFlag
     ThresholdInjuryFlag: True # Flag if there have been 2 or more injuries in the past 180 days
     ThresholdPursuitsFlag: True # Flag if there have been 2 or more pursuits in the past 180 days
+    ThresholdCombinedFlag: True # Flag if there have been 5 or more incidents or sickdays in the past 180 days
+
+
 
 ########################
 # Model selection      #

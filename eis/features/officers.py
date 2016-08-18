@@ -1290,3 +1290,42 @@ class ThresholdPursuitsFlag(abstract.OfficerFeature):
                     self.feature_name,
                     self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
+
+
+class ThresholdCombinedFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 5 incidents or sick days in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT events_hub.officer_id, count(grouped_incident_type_code) >= 5 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   inner join staging.officer_shifts
+                   on events_hub.officer_id = officer_shifts.officer_id
+                   WHERE (
+					staging.incidents.origination_type_code in (0)
+					or
+					staging.incidents.grouped_incident_type_code in (11)
+					or
+					staging.incidents.grouped_incident_type_code in (0,7)
+					or
+					staging.incidents.grouped_incident_type_code in (13)
+					or
+					staging.incidents.grouped_incident_type_code = 20
+					or
+					officer_shifts.shift_type_code in (4, 13, 16, 28, 29)
+                   )
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
+                   AND events_hub.officer_id IS NOT null
+                   GROUP BY events_hub.officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
