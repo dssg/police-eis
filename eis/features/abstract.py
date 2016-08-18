@@ -72,7 +72,7 @@ class DispatchFeature():
         # self.query should return two columns, named 'dispatch_id' and '<feature_name>'
         self.query = None
         # self.update_query take the result of the feature query and inserts it into the feature table
-        self.update_query = ("CREATE TABLE features_prejoin.{feature_name} "
+        self.update_query = ("CREATE UNLOGGED TABLE features_prejoin.{feature_name} "
                             "AS ({query}); "
                             "CREATE INDEX {feature_name}_index "
                             "ON features_prejoin.{feature_name} (dispatch_id);")
