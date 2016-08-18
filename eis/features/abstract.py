@@ -73,9 +73,11 @@ class DispatchFeature():
         self.query = None
         # self.update_query take the result of the feature query and inserts it into the feature table
         self.update_query = ("CREATE UNLOGGED TABLE features_prejoin.{feature_name} "
-                            "AS ({query}); "
-                            "CREATE INDEX {feature_name}_index "
-                            "ON features_prejoin.{feature_name} (dispatch_id);")
+                            "   AS ({query}); "
+                            "CREATE UNIQUE INDEX {feature_name}_index "
+                            "   ON features_prejoin.{feature_name} (dispatch_id);"
+                            "ALTER TABLE features_prejoin.{feature_name} "
+                            "   ADD PRIMARY KEY USING INDEX {feature_name}_index;")
         
         # allow instantiation without kwargs
         try:
