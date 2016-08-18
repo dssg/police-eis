@@ -115,7 +115,7 @@ officer_features:
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated.
     ComplaintToArrestRatio: False # The ratio of complaints per arrest.
     ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
-    DaysSinceLastAllegation: True # Ther number of days since the last allegation was made against the officer. 
+    DaysSinceLastAllegation: True # Ther number of days since the last allegation was made against the officer.
     DaysSinceLastSustainedAllegation: True # The number of days since the last sustained allegation was made against the officer.
     UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
     NumOfUsesOfForceOfType: False # The number of uses of force by type of force over time-gated periods.
@@ -126,6 +126,13 @@ officer_features:
     CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
     SuspectInjuryToUOFRatio: True #Ratio of suspect injuries to uses of force that an officer has, time gated.
     ResistingArrestToUOFRatio: True #Ratio of resisting arrest to uses of force that an officer has, time gated.
+
+    ###################################################
+    #   Threshold based EIS system Feature Selection  #
+    ###################################################
+
+    ThresholdAccidentFlag: True # Flag if there have been more than 2 accidents in the past 180 days
+
 
 
 ########################
