@@ -132,6 +132,7 @@ officer_features:
     ###################################################
 
     ThresholdAccidentFlag: True # Flag if there have been more than 2 accidents in the past 180 days
+    ThresholdComplaintFlag: True # Flag if there have been 3 or more (civilian) complaints in the past 180 days
 
 
 
