@@ -1195,3 +1195,25 @@ class ThresholdUOFFlag(abstract.OfficerFeature):
                     self.feature_name,
                     self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
+
+class ThresholdSickLeaveFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 3 sick leave days in the past 120 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(shift_type_code) >= 3 as flag
+                   FROM staging.officer_shifts
+                   WHERE officer_shifts.shift_type_code in (4, 13, 16, 28, 29)
+                   AND start_datetime <= '{2}'::date
+                   AND start_datetime >= '{2}'::date - interval '90 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True

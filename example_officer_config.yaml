@@ -133,7 +133,7 @@ officer_features:
 
     ThresholdAccidentFlag: True # Flag if there have been more than 2 accidents in the past 180 days
     ThresholdUOFFlag: True # Flag if there have been more than 3 UOF incidents in the past 90 days
-
+    ThresholdSickLeaveFlag: True # Flag if there have been more than 3 sick/medical/family leave days taken in the last 90 days
 
 ########################
 # Model selection      #
