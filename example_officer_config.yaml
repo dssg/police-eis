@@ -89,7 +89,7 @@ officer_features:
     TimeGatedDummyFeature: False # Time gated dummy feature. Example feature.
     ArrestMonthlyVariance: False
     ArrestMonthlyCOV: False
-    AcademyScore: True # Performance score at the police academy.
+    AcademyScore: False # Performance score at the police academy.
     ArrestMonthlyVariance: False # month-by-month variance of arrest counts.
     ArrestMonthlyCOV: False # month-by-month coefficient of variation in arrest counts.
     DivorceCount: False # Number of total divorces in this officer's past.
@@ -97,11 +97,11 @@ officer_features:
     OfficerGender: False # Officer gender code.
     OfficerRace: False # Officer race code.
     OfficerEthnicity: False # Officer ethnicity code.
-    OfficerAge: True # Age of officer in years.
-    OfficerRank: True # Officer rank.
+    OfficerAge: False # Age of officer in years.
+    OfficerRank: False # Officer rank.
     OfficerEducation: False # Officer education level.
-    ArrestCount: True # Number of arrests made by an officer, time gated.
-    OfficerMilitary: True # Whether or not the officer has had military experience
+    ArrestCount: False # Number of arrests made by an officer, time gated.
+    OfficerMilitary: False # Whether or not the officer has had military experience
     IncidentCount: False # Officer investigatable incident count to fake_today.
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
     NumberOfArrestsOfType: False # Number of time-gated arrests by categorical type.
@@ -111,33 +111,33 @@ officer_features:
     SustainedRuleViolations: False  # Officer investigatable incident count to fake_today.
     MeanHoursPerShift: False # Average number of hours per shift.
     AllAllegations: False # Number of allegations made against an officer, time gated.
-    TotalInterventionsOfType: True # The number of interventions of each type an officer has had, exploded into multiple columns and time gated.
+    TotalInterventionsOfType: False # The number of interventions of each type an officer has had, exploded into multiple columns and time gated.
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated.
     ComplaintToArrestRatio: False # The ratio of complaints per arrest.
     ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
-    DaysSinceLastAllegation: True # Ther number of days since the last allegation was made against the officer.
-    DaysSinceLastSustainedAllegation: True # The number of days since the last sustained allegation was made against the officer.
-    UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
+    DaysSinceLastAllegation: False # Ther number of days since the last allegation was made against the officer.
+    DaysSinceLastSustainedAllegation: False # The number of days since the last sustained allegation was made against the officer.
+    UOFtoArrestRatio: False #Ratio of uses of force per arrest ratio, time gated.
     NumOfUsesOfForceOfType: False # The number of uses of force by type of force over time-gated periods.
     NumOfUnjustifiedUsesOfForceOfType: False # The number of unjustified uses of force by time over time-gated periods.
-    UnjustUOFInterventionsOfType: True #Number of interventions of type X following an unjustified force, time gated.
-    UOFInterventionsOfType: True #Number of interventions of type X following any use of force, time gated.
+    UnjustUOFInterventionsOfType: False #Number of interventions of type X following an unjustified force, time gated.
+    UOFInterventionsOfType: False #Number of interventions of type X following any use of force, time gated.
     CountUOFwithSuspectInjury: False #Number of uses of force by whether the suspect was injured, time gated
     CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
-    SuspectInjuryToUOFRatio: True #Ratio of suspect injuries to uses of force that an officer has, time gated.
-    ResistingArrestToUOFRatio: True #Ratio of resisting arrest to uses of force that an officer has, time gated.
+    SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.
+    ResistingArrestToUOFRatio: False #Ratio of resisting arrest to uses of force that an officer has, time gated.
 
     ###################################################
     #   Threshold based EIS system Feature Selection  #
     ###################################################
 
     ThresholdAccidentFlag: True # Flag if there have been more than 2 accidents in the past 180 days
+    ThresholdUOFFlag: True # Flag if there have been more than 3 UOF incidents in the past 90 days
+    ThresholdSickLeaveFlag: True # Flag if there have been more than 3 sick/medical/family leave days taken in the last 90 days
     ThresholdComplaintFlag: True # Flag if there have been 3 or more (civilian) complaints in the past 180 days
     # for MNPD, the injuries data is not loaded in such a way that it is available for the ThresholdInjuryFlag
     ThresholdInjuryFlag: True # Flag if there have been 2 or more injuries in the past 180 days
     ThresholdPursuitsFlag: True # Flag if there have been 2 or more pursuits in the past 180 days
-
-
 
 ########################
 # Model selection      #
