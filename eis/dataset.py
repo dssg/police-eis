@@ -587,7 +587,7 @@ class FeatureLoader():
 
         # Remove dispatches that do not have geolocation (median age in census tract is proxy as it will be assigned to all with a geolocation)
         if has_geolocation:
-            results = results[~results.MedianAgeInCT.isnull()]
+            results = results[~results.medianageinct.isnull()]
 
         # index by the relevant id
         results = results.set_index(id_column)

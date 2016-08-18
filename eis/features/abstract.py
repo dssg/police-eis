@@ -72,10 +72,10 @@ class DispatchFeature():
         # self.query should return two columns, named 'dispatch_id' and '<feature_name>'
         self.query = None
         # self.update_query take the result of the feature query and inserts it into the feature table
-        self.update_query = ("UPDATE features.{} AS feature_table "
-                            "SET {} = staging_table.feature_column "
-                            "FROM ({}) AS staging_table "
-                            "WHERE feature_table.dispatch_id = staging_table.dispatch_id ")
+        self.update_query = ("CREATE UNLOGGED TABLE features_prejoin.{feature_name} "
+                            "AS ({query}); "
+                            "CREATE INDEX {feature_name}_index "
+                            "ON features_prejoin.{feature_name} (dispatch_id);")
         
         # allow instantiation without kwargs
         try:
@@ -85,9 +85,9 @@ class DispatchFeature():
 
     def build_and_insert(self, engine):
         build_query = self.update_query.format(
-                                self.table_name,
-                                self.feature_name,
-                                self.query)
+                                feature_name = self.feature_name,
+                                query = self.query)
+
         engine.execute(build_query)
 
 

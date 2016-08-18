@@ -1,5 +1,6 @@
 import pdb
 import copy
+import threading
 from itertools import product
 import datetime
 import logging
@@ -99,57 +100,24 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
     log.info("Dropping the old dispatch feature table: {}".format(table_name))
     engine.execute("DROP TABLE IF EXISTS features.{}".format(table_name))
 
-    # Get a list of all the features that are set to true.
-    feature_list = [feat for feat, is_set_true in config['dispatch_features'].items() if is_set_true]
-
-    # make sure we have at least 1 feature
-    assert len(feature_list) > 0, 'List of features to build is empty'
-
-    # use the appropriate id column, depending on feature types (officer / dispatch)
-    id_column = 'dispatch_id'
-
     # Create and execute a query to create a table with a column for each of the features.
     log.info("Creating new dispatch feature table: {}".format(table_name))
 
-    create_query = (    "CREATE TABLE features.{} ( "
-                        "   dispatch_id     varchar(20), "
-                        "   fake_today      timestamp, "
-                        "   created_on      timestamp"
+    create_query = (    "CREATE TABLE features.{} "
+                        "AS SELECT  "
+                        "   events_hub.dispatch_id as dispatch_id, "
+                        "   MIN(events_hub.event_datetime) as fake_today "
+                        "FROM staging.events_hub "
+                        "WHERE event_datetime between '{}' and '{}' "
+                        "AND dispatch_id IS NOT NULL "
+                        "AND event_type_code = 5 "
+                        "GROUP BY dispatch_id "
                         .format(
-                            table_name))
+                            table_name,
+                            config['raw_data_from_date'],
+                            config['raw_data_to_date']))
 
-    # add a column for each categorical feature in feature_list
-    cat_features = class_map.find_categorical_features(feature_list)
-    cat_feature_query = ', '.join(["{} varchar(20) ".format(x) for x in cat_features])
-
-    # add a column for each numeric feature in feature_list
-    num_features = set(feature_list) - set(cat_features)
-    num_feature_query = ', '.join(["{} numeric ".format(x) for x in num_features])
-    
-    if len(cat_feature_query) > 0:
-        final_query = ', '.join([create_query, num_feature_query, cat_feature_query]) + ");"
-    else:
-        final_query = ', '.join([create_query, num_feature_query]) + ");"
-    engine.execute(final_query)
-
-    # Populate the features table with dispatch id.
-    log.info("Populating feature table {} with dispatch ids and fake_todays".format(table_name))
-
-    query = (   "INSERT INTO features.{} "
-                "   (dispatch_id, fake_today) "
-                "SELECT  "
-                "   events_hub.dispatch_id, "
-                "   MIN(events_hub.event_datetime) "
-                "FROM staging.events_hub "
-                "WHERE event_datetime between '{}' and '{}' "
-                "AND dispatch_id IS NOT NULL "
-                "AND event_type_code = 5 "
-                "GROUP BY dispatch_id "
-                .format(
-                    table_name,
-                    config['raw_data_from_date'],
-                    config['raw_data_to_date']))
-    engine.execute(query)
+    engine.execute(create_query)
 
     # Create an index on the dispatch_id column to speed up joins
     log.info("Creating index on dispatch_id column")
@@ -161,18 +129,114 @@ def populate_dispatch_features_table(config, table_name):
 
     # Get a list of all the features that are set to true.
     feature_list = [feat for feat, is_set_true in config['dispatch_features'].items() if is_set_true]
+    num_features = len(feature_list)
 
-    for feature_name in feature_list:
+    # make sure we have at least 1 feature
+    assert num_features > 0, 'List of features to build is empty'
 
-       log.debug('Calculating and inserting feature {}'.format(feature_name))
+    feature_threads = []
 
-       feature_class = class_map.lookup(feature_name, 
+    # run the build_and_insert of a set of features
+    def run_thread(feature_sublist, engine):
+
+        db_conn = engine.connect()
+
+        for feature_name in feature_sublist:
+            log.debug('Building feature {}'.format(feature_name))
+
+            feature_obj = class_map.lookup(feature_name, 
                                         from_date = config['raw_data_from_date'],
                                         to_date = config['raw_data_to_date'],
                                         fake_today = datetime.datetime.today(),
                                         table_name = table_name)
+            feature_obj.build_and_insert(db_conn)
 
-       feature_class.build_and_insert(engine)
+        db_conn.close()
+
+    def chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+
+    # build each feature and store it in its own table in features_prejoin
+    # start a new thread for each set of 5 features
+    for feature_sublist in chunks(feature_list, 5):
+
+        t = threading.Thread(target=run_thread, args=(feature_sublist, engine,))
+        feature_threads.append(t)
+        t.start()
+
+    # join each thread and wait for it to be done to make sure we're done building them all
+    # before we move on to joining them
+    for i, thread in enumerate(feature_threads):
+        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features/5))
+        thread.join()
+
+    # move the table w just dispatch_ids to feature_table_temp
+    temp_table_name = table_name + "_temp"
+    rename_query = "ALTER TABLE features.{} RENAME TO {}".format(table_name, temp_table_name)
+    engine.execute(rename_query)
+
+#    # join all the 1-column feature tables in the features_prejoin folder/schema to the main features table
+#    join_query = (  "CREATE TABLE features.{} "
+#                    "AS SELECT "
+#                    "   master.dispatch_id, "
+#                    "   master.fake_today, "
+#                    "   {} "
+#                    "FROM features.{} as master "
+#                    .format(
+#                        table_name,
+#                        ", ".join(feature_list),
+#                        temp_table_name))
+#
+#    for feature_name in feature_list:
+#        join_query +=  ("LEFT JOIN features_prejoin.{} as {} "
+#                        "   ON master.dispatch_id = {}.dispatch_id "
+#                        .format(feature_name,
+#                                feature_name,
+#                                feature_name))
+#
+#    # run the giant joining query
+#    log.debug('Joining features table')
+#    engine.execute(join_query)
+#
+#    # drop the old features table
+#    drop_query = "DROP TABLE features.{}".format(temp_table_name)
+#    engine.execute(drop_query)
+
+    # join each single-feature to the main table one at a time
+    for i, feature_name in enumerate(feature_list):
+        
+        log.debug("Joining feature {}/{} ({})".format(i, len(feature_list), feature_name))
+        
+        # make a temporary table with by joining a single-feature table to the existing features table
+        join_query = ("CREATE TABLE features.{temp_table_name} \n"
+                      "AS \n"
+                      "SELECT \n"
+                      "    master.*, \n"
+                      "    {feat} \n"
+                      "FROM features.{table_name} AS master \n"
+                      "LEFT JOIN features_prejoin.{feat} \n"
+                      "    ON master.dispatch_id = {feat}.dispatch_id \n"
+                      .format(feat = feature_name,
+                              table_name = table_name,
+                              temp_table_name = temp_table_name))
+        
+        engine.execute(join_query)
+        
+        # replace the old features table with the just-created temp features table
+        rename_query = ("DROP TABLE IF EXISTS features.{table_name}; "
+                        "ALTER TABLE features.{temp_table_name} \n"
+                        "    RENAME TO {table_name}"
+                        .format(table_name=table_name,
+                                temp_table_name=temp_table_name))
+    
+        engine.execute(rename_query)
+    
+        # reindex the features table
+        log.debug("Reindexing master table")
+        reindex_query = "CREATE INDEX ON features.{} (dispatch_id)".format(table_name)
+        engine.execute(reindex_query)
 
 
 def populate_officer_features_table(config, table_name):

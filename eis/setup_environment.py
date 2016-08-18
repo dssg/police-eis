@@ -85,5 +85,5 @@ def get_engine(db, user, host, port, passwd):
 
     url = 'postgresql://{user}:{passwd}@{host}:{port}/{db}'.format(
         user=user, passwd=passwd, host=host, port=port, db=db)
-    engine = create_engine(url)
+    engine = create_engine(url, pool_size = 50)
     return engine
