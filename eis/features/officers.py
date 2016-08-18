@@ -1196,6 +1196,30 @@ class ThresholdUOFFlag(abstract.OfficerFeature):
                     self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
+class ThresholdComplaintFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 3 accidents in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(origination_type_code) >= 3 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   WHERE staging.incidents.origination_type_code in (0) -- this might also need to include type 1
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
 class ThresholdSickLeaveFlag(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
@@ -1208,6 +1232,55 @@ class ThresholdSickLeaveFlag(abstract.OfficerFeature):
                    WHERE officer_shifts.shift_type_code in (4, 13, 16, 28, 29)
                    AND start_datetime <= '{2}'::date
                    AND start_datetime >= '{2}'::date - interval '90 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class ThresholdInjuryFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 2 injuries in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   WHERE staging.incidents.grouped_incident_type_code in (11)
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+
+class ThresholdPursuitsFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 2 pursuits in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   WHERE staging.incidents.grouped_incident_type_code in (13)
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
                    AND officer_id IS NOT null
                    GROUP BY officer_id
                ) AS staging_table
