@@ -15,8 +15,15 @@ from . import dataset, experiment, groups
 from . import populate_features
 
 def main(config_file_name, args):
+
+    if len(args.featuretable) < 2:
+        log_filename = "logs/build_{}.log".format(datetime.datetime.now().strftime("%Y%m%d-%H:%M"))
+    else:
+        log_filename = "logs/model_{}.log".format(datetime.datetime.now().strftime("%Y%m%d-%H:%M"))
+
     logging.basicConfig(format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-                        level=logging.DEBUG)
+                        level=logging.DEBUG,
+                        handlers=[logging.FileHandler(log_filename), logging.StreamHandler()])
     log = logging.getLogger('eis')
 
     try:
