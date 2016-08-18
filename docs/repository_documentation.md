@@ -5,7 +5,7 @@ There are a number of repositories that are and have been used in the course of 
 ## General pipeline
 The general pipeline for data is as follows.
 
-![Process](docs/tableProces.png)
+![Process](tableProces.png)
 
 ## [`police-eis`](https://github.com/dssg/police-eis)
 This is the main open source, public repository for the Police EIS project. This code generally operates on the pipeline from the staging schema on.
