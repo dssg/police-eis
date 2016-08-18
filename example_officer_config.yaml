@@ -132,6 +132,10 @@ officer_features:
     ###################################################
 
     ThresholdAccidentFlag: True # Flag if there have been more than 2 accidents in the past 180 days
+    ThresholdComplaintFlag: True # Flag if there have been 3 or more (civilian) complaints in the past 180 days
+    # for MNPD, the injuries data is not loaded in such a way that it is available for the ThresholdInjuryFlag
+    ThresholdInjuryFlag: True # Flag if there have been 2 or more injuries in the past 180 days
+    ThresholdPursuitsFlag: True # Flag if there have been 2 or more pursuits in the past 180 days
 
 
 
