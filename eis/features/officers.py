@@ -1154,8 +1154,8 @@ class ThresholdAccidentFlag(abstract.OfficerFeature):
         self.description = ("Flag if there have been more than 2 accidents in the past 180 days")
         self.query = ("""
             UPDATE features.{0} feature_table
-            SET {1} = staging_table.flag
-            FROM (   SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
                    FROM staging.incidents
                    INNER JOIN staging.events_hub
                    ON incidents.event_id = events_hub.event_id
