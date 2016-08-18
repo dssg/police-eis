@@ -159,8 +159,8 @@ def populate_dispatch_features_table(config, table_name):
             yield l[i:i + n]
 
     # build each feature and store it in its own table in features_prejoin
-    # start a new thread for each feature
-    for feature_sublist in chunks(feature_list, 10):
+    # start a new thread for each set of 5 features
+    for feature_sublist in chunks(feature_list, 5):
 
         t = threading.Thread(target=run_thread, args=(feature_sublist, engine,))
         feature_threads.append(t)
@@ -169,7 +169,7 @@ def populate_dispatch_features_table(config, table_name):
     # join each thread and wait for it to be done to make sure we're done building them all
     # before we move on to joining them
     for i, thread in enumerate(feature_threads):
-        log.debug('Waiting for feature thread: {}/{})'.format(i, num_features))
+        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features/5))
         thread.join()
 
     # move the table w just dispatch_ids to feature_table_temp
@@ -177,32 +177,66 @@ def populate_dispatch_features_table(config, table_name):
     rename_query = "ALTER TABLE features.{} RENAME TO {}".format(table_name, temp_table_name)
     engine.execute(rename_query)
 
-    # join all the 1-column feature tables in the features_prejoin folder/schema to the main features table
-    join_query = (  "CREATE TABLE features.{} "
-                    "AS SELECT "
-                    "   master.dispatch_id, "
-                    "   master.fake_today, "
-                    "   {} "
-                    "FROM features.{} as master "
-                    .format(
-                        table_name,
-                        ", ".join(feature_list),
-                        temp_table_name))
+#    # join all the 1-column feature tables in the features_prejoin folder/schema to the main features table
+#    join_query = (  "CREATE TABLE features.{} "
+#                    "AS SELECT "
+#                    "   master.dispatch_id, "
+#                    "   master.fake_today, "
+#                    "   {} "
+#                    "FROM features.{} as master "
+#                    .format(
+#                        table_name,
+#                        ", ".join(feature_list),
+#                        temp_table_name))
+#
+#    for feature_name in feature_list:
+#        join_query +=  ("LEFT JOIN features_prejoin.{} as {} "
+#                        "   ON master.dispatch_id = {}.dispatch_id "
+#                        .format(feature_name,
+#                                feature_name,
+#                                feature_name))
+#
+#    # run the giant joining query
+#    log.debug('Joining features table')
+#    engine.execute(join_query)
+#
+#    # drop the old features table
+#    drop_query = "DROP TABLE features.{}".format(temp_table_name)
+#    engine.execute(drop_query)
 
-    for feature_name in feature_list:
-        join_query +=  ("LEFT JOIN features_prejoin.{} as {} "
-                        "   ON master.dispatch_id = {}.dispatch_id "
-                        .format(feature_name,
-                                feature_name,
-                                feature_name))
-
-    # run the giant joining query
-    log.debug('Joining features table')
-    engine.execute(join_query)
-
-    # drop the old features table
-    drop_query = "DROP TABLE features.{}".format(temp_table_name)
-    engine.execute(drop_query)
+    # join each single-feature to the main table one at a time
+    for i, feature_name in enumerate(feature_list):
+        
+        log.debug("Joining feature {}/{} ({})".format(i, len(feature_list), feature_name))
+        
+        # make a temporary table with by joining a single-feature table to the existing features table
+        join_query = ("CREATE TABLE features.{temp_table_name} \n"
+                      "AS \n"
+                      "SELECT \n"
+                      "    master.*, \n"
+                      "    {feat} \n"
+                      "FROM features.{table_name} AS master \n"
+                      "LEFT JOIN features_prejoin.{feat} \n"
+                      "    ON master.dispatch_id = {feat}.dispatch_id \n"
+                      .format(feat = feature_name,
+                              table_name = table_name,
+                              temp_table_name = temp_table_name))
+        
+        engine.execute(join_query)
+        
+        # replace the old features table with the just-created temp features table
+        rename_query = ("DROP TABLE IF EXISTS features.{table_name}; "
+                        "ALTER TABLE features.{temp_table_name} \n"
+                        "    RENAME TO {table_name}"
+                        .format(table_name=table_name,
+                                temp_table_name=temp_table_name))
+    
+        engine.execute(rename_query)
+    
+        # reindex the features table
+        log.debug("Reindexing master table")
+        reindex_query = "CREATE INDEX ON features.{} (dispatch_id)".format(table_name)
+        engine.execute(reindex_query)
 
 
 def populate_officer_features_table(config, table_name):
