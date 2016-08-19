@@ -74,24 +74,24 @@ dispatch_features:
     FelonyArrestsInPast1Hour: True
     FelonyArrestsInPast6Hours: True
     FelonyArrestsInPast12Hours: False
-    FelonyArrestsInPast24Hours: True
+    FelonyArrestsInPast24Hours: False
     FelonyArrestsInPast48Hours: False
-    FelonyArrestsInPastWeek: True
-    DrugsArrestsInPast1Hour: True
-    DrugsArrestsInPast6Hours: True
+    FelonyArrestsInPastWeek: False
+    DrugsArrestsInPast1Hour: False
+    DrugsArrestsInPast6Hours: False
     DrugsArrestsInPast12Hours: False
-    DrugsArrestsInPast24Hours: True
+    DrugsArrestsInPast24Hours: False
     DrugsArrestsInPast48Hours: False
     DrugsArrestsInPastWeek: False
-    StolenVehicleArrestsInPast1Hour: True
-    StolenVehicleArrestsInPast6Hours: True
+    StolenVehicleArrestsInPast1Hour: False
+    StolenVehicleArrestsInPast6Hours: False
     StolenVehicleArrestsInPast12Hours: False
-    StolenVehicleArrestsInPast24Hours: True
+    StolenVehicleArrestsInPast24Hours: False
     StolenVehicleArrestsInPast48Hours: False
-    StolenVehicleArrestsInPastWeek: True
-    OfficersDispatchedInPast1Minute: True
-    OfficersDispatchedInPast15Minutes: True
-    OfficersDispatchedInPast30Minutes: True
+    StolenVehicleArrestsInPastWeek: False
+    OfficersDispatchedInPast1Minute: False
+    OfficersDispatchedInPast15Minutes: False
+    OfficersDispatchedInPast30Minutes:
     OfficersDispatchedInPast1Hour: True
     OfficersDispatchedAverageUnjustifiedIncidentsInPast3Years: True
     OfficersDispatchedAverageJustifiedIncidentsInPast3Years: True
@@ -99,24 +99,24 @@ dispatch_features:
     OfficersDispatchedAverageNonPreventableIncidentsInPast3Years: True
     OfficersDispatchedAverageSustainedAllegationsInPast3Years: True
     OfficersDispatchedAverageUnsustainedAllegationsInPast3Years: True
-    OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: True
-    OfficersDispatchedAverageJustifiedIncidentsInPastYear: True
-    OfficersDispatchedAveragePreventableIncidentsInPastYear: True
-    OfficersDispatchedAverageNonPreventableIncidentsInPastYear: True
-    OfficersDispatchedAverageSustainedAllegationsInPastYear: True
-    OfficersDispatchedAverageUnsustainedAllegationsInPastYear: True
-    OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months: True
-    OfficersDispatchedAverageJustifiedIncidentsInPast6Months: True
-    OfficersDispatchedAveragePreventableIncidentsInPast6Months: True
-    OfficersDispatchedAverageNonPreventableIncidentsInPast6Months: True
-    OfficersDispatchedAverageSustainedAllegationsInPast6Months: True
-    OfficersDispatchedAverageUnsustainedAllegationsInPast6Months: True
-    OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month: True
-    OfficersDispatchedAverageJustifiedIncidentsInPast1Month: True
-    OfficersDispatchedAveragePreventableIncidentsInPast1Month: True
-    OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: True
-    OfficersDispatchedAverageSustainedAllegationsInPast1Month: True
-    OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: True
+    OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: False
+    OfficersDispatchedAverageJustifiedIncidentsInPastYear: False
+    OfficersDispatchedAveragePreventableIncidentsInPastYear: False
+    OfficersDispatchedAverageNonPreventableIncidentsInPastYear: False
+    OfficersDispatchedAverageSustainedAllegationsInPastYear: False
+    OfficersDispatchedAverageUnsustainedAllegationsInPastYear: False
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months: False
+    OfficersDispatchedAverageJustifiedIncidentsInPast6Months: False
+    OfficersDispatchedAveragePreventableIncidentsInPast6Months: False
+    OfficersDispatchedAverageNonPreventableIncidentsInPast6Months: False
+    OfficersDispatchedAverageSustainedAllegationsInPast6Months: False
+    OfficersDispatchedAverageUnsustainedAllegationsInPast6Months: False
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month: False
+    OfficersDispatchedAverageJustifiedIncidentsInPast1Month: False
+    OfficersDispatchedAveragePreventableIncidentsInPast1Month: False
+    OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: False
+    OfficersDispatchedAverageSustainedAllegationsInPast1Month: False
+    OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: False
     OfficersDispatchedMinimumUnjustifiedIncidentsInPast3Years: False
     OfficersDispatchedMinimumJustifiedIncidentsInPast3Years: False
     OfficersDispatchedMinimumPreventableIncidentsInPast3Years: False
@@ -194,7 +194,7 @@ dispatch_features:
     ProportionOfPopulationEnrolledInSchoolInCT: False
     ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: True
     ProportionOfPopulationVeteransInCT: False
-    ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: True
+    ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: False
     ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT: False
     MedianIncomeInPast12MonthsInCT: False
     MedianHouseholdIncomeInPast12MonthsInCT: False
@@ -215,7 +215,7 @@ dispatch_features:
     ProportionOfPopulationDivorcedOrSeparatedInCT: False
     ProportionOfPopulationWithoutHealthInsuranceInCT: False
     ProportionOfWomenWhoGaveBirthInPast12MonthsInCT: False
-    ArrestsWithin1kmRadiusInPast1Hour: True
+    ArrestsWithin1kmRadiusInPast1Hour: False
     ArrestsWithin1kmRadiusInPast6Hours: True
     ArrestsWithin1kmRadiusInPast12Hours: False
     ArrestsWithin1kmRadiusInPast24Hours: False
@@ -236,7 +236,7 @@ dispatch_features:
     DispatchesWithin100mRadiusInPast15Minutes: False
     DispatchesWithin100mRadiusInPast30Minutes: False
     DispatchesWithin100mRadiusInPast1Hour: False
-    AverageOfficerDispatchesWithin100mRadiusInPast1Hour: False
+    AverageOfficerDispatchesWithin100mRadiusInPast1Hour: True
     AverageOfficerDispatchesWithin100mRadiusInPast3Hours: False
     AverageOfficerDispatchesWithin100mRadiusInPast6Hours: False
     AverageOfficerDispatchesWithin100mRadiusInPast24Hours: True
