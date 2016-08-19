@@ -542,6 +542,47 @@ class ArrestMonthlyCOV(abstract.TimeGatedOfficerFeature):
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
+class DaysSinceLastAllegation(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Days since last allegation")
+        self.num_features = 1
+        self.name_of_features = ["DaysSinceLastAllegation"]
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.days "
+                      "FROM (   SELECT officer_id, ABS( EXTRACT( DAY FROM MAX( event_datetime - '{2}'::date ) ) ) AS days "
+                      "         FROM staging.incidents "
+                      "         JOIN staging.events_hub "
+                      "         ON incidents.event_id = events_hub.event_id "
+                      "         WHERE event_datetime < '{2}'::date "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format) ) )
+
+class DaysSinceLastSustainedAllegation(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Days since last sustained allegation")
+        self.num_features = 1
+        self.name_of_features = ["DaysSinceLastSustainedAllegation"]
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.days "
+                      "FROM (   SELECT officer_id, ABS( EXTRACT( DAY FROM MAX( event_datetime - '{2}'::date ) ) ) AS days "
+                      "         FROM staging.incidents "
+                      "         JOIN staging.events_hub "
+                      "         ON incidents.event_id = events_hub.event_id "
+                      "         WHERE event_datetime < '{2}'::date "
+                      "         AND final_ruling_code in (1,4,5) "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      .format(  self.table_name,
+                                self.feature_name,
+                                self.fake_today.strftime(time_format) ) )
+
 class NumberOfShiftsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: 'absent',
@@ -727,17 +768,25 @@ class NumberOfSuspectsArrestedOfEthnicityType(abstract.TimeGatedCategoricalOffic
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class MandatoryCounsellingEvents(abstract.TimeGatedOfficerFeature):
+class TotalInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
-        self.description = ("The number of times an officer has received mandatory counselling")
+        self.categories = { 0: "Unknown",
+                            1: "Counseling",
+                            2: "Training",
+                            3: "Suspension",
+                            4: "Termination",
+                            5: "Reprimand",
+                            6: "Loss of vacation",
+                            7: "No intervention required" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Total interventions of each type an officer has received")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.incidents "
 					  "         INNER JOIN staging.events_hub"
 					  "         ON incidents.event_id = events_hub.event_id"
-                      "         WHERE lower(reprimand_narrative) like '%%counsel%%'"
+                      "         WHERE staging.incidents.intervention_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
@@ -747,31 +796,8 @@ class MandatoryCounsellingEvents(abstract.TimeGatedOfficerFeature):
                       .format(  self.table_name,
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
-                                self.DURATION ))
-        self.set_null_counts_to_zero = True
-
-class NumberOfSuspensions(abstract.TimeGatedOfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
-        self.description = ("The number of times an officer has been suspended")
-        self.query = ("UPDATE features.{0} feature_table "
-                      "SET {1} = staging_table.count "
-                      "FROM (   SELECT officer_id, count(officer_id) "
-                      "         FROM staging.incidents "
-					  "         INNER JOIN staging.events_hub"
-					  "         ON incidents.event_id = events_hub.event_id"
-                      "         WHERE lower(reprimand_narrative) like '%%susp%%'"
-					  "         OR lower(reprimand_narrative) SIMILAR TO '%%\([0-9]{{1,2}}\)%%'"
-                      "         AND event_datetime <= '{2}'::date "
-                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
-                      "         GROUP BY officer_id "
-                      "     ) AS staging_table "
-                      "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.fake_today.strftime(time_format),
-                                self.DURATION ))
+                                self.DURATION,
+                                self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
 class IncidentCount(abstract.OfficerFeature):
@@ -1471,4 +1497,193 @@ class UOFInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.fake_today.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+
+
+###############################################
+##### Features for threshold-based EIS modeled
+##### on CMPD's old EIS system
+###############################################
+
+class ThresholdAccidentFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 2 accidents in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   WHERE staging.incidents.grouped_incident_type_code in (0,7)
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class ThresholdUOFFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 3 UOF incidents in the past 90 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 3 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   WHERE staging.incidents.grouped_incident_type_code = 20
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '90 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class ThresholdComplaintFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 3 accidents in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(origination_type_code) >= 3 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   WHERE staging.incidents.origination_type_code in (0) -- this might also need to include type 1
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class ThresholdSickLeaveFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 3 sick leave days in the past 120 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(shift_type_code) >= 3 as flag
+                   FROM staging.officer_shifts
+                   WHERE officer_shifts.shift_type_code in (4, 13, 16, 28, 29)
+                   AND start_datetime <= '{2}'::date
+                   AND start_datetime >= '{2}'::date - interval '90 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class ThresholdInjuryFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 2 injuries in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   WHERE staging.incidents.grouped_incident_type_code in (11)
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+
+class ThresholdPursuitsFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 2 pursuits in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   WHERE staging.incidents.grouped_incident_type_code in (13)
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
+                   AND officer_id IS NOT null
+                   GROUP BY officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+
+class ThresholdCombinedFlag(abstract.OfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.OfficerFeature.__init__(self, **kwargs)
+        self.description = ("Flag if there have been more than 5 incidents or sick days in the past 180 days")
+        self.query = ("""
+            UPDATE features.{0} feature_table
+            SET {1} = staging_table.flag::int
+            FROM ( SELECT events_hub.officer_id, count(grouped_incident_type_code) >= 5 as flag
+                   FROM staging.incidents
+                   INNER JOIN staging.events_hub
+                   ON incidents.event_id = events_hub.event_id
+                   inner join staging.officer_shifts
+                   on events_hub.officer_id = officer_shifts.officer_id
+                   WHERE (
+					staging.incidents.origination_type_code in (0)
+					or
+					staging.incidents.grouped_incident_type_code in (11)
+					or
+					staging.incidents.grouped_incident_type_code in (0,7)
+					or
+					staging.incidents.grouped_incident_type_code in (13)
+					or
+					staging.incidents.grouped_incident_type_code = 20
+					or
+					officer_shifts.shift_type_code in (4, 13, 16, 28, 29)
+                   )
+                   AND event_datetime <= '{2}'::date
+                   AND event_datetime >= '{2}'::date - interval '180 days'
+                   AND events_hub.officer_id IS NOT null
+                   GROUP BY events_hub.officer_id
+               ) AS staging_table
+            WHERE feature_table.officer_id = staging_table.officer_id
+            AND feature_table.fake_today = '{2}'::date
+            """.format(self.table_name,
+                    self.feature_name,
+                    self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
