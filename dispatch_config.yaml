@@ -36,11 +36,16 @@ labelling:
     include_all_employed: True # include all officers who were employed during the specified period
     include_all_active: True # include all officers who made an arrest or stop during the specified period.
 
+def_adverse:
+    accidents: True
+    useofforce: True
+    complaint: True
+    
 ########################
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'final_3yr_data'
+dispatch_feature_table_name: 'diditwork2'
 
 officer_features:
     investigation_count_career: True
@@ -170,7 +175,7 @@ dispatch_features:
     MinimumAgeOfRespondingOfficers: False
     HighestEducationLevelAmongRespondingOfficers: False
     LowestEducationLevelAmongRespondingOfficers: False
-    ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher: True
+    ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher: False
     ProportionOfRespondingOfficersMale: True
     ProportionOfRespondingOfficersBlack: True
     ProportionOfRespondingOfficersHispanic: True
@@ -192,7 +197,7 @@ dispatch_features:
     PercentageForeignBornInCT: False
     ProportionOfPopulationUnderAge18InCT: True
     ProportionOfPopulationEnrolledInSchoolInCT: False
-    ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: True
+    ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: False
     ProportionOfPopulationVeteransInCT: False
     ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: False
     ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT: False

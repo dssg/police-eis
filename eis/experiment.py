@@ -67,14 +67,14 @@ def generate_time_info(config):
     temporal_info = []
 
     # automatically generate 'fake_todays' for temporal cross validation
-    if config["autogen_fake_todays"]:
-        fake_todays = []
-        for prediction_window in config["prediction_window"]:
-            fake_todays.extend(get_fake_todays(prediction_window))
+    #if config["autogen_fake_todays"]:
+    #    fake_todays = []
+    #    for prediction_window in config["prediction_window"]:
+    #        fake_todays.extend(get_fake_todays(prediction_window))
 
-    # use 'fake_todays' specified in the experiment configuration file
-    else:
-        fake_todays = config["fake_today"] 
+    ## use 'fake_todays' specified in the experiment configuration file
+    #else:
+    fake_todays = config["fake_today"] 
 
     
     # populate temporal_info with all the parameter dictionaries
@@ -135,12 +135,6 @@ def generate_models_to_run(config, query_db=True):
             this_config["parameters"] = config["parameters"][model]
             this_config["model"] = model
 
-            if config["pilot"]:
-                pilot_data = officer.run_pilot(this_config)
-
-            if config["make_feat_dists"]:
-                explore.make_all_dists(exp_data)
-
             parameter_names = sorted(this_config["parameters"])
             parameter_values = [this_config["parameters"][p] for p in parameter_names]
             all_params = product(*parameter_values)
@@ -156,8 +150,6 @@ def generate_models_to_run(config, query_db=True):
                 this_config["parameters"] = parameters
                 new_experiment = EISExperiment(this_config)
                 new_experiment.exp_data = exp_data
-                if config["pilot"]:
-                    new_experiment.pilot_data = pilot_data
                 experiment_list.append(new_experiment)
 
     return experiment_list

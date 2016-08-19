@@ -307,11 +307,11 @@ class FeatureLoader():
         self.start_date = start_date
         self.end_date = end_date
         self.fake_today = fake_today
-        self.tables = db_config  # Dict of tables
-        self.schema = db_config['schema']
+        #self.tables = db_config  # Dict of tables
+        #self.schema = db_config['schema']
         self.table_name = table_name
 
-        change_schema(self.schema)
+        #change_schema(self.schema)
 
     def officer_labeller(self, labelling, def_adverse, ids_to_label=None):
         """
