@@ -20,33 +20,34 @@ The `--recursive` flag is important because it will make sure to clone any submo
 
 ## Dependencies
 
-### Drake
+### 1. [Drake](https://github.com/Factual/drake)
+Only required for loading the Nashville data (see below).
 
-### Python 3.4+
+### 2. Python 3.4+
 #### Packages
 
-Data analysis/ machine learning
+_Data analysis/ machine learning_
 - pandas
 - numpy
 - sklearn
 - luigi
 
-Database tools
+_Database tools_
 - sqlalchemy
 - psycopg2
 
-Plotting/visualisation
+_Plotting/visualisation_
 - seaborn
 - matplotlib
 
-Web app
+_Web app_
 - flask
 
-Testing
+_Testing_
 - nose
 - unittest
 
-### Luigi
+### 3. [Luigi](https://github.com/spotify/luigi)
 
 #### pg_tools
 [pg_tools](https://github.com/jonkeane/pg_tools) needs to exist in the repositories when you run any of the luigi population scripts. If you cloned the repositories with the `--recursive` flag, you should have them already. If you don't already have them, or you're getting errors that luigi cannot find pg_tools, you can try recloning pg_tools with the following commands:
@@ -69,7 +70,7 @@ git submodule update
 
 ### Raw to ETL
 
-We use Drake to transfer the raw data from the department to the ETL schema. To run this process use the following command:
+We use Drake to transfer the raw data from the department to the ETL schema (only the MNPD data uses this system). To run this process use the following command:
 
 `The right drake command here.`
 
