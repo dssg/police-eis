@@ -24,28 +24,7 @@ The `--recursive` flag is important because it will make sure to clone any submo
 Only required for loading the Nashville data (see below).
 
 ### 2. Python 3.4+
-#### Packages
-
-_Data analysis/ machine learning_
-- pandas
-- numpy
-- sklearn
-- luigi
-
-_Database tools_
-- sqlalchemy
-- psycopg2
-
-_Plotting/visualisation_
-- seaborn
-- matplotlib
-
-_Web app_
-- flask
-
-_Testing_
-- nose
-- unittest
+For package dependencies, see requirements.txt
 
 ### 3. [Luigi](https://github.com/spotify/luigi)
 
