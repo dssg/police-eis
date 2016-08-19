@@ -15,14 +15,14 @@ unit: 'dispatch'  # possible options: [dispatch, officer]
 
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
-raw_data_from_date: '2014-01-01'
+raw_data_from_date: '2012-01-01'
 raw_data_to_date: '2015-01-01'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
-fake_today: ['15Jan2014']  # if you want a specific_today then pass this
-training_window: [15]  # training, days
-prediction_window: [15]  # prediction, days
+fake_today: ['01Jan2014']  # if you want a specific_today then pass this
+training_window: [730]  # training, days
+prediction_window: [365]  # prediction, days
 
 ########################
 # Labelling Details    #
@@ -40,7 +40,7 @@ labelling:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'test_update_3yr'
+dispatch_feature_table_name: 'final_3yr_data'
 
 officer_features:
     investigation_count_career: True
@@ -62,32 +62,32 @@ dispatch_features:
     DispatchSubType: True
     NumberOfUnitsAssigned: True
     AverageOfficerTravelTime: True
-    MinimumOfficerTravelTime: True
-    MaximumOfficerTravelTime: True
+    MinimumOfficerTravelTime: False
+    MaximumOfficerTravelTime: False
     DispatchCategory: True
     ArrestsInPast1Hour: True
     ArrestsInPast6Hours: True
-    ArrestsInPast12Hours: True
+    ArrestsInPast12Hours: False
     ArrestsInPast24Hours: True
-    ArrestsInPast48Hours: True
+    ArrestsInPast48Hours: False
     ArrestsInPastWeek: True
     FelonyArrestsInPast1Hour: True
     FelonyArrestsInPast6Hours: True
-    FelonyArrestsInPast12Hours: True
+    FelonyArrestsInPast12Hours: False
     FelonyArrestsInPast24Hours: True
-    FelonyArrestsInPast48Hours: True
+    FelonyArrestsInPast48Hours: False
     FelonyArrestsInPastWeek: True
     DrugsArrestsInPast1Hour: True
     DrugsArrestsInPast6Hours: True
-    DrugsArrestsInPast12Hours: True
+    DrugsArrestsInPast12Hours: False
     DrugsArrestsInPast24Hours: True
-    DrugsArrestsInPast48Hours: True
-    DrugsArrestsInPastWeek: True
+    DrugsArrestsInPast48Hours: False
+    DrugsArrestsInPastWeek: False
     StolenVehicleArrestsInPast1Hour: True
     StolenVehicleArrestsInPast6Hours: True
-    StolenVehicleArrestsInPast12Hours: True
+    StolenVehicleArrestsInPast12Hours: False
     StolenVehicleArrestsInPast24Hours: True
-    StolenVehicleArrestsInPast48Hours: True
+    StolenVehicleArrestsInPast48Hours: False
     StolenVehicleArrestsInPastWeek: True
     OfficersDispatchedInPast1Minute: True
     OfficersDispatchedInPast15Minutes: True
@@ -117,155 +117,155 @@ dispatch_features:
     OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: True
     OfficersDispatchedAverageSustainedAllegationsInPast1Month: True
     OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: True
-    OfficersDispatchedMinimumUnjustifiedIncidentsInPast3Years: True
-    OfficersDispatchedMinimumJustifiedIncidentsInPast3Years: True
-    OfficersDispatchedMinimumPreventableIncidentsInPast3Years: True
-    OfficersDispatchedMinimumNonPreventableIncidentsInPast3Years: True
-    OfficersDispatchedMinimumSustainedAllegationsInPast3Years: True
-    OfficersDispatchedMinimumUnsustainedAllegationsInPast3Years: True
-    OfficersDispatchedMinimumUnjustifiedIncidentsInPastYear: True
-    OfficersDispatchedMinimumJustifiedIncidentsInPastYear: True
-    OfficersDispatchedMinimumPreventableIncidentsInPastYear: True
-    OfficersDispatchedMinimumNonPreventableIncidentsInPastYear: True
-    OfficersDispatchedMinimumSustainedAllegationsInPastYear: True
-    OfficersDispatchedMinimumUnsustainedAllegationsInPastYear: True
-    OfficersDispatchedMinimumUnjustifiedIncidentsInPast6Months: True
-    OfficersDispatchedMinimumJustifiedIncidentsInPast6Months: True
-    OfficersDispatchedMinimumPreventableIncidentsInPast6Months: True
-    OfficersDispatchedMinimumNonPreventableIncidentsInPast6Months: True
-    OfficersDispatchedMinimumSustainedAllegationsInPast6Months: True
-    OfficersDispatchedMinimumUnsustainedAllegationsInPast6Months: True
-    OfficersDispatchedMinimumUnjustifiedIncidentsInPast1Month: True
-    OfficersDispatchedMinimumJustifiedIncidentsInPast1Month: True
-    OfficersDispatchedMinimumPreventableIncidentsInPast1Month: True
-    OfficersDispatchedMinimumNonPreventableIncidentsInPast1Month: True
-    OfficersDispatchedMinimumSustainedAllegationsInPast1Month: True
-    OfficersDispatchedMinimumUnsustainedAllegationsInPast1Month: True
-    OfficersDispatchedMaximumUnjustifiedIncidentsInPast3Years: True
-    OfficersDispatchedMaximumJustifiedIncidentsInPast3Years: True
-    OfficersDispatchedMaximumPreventableIncidentsInPast3Years: True
-    OfficersDispatchedMaximumNonPreventableIncidentsInPast3Years: True
-    OfficersDispatchedMaximumSustainedAllegationsInPast3Years: True
-    OfficersDispatchedMaximumUnsustainedAllegationsInPast3Years: True
-    OfficersDispatchedMaximumUnjustifiedIncidentsInPastYear: True
-    OfficersDispatchedMaximumJustifiedIncidentsInPastYear: True
-    OfficersDispatchedMaximumPreventableIncidentsInPastYear: True
-    OfficersDispatchedMaximumNonPreventableIncidentsInPastYear: True
-    OfficersDispatchedMaximumSustainedAllegationsInPastYear: True
-    OfficersDispatchedMaximumUnsustainedAllegationsInPastYear: True
-    OfficersDispatchedMaximumUnjustifiedIncidentsInPast6Months: True
-    OfficersDispatchedMaximumJustifiedIncidentsInPast6Months: True
-    OfficersDispatchedMaximumPreventableIncidentsInPast6Months: True
-    OfficersDispatchedMaximumNonPreventableIncidentsInPast6Months: True
-    OfficersDispatchedMaximumSustainedAllegationsInPast6Months: True
-    OfficersDispatchedMaximumUnsustainedAllegationsInPast6Months: True
-    OfficersDispatchedMaximumUnjustifiedIncidentsInPast1Month: True
-    OfficersDispatchedMaximumJustifiedIncidentsInPast1Month: True
-    OfficersDispatchedMaximumPreventableIncidentsInPast1Month: True
-    OfficersDispatchedMaximumNonPreventableIncidentsInPast1Month: True
-    OfficersDispatchedMaximumSustainedAllegationsInPast1Month: True
-    OfficersDispatchedMaximumUnsustainedAllegationsInPast1Month: True
+    OfficersDispatchedMinimumUnjustifiedIncidentsInPast3Years: False
+    OfficersDispatchedMinimumJustifiedIncidentsInPast3Years: False
+    OfficersDispatchedMinimumPreventableIncidentsInPast3Years: False
+    OfficersDispatchedMinimumNonPreventableIncidentsInPast3Years: False
+    OfficersDispatchedMinimumSustainedAllegationsInPast3Years: False
+    OfficersDispatchedMinimumUnsustainedAllegationsInPast3Years: False
+    OfficersDispatchedMinimumUnjustifiedIncidentsInPastYear: False
+    OfficersDispatchedMinimumJustifiedIncidentsInPastYear: False
+    OfficersDispatchedMinimumPreventableIncidentsInPastYear: False
+    OfficersDispatchedMinimumNonPreventableIncidentsInPastYear: False
+    OfficersDispatchedMinimumSustainedAllegationsInPastYear: False
+    OfficersDispatchedMinimumUnsustainedAllegationsInPastYear: False
+    OfficersDispatchedMinimumUnjustifiedIncidentsInPast6Months: False
+    OfficersDispatchedMinimumJustifiedIncidentsInPast6Months: False
+    OfficersDispatchedMinimumPreventableIncidentsInPast6Months: False
+    OfficersDispatchedMinimumNonPreventableIncidentsInPast6Months: False
+    OfficersDispatchedMinimumSustainedAllegationsInPast6Months: False
+    OfficersDispatchedMinimumUnsustainedAllegationsInPast6Months: False
+    OfficersDispatchedMinimumUnjustifiedIncidentsInPast1Month: False
+    OfficersDispatchedMinimumJustifiedIncidentsInPast1Month: False
+    OfficersDispatchedMinimumPreventableIncidentsInPast1Month: False
+    OfficersDispatchedMinimumNonPreventableIncidentsInPast1Month: False
+    OfficersDispatchedMinimumSustainedAllegationsInPast1Month: False
+    OfficersDispatchedMinimumUnsustainedAllegationsInPast1Month: False
+    OfficersDispatchedMaximumUnjustifiedIncidentsInPast3Years: False
+    OfficersDispatchedMaximumJustifiedIncidentsInPast3Years: False
+    OfficersDispatchedMaximumPreventableIncidentsInPast3Years: False
+    OfficersDispatchedMaximumNonPreventableIncidentsInPast3Years: False
+    OfficersDispatchedMaximumSustainedAllegationsInPast3Years: False
+    OfficersDispatchedMaximumUnsustainedAllegationsInPast3Years: False
+    OfficersDispatchedMaximumUnjustifiedIncidentsInPastYear: False
+    OfficersDispatchedMaximumJustifiedIncidentsInPastYear: False
+    OfficersDispatchedMaximumPreventableIncidentsInPastYear: False
+    OfficersDispatchedMaximumNonPreventableIncidentsInPastYear: False
+    OfficersDispatchedMaximumSustainedAllegationsInPastYear: False
+    OfficersDispatchedMaximumUnsustainedAllegationsInPastYear: False
+    OfficersDispatchedMaximumUnjustifiedIncidentsInPast6Months: False
+    OfficersDispatchedMaximumJustifiedIncidentsInPast6Months: False
+    OfficersDispatchedMaximumPreventableIncidentsInPast6Months: False
+    OfficersDispatchedMaximumNonPreventableIncidentsInPast6Months: False
+    OfficersDispatchedMaximumSustainedAllegationsInPast6Months: False
+    OfficersDispatchedMaximumUnsustainedAllegationsInPast6Months: False
+    OfficersDispatchedMaximumUnjustifiedIncidentsInPast1Month: False
+    OfficersDispatchedMaximumJustifiedIncidentsInPast1Month: False
+    OfficersDispatchedMaximumPreventableIncidentsInPast1Month: False
+    OfficersDispatchedMaximumNonPreventableIncidentsInPast1Month: False
+    OfficersDispatchedMaximumSustainedAllegationsInPast1Month: False
+    OfficersDispatchedMaximumUnsustainedAllegationsInPast1Month: False
     AverageAgeOfRespondingOfficers: True
-    MaximumAgeOfRespondingOfficers: True
-    MinimumAgeOfRespondingOfficers: True
-    HighestEducationLevelAmongRespondingOfficers: True
-    LowestEducationLevelAmongRespondingOfficers: True
-    ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher: False
+    MaximumAgeOfRespondingOfficers: False
+    MinimumAgeOfRespondingOfficers: False
+    HighestEducationLevelAmongRespondingOfficers: False
+    LowestEducationLevelAmongRespondingOfficers: False
+    ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher: True
     ProportionOfRespondingOfficersMale: True
     ProportionOfRespondingOfficersBlack: True
     ProportionOfRespondingOfficersHispanic: True
-    ProportionOfRespondingOfficersAsian: True
-    ProportionOfRespondingOfficersOtherRace: True
+    ProportionOfRespondingOfficersAsian: False
+    ProportionOfRespondingOfficersOtherRace: False
     ProportionOfRespondingOfficersDivorcedOrSeparated: True
     ProportionOfRespondingOfficersMarried: True
     MedianAgeInCT: True
-    MedianAgeOfMenInCT: True
-    MedianAgeOfWomenInCT: True
+    MedianAgeOfMenInCT: False
+    MedianAgeOfWomenInCT: False
     UnweightedSampleCountOfPopulationInCT: True
     UnweightedSampleCountOfHousingUnitsInCT: True
     PercentageMenInCT: True
-    PercentageWomenInCT: True
-    PercentageWhiteInCT: True
+    PercentageWomenInCT: False
+    PercentageWhiteInCT: False
     PercentageBlackInCT: True
-    PercentageAsianInCT: True
+    PercentageAsianInCT: False
     PercentageHispanicInCT: True
-    PercentageForeignBornInCT: True
+    PercentageForeignBornInCT: False
     ProportionOfPopulationUnderAge18InCT: True
-    ProportionOfPopulationEnrolledInSchoolInCT: True
-    ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: False
-    ProportionOfPopulationVeteransInCT: True
-    ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: False
+    ProportionOfPopulationEnrolledInSchoolInCT: False
+    ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: True
+    ProportionOfPopulationVeteransInCT: False
+    ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: True
     ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT: False
-    MedianIncomeInPast12MonthsInCT: True
-    MedianHouseholdIncomeInPast12MonthsInCT: True
-    ProportionOfHouseholdsReceivingAssistanceOrFoodStampsInCT: True
-    ProportionOfHousingUnitsVacantInCT: True
-    ProportionOfHousingUnitsOccupiedByOwnerInCT: True
-    MedianYearStructureBuildInCT: True
-    MedianYearRenterMovedIntoHousingUnitInCT: True
-    MedianYearOwnerMovedIntoHousingUnitInCT: True
-    MedianGrossRentInCT: True
-    MedianPropertyValueInCT: True
-    LowerQuartilePropertyValueInCT: True
-    UpperQuartilePropertyValueInCT: True
+    MedianIncomeInPast12MonthsInCT: False
+    MedianHouseholdIncomeInPast12MonthsInCT: False
+    ProportionOfHouseholdsReceivingAssistanceOrFoodStampsInCT: False
+    ProportionOfHousingUnitsVacantInCT: False
+    ProportionOfHousingUnitsOccupiedByOwnerInCT: False
+    MedianYearStructureBuildInCT: False
+    MedianYearRenterMovedIntoHousingUnitInCT: False
+    MedianYearOwnerMovedIntoHousingUnitInCT: False
+    MedianGrossRentInCT: False
+    MedianPropertyValueInCT: False
+    LowerQuartilePropertyValueInCT: False
+    UpperQuartilePropertyValueInCT: False
     AverageHouseholdSizeInCT: True
     ProportionOfChildrenUnder18LivingWithSingleParentInCT: True
-    ProportionOfChildrenUnder18LivingWithMotherInCT: True
-    ProportionOfPopulationNeverMarriedInCT: True
-    ProportionOfPopulationDivorcedOrSeparatedInCT: True
-    ProportionOfPopulationWithoutHealthInsuranceInCT: True
-    ProportionOfWomenWhoGaveBirthInPast12MonthsInCT: True
+    ProportionOfChildrenUnder18LivingWithMotherInCT: False
+    ProportionOfPopulationNeverMarriedInCT: False
+    ProportionOfPopulationDivorcedOrSeparatedInCT: False
+    ProportionOfPopulationWithoutHealthInsuranceInCT: False
+    ProportionOfWomenWhoGaveBirthInPast12MonthsInCT: False
     ArrestsWithin1kmRadiusInPast1Hour: True
     ArrestsWithin1kmRadiusInPast6Hours: True
-    ArrestsWithin1kmRadiusInPast12Hours: True
-    ArrestsWithin1kmRadiusInPast24Hours: True
-    ArrestsWithin500mRadiusInPast1Hour: True
-    ArrestsWithin500mRadiusInPast6Hours: True
+    ArrestsWithin1kmRadiusInPast12Hours: False
+    ArrestsWithin1kmRadiusInPast24Hours: False
+    ArrestsWithin500mRadiusInPast1Hour: False
+    ArrestsWithin500mRadiusInPast6Hours: False
     ArrestsWithin500mRadiusInPast12Hours: True
-    ArrestsWithin500mRadiusInPast24Hours: True
+    ArrestsWithin500mRadiusInPast24Hours: False
     ArrestsWithin100mRadiusInPast1Hour: True
-    ArrestsWithin100mRadiusInPast6Hours: True
-    ArrestsWithin100mRadiusInPast12Hours: True
+    ArrestsWithin100mRadiusInPast6Hours:  False
+    ArrestsWithin100mRadiusInPast12Hours: False
     ArrestsWithin100mRadiusInPast24Hours: True
-    DispatchesWithin1kmRadiusInPast15Minutes: True
-    DispatchesWithin1kmRadiusInPast30Minutes: True
+    DispatchesWithin1kmRadiusInPast15Minutes: False
+    DispatchesWithin1kmRadiusInPast30Minutes: False
     DispatchesWithin1kmRadiusInPast1Hour: True
-    DispatchesWithin500mRadiusInPast15Minutes: True
-    DispatchesWithin500mRadiusInPast30Minutes: True
-    DispatchesWithin500mRadiusInPast1Hour: True
-    DispatchesWithin100mRadiusInPast15Minutes: True
-    DispatchesWithin100mRadiusInPast30Minutes: True
-    DispatchesWithin100mRadiusInPast1Hour: True
-    AverageOfficerDispatchesWithin100mRadiusInPast1Hour: True
-    AverageOfficerDispatchesWithin100mRadiusInPast3Hours: True
-    AverageOfficerDispatchesWithin100mRadiusInPast6Hours: True
+    DispatchesWithin500mRadiusInPast15Minutes: False
+    DispatchesWithin500mRadiusInPast30Minutes: False
+    DispatchesWithin500mRadiusInPast1Hour: False
+    DispatchesWithin100mRadiusInPast15Minutes: False
+    DispatchesWithin100mRadiusInPast30Minutes: False
+    DispatchesWithin100mRadiusInPast1Hour: False
+    AverageOfficerDispatchesWithin100mRadiusInPast1Hour: False
+    AverageOfficerDispatchesWithin100mRadiusInPast3Hours: False
+    AverageOfficerDispatchesWithin100mRadiusInPast6Hours: False
     AverageOfficerDispatchesWithin100mRadiusInPast24Hours: True
-    AverageOfficerDispatchesWithin100mRadiusInPast48Hours: True
-    AverageOfficerDispatchesWithin500mRadiusInPast1Hour: True
-    AverageOfficerDispatchesWithin500mRadiusInPast3Hours: True
-    AverageOfficerDispatchesWithin500mRadiusInPast6Hours: True
+    AverageOfficerDispatchesWithin100mRadiusInPast48Hours: False
+    AverageOfficerDispatchesWithin500mRadiusInPast1Hour: False
+    AverageOfficerDispatchesWithin500mRadiusInPast3Hours: False
+    AverageOfficerDispatchesWithin500mRadiusInPast6Hours: False
     AverageOfficerDispatchesWithin500mRadiusInPast24Hours: True
-    AverageOfficerDispatchesWithin500mRadiusInPast48Hours: True
+    AverageOfficerDispatchesWithin500mRadiusInPast48Hours: False
     AverageOfficerDispatchesWithin1kmRadiusInPast1Hour: True
-    AverageOfficerDispatchesWithin1kmRadiusInPast3Hours: True
-    AverageOfficerDispatchesWithin1kmRadiusInPast6Hours: True
-    AverageOfficerDispatchesWithin1kmRadiusInPast24Hours: True
-    AverageOfficerDispatchesWithin1kmRadiusInPast48Hours: True
-    MaximumOfficerDispatchesWithin100mRadiusInPast1Hour: True
-    MaximumOfficerDispatchesWithin100mRadiusInPast3Hours: True
-    MaximumOfficerDispatchesWithin100mRadiusInPast6Hours: True
-    MaximumOfficerDispatchesWithin100mRadiusInPast24Hours: True
-    MaximumOfficerDispatchesWithin100mRadiusInPast48Hours: True
-    MaximumOfficerDispatchesWithin500mRadiusInPast1Hour: True
-    MaximumOfficerDispatchesWithin500mRadiusInPast3Hours: True
-    MaximumOfficerDispatchesWithin500mRadiusInPast6Hours: True
-    MaximumOfficerDispatchesWithin500mRadiusInPast24Hours: True
-    MaximumOfficerDispatchesWithin500mRadiusInPast48Hours: True
-    MaximumOfficerDispatchesWithin1kmRadiusInPast1Hour: True
-    MaximumOfficerDispatchesWithin1kmRadiusInPast3Hours: True
-    MaximumOfficerDispatchesWithin1kmRadiusInPast6Hours: True
-    MaximumOfficerDispatchesWithin1kmRadiusInPast24Hours: True
-    MaximumOfficerDispatchesWithin1kmRadiusInPast48Hours: True
+    AverageOfficerDispatchesWithin1kmRadiusInPast3Hours: False
+    AverageOfficerDispatchesWithin1kmRadiusInPast6Hours: False
+    AverageOfficerDispatchesWithin1kmRadiusInPast24Hours: False
+    AverageOfficerDispatchesWithin1kmRadiusInPast48Hours: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast1Hour: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast3Hours: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast6Hours: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast24Hours: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast48Hours: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast1Hour: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast3Hours: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast6Hours: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast24Hours: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast48Hours: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast1Hour: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast3Hours: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast6Hours: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast24Hours: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast48Hours: False
 
 
 
