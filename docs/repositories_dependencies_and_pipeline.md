@@ -25,6 +25,27 @@ The `--recursive` flag is important because it will make sure to clone any submo
 ### Python 3.4+
 #### Packages
 
+Data analysis/ machine learning
+- pandas
+- numpy
+- sklearn
+- luigi
+
+Database tools
+- sqlalchemy
+- psycopg2
+
+Plotting/visualisation
+- seaborn
+- matplotlib
+
+Web app
+- flask
+
+Testing
+- nose
+- unittest
+
 ### Luigi
 
 #### pg_tools
