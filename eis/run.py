@@ -11,7 +11,7 @@ import time
 import pdb
 
 from . import setup_environment, models, scoring
-from . import dataset, experiment, groups
+from . import dataset, experiment
 from . import populate_features
 
 def main(config_file_name, args):

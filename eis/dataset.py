@@ -20,12 +20,12 @@ except:
     log.warning('Could not connect to the database')
     raise
 
-try:
-    db_conn.cursor().execute("SET SCHEMA '{}'".format(db_config['schema']))
-    log.debug('Changed the schema to ', db_config['schema'])
-except:
-    log.warning('Could not set the database schema')
-    raise
+#try:
+#    db_conn.cursor().execute("SET SCHEMA '{}'".format(db_config['schema']))
+#    log.debug('Changed the schema to ', db_config['schema'])
+#except:
+#    log.warning('Could not set the database schema')
+#    raise
 
 
 def change_schema(schema):

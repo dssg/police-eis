@@ -37,7 +37,7 @@ def get_database():
             config = yaml.load(f)
             log.info("Loaded department information file")
     except:
-        log.exception("Failed to get department infomration file!")
+        log.exception("Failed to get department information file!")
         return None, 'fail'
 
     return engine, config
