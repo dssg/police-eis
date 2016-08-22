@@ -23,7 +23,7 @@ Database Connection and Data Definition
 
 Initial setup is performed via two configuration files, one that contains database credentials, and one that contains configuration unique to the given police department:
 
-* Database credentials are stored in a YAML file ``default_profile`` in the root directory. Use ``example_default_profile`` as a template:
+* Database credentials are stored in a YAML file ```default_profile``` in the root directory. Use ``example_default_profile`` as a template:
 
   ```YAML
     PGPORT: 65535
