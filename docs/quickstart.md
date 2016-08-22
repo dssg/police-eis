@@ -6,13 +6,12 @@ This page describes how to get up and running using the police early interventio
 Installation
 ------------
 
-*[Deprecated? Not sure if setup.py works with current repo]
-Git clone the repository and install with `setup.py`:
+To begin modeling your data, please consult the [repository dependencies and requirements page](docs/repositories_dependencies_and_pipeline.md). 
 
-   ``python setup.py install``
+Once your system is configured, the data will need to be loaded into the common police format. 
 
 
-Setup
+Model Pipeline Setup
 -----
 
 To set up a new police department with the early intervention system, you will need to write some configuration files that define the data sources available, how the code should connect to the database, and what features you want to create.
@@ -23,23 +22,33 @@ Database Connection and Data Definition
 
 Initial setup is performed via two configuration files, one that contains database credentials, and one that contains configuration unique to the given police department:
 
-* Database credentials are stored in a YAML file ```default_profile``` in the root directory. Use ``example_default_profile`` as a template:
+* ####Database Connection: 
+   
+   Database credentials are stored in a YAML file ```default_profile``` in the root directory. Use ``example_default_profile`` as a template:
 
-  ```YAML
-    PGPORT: 65535
-    PGHOST: "example.com"
-    PGDATABASE: "example"
-    PGUSER: "janedoe"
-    PGPASSWORD: "supersecretpassword"
-    DBCONFIG: "example_police_dept.yaml"
-  ```
+   ```YAML
+      PGPORT: 65535
+      PGHOST: "example.com"
+      PGDATABASE: "example"
+      PGUSER: "janedoe"
+      PGPASSWORD: "supersecretpassword"
+      DBCONFIG: "example_police_dept.yaml"
+   ```
 
-* ``DBCONFIG`` refers to a configuration file containing details of the individual police department, such as unit/district names and what data sources exist for feature generation ``example_police_dept.yaml``.
+   * ``DBCONFIG`` refers to a configuration file containing details of the individual police department, such as unit/district names and what data sources exist for feature generation ``example_police_dept.yaml``.
 
-Example Police Department Setup
----------------------------------------
+* ####Example Police Department Setup
 
-Content
+   The example police department needs a configuration file to specify the name of the staging schema and the names of the arrests table, internal investigation table, and officers hub table in the staging schema. This should be located in ``example_police_dept.yaml``.
+   
+   ```YAML
+      schema: "staging"
+      arrest_charges_table: "arrests"
+      si_table: "internal_affairs_investigations"
+      officer_table: "officers_hub"
+   ```
+   
+   
 
 
 Running Models
