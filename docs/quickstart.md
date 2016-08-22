@@ -23,14 +23,16 @@ Database Connection and Data Definition
 
 Initial setup is performed via two configuration files, one that contains database credentials, and one that contains configuration unique to the given police department:
 
-* Database credentials are stored in a YAML file ``default_profile`` in the root directory. Use ``example_default_profile`` as a template::
+* Database credentials are stored in a YAML file ``default_profile`` in the root directory. Use ``example_default_profile`` as a template:
 
+  ```YAML
     PGPORT: 65535
     PGHOST: "example.com"
     PGDATABASE: "example"
     PGUSER: "janedoe"
     PGPASSWORD: "supersecretpassword"
     DBCONFIG: "example_police_dept.yaml"
+  ```
 
 * ``DBCONFIG`` refers to a configuration file containing details of the individual police department, such as unit/district names and what data sources exist for feature generation ``example_police_dept.yaml``.
 
