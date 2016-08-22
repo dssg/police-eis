@@ -3,7 +3,7 @@
 ##########################################################
 #USER: Change Schema to Desired Schema Name
 ##########################################################
-export schema=staging_josh_test1
+export schema=staging_dev
 echo $schema
 
 ##########################################################
