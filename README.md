@@ -5,18 +5,24 @@
 
 This is a data-driven Early Intervention System (EIS) for police departments. The system uses a police department's data to predict which officers are likely to have an adverse interaction with the public. An adverse incident can be defined on a department by department basis, but typically includes unjustified uses of force, officer injuries, preventable accidents and sustained complaints. This is done such that additional training, counseling and other resources can be provided to the officer _before_ any adverse interactions occur.
 
-## Documentation
+## Quickstart Documentation
 
-Our documentation is documented in several stages:
+Our modeling pipeline has the following aggregate steps:
 
-* [Repository Overview](docs/repository_documentation.md)
-* [Nashville Staging Development](docs/nashville_staging_population_and_management.md)
-* [Modeling Process](docs/repositories_dependencies_and_pipeline.md)
-* [DEPRECATED: Read The Docs](https://police-eis.readthedocs.org/en/latest/).
+1.  [Configure the Machine](link).
+2.  [Clone the Repository](docs/repository_documentation.md).
+3.  [Setup Database Connection](docs/database_connection.md).
+4.  [Follow the Modeling Steps](docs/repositories_dependencies_and_pipeline.md).
 
-## Installation
+![Process](docs/tableProces.png)
 
-Detailed installation instructions can be found [here](https://police-eis.readthedocs.org/en/latest/quickstart.html).
+
+
+Deprecated Documentation Quick Links:
+
+
+* [DEPRECATED: Read The Docs](https://police-eis.readthedocs.org/en/latest/)
+* [DEPRECATED: Install](https://police-eis.readthedocs.org/en/latest/quickstart.html).
 
 ## Issues
 
