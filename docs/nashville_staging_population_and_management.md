@@ -47,5 +47,16 @@ After the staging schema is created, run the following commands (in the `[police
 PYTHONPATH='' luigi --module populateStagingFromMNPD PopulateStoredProcedures --schema staging_dev --local-scheduler
 PYTHONPATH='' luigi --module populateStagingFromMNPD PopulateAllStagingTables --schema staging_dev --populate-tables-directory ./populate_tables/mnpd --local-scheduler
 ```
+
+## Population file locations and file names
+
+Just like the create `.sql` statement files, the population `.sql` files are all stored in one directory and the structure of their filenames is critical. All population files should be stored in `[police-eis/]police-eis-private/schemas/populate_tables/[department]/`. Each `.sql` file should have the format `POPULATE-staging-[staging table name].sql` (eg `POPULATE-staging-arrests.sql` for the `staging.arrests` table). By default, the luigi command to populate tables will run each `.sql` file in this directory. Some tables need to be populated before others (eg `staging.officers_hub` must be populated before `staging.events_hub` because the `officer_id` column in `events_hub` is a foreign key to the `officer_id` column in the `officers_hub`).
+
+### Table priorities
+In order to ensure that luigi runs these tables in the right order, an entry should be added to the `table_priorities` dictionary in the `populateStagingFrom[department].py` luigi file. This is only necessary for tables that need a high priority (that is, needs to be populated first), the larger the number, the higher the priority and luigi will populate those tables first.
+
+If any python based cleanup must be run after the data is populated, it should be in a file with the format `staging-[table name]-cleanup.py`, and an appropriate entry added to the `tables_and_cleanup_scripts` dictionary in the  
+`populateStagingFrom[department].py` luigi file. This includes the table name that needs the cleanup run on it, and then a list with the location of the cleanup script, as well as the column that will be output to when the cleaning is done. Currently, the cleanup will only run if the column that the cleaned output to only contains `null` values.
+
 <hr/>
 <b id="f1"><sup>1</sup></b> The `[police-eis/]` in the path is to show the canonical location of the `police-eis-private` repo being in the root directory of the `police-eis` repo. If it is located elsewhere in your setup, you should use that directory instead. [↩](#a1)
