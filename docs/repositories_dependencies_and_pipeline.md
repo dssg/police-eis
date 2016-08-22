@@ -70,3 +70,36 @@ To generate features, set the configuration of features (and labels) in a config
 Once the features have been built, you can run all of the models with:
 
 `python -m eis.run [configuration file name]`
+
+### Model interrogation, plotting, and analysis
+
+The models are stored in the `results` schema. Within this schema, there are a number of tables:
+
+1. `models`  
+  contains all of the model information and configuration details
+1. `evaluations`  
+  contains a number of metrics for each model. Each row is a metric for one model. The `model_id` is a foreign key to `model_id` in the `models` table.
+1. `predictions`  
+  contains the predictions for each unit (officer or dispatch) that was predicted for each model. The `model_id` is a foreign key to `model_id` in the `models` table.
+1. `data`  
+  contains model pickle files that can be read back into python if necessary.
+
+#### Reading model configuration information
+
+The entire configuration file for every model run is stored in `results.models.config` as a JSON object, which can be queried directly in PostgreSQL.  An example of such a query is shown here:
+
+```sql
+select * from results.models where config->>'fake_today' = '01May2014'
+```
+
+#### Reading pickles
+
+In order to use a fit model in python (for visualization of ROC curves, model inspection, making predictions with a fitted model, etc.), simply query the database for the pickle, and then use `pickle.loads()`
+
+```python
+import pickle
+
+[sql-cursor].execute("SELECT pickle_blob FROM results.data WHERE model_id = 20")
+result, = cur.fetchone()
+data = pickle.loads(result)
+```
