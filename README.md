@@ -12,9 +12,6 @@ Our documentation is documented in several stages:
 * [Repository Overview](docs/repository_documentation.md)
 * [Nashville Staging Development](docs/nashville_staging_population_and_management.md)
 * [Modeling Process](docs/repositories_dependencies_and_pipeline.md)
-
-
-
 * [DEPRECATED: Read The Docs](https://police-eis.readthedocs.org/en/latest/).
 
 ## Installation
