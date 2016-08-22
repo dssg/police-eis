@@ -57,7 +57,14 @@ We use Drake to transfer the raw data from the department to the ETL schema (onl
 
 We use luigi to move data from the ETL schema to the staging schema. [Full documentation for this process (including repopulation) is available.](nashville_staging_population_and_management.md)
 
-Much, but not all, of the ETL to staging process has been automated with a bash script called ['run_luigi.sh' in the `police-eis/schemas/` directory.](../schemas/run_luigi.sh)
+Much, but not all, of the ETL to staging process has been automated with a bash script called ['run_luigi.sh' in the `police-eis/schemas/` directory.](../schemas/run_luigi.sh) 
+
+If the user would like to run this largely automated script on a staging-development schema, the schema can be specified in the first line of this file:
+  ```Shell 
+  export schema=staging_dev
+  ```
+Change `staging_dev` to an alternate name if desired, and from the terminal run: `bash run_luigi.sh`.    
+  
 
 ### Staging to features
 
