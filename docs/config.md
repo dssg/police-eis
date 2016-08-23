@@ -1,6 +1,6 @@
 ## Machine
 
-The analysis for this research was conducted on a Ubuntu 14.04.4 LTS machine hosted on an AWS EC2 server. A full description of the machine used can be found [here](machine_configuration/)
+The analysis for this research was conducted on a Ubuntu 14.04.4 LTS machine hosted on an AWS EC2 server. A full description of the machine used can be found [here](machine_configuration/).
 
 The specific dependencies are as follows:
 
@@ -10,7 +10,7 @@ The specific dependencies are as follows:
 Only required for loading the Nashville data (see below).
 
 ### 2. Python 3.4+
-For package dependencies, see requirements.txt
+For package dependencies, see [requirements.txt](../requirements.txt)
 
 ### 3. [Luigi](https://github.com/spotify/luigi)
 
@@ -50,4 +50,4 @@ For the `police-eis-private` repository, change your directory to be in the root
 
 The `--recursive` flag is important because it will make sure to clone any submodules that are included in the repositories (currently this is only [pg_tools](https://github.com/jonkeane/pg_tools)).
 
-Documentation about the repository structure is [here](./repository_documentation.md).
+####[Proceed to Database Connection](./database_connection.md).
