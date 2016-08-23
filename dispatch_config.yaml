@@ -18,11 +18,11 @@ unit: 'dispatch'  # possible options: [dispatch, officer]
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
 raw_data_from_date: '2012-01-01'
-raw_data_to_date: '2015-01-01'
+raw_data_to_date: '2012-04-01'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
-fake_today: ['01Mar2015']  # if you want a specific_today then pass this
+fake_today: ['01Mar2012']  # if you want a specific_today then pass this
 training_window: [730]  # training, days
 prediction_window: [365]  # prediction, days
 
@@ -54,7 +54,7 @@ dispatch_labels:
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'backup_jan2015_dec2015'
+dispatch_feature_table_name: 'diditwork3'
 
 officer_features:
     investigation_count_career: True
