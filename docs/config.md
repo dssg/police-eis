@@ -32,9 +32,9 @@ git submodule update
 ```
 Once the machine is configured, the repositories can be cloned.
 
-## Repositories
+## Getting the Repositories
 
-## What are the repos?
+### What are the repos?
 
 There are a number of repositories that are and have been used in the course of developing the police early intervention system. This document is designed to describe the purpose and content of each. There is [detailed documentation about each of the repositories used.](./repository_documentation.md)
 
