@@ -585,9 +585,10 @@ class FeatureLoader():
         if drop_OI:
             results = results[results.dispatchcategory != "OI"]
 
-        # Remove dispatches that do not have geolocation (median age in census tract is proxy as it will be assigned to all with a geolocation)
+        # Remove dispatches that do not have geolocation (percentage black in census tract is 
+        # a proxy as it will be assigned to all with a geolocation)
         if has_geolocation:
-            results = results[~results.medianageinct.isnull()]
+            results = results[~results.percentageblackinct.isnull()]
 
         # index by the relevant id
         results = results.set_index(id_column)
