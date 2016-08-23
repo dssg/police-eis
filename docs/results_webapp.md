@@ -13,15 +13,15 @@ The script `prepare.py` is run from the command line and has several required ar
 ####Required Arguments:
 
   ```python
-  timestamp:      models run on or after given timestamp
-                  example: '2016-08-03'
+      timestamp:      models run on or after given timestamp
+                      example: '2016-08-03'
                   
-  metric:         metric to be optimized
-                  example: 'precision@'
+     metric:          metric to be optimized
+                      example: 'precision@'
   ```
 
 ####Options:
-  
+  ```python
       --parameter:
       --p:          parameter value or threshold if any
                     default=None
@@ -35,3 +35,11 @@ The script `prepare.py` is run from the command line and has several required ar
       --d:          the directory the results should be returned
                     default = 'results/'
   ```
+
+####Examples:
+
+`python prepare.py '2016-08-03' 'auc' ` returns the top models on or after 2016-08-03 with the best auc. By default, this returns up to 25 models into the `'/results/'` directory.
+
+`python prepare.py '2016-08-22' 'precision@' -p '10.0' -n 5 -d 'example_directory/'` returns the top 5 models run on or after 2016-08-22 with the best precision at the top 10% of the distribution. The results are returned to `'example_directory'`. 
+
+
