@@ -19,4 +19,4 @@ Please use [Github's issue tracker](https://github.com/dssg/police-eis/issues/ne
 
 ## Contributors
 
-Jennifer Helsby, Samuel Carton, Kenneth Joseph, Ayesha Mahmud, Youngsoo Park, Joe Walsh, Lauren Haynes. 
+Jennifer Helsby, Samuel Carton, Kenneth Joseph, Ayesha Mahmud, Youngsoo Park, Tom Davidson, Henry Hinnefeld, Sumedh Joshi, Jon Keane, Josh Mausolf, Lin Taylor, Ned Yoxall, Joe Walsh, Lauren Haynes. 
