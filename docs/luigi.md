@@ -42,6 +42,16 @@ Every task should have three things (`output`, `requires`, and `run`), which are
       self.pgw.execute(sql_query)
   ```
 
+*Toy example for writing luigi task dependencies* 
+
+  Tasks: 
+    - Keep Lin happy
+    - Make Chai latte
+    
+  Targets:
+    - Lin's happiness
+    - Chai latte
+
 
 ## wrapper tasks `luigi.WrapperTask`
 
@@ -71,7 +81,7 @@ class CreateTable(pg_tools.PostgresTask):
 The above code will call the function prioritize_tables, which returns the priority (as an integer) that that specific table creation should be given. This number is taken from a Python dictionary of table names mapped to priority numbers.
 
 ## `pg_tools`
-
+TODO: add documentation here!
 
 ## Create `staging` and populate lookup tables
 
@@ -85,7 +95,7 @@ An example command you might run is:
 ### Constructing a luigi call in bash
 
 1. `PYTHONPATH=''` you always need this to call luigi from bash
-1. `luigi --module [filename (wihtout the .py extension)]`
+1. `luigi --module [filename without the .py extension]`
 1. `SingleTaskToRun` e.g. `PopulateLookupTables` 
 1. parameters (see below)
 1. `--local-scheduler` this tells luigi to run the command locally
@@ -108,16 +118,16 @@ The following global objects and functions are used in the [`police-eis/schemas/
 1. `table_priorities`
   This is a dictionary that gives priorities for tables that must be created early in the process (due to foreign key constraints). The keys are the table names, and the values are integers, >1 where the larger the number the higher the priority given.
 1. `prioritize_tables()`
-  This is a function that takes a table name and returns a priority number based on the table_priorities
+  This is a function that takes a table name and returns a priority number based on the table_priorities.
 
 
 ### Tasks in setupStaging
 
 1. `CreateTable()`
-  This task creates a table given a `script`, `table`(name), and `schema`. The task is considered complete if the table exists (which is determined by `pg_tools.PGTableTarget`). If the table doesn't exist the script is executed
+  This task creates a table given a `script`, `table`(name), and `schema`. The task is considered complete if the table exists (which is determined by `pg_tools.PGTableTarget`). If the table doesn't exist the script is executed.
 
 1. `CreateAllStagingTables()`
-  This task finds all of the create table sql scripts in the directory provided by the parameter `--CreateAllStagingTables-create-tables-directory`<sup id="a1">[1](#f1)</sup>, and yields a new task for every create table script in that directory. This wrapper task is considered successfully completed when all of the tasks in its `requires` method have completed successfully.
+  This task finds all of the create table sql scripts in the directory provided by the parameter `--CreateAllStagingTables-create-tables-directory`<sup id="a1">[1](#f1)</sup>, and yields a new create table task for every create table script in that directory. This wrapper task is considered successfully completed when all of the tasks in its `requires` method have completed successfully.
 
 1. `PopulateLookupTables()`
   This task populates the lookup tables. It requires that the `CreateAllStagingTables` task is complete before it runs. It then reads the data in the yaml file provided by the `--table-file` parameter, drops the information in those lookup tables, and then repopulates the lookup tables.
@@ -130,18 +140,28 @@ The luigi code to create the stored procedures and populate that `staging` schem
 
 There are two main tasks (`PopulateStoredProcedures` and `PopulateAllStagingTables`) which don't currently have dependencies setup in luigi (so they must be run one after the other).
 
+An example command you might run is:
+`PYTHONPATH='' luigi --module populateStagingFromMNPD PopulateStoredProcedures --schema staging_dev --local-scheduler`
+
+followed by:
+`PYTHONPATH='' luigi --module populateStagingFromMNPD PopulateAllStagingTables --schema staging_dev --populate-tables-directory ./populate_tables/mnpd --local-scheduler`
 
 ### Parameters
-The following parameters must be passed:
+The following parameters must be both specified in the [`[police-eis]/police-eis-private/schemas/populateStagingFromMNPD.py`](https://github.com/dssg/police-eis-private/blob/master/schemas/populateStagingFromMNPD.py) file, and passed to the bash command that calls luigi:
 
 1. `--schema staging_dev`  (both tasks)  
   This is the name that of the schema where the tables will be created (canonically `staging_dev`, but can be anything)
 1. `--populate-tables-directory ./populate_tables/mnpd`  (`PopulateAllStagingTables` task only)
   This is the directory that contains all population scripts for each table. The files must be named in the format: `POPULATE-staging-[table_name].sql`
+
+### Globals
+
+The following global objects and functions are used in the populateStagingFromMNPD file:
+
 1. `tables_and_cleanup_scripts`  
   This is a dictionary that has the tables that need to have cleanup scripts run on them after they are populated. The keys are the table name, and the values are lists, the first element is the (relative) path to the cleanup script that must be imported and the second element is the column that will be populated when the cleanup has run successfully. For more information see the `PopulateTableWithCleanUp` task below.
 
-### Tasks
+### Tasks in the populateStagingFromMNPD file
 
 ### Create stored procedures
 
