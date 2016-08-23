@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 
 try:
     log.info("Connecting to database...")
-    engine, _ = setup_environment.get_database()
+    engine = setup_environment.get_database()
 except:
     log.error('Could not connect to the database')
     

@@ -3,11 +3,8 @@
 #              Model experiments               #
 ################################################
 
-make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes made of training set features
-distdir: dists  # Where to put them
-
 # Set the officer table name.
-officer_feature_table_name: "example_officer_features_table"
+officer_feature_table_name: "merging_example_officer_features_table"
 
 # determine whether model objects get stored in the database or not.
 store_model_object_in_database: True
@@ -23,16 +20,12 @@ batch_comment: ""
 ########################
 
 unit: 'officer'  # other options: 'dispatch'
-aggregation: False  # Also produce unit and division level risk scores
-pilot: False  # Turn on pilot experiment
-pilot_today: '01May2016'  # Do pilot beginning date
-pilot_dir: 'pilot/'
 
 ########################
 # Temporal parameters  #
 ########################
 
-fake_today: ['01May2014', '01May2013']  # if you want a specific_today then pass this
+fake_today: ['01May2013']  # if you want a specific_today then pass this
 timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"]
 autogen_fake_todays: False  # set to off if you want a specific fake_today
 training_window: [365, 730, 10000]  # training, days, used for officer-level prediction
@@ -44,22 +37,6 @@ training_interval_days: 1460  # days, used for dispatch-level prediction
 ########################
 # Labelling Details    #
 ########################
-
-# Select which events you want the model to use as adverse incidents (class 1)
-
-def_adverse:
-    accidents: False  # preventable accidents
-    useofforce: False  # unjustified use of force
-    injury: False  # preventable officer injuries
-    icd: False  # preventable in custody deaths
-    tdd: False  # unjustified use of tire deflation device
-    nfsi: False  # unjustified no force subject injury
-    dof: False  # unjustified discharge of firearm
-    raid: False  # unjustified raid and search
-    pursuit: False  # unjustified pursuit
-    complaint: True  # sustained complaints
-
-labelling:
 
 officer_labels:                     # note: the labels below are combined with a logical OR.
     include_all_employed: True      # include all officers who were employed during the specified period
@@ -83,24 +60,23 @@ officer_labels:                     # note: the labels below are combined with a
 ########################
 # Feature selection    #
 ########################
-try_feature_sets_by_group: False  # Turn on if you want the code to try removing each feature set in turn
 
 officer_features:
     TimeGatedDummyFeature: False # Time gated dummy feature. Example feature.
     ArrestMonthlyVariance: False
     ArrestMonthlyCOV: False
-    AcademyScore: False # Performance score at the police academy.
+    AcademyScore: True # Performance score at the police academy.
     ArrestMonthlyVariance: False # month-by-month variance of arrest counts.
     ArrestMonthlyCOV: False # month-by-month coefficient of variation in arrest counts.
     DivorceCount: False # Number of total divorces in this officer's past.
-    MilesFromPost: False # Number of miles to post.
+    MilesFromPost: True # Number of miles to post.
     OfficerGender: False # Officer gender code.
     OfficerRace: False # Officer race code.
     OfficerEthnicity: False # Officer ethnicity code.
     OfficerAge: False # Age of officer in years.
     OfficerRank: False # Officer rank.
     OfficerEducation: False # Officer education level.
-    ArrestCount: False # Number of arrests made by an officer, time gated.
+    ArrestCount: True # Number of arrests made by an officer, time gated.
     OfficerMilitary: False # Whether or not the officer has had military experience
     IncidentCount: False # Officer investigatable incident count to fake_today.
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
@@ -131,14 +107,14 @@ officer_features:
     #   Threshold based EIS system Feature Selection  #
     ###################################################
 
-    ThresholdAccidentFlag: True # Flag if there have been more than 2 accidents in the past 180 days
-    ThresholdUOFFlag: True # Flag if there have been more than 3 UOF incidents in the past 90 days
-    ThresholdSickLeaveFlag: True # Flag if there have been more than 3 sick/medical/family leave days taken in the last 90 days
-    ThresholdComplaintFlag: True # Flag if there have been 3 or more (civilian) complaints in the past 180 days
+    ThresholdAccidentFlag: False # Flag if there have been more than 2 accidents in the past 180 days
+    ThresholdUOFFlag: False # Flag if there have been more than 3 UOF incidents in the past 90 days
+    ThresholdSickLeaveFlag: False # Flag if there have been more than 3 sick/medical/family leave days taken in the last 90 days
+    ThresholdComplaintFlag: False # Flag if there have been 3 or more (civilian) complaints in the past 180 days
     # for MNPD, the injuries data is not loaded in such a way that it is available for the ThresholdInjuryFlag
-    ThresholdInjuryFlag: True # Flag if there have been 2 or more injuries in the past 180 days
-    ThresholdPursuitsFlag: True # Flag if there have been 2 or more pursuits in the past 180 days
-    ThresholdCombinedFlag: True # Flag if there have been 5 or more incidents or sickdays in the past 180 days
+    ThresholdInjuryFlag: False # Flag if there have been 2 or more injuries in the past 180 days
+    ThresholdPursuitsFlag: False # Flag if there have been 2 or more pursuits in the past 180 days
+    ThresholdCombinedFlag: False # Flag if there have been 5 or more incidents or sickdays in the past 180 days
 
 
 

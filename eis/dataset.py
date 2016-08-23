@@ -14,7 +14,7 @@ from .features import class_map
 log = logging.getLogger(__name__)
 
 try:
-    engine, db_config = setup_environment.get_database()
+    engine = setup_environment.get_database()
     db_conn = engine.raw_connection()
     log.debug('Connected to the database')
 except:
@@ -391,14 +391,12 @@ class FeatureLoader():
 
         # select all officer ids which we will use for labelling
         query_all_officers = (          "SELECT DISTINCT officer_id "
-                                        "FROM {} AS events_hub "
-                                        "LEFT JOIN {} AS ia_table "
+                                        "FROM staging.events_hub AS events_hub "
+                                        "LEFT JOIN staging.internal_affairs_investigations AS ia_table "
                                         "   ON events_hub.event_id = ia_table.event_id "
                                         "WHERE events_hub.event_datetime >= '{}'::date "
                                         "AND events_hub.event_datetime <= '{}'::date "
                                         .format(
-                                            'events_hub',
-                                            self.tables['si_table'],
                                             self.start_date,
                                             self.end_date))
 
@@ -587,6 +585,10 @@ class FeatureLoader():
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
 
+        # filter dispatch-level features for officer-initiated dispatches.
+        if feature_type == "dispatch":
+            results = self.__filter_dispatch_features( results )
+
         # filter out the rows which aren't in ids_to_use
         if ids_to_use is not None:
             results = results.ix[ids_to_use]
@@ -605,6 +607,18 @@ class FeatureLoader():
         if drop_duplicates:
             results = results.drop_duplicates(subset=[id_column])
 
+        # index by the relevant id
+        results = results.set_index(id_column)
+
+        # -1 in feature count is b/c 'label' is also a column, but not a feature
+        log.debug("... {} rows, {} features".format(len(results),
+                                                    len(results.columns) - 1))
+        return results
+
+
+    def __filter_dispatch_features( results, drop_OI=True, has_geolocation=True ):
+        """ Filter dispatch features for officer-initiated dispatches """
+
         # Remove dispatches that are officer initiated
         if drop_OI:
             results = results[results.dispatchcategory != "OI"]
@@ -614,12 +628,6 @@ class FeatureLoader():
         if has_geolocation:
             results = results[~results.percentageblackinct.isnull()]
 
-        # index by the relevant id
-        results = results.set_index(id_column)
-
-        # -1 in feature count is b/c 'label' is also a column, but not a feature
-        log.debug("... {} rows, {} features".format(len(results),
-                                                    len(results.columns) - 1))
         return results
 
 
