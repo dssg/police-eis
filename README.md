@@ -31,5 +31,5 @@ Please use [Github's issue tracker](https://github.com/dssg/police-eis/issues/ne
 
 ## Contributors
 
-* 2016: Sumedh Joshi, Jonathan Keane, Joshua Mausolf, Lin Taylor, Joe Walsh, Jennifer Helsby
-* 2015: Jennifer Helsby, Samuel Carton, Kenneth Joseph, Ayesha Mahmud, Youngsoo Park, Joe Walsh, Lauren Haynes.
+* 2016: Tom Davidson, Henry Hinnefeld, Sumedh Joshi, Jonathan Keane, Joshua Mausolf, Lin Taylor, Ned Yoxall, Joe Walsh (Technical Mentor), Jennifer Helsby (Technical Mentor), Allison Weil (Project Manager)
+* 2015: Jennifer Helsby, Samuel Carton, Kenneth Joseph, Ayesha Mahmud, Youngsoo Park, Joe Walsh (Technical Mentor), Lauren Haynes (Project Manager).
