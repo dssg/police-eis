@@ -6,4 +6,4 @@ The webapp does not directly build these plots from the results schema. Instead,
 
 ##Returning the Top Models
 
-Returning the top models is achieved using the script [`prepare.py`](./prepare.py) located in the root directory of the `police-eis` repository.
+Returning the top models is achieved using the script [`prepare.py`](../prepare.py) located in the root directory of the `police-eis` repository.
