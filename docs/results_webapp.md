@@ -11,8 +11,7 @@ Returning the top models is achieved using the script [`prepare.py`](../prepare.
 The script `prepare.py` is run from the command line and has several command line options:
 
   ```python
-  """
-  --------------------------------------------------------
+  -------------------------------------------------------------------
       * timestamp:  models run on or after given timestamp
                     example: '2016-08-03'
       * metric:     metric to be optimized
@@ -24,6 +23,5 @@ The script `prepare.py` is run from the command line and has several command lin
                     default = 25
       * directory:  the directory the results should be returned
                     default = 'results/'
-  --------------------------------------------------------
-  """
+  -------------------------------------------------------------------
   ```
