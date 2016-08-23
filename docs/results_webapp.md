@@ -8,18 +8,30 @@ The webapp does not directly build these plots from the results schema. Instead,
 
 Returning the top models is achieved using the script [`prepare.py`](../prepare.py) located in the root directory of the [`police-eis`](../) repository.
 
-The script `prepare.py` is run from the command line and has several command line options:
+The script `prepare.py` is run from the command line and has several required arguments and a few available options. These are all specified at the command line.
+
+####Required Arguments:
 
   ```python
-      * timestamp:  models run on or after given timestamp
-                    example: '2016-08-03'
-      * metric:     metric to be optimized
-                    example: 'precision@'
-      * parameter:  parameter value or threshold if any
+  timestamp:      models run on or after given timestamp
+                  example: '2016-08-03'
+                  
+  metric:         metric to be optimized
+                  example: 'precision@'
+  ```
+
+####Options:
+  
+      --parameter:
+      --p:          parameter value or threshold if any
                     default=None
                     example: '10.0'
-      * number:     maximum number of desired results
+                    
+      --number:
+      --n:          maximum number of desired results
                     default = 25
-      * directory:  the directory the results should be returned
+      
+      --directory:  
+      --d:          the directory the results should be returned
                     default = 'results/'
   ```
