@@ -81,3 +81,6 @@ target/
 
 # ignore the saved model .pkl files
 results/*
+
+# ignore the log files
+logs/*

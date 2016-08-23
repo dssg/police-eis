@@ -6,7 +6,7 @@ import numpy as np
 
 from sklearn import cross_validation
 from sklearn import preprocessing
-#from imblearn.under_sampling import RandomUnderSampler
+from imblearn.under_sampling import RandomUnderSampler
 
 from . import dataset
 
@@ -27,6 +27,7 @@ def setup(config):
                                   split on for temporal cross-validation
     """
 
+    #fake_today = config['fake_today']
     fake_today = datetime.datetime.strptime(config['fake_today'], "%d%b%Y")
     train_start_date = fake_today - datetime.timedelta(days=config["training_window"])
     test_end_date = fake_today + datetime.timedelta(days=config["prediction_window"])

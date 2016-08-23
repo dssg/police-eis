@@ -1,5 +1,6 @@
 import pdb
 import copy
+import threading
 from itertools import product
 import datetime
 import logging
@@ -15,7 +16,7 @@ log = logging.getLogger(__name__)
 
 try:
     log.info("Connecting to database...")
-    engine, _ = setup_environment.get_database()
+    engine = setup_environment.get_database()
 except:
     log.error('Could not connect to the database')
     
@@ -153,26 +154,75 @@ def create_dispatch_features_table(config, table_name="dispatch_features"):
                     config['raw_data_to_date']))
     engine.execute(query)
 
+    # Create an index on the dispatch_id column to speed up joins
+    log.info("Creating index on dispatch_id column")
+    indexing_query = ("CREATE INDEX ON features.{} (dispatch_id)").format(table_name)
+    engine.execute(indexing_query)
+
 
 def populate_dispatch_features_table(config, table_name):
     """Calculate all the feature values and store them in the features table in the database"""
 
     # Get a list of all the features that are set to true.
     feature_list = [feat for feat, is_set_true in config['dispatch_features'].items() if is_set_true]
+    num_features = len(feature_list)
 
-    for feature_name in feature_list:
+    # make sure we have at least 1 feature
+    assert num_features > 0, 'List of features to build is empty'
 
-       log.debug('Calculating and inserting feature {}'.format(feature_name))
+    feature_threads = []
 
-       feature_class = class_map.lookup(feature_name, 
-					unit = 'dispatch',
+    # run the build_and_insert of a set of features
+    def run_thread(feature_sublist, engine):
+
+        db_conn = engine.connect()
+
+        for feature_name in feature_sublist:
+            log.debug('... building feature {}'.format(feature_name))
+
+            feature_obj = class_map.lookup(feature_name, 
+					                    unit = 'dispatch',
                                         from_date = config['raw_data_from_date'],
                                         to_date = config['raw_data_to_date'],
                                         fake_today = datetime.datetime.today(),
                                         table_name = table_name)
+            feature_obj.build_and_insert(db_conn)
 
-       feature_class.build_and_insert(engine)
+        db_conn.close()
 
+    def chunks(l, n):
+        """Yield successive n-sized chunks from l."""
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+
+    # build each feature and store it in its own table in features_prejoin
+    # start a new thread for each set of 5 features
+    for feature_sublist in chunks(feature_list, 5):
+
+        t = threading.Thread(target=run_thread, args=(feature_sublist, engine,))
+        feature_threads.append(t)
+        t.start()
+
+    # join each thread and wait for it to be done to make sure we're done building them all
+    # before we move on to joining them
+    for i, thread in enumerate(feature_threads):
+        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features/5)))
+        thread.join()
+
+    # join each single-feature to the main table one at a time
+    for i, feature_name in enumerate(feature_list):
+        
+        log.debug("Adding feature {}/{} ({})".format(i, len(feature_list), feature_name))
+
+        update_query = ("UPDATE features.{table_name} AS feature_table "
+                        "SET {feature} = prejoin_table.{feature} "
+                        "FROM features_prejoin.{feature} AS prejoin_table "
+                        "WHERE feature_table.dispatch_id = prejoin_table.dispatch_id "
+                        .format(table_name=table_name,
+                                feature=feature_name))
+
+        engine.execute(update_query)
+        
 
 def populate_officer_features_table(config, table_name):
     """Calculate all the feature values and store them in the features table in the database"""

@@ -14,19 +14,19 @@ from .features import class_map
 log = logging.getLogger(__name__)
 
 try:
-    engine, db_config = setup_environment.get_database()
+    engine = setup_environment.get_database()
     db_conn = engine.raw_connection()
     log.debug('Connected to the database')
 except:
     log.warning('Could not connect to the database')
     raise
 
-try:
-    db_conn.cursor().execute("SET SCHEMA '{}'".format(db_config['schema']))
-    log.debug('Changed the schema to ', db_config['schema'])
-except:
-    log.warning('Could not set the database schema')
-    raise
+#try:
+#    db_conn.cursor().execute("SET SCHEMA '{}'".format(db_config['schema']))
+#    log.debug('Changed the schema to ', db_config['schema'])
+#except:
+#    log.warning('Could not set the database schema')
+#    raise
 
 
 def change_schema(schema):
@@ -121,6 +121,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
         # hack-y: much faster to write to csv, then read csv with psql than to write straight to database from python
         csv_filepath = "{}/{}_{}.csv".format('results', 'dispatch_results', timestamp)
         dataframe_for_insert.to_csv(csv_filepath, index=False)
+        # TODO: write code to actually load the csv into postgres with psql
     else:
         dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False )
 
@@ -362,11 +363,11 @@ class FeatureLoader():
         self.start_date = start_date
         self.end_date = end_date
         self.fake_today = fake_today
-        self.tables = db_config  # Dict of tables
-        self.schema = db_config['schema']
+        #self.tables = db_config  # Dict of tables
+        #self.schema = db_config['schema']
         self.table_name = table_name
 
-        change_schema(self.schema)
+        #change_schema(self.schema)
 
     def officer_labeller(self, officer_labels, ids_to_label=None):
         """
@@ -390,14 +391,12 @@ class FeatureLoader():
 
         # select all officer ids which we will use for labelling
         query_all_officers = (          "SELECT DISTINCT officer_id "
-                                        "FROM {} AS events_hub "
-                                        "LEFT JOIN {} AS ia_table "
+                                        "FROM staging.events_hub AS events_hub "
+                                        "LEFT JOIN staging.internal_affairs_investigations AS ia_table "
                                         "   ON events_hub.event_id = ia_table.event_id "
                                         "WHERE events_hub.event_datetime >= '{}'::date "
                                         "AND events_hub.event_datetime <= '{}'::date "
                                         .format(
-                                            'events_hub',
-                                            self.tables['si_table'],
                                             self.start_date,
                                             self.end_date))
 
@@ -551,6 +550,7 @@ class FeatureLoader():
 
         return results, feature_to_load
 
+
     def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
         """Get the feature values from the database
 
@@ -585,14 +585,17 @@ class FeatureLoader():
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
 
+        # filter dispatch-level features for officer-initiated dispatches.
+        if feature_type == "dispatch":
+            results = self.__filter_dispatch_features( results )
+
         # filter out the rows which aren't in ids_to_use
         if ids_to_use is not None:
             results = results.ix[ids_to_use]
 
         return results
 
-
-    def __read_feature_table(self, query, id_column, drop_duplicates=True):
+    def __read_feature_table(self, query, id_column, drop_duplicates=True, drop_OI=True, has_geolocation=True):
         """Return a dataframe with data from the features table, indexed by the relevant id (officer or dispatch)"""
 
         log.debug("Loading features for events from {} to {}".format(
@@ -610,6 +613,21 @@ class FeatureLoader():
         # -1 in feature count is b/c 'label' is also a column, but not a feature
         log.debug("... {} rows, {} features".format(len(results),
                                                     len(results.columns) - 1))
+        return results
+
+
+    def __filter_dispatch_features(self, results, drop_OI=True, has_geolocation=True):
+        """ Filter dispatch features for officer-initiated dispatches """
+
+        # Remove dispatches that are officer initiated
+        if drop_OI:
+            results = results.loc[results.dispatchcategory != "OI"]
+
+        # Remove dispatches that do not have geolocation (percentage black in census tract is 
+        # a proxy as it will be assigned to all with a geolocation)
+        if has_geolocation:
+            results = results[~results.percentageblackinct.isnull()]
+
         return results
 
 

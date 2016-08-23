@@ -31,7 +31,8 @@ def find_categorical_features(feature_list):
     """
 
     # TODO: make it so that we don't need to supply a bogus fake today to instantiate an OfficerFeature
-    dummy_kwargs = {'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
+    # TODO: make the passing of 'unit' to lookup nicer
+    dummy_kwargs = {'unit':'dispatch', 'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
     feature_classes = [lookup(feature, **dummy_kwargs) for feature in feature_list]
 
     categorical_features = [feature.feature_name for feature in feature_classes if feature.is_categorical]
@@ -51,10 +52,6 @@ def lookup(feature_name, unit, **kwargs):
     :rtype: unit.feature_name object
  
     '''
-    if feature_name[1:3] == "yr":
-        kwargs["feat_time_window"] = int(feature_name[0])
-    else:
-        kwargs["feat_time_window"] = 15
     
     # Assign the module to find the feature class in   
     if unit == 'officer':
@@ -73,6 +70,7 @@ def lookup(feature_name, unit, **kwargs):
     
     return feature
 
+
 def find_label_features(feature_list):
     """Given a list of feature names return the names of the
     features which are labels
@@ -85,10 +83,10 @@ def find_label_features(feature_list):
     """
 
     # TODO: make it so that we don't need to supply a bogus fake today to instantiate an OfficerFeature
-    dummy_kwargs = {'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
+    # TODO: make passing 'unit' to lookup nicer
+    dummy_kwargs = {'unit':'dispatch', 'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
     feature_classes = [lookup(feature, **dummy_kwargs) for feature in feature_list]
 
     label_features = [feature.feature_name for feature in feature_classes if feature.is_label]
 
     return label_features
-
