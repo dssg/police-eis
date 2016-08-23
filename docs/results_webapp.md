@@ -6,6 +6,12 @@ The webapp does not directly build these plots from the results schema. Instead,
 
 ## Webapp Setup
 
+### Requirements
+
+* [`gunicorn/19.6.0`](http://docs.gunicorn.org/en/stable/install.html)
+* [`nginx/1.4.6`](https://www.nginx.com)
+* [`flask/0.10.1`](http://flask.pocoo.org)
+
 ### Installation
 
 `apt-get install gunicorn nginx supervisor apache2-utils`
