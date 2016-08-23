@@ -2,6 +2,8 @@
 
 The `staging` schema should not be in flux or have changes made on the fly. Instead a development schema (_eg_ `staging_dev`) should be used to test new population code. This allows the feature generation code and model code to rely on what is in the `staging` schema.
 
+We use luigi to create and populate the `staging` schema. There is [detailed documentation on luigi and our setup.](luigi.md)
+
 When the development staging schema is in a (reliable|stable) state, it should be moved to `staging` and then the development staging schema should be recreated (with the Luigi commands below).
 
 You must have a credentials file called `luigi.cfg` for any of the luigi scripts to run. Because these luigi scripts are located in both the `police-eis` and `police-eis-private` repositories you will need two copies: one at `police-eis/schemas/luigi.cfg` and another at `police-eis-private/schemas/luigi.cfg`. The form of this credentials file is given in an example file `luigi_example.cfg`. Use the same format here, but with your credentials to allow luigi to connect to the postgres database.
