@@ -24,7 +24,8 @@ The `--recursive` flag is important because it will make sure to clone any submo
 Only required for loading the Nashville data (see below).
 
 ### 2. Python 3.4+
-For package dependencies, see requirements.txt
+For package dependencies, see requirements.txt.
+NB: luigi will not work with Anaconda because its builds are out of date and sometimes the Python path is problematic.
 
 ### 3. [Luigi](https://github.com/spotify/luigi)
 
@@ -52,21 +53,21 @@ git submodule update
 We use Drake to transfer the raw data from the department to the ETL schema (only the MNPD data uses this system). To run this process use the following command in the `[path to police-eis repo]\police-eis-private\schemas\etl\` directory:
 
 ```
-drake -w Drakefile_[department] -s ~/.s3cfg 
+drake -w Drakefile_[department] -s ~/.s3cfg
 ```
 
 ### ETL to staging
 
-We use luigi to move data from the ETL schema to the staging schema. [Full documentation for this process (including repopulation) is available.](nashville_staging_population_and_management.md)
+We use luigi to move data from the ETL schema to the staging schema. [Full documentation for this process (including repopulation) is available.](nashville_staging_population_and_management.md) There is additional [detailed documentation on luigi and our setup.](luigi.md) 
 
-Much, but not all, of the ETL to staging process has been automated with a bash script called ['run_luigi.sh' in the `police-eis/schemas/` directory.](../schemas/run_luigi.sh) 
+Much, but not all, of the ETL to staging process has been automated with a bash script called ['run_luigi.sh' in the `police-eis/schemas/` directory.](../schemas/run_luigi.sh)
 
 If the user would like to run this largely automated script on a staging-development schema, the schema can be specified in the first line of this file:
-  ```Shell 
+  ```Shell
   export schema=staging_dev
   ```
 Change `staging_dev` to an alternate name if desired, and from the terminal run: `bash run_luigi.sh`.    
-  
+
 
 ### Staging to features
 

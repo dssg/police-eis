@@ -9,13 +9,15 @@ This is a data-driven Early Intervention System (EIS) for police departments. Th
 
 Our modeling pipeline has some prerequists and structure documentation:
 
-1.  [Configure the Machine](link).
+1.  [Configure the Machine](docs/config.md).
 2.  [Documentation about the structure and contents of the repositories](docs/repository_documentation.md).
 3.  [Setup Database Connection](docs/database_connection.md).
 
 ### After the prerequisites and requirements are met, the full pipeline can be run ([pipeline documentation](docs/repositories_dependencies_and_pipeline.md)).
 
 ![Process](docs/tableProces.png)
+
+Once the pipeline has been run, the results can be visualized using the [webapp](docs/results_webapp.md).
 
 Deprecated Documentation Quick Links:
 

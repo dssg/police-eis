@@ -29,3 +29,6 @@ This repository should sit in the root directory of the [`police-eis`](https://g
 
 ## [`police`](https://github.com/dssg/police)
 This repsoitory is mostly a hold over from previous iterations of the project. It does, however, contain some exploratory data analysis code that includes some department-specific information. This repository should be reserved for exploratory data analysis or historical code if at all possible. It should not include any pipeline code if at all possible.
+
+####[Return to Machine Configuration](./config.md).
+
