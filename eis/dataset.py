@@ -616,12 +616,12 @@ class FeatureLoader():
         return results
 
 
-    def __filter_dispatch_features( results, drop_OI=True, has_geolocation=True ):
+    def __filter_dispatch_features(self, results, drop_OI=True, has_geolocation=True):
         """ Filter dispatch features for officer-initiated dispatches """
 
         # Remove dispatches that are officer initiated
         if drop_OI:
-            results = results[results.dispatchcategory != "OI"]
+            results = results.loc[results.dispatchcategory != "OI"]
 
         # Remove dispatches that do not have geolocation (percentage black in census tract is 
         # a proxy as it will be assigned to all with a geolocation)
