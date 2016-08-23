@@ -7,16 +7,15 @@ This is a data-driven Early Intervention System (EIS) for police departments. Th
 
 ## Quickstart Documentation
 
-Our modeling pipeline has the following aggregate steps:
+Our modeling pipeline has some prerequists and structure documentation:
 
 1.  [Configure the Machine](link).
-2.  [Clone the Repository](docs/repository_documentation.md).
+2.  [Documentation about the structure and contents of the repositories](docs/repository_documentation.md).
 3.  [Setup Database Connection](docs/database_connection.md).
-4.  [Follow the Modeling Steps](docs/repositories_dependencies_and_pipeline.md).
+
+### [Full pipeline is documented.](docs/repositories_dependencies_and_pipeline.md).
 
 ![Process](docs/tableProces.png)
-
-
 
 Deprecated Documentation Quick Links:
 
