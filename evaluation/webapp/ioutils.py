@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import pickle
 import glob
 from os import path
@@ -8,8 +9,8 @@ from threading import Lock
 
 from flask import abort
 
-from webapp.evaluation import precision_at_x_percent, compute_AUC, fpr_tpr
-from webapp.evaluation import recall_at_x_percent
+from webapp.evaluation import precision_at_x_proportion, compute_AUC, fpr_tpr
+from webapp.evaluation import recall_at_x_proportion
 from webapp import config
 
 
@@ -19,12 +20,13 @@ cache_lock = Lock()
 
 def timestamp_from_path(pkl_path):
     prefix = path.join(config.results_folder, "police_eis_results_")
-    ts = pkl_path.replace(prefix, "")
+    ts = pkl_path.replace(prefix, "").split("_")[-1]
     ts = ts.replace(".pkl", "")
+    print (ts)
     return ts
 
 
-Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data", 
+Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data",
                                        "fpr", "tpr", "fnr", "tnr", "recall", "aggregation",
                                        "eis_baseline", "threshold_levels"])
 
@@ -43,16 +45,26 @@ def experiment_summary(pkl_file):
     model_config["test_end_date"] = data["test_end_date"].strftime("%d%b%Y")
 
 
-    # model_config["features"] = data["features"]
-    model_config["feature_summary"] = feature_summary(model_config["features"])
-    prec_at = precision_at_x_percent(
+    #model_config["features"] = data["features"]
+    #model_config["feature_summary"] = feature_summary(model_config["features"])
+    prec_at = precision_at_x_proportion(
         data["test_labels"], data["test_predictions"],
-        x_percent=0.01)
+        x_proportion=0.01)
     auc_model = compute_AUC(data["test_labels"], data["test_predictions"])
     num_units = len(data["test_labels"])
 
-    threshold_levels = []
+    threshold_levels = [1.0, 0.9, 0.8]
     fpr, tpr, fnr, tnr = {}, {}, {}, {}
+
+    for each_threshold in sorted(list(threshold_levels)):
+        #threshold_levels.append(each_threshold)
+        fpr.update({each_threshold: [0, 1]})
+        tpr.update({each_threshold: [1, 1]})
+        fnr.update({each_threshold: [1, 0]})
+        tnr.update({each_threshold: [0, 0]})
+        eis_baseline = each_threshold
+
+    """
     for each_threshold in sorted(list(data["eis_baseline"].keys())):
         threshold_levels.append(each_threshold)
         fpr.update({each_threshold: data["eis_baseline"][each_threshold]["dsapp"][0, 1]})
@@ -60,11 +72,12 @@ def experiment_summary(pkl_file):
         fnr.update({each_threshold: data["eis_baseline"][each_threshold]["dsapp"][1, 0]})
         tnr.update({each_threshold: data["eis_baseline"][each_threshold]["dsapp"][0, 0]})
         eis_baseline = data["eis_baseline"][each_threshold]["eis"]
+    """
 
     rec_list = []
     for rec_threshold in [10., 15., 20.]:
-        rec_list.append(recall_at_x_percent(data["test_labels"],
-            data["test_predictions"], x_percent=rec_threshold/100.))
+        rec_list.append(recall_at_x_proportion(data["test_labels"],
+            data["test_predictions"], x_proportion=rec_threshold/100.))
 
     try:
         aggregation = data["aggregation"]
@@ -72,6 +85,10 @@ def experiment_summary(pkl_file):
         aggregation = "No aggregated data stored"
 
     recall = "[{}, {}, {}]".format(rec_list[0].round(2), rec_list[1].round(2), rec_list[2].round(2))
+    #return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
+    #                  model_config, auc_model, data, fpr, tpr, fnr, tnr,
+    #                  recall, aggregation, eis_baseline, threshold_levels)
+
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config, auc_model, data, fpr, tpr, fnr, tnr,
                       recall, aggregation, eis_baseline, threshold_levels)
@@ -85,6 +102,8 @@ def update_experiments_cache():
             ts = timestamp_from_path(pkl)
             if ts not in cache:
                 cache[ts] = experiment_summary(pkl)
+                #print("ts not in cache")
+                pass
     # todo delete experiments that were remove from cache
 
 
@@ -137,7 +156,7 @@ def get_experiments_list():
     update_experiments_cache()
     # risk of dirty reads here because outside of lock
     experiments_copy = [Experiment(e.timestamp, e.config,
-                                   e.score, None, e.fpr, 
+                                   e.score, None, e.fpr,
                                    e.tpr, e.fnr, e.tnr, e.recall, e.aggregation,
                                    e.eis_baseline, e.threshold_levels) for e in cache.values()]
     return experiments_copy
@@ -160,11 +179,11 @@ def feature_summary(features):
                       '1yrhighcrimefi', '1yrloiterfi', 'careerloiterfi',
                       'careerblackfi', 'careerwhitefi', 'avgsuspectagefi',
                       'avgtimeofdayfi', 'fitimeseries', 'careercadstats',
-                      '1yrcadstats', '1yrcadterms', 'careercadterms', 
+                      '1yrcadstats', '1yrcadterms', 'careercadterms',
                       'careerelectivetrain', '1yrelectivetrain',
                       'careerhourstrain', '1yrhourstrain', 'careerworkouthours',
                       '1yrworkouthours', 'careerrochours', '1yrrochours',
-                      'careerproftrain', '1yrproftrain', 
+                      'careerproftrain', '1yrproftrain',
                       'careertrafficstopnum', '1yrtrafficstopnum',
                       'careerdomvioltrain',
                       '1yrdomvioltrain', 'careermilitarytrain', '1yrmilitarytrain',
@@ -174,7 +193,7 @@ def feature_summary(features):
                       '1yrforcetraffic', 'careertsblackdaynight',
                       '1yrtsblackdaynight', 'careertrafstopresist', '1yrtrafstopresist',
                       '3yrtrafstopresist', '5yrtrafstopresist',
-                      '1yrtrafstopsearch', '3yrtrafstopsearch', 
+                      '1yrtrafstopsearch', '3yrtrafstopsearch',
                       '5yrtrafstopsearch', 'careertrafstopsearch', '1yrtrafstopsearchreason',
                       '3yrtrafstopsearchreason', '5yrtrafstopsearchreason',
                       'careertrafstopsearchreason', '1yrtrafstopruntagreason',
@@ -184,7 +203,7 @@ def feature_summary(features):
                       '1yrtrafstopbyrace', '3yrtrafstopbyrace', '5yrtrafstopbyrace',
                       'careertrafstopbyrace', '1yrtrafstopbygender',
                       '3yrtrafstopbygender', '5yrtrafstopbygender',
-                      'careertrafstopbygender', 'trafficstoptimeseries', '1yreiswarnings', 
+                      'careertrafstopbygender', 'trafficstoptimeseries', '1yreiswarnings',
                       '5yreiswarnings', 'careereiswarnings', '1yreiswarningtypes',
                       'careereiswarningtypes', '1yreiswarninginterventions',
                       'careereiswarninginterventions', '1yrextradutyhours', 'careerextradutyhours',
@@ -195,13 +214,13 @@ def feature_summary(features):
                       'careernumfilteredadverse', '1yrroccoc', 'careerroccoc', '1yrrocia',
                       'careerrocia', '1yrpreventable', 'careerpreventable',
                       '1yrunjustified', 'careerunjustified', '1yrsustaincompl',
-                      'careersustaincompl', '1yriaconcerns', 
+                      'careersustaincompl', '1yriaconcerns',
                       'careeriaconcerns', 'careeriarate',
-                      '1yrdofcounts', 'careerdofcounts', 
+                      '1yrdofcounts', 'careerdofcounts',
                       '1yrdirectivecounts',
                       'careerdirectivecounts', '1yriaeventtypes', 'careeriaeventtypes',
                       '1yrinterventions', 'careerinterventions',
-                      '1yrweaponsuse', 'careerweaponsuse', 
+                      '1yrweaponsuse', 'careerweaponsuse',
                       '1yrunithistory', 'careerunithistory', '1yrdivisionhistory',
                       'careerdivisionhistory']
 
@@ -212,6 +231,7 @@ def feature_summary(features):
     if len(not_used) == 0:
         return "all"
     else:
+        #pass
         not_used = [n for n in not_used if not n.startswith("imputation_")]
         # any_census_used = any([True for n in features
         #                       if n.startswith("rate_")])

@@ -88,9 +88,11 @@ def create_officer_features_table(config, table_name="officer_features"):
     for fake_today in fake_todays:
         fake_today = datetime.datetime.strptime(fake_today, '%d%b%Y') 
         fake_today.strftime(time_format)
-        officer_id_query = ( "INSERT INTO features.{} (officer_id,fake_today) "
-                             "SELECT staging.officers_hub.officer_id, '{}'::date "
-                             "FROM staging.officers_hub").format(table_name,fake_today)
+        officer_id_query = (    "INSERT INTO features.{} (officer_id, created_on, fake_today) "
+                                "SELECT staging.officers_hub.officer_id, '{}'::timestamp, '{}'::date "
+                                "FROM staging.officers_hub").format(    table_name,
+                                                                        datetime.datetime.now(),
+                                                                        fake_today)
         engine.execute(officer_id_query)
 
 
@@ -179,6 +181,7 @@ def populate_dispatch_features_table(config, table_name):
             log.debug('... building feature {}'.format(feature_name))
 
             feature_obj = class_map.lookup(feature_name, 
+					                    unit = 'dispatch',
                                         from_date = config['raw_data_from_date'],
                                         to_date = config['raw_data_to_date'],
                                         fake_today = datetime.datetime.today(),
@@ -192,19 +195,19 @@ def populate_dispatch_features_table(config, table_name):
         for i in range(0, len(l), n):
             yield l[i:i + n]
 
-#    # build each feature and store it in its own table in features_prejoin
-#    # start a new thread for each set of 5 features
-#    for feature_sublist in chunks(feature_list, 5):
-#
-#        t = threading.Thread(target=run_thread, args=(feature_sublist, engine,))
-#        feature_threads.append(t)
-#        t.start()
-#
-#    # join each thread and wait for it to be done to make sure we're done building them all
-#    # before we move on to joining them
-#    for i, thread in enumerate(feature_threads):
-#        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features/5))
-#        thread.join()
+    # build each feature and store it in its own table in features_prejoin
+    # start a new thread for each set of 5 features
+    for feature_sublist in chunks(feature_list, 5):
+
+        t = threading.Thread(target=run_thread, args=(feature_sublist, engine,))
+        feature_threads.append(t)
+        t.start()
+
+    # join each thread and wait for it to be done to make sure we're done building them all
+    # before we move on to joining them
+    for i, thread in enumerate(feature_threads):
+        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features/5))
+        thread.join()
 
     # join each single-feature to the main table one at a time
     for i, feature_name in enumerate(feature_list):
@@ -237,10 +240,11 @@ def populate_officer_features_table(config, table_name):
     # loop over all fake todays, populating the active features for each.
     for feature_name in active_features:
         for fake_today in fake_todays:
-            feature_class = class_map.lookup(feature_name, 
-                                             fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
-                                             table_name=table_name, 
-                                             lookback_durations=config["timegated_feature_lookback_duration"])
+            feature_class = class_map.lookup(   feature_name, 
+					        unit = 'officer',
+                                                fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
+                                                table_name=table_name, 
+                                                lookback_durations=config["timegated_feature_lookback_duration"])
             feature_class.build_and_insert(engine)
             log.debug('Calculated and inserted feature {} for fake_today {}'
                         .format(feature_class.feature_name, fake_today))

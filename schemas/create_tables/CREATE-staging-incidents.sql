@@ -39,5 +39,6 @@ CREATE UNLOGGED TABLE staging.incidents (
 	reprimand_narrative 										text, 			--free text field for the reprimand given to the officer, if one is given
 	officer_explanation_narrative		 				text, 			--free text field for officer explanation, if one exists
 	general_narrative 											text, 			--free text field describing the investigation
-	last_modified 													timestamp		 --timestamp for when the table was last updated
+	last_modified 													timestamp,		 --timestamp for when the table was last updated
+    department_source_table                            text                --free text field showing which source table the data comes from
 );

@@ -3,18 +3,20 @@ CREATE SCHEMA results;
 
 -- model table containing each of the models run.
 CREATE TABLE results.models(
-	model_id                    serial primary key,
-    run_time                    timestamp,
-    batch_run_time              timestamp,
-    model_type                  varchar(50),
-    model_params                json,
-	config 				        json,
-    pickle_filepath             varchar(100) 
+    model_id                    									serial primary key,
+    run_time                    									timestamp,
+    batch_run_time              									timestamp,
+    model_type                                                      text,
+    model_parameters                                                json,
+    model_comment                                                   text,
+    batch_comment                                                   text,
+    config 				        		                            json,
+    pickle_file_path_name                                           text
 );
 
 -- predictions corresponding to each model.
 CREATE TABLE results.predictions(
-		model_id                    								int references results.models(model_id),
+    model_id                    								int references results.models(model_id),
     unit_id                     								bigint,
     unit_score                  								numeric,
     label_value                 								int
@@ -22,25 +24,16 @@ CREATE TABLE results.predictions(
 
 -- evaluation table containing metrics for each of the models run.
 CREATE TABLE results.evaluations(
-		model_id                   									int references results.models(model_id),
-		accuracy_score															numeric,
-		auc_score			             									numeric,
-		roc_auc_score																numeric,
-		average_precision_score											numeric,
-		f1_score																		numeric,
-		fbeta_score_favor_precision									numeric,
-		fbeta_score_favor_recall										numeric,
-    precision_score_default					    				numeric,
-    precision_score_at_top_point_01_percent     numeric,
-    precision_score_at_top_point_1_percent      numeric,
-		precision_score_at_top_1_percent          	numeric,
-    precision_score_at_top_5_percent          	numeric,
-    precision_score_at_top_10_percent          	numeric,
-    recall_score_default					  	  				numeric,
-		recall_score_at_top_point_01_percent				numeric,
-		recall_score_at_top_point_1_percent					numeric,
-		recall_score_at_top_1_percent								numeric,
-		recall_score_at_top_5_percent								numeric,
-		recall_score_at_top_10_percent							numeric,
-		time_for_model_in_seconds										numeric
+    model_id                   	            int references results.models(model_id),
+    metric				                    text,
+    parameter	           		            text,
+    value                                   numeric,
+    comment						            text
 );
+
+-- data table for storing pickle blobs.
+CREATE TABLE results.data(
+    model_id                    									int references results.models(model_id),
+    pickle_blob                 									bytea
+);
+

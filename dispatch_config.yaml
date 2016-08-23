@@ -40,6 +40,13 @@ def_adverse:
     accidents: True
     useofforce: True
     complaint: True
+
+officer_labels:
+
+dispatch_labels:
+    LabelSustained: True
+    LabelUnjustified: True
+    LabelPreventable: True
     
 ########################
 # Feature selection    #

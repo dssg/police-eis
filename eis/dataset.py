@@ -3,6 +3,7 @@ import pandas as pd
 import yaml
 import logging
 import sys
+import psycopg2
 import datetime
 import json
 
@@ -41,37 +42,52 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
-def store_model_info( timestamp, batch_timestamp, config):
+def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_obj="", pickle_file="" ):
     """ Write model configuration into the results.model table
 
     :param str timestamp: the timestamp at which this model was run.
+    :param str batch_comment: the user-defined comment string.
     :param str batch_timestamp: the timestamp that this batch of models was run.
     :param dict config: the configuration dictionary that contains all model parameters.
+    :param str pickle_obj: the serialized pickle object string for this model run.
+    :param str pickle_file: the path and name of the pickle file.
     """
 
-    pkl_filepath = "{}_{}.pkl".format(config["pkl_prefix"], timestamp)
+    # set some parameters model comment.
+    model_comment = "" # TODO: feature not implemented, should read from config.
 
-    query = ( "INSERT INTO results.models(  run_time, "
-              "                             batch_run_time, "
-              "                             model_type, "
-              "                             model_params,"
-              "                             config, "
-              "                             pickle_filepath) "
-              "VALUES('{}', '{}', '{}', '{}', '{}', '{}')"
-              .format(
-                timestamp,
-                batch_timestamp,
-                config["model"],
-                json.dumps(config["parameters"]),
-                json.dumps(config),
-                pkl_filepath))
-
-    db_conn.cursor().execute(query)
+    # insert into the models table.
+    query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config, pickle_file_path_name ) "
+                 " VALUES(  %s, %s, %s, %s, %s, %s, %s, %s )" )
+    db_conn.cursor().execute(query, (   timestamp,
+                                        batch_timestamp,
+                                        config["model"],
+                                        json.dumps(config["parameters"]),
+                                        model_comment,
+                                        batch_comment,
+                                        json.dumps(config),
+                                        pickle_file ) )
     db_conn.commit()
+
+    # if a pickle object was passed in, insert into the data table.
+
+    if pickle_obj:
+
+        # get the model primary key corresponding to this entry, based on timestamp.
+        query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+        cur = db_conn.cursor()
+        cur.execute(query)
+        this_model_id = cur.fetchone()
+        this_model_id = this_model_id[0]
+
+        # insert into the data table.
+        query = ( "INSERT INTO results.data( model_id, pickle_blob ) VALUES( %s, %s )" )
+        db_conn.cursor().execute(query, ( this_model_id, psycopg2.Binary(pickle_obj) ) )
+        db_conn.commit()
 
     return None
 
-def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels ):
+def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, store_as_csv=False ):
     """ Write the model predictions (officer or dispatch risk scores) to the results schema.
 
     :param str timestamp: the timestamp at which this model was run.
@@ -79,6 +95,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     :param list unit_id_test: list of unit id's used in the test set.
     :param list unit_predictions: list of risk scores.
     :param list unit_labels: list of true labels.
+    :param bool store_as_csv: if True, skip insert into predictions table, and store as a csv file instead.
     """
 
     # get the model primary key corresponding to this timestamp.
@@ -100,13 +117,18 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
                                             "unit_score": unit_predictions,
                                             "label_value": unit_labels } )
 
-    # hack-y: much faster to write to csv, then read csv with psql than to write straight to database from python
-    csv_filepath = "{}/{}_{}.csv".format('results', 'dispatch_results', timestamp)
-    dataframe_for_insert.to_csv(csv_filepath, index=False)
+    if store_as_csv:
+        # hack-y: much faster to write to csv, then read csv with psql than to write straight to database from python
+        csv_filepath = "{}/{}_{}.csv".format('results', 'dispatch_results', timestamp)
+        dataframe_for_insert.to_csv(csv_filepath, index=False)
+        # TODO: write code to actually load the csv into postgres with psql
+    else:
+        dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False )
 
     return None
 
-def store_evaluation_metrics( timestamp, evaluation_metrics ):
+#def store_evaluation_metrics( timestamp, evaluation_metrics ):
+def store_evaluation_metrics( timestamp, evaluation, metric, parameter=None, comment=None):
     """ Write the model evaluation metrics into the results schema
 
     :param str timestamp: the timestamp at which this model was run.
@@ -120,16 +142,52 @@ def store_evaluation_metrics( timestamp, evaluation_metrics ):
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
-    # create query and insert into the evaluations table.
-    columns = list(evaluation_metrics.keys())
-    values  = list(evaluation_metrics.values())
-    query = (   " INSERT INTO results.evaluations( model_id, " + ",".join(map(str, columns ) ) + " ) " +
-                " VALUES( " + str(this_model_id) + ", " + ",".join( map( str, values )) + " ) " )
+    #No parameter and no comment
+    if parameter is None and comment is None:
+        comment = 'Null'
+        parameter = 'Null'
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', {}, '{}', {}) ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
 
+    #No parameter and a comment
+    elif parameter is None and comment is not None:
+        parameter = 'Null'
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', {}, '{}', '{}') ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
+
+    #No comment and a parameter
+    elif parameter is not None and comment is None:
+        comment = 'Null'
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', '{}', '{}', {}) ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
+
+    #A comment and a parameter
+    elif parameter is not None and comment is not None:
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
+                    "   VALUES( '{}', '{}', '{}', '{}', '{}') ".format( this_model_id,
+                                                                    metric,
+                                                                    parameter,
+                                                                    evaluation,
+                                                                    comment ) )
+    else:
+        pass
 
     db_conn.cursor().execute(query)
     db_conn.commit()
     return None
+
 
 def format_officer_ids(ids):
     formatted = ["{}".format(each_id) for each_id in ids]
@@ -226,11 +284,10 @@ def get_labels_for_ids(ids, start_date, end_date):
 
     # load labelling and def_adverse from experiment config file
     exp_config = setup_environment.get_experiment_config()
-    labelling = exp_config['labelling']
-    def_adverse = exp_config['def_adverse']
+    officer_labels = exp_config['officer_labels']
 
     return (FeatureLoader(start_date, end_date, fake_today)
-            .officer_labeller(labelling, def_adverse, ids_to_label=ids))
+            .officer_labeller(officer_labels, ids_to_label=ids))
 
 
 def imputation_zero(df, ids):
@@ -284,7 +341,7 @@ def convert_categorical(feature_df, feature_columns):
                         categorical features converted to dummy variables
     """
 
-    log.info('Converting categorical features to dummy variablles')
+    log.info('Converting categorical features to dummy variables')
 
     # note: feature names will be lowercased when returned from the db
     categorical_features = [name.lower() for name in class_map.find_categorical_features(feature_columns)]
@@ -299,7 +356,6 @@ def convert_categorical(feature_df, feature_columns):
 
     return feature_df_w_dummies
 
-
 class FeatureLoader():
 
     def __init__(self, start_date=None, end_date=None, fake_today=None, table_name=None):
@@ -313,20 +369,16 @@ class FeatureLoader():
 
         #change_schema(self.schema)
 
-    def officer_labeller(self, labelling, def_adverse, ids_to_label=None):
+    def officer_labeller(self, officer_labels, ids_to_label=None):
         """
         Load the IDs for a set of officers who are 'active' during the supplied time window
         and generate 0 / 1 labels for them. The definition of 'active' is determined by the
         options passed in the 'labelling' dictionary.
 
         Inputs:
-        labelling: dict of bools representing how officers should be selected for labelling
-                        include_all_employed: include all officers who are active according
-                                              to their employment status
-                        include_all_active: include all officers who show up in the stops
-                                            or arrests tables
-        def_adverse: dict of bools representing which event types are considered adverse for
-                     the purposes of prediction
+        officer_labels: dict of bools representing which event types are considered adverse for
+                        the purposes of prediction, and also what mask to apply to officers
+                        with respect to whether or not they are active.
         ids_to_label: (Optional) a list of officer_ids to return labels for. Note that if a
                       given officer_id is not included in [start_date, end_date] it will
                       not be in the returned dataframe.
@@ -337,8 +389,8 @@ class FeatureLoader():
 
         log.info("Loading labels...")
 
-        # select the set of officer ids which we will use for labelling
-        query_to_label = (              "SELECT DISTINCT officer_id "
+        # select all officer ids which we will use for labelling
+        query_all_officers = (          "SELECT DISTINCT officer_id "
                                         "FROM {} AS events_hub "
                                         "LEFT JOIN {} AS ia_table "
                                         "   ON events_hub.event_id = ia_table.event_id "
@@ -350,77 +402,112 @@ class FeatureLoader():
                                             self.start_date,
                                             self.end_date))
 
-        if labelling['include_all_active'] == True:
+        if officer_labels['include_all_active'] == True:
 
             # add the officer_ids of officers who show up in the arrests, traffic, and pedestrian stops tables
             # see lookup_event_types for the explanation of (1, 2, 3)
-            query_to_label += (         "UNION "
-                                        "SELECT DISTINCT officer_id FROM {} "
+            query_all_officers += (         "UNION "
+                                        "SELECT DISTINCT officer_id FROM staging.events_hub "
                                         "WHERE event_type_code in (1, 2, 3) "
                                         "AND event_datetime >= '{}' "
                                         "AND event_datetime <= '{}' "
                                         .format(
-                                          'events_hub',
                                           self.start_date,
                                           self.end_date))
 
+        # create the query to find all officer ID's associated with an adverse incident.
+        query_base = (  "SELECT officer_id "
+                        "FROM staging.events_hub "
+                        "JOIN staging.incidents "
+                        "ON staging.events_hub.event_id = staging.incidents.event_id " )
 
-        # TODO: add code for labelling['include_all_employed'] option
+        # create the query to mask in time.
+        query_time =  (  "WHERE events_hub.event_datetime >= '{}'::date "
+                         "AND events_hub.event_datetime <= '{}'::date "
+                         .format(    self.start_date,
+                                    self.end_date ) )
 
-        # repeat the query above, but only select officers who had incidents
-        # jugded to be adverse.
-        query_adverse = (               "SELECT officer_id "
-                                        "FROM events_hub "
-                                        "LEFT JOIN incidents "
-                                        "   ON events_hub.event_id = incidents.event_id "
-                                        "WHERE events_hub.event_datetime >= '{}'::date "
-                                        "AND events_hub.event_datetime <= '{}'::date "
-                                        "AND number_of_sustained_allegations > 0 "
-                                        .format(self.start_date,
-                                                self.end_date))
+        # set the individual queries for each type of label.
+        query_sustained = "final_ruling_code in ( 1, 4, 5 ) "
+        query_sustained_and_unknown_outcome = "final_ruling_code in (0, 1, 4, 5 ) "
+        query_all       = "number_of_allegations > 0 "
+        query_major     = "grouped_incident_type_code in ( 0, 2, 3, 4, 8, 9, 10, 11, 17, 20 ) "
+        query_minor     = "grouped_incident_type_code in ( 1, 6, 16, 18, 12, 7, 14 ) "
+        query_force     = "grouped_incident_type_code = 20 "
+        query_unknown   = "grouped_incident_type_code = 19 "
 
-#        # add exclusions to the adverse query based on the definition
-#        # of 'adverse' supplied in the experiment file
-#        if def_adverse['accidents'] == False:
-#            query_adverse = query_adverse + "AND value != 'accident' "
-#
-#        if def_adverse['useofforce'] == False:
-#            query_adverse = query_adverse + "AND value != 'use_of_force' "
-#
-#        if def_adverse['injury'] == False:
-#            query_adverse = query_adverse + "AND value != 'injury' "
-#
-#        if def_adverse['icd'] == False:
-#            query_adverse = query_adverse + "AND value != 'in_custody_death' "
-#
-#        if def_adverse['nfsi'] == False:
-#            query_adverse = query_adverse + "AND value != 'no_force_subject_injury' "
-#
-#        if def_adverse['dof'] == False:
-#            query_adverse = query_adverse + "AND value != 'discharge_of_firearm' "
-#
-#        if def_adverse['raid'] == False:
-#            query_adverse = query_adverse + "AND value != 'raid' "
-#
-#        if def_adverse['pursuit'] == False:
-#            query_adverse = query_adverse + "AND value != 'pursuit' "
-#
-#        if def_adverse['complaint'] == False:
-#            query_adverse = query_adverse + "AND value != 'complaint' "
+        # construct the query to get officer ID's with adverse incidents as defined by the user.
+        queries_for_adverse = []
+        if officer_labels["ForceAllegations"]:
+            queries_for_adverse.append( query_force  )
+
+        if officer_labels["SustainedForceAllegations"]:
+            queries_for_adverse.append( query_force + " AND " +  query_sustained )
+
+        if officer_labels["SustainedandUnknownForceAllegations"]:
+            queries_for_adverse.append( query_force + " AND " +  query_sustained_and_unknown_outcome )
+
+        if officer_labels["AllAllegations"]:
+            queries_for_adverse.append( query_all )
+
+        if officer_labels["SustainedAllegations"]:
+            queries_for_adverse.append( query_sustained )
+
+        if officer_labels["SustainedandUnknownOutcomeAllegations"]:
+            queries_for_adverse.append( query_sustained_and_unknown_outcome )
+
+        if officer_labels["MajorAllegations"]:
+            queries_for_adverse.append( query_major )
+
+        if officer_labels["SustainedMajorAllegations"]:
+            queries_for_adverse.append( query_major + " AND " + query_sustained )
+
+        if officer_labels["SustainedUnknownMajorAllegations"]:
+            queries_for_adverse.append( query_major + " AND " + query_sustained_and_unknown_outcome )
+
+        if officer_labels["MinorAllegations"]:
+            queries_for_adverse.append( query_minor )
+
+        if officer_labels["SustainedMinorAllegations"]:
+            queries_for_adverse.append( query_minor + " AND " + query_sustained )
+
+        if officer_labels["SustainedUnkownMinorAllegations"]:
+            queries_for_adverse.append( query_minor + " AND " + query_sustained_and_unknown_outcome )
+
+        if officer_labels["UnknownAllegations"]:
+            queries_for_adverse.append( query_unknown )
+
+        if officer_labels["SustainedUnknownAllegations"]:
+            queries_for_adverse.append( query_unknown + " AND " + query_sustained )
+
+        if officer_labels["SustainedUnknownUnknownAllegations"]:
+            queries_for_adverse.append( query_unknown + " AND " + query_sustained_and_unknown_outcome )
+
+        # join together the adverse queries into a single mask.
+        if len(queries_for_adverse) > 0:
+            query_adverse = " ( " + " ) \n OR ( ".join(queries_for_adverse) + " ) "
+        else:
+            query_adverse = ""
+
+        # setup the full query for getting the labels.
+        if query_adverse:
+            query_labels = query_base + query_time + " AND ( " + query_adverse + " ) "
+        else:
+            query_labels = query_base + query_time
 
         # pull in all the officer_ids to use for labelling
-        labelled_officers = pd.read_sql(query_to_label, con=db_conn).drop_duplicates()
+        all_officers = pd.read_sql(query_all_officers, con=db_conn).drop_duplicates()
 
         # pull in the officer_ids of officers who had adverse incidents
-        adverse_officers = pd.read_sql(query_adverse, con=db_conn).drop_duplicates()
+        adverse_officers = pd.read_sql(query_labels, con=db_conn).drop_duplicates()
         adverse_officers["adverse_by_ourdef"] = 1
 
         # merge the labelled and adverse officer_ids and fill in the non-adverse rows with 0s
-        outcomes = adverse_officers.merge(labelled_officers, how='outer', on='officer_id')
+        outcomes = adverse_officers.merge(all_officers, how='outer', on='officer_id')
         outcomes = outcomes.fillna(0)
 
-        log.debug('... number of officers to label: {}'.format(len(labelled_officers)))
-        log.debug('... number of officers with adverse : {}'.format(len(adverse_officers)))
+        log.debug('... number of officers in set : {}'.format(len(all_officers)))
+        log.debug('... number of officers with adverse incidents : {}'.format(len(adverse_officers)))
 
         # if given a list of officer ids to label, exclude officer_ids not in that list
         if ids_to_label is not None:
@@ -429,75 +516,13 @@ class FeatureLoader():
         return outcomes
 
 
-    # DEPRECATED: now generating the labels as a feature called 'Label'
-
-    #def dispatch_labeller(self, def_adverse):
-    #    """
-    #    Load the dispatch events which occured between two dates and their outcomes
-
-    #    Note that this uses the start_date and stop_date attributes of the FeatureLoader
-    #    to limit which dispatches are used.
-
-    #    Args:
-    #        def_adverse: dict of bools representing which event types are considered adverse for
-    #                     the purposes of prediction
-
-    #    Returns:
-    #        labels: pandas dataframe with two columns, dispatch_id and adverse_by_ourdef
-    #    """
-
-    #    log.debug("Loading dispatch labels...")
-
-    #    # select all dispatches within the specified time window
-    #    query_all = (       "SELECT DISTINCT dispatch_id "
-    #                        "FROM events_hub "
-    #                        "WHERE events_hub.event_type_code = 5 "
-    #                        "AND events_hub.event_datetime >= '{}'::date "
-    #                        "AND events_hub.event_datetime <= '{}'::date "
-    #                        .format(self.start_date,
-    #                                self.end_date))
-
-    #    # select dispatches that led to events deemed adverse
-    #    query_adverse = (   "SELECT DISTINCT dispatch_id "
-    #                        "FROM events_hub "
-    #                        "LEFT JOIN incidents AS incidents "
-    #                        "   ON events_hub.event_id = incidents.event_id "
-    #                        "LEFT JOIN lookup_incident_types AS lookup "
-    #                        "   ON lookup.code = incidents.grouped_incident_type_code "
-    #                        "WHERE event_type_code = 4 "
-    #                        "   AND events_hub.event_datetime >= '{}'::date "
-    #                        "   AND events_hub.event_datetime <= '{}'::date "
-    #                        "   AND (  number_of_unjustified_allegations > 0"
-    #                        "       OR number_of_preventable_allegations > 0"
-    #                        "       OR number_of_sustained_allegations > 0)"
-    #                        .format(self.start_date,
-    #                                self.end_date))
-
-    #    # add exclusions to the adverse query based on the definition
-    #    # of 'adverse' supplied in the experiment file
-
-    #    # TODO: implement filtering on event type that works with new incidents table
-    #    #if def_adverse['accidents'] == False:
-    #    #    query_adverse = query_adverse + "AND value != 'accident' "
-
-    #    dispatches = pd.read_sql(query_all, con=db_conn)
-    #    adverse_dispatches = pd.read_sql(query_adverse, con=db_conn)
-
-    #    log.debug('... number of dispatches to label: {}'.format(len(dispatches)))
-    #    log.debug('... number of dispatches with adverse : {}'.format(len(adverse_dispatches)))
-
-    #    # fill all the dispatch labels with 0s, then add 1s for the adverse incidents
-    #    dispatches['adverse_by_ourdef'] = 0
-    #    dispatches.loc[dispatches.dispatch_id.isin(adverse_dispatches)] = 1
-
-    #    return dispatches
-
-    def loader(self, feature_to_load, ids_to_use, feature_type='officer'):
+    def loader(self, feature_to_load, ids_to_use, feature_type = 'officer'):
         """Get the feature values from the database
 
         Args:
             feature_to_load(str): name of feature to be loaded, must be in classmap
             ids_to_use(list): the subset of ids to return feature values for
+            feature_type(str): the type of feature being loaded, either officer or dispatch
 
         Returns:
             returns(pd.DataFrame): dataframe of the feature values indexed by id
@@ -507,7 +532,6 @@ class FeatureLoader():
         kwargs = {"fake_today": self.fake_today,
                   "table_name": self.table_name,
                   "feat_time_window": 0}
-        #feature = class_map.lookup(feature_to_load, **kwargs)
 
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
@@ -600,17 +624,16 @@ class FeatureLoader():
 
 
 # TODO: make this use load_all_features() instead of loader()
-def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, labelling, table_name ):
+def grab_officer_data(features, start_date, end_date, time_bound, labelling, table_name ):
     """
     Function that defines the dataset.
 
     Inputs:
     -------
-    features: dict containing which features to use
+    features: list containing which features to use
     start_date: start date for selecting officers
     end_date: end date for selecting officers
     time_bound: build features with respect to this date
-    def_adverse: dict containing options for adverse incident definitions
     labelling: dict containing options to label officers
     by IA should be labelled, if False then only those investigated will
     be labelled
@@ -620,21 +643,17 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     end_date = end_date.strftime('%Y-%m-%d')
     data = FeatureLoader(start_date, end_date, time_bound, table_name)
 
-    officers = data.officer_labeller(labelling, def_adverse)
-    officers.set_index(["officer_id"])
+    # get the officer labels and make them the key in the dataframe.
+    officers = data.officer_labeller(labelling)
+    officers.officer_id = officers.officer_id.astype(int)
 
+    # select all the features which are set to True in the config file
+    features_data = data.load_all_features( features, feature_type="officer" )
 
+    # join the data to the officer labels.
     dataset = officers
-    featnames = []
-    for each_feat in features:
-        feature_df, names = data.loader(each_feat,
-                                        dataset["officer_id"])
-        log.info("Loaded feature {} with {} rows".format(
-            each_feat, len(feature_df)))
-        featnames = list(featnames) + list(names)
-        dataset = dataset.join(feature_df, how='left', on='officer_id')
-
-    dataset.set_index(["officer_id"], inplace=True)
+    dataset = dataset.join( features_data, how='left', on="officer_id" )
+    dataset.set_index(["officer_id"], inplace=True )
     dataset = dataset.fillna(0)
 
     labels = dataset["adverse_by_ourdef"].values
@@ -647,7 +666,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, def_adverse, l
     log.debug("Dataset has {} rows and {} features".format(
        len(labels), len(feats.columns)))
 
-    return feats, labels, ids, featnames
+    return feats, labels, ids, features
 
 
 def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
@@ -677,7 +696,6 @@ def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
 
     features_df = feature_loader.load_all_features(features_to_use,
                                                    feature_type = 'dispatch')
-
     # encode categorical features with dummy variables, and fill NAN with 0s
     dataset = convert_categorical(features_df, features_to_use)
     dataset = dataset.fillna(0)
