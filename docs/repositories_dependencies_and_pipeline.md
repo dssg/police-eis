@@ -24,7 +24,8 @@ The `--recursive` flag is important because it will make sure to clone any submo
 Only required for loading the Nashville data (see below).
 
 ### 2. Python 3.4+
-For package dependencies, see requirements.txt
+For package dependencies, see requirements.txt. 
+NB: luigi will not work with Anaconda because its builds are out of date and sometimes the Python path is problematic.
 
 ### 3. [Luigi](https://github.com/spotify/luigi)
 
