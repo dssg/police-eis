@@ -4,6 +4,10 @@ The analysis for this research was conducted on a Ubuntu 14.04.4 LTS machine hos
 
 The specific dependencies are as follows:
 
+<hr/> 
+Start information copied from [the main pipeline documentation](repositories_dependencies_and_pipeline.md)
+<hr/> 
+
 ## Dependencies
 
 ### 1. [Drake](https://github.com/Factual/drake)
@@ -49,5 +53,10 @@ For the `police-eis-private` repository, change your directory to be in the root
 `git clone --recursive https://github.com/dssg/police-eis-private.git`
 
 The `--recursive` flag is important because it will make sure to clone any submodules that are included in the repositories (currently this is only [pg_tools](https://github.com/jonkeane/pg_tools)).
+
+<hr/> 
+End information copied from [the main pipeline documentation](repositories_dependencies_and_pipeline.md)
+<hr/> 
+
 
 ####[Proceed to Database Connection](./database_connection.md).
