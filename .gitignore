@@ -2,8 +2,12 @@
 *.ipynb
 .ipynb_checkpoints
 
+# ignore the police-eis-private repo at the root level
+police-eis-private/
+
 # Committing credentials is A Bad Thing 
 default_profile*
+*luigi.cfg
 
 # Committing the trained models is A Bad Thing
 *.pkl
@@ -74,3 +78,9 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# ignore the saved model .pkl files
+results/*
+
+# ignore the log files
+logs/*

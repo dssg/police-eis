@@ -20,7 +20,7 @@ def get_individual_importances(model, model_name, test_x):
     Generate list of most important features for dashboard
     """
 
-    if model_name == 'LogisticRegression': 
+    if model_name == 'LogisticRegression':
         coefficients = get_feature_importances(model)
         importances = np.copy(test_x)
 
@@ -41,14 +41,14 @@ def get_individual_importances(model, model_name, test_x):
 
 def run(train_x, train_y, test_x, model, parameters, n_cores):
 
-    results, modelobj = gen_model(train_x, train_y, test_x, model,
+    predicted_y_probability, predicted_y_binary, modelobj = gen_model(train_x, train_y, test_x, model,
                                   parameters, n_cores=n_cores)
 
     # Model interpretability
-    individual_imp = get_individual_importances(modelobj, model, test_x) 
+    individual_imp = get_individual_importances(modelobj, model, test_x)
     importances = get_feature_importances(modelobj)
 
-    return results, importances, modelobj, individual_imp
+    return predicted_y_probability, predicted_y_binary, importances, modelobj, individual_imp
 
 
 def gen_model(train_x, train_y, test_x, model, parameters, n_cores=1):
@@ -64,15 +64,15 @@ def gen_model(train_x, train_y, test_x, model, parameters, n_cores=1):
 
     Returns:
         result_y: predictions on test set
-        modelobj: trained model object 
+        modelobj: trained model object
     """
 
     log.info("Training {} with {}".format(model, parameters))
     modelobj = define_model(model, parameters, n_cores)
     modelobj.fit(train_x, train_y)
-    result_y = modelobj.predict_proba(test_x)
-
-    return result_y[:, 1], modelobj
+    result_y_probability = modelobj.predict_proba(test_x)
+    result_y_binary = modelobj.predict(test_x)
+    return result_y_probability[:, 1], result_y_binary, modelobj
 
 
 def get_feature_importances(model):
@@ -110,6 +110,42 @@ def define_model(model, parameters, n_cores):
             max_depth=parameters['max_depth'],
             min_samples_split=parameters['min_samples_split'],
             n_jobs=n_cores)
+
+    elif model == "RandomForestBagging":
+        #TODO Make Model Bagging
+        return ensemble.BaggingClassifier(
+                    ensemble.RandomForestClassifier(
+                        n_estimators=parameters['n_estimators'],
+                        max_features=parameters['max_features'],
+                        criterion=parameters['criterion'],
+                        max_depth=parameters['max_depth'],
+                        min_samples_split=parameters['min_samples_split'],
+                        n_jobs=n_cores),
+                    #Bagging parameters
+                    n_estimators=parameters['n_estimators_bag'],
+                    max_samples=parameters['max_samples'],
+                    max_features=parameters['max_features_bag'],
+                    bootstrap=parameters['bootstrap'],
+                    bootstrap_features=parameters['bootstrap_features'],
+                    n_jobs=n_cores
+                    )
+
+    elif model == "RandomForestBoosting":
+        #TODO Make Model Boosting
+        return ensemble.AdaBoostClassifier(
+            ensemble.RandomForestClassifier(
+                n_estimators=parameters['n_estimators'],
+                max_features=parameters['max_features'],
+                criterion=parameters['criterion'],
+                max_depth=parameters['max_depth'],
+                min_samples_split=parameters['min_samples_split'],
+                n_jobs=n_cores),
+            #Boosting parameters
+            learning_rate=parameters['learning_rate'],
+            algorithm=parameters['algorithm'],
+            n_estimators=parameters['n_estimators_boost']
+            )
+
 
     elif model == 'SVM':
         return svm.SVC(C=parameters['C_reg'],

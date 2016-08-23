@@ -1,0 +1,208 @@
+################################################
+#          UChicago DSaPP Police EIS           #
+#              Model experiments               #
+################################################
+
+# Set the officer table name.
+officer_feature_table_name: "merging_example_officer_features_table"
+
+# determine whether model objects get stored in the database or not.
+store_model_object_in_database: True
+
+########################
+# Comment fields       #
+########################
+model_comment: ""
+batch_comment: ""
+
+########################
+# Type of Experiment   #
+########################
+
+unit: 'officer'  # other options: 'dispatch'
+
+########################
+# Temporal parameters  #
+########################
+
+fake_today: ['01May2013']  # if you want a specific_today then pass this
+timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"]
+autogen_fake_todays: False  # set to off if you want a specific fake_today
+training_window: [365, 730, 10000]  # training, days, used for officer-level prediction
+prediction_window: [365, 180]  # prediction, days, used for officer-level prediction
+testing_interval_days: 365  # days, used for dispatch-level prediction
+training_interval_days: 1460  # days, used for dispatch-level prediction
+# 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
+
+########################
+# Labelling Details    #
+########################
+
+officer_labels:                     # note: the labels below are combined with a logical OR.
+    include_all_employed: True      # include all officers who were employed during the specified period
+    include_all_active: True        # include all oficcers who made an arrest or stop during the specified period.
+    AllAllegations: False           # all allegations.
+    SustainedAllegations: False     # all sustained allegations.
+    SustainedandUnknownOutcomeAllegations: False     # all sustained and unknown outcome allegations.
+    MajorAllegations: True # all allegations of type: {accident, bias, insubordination, gift policy, handling of civs, substance abuse, harrassment, force}
+    SustainedMajorAllegations: True  # all allegations of major type that were sustained.
+    SustainedUnknownMajorAllegations: True  # all allegations of major type that were sustained or had an unknown outcome.
+    MinorAllegations: False # all allegations of type: {appearance, standard procedures, traffic laws, tardiness, equipment, quality, conditions of employment }
+    SustainedMinorAllegations: False # all allegations of minor type that were sustained.
+    SustainedUnkownMinorAllegations: False # all allegations of minor type that were sustained or had an unknown outcome.
+    ForceAllegations: False         # all force allegations.
+    SustainedForceAllegations: False # all sustained force allegations.
+    SustainedandUnknownForceAllegations: False # all sustained and unknown outcome force allegations.
+    UnknownAllegations: False # allegations categorized as "unknown".
+    SustainedUnknownAllegations: False # allegations categorized as "unknown" and sustained.
+    SustainedUnknownUnknownAllegations: False # allegations categorized as "unknown" with a final out come that is sustained or unknown
+
+########################
+# Feature selection    #
+########################
+
+officer_features:
+    TimeGatedDummyFeature: False # Time gated dummy feature. Example feature.
+    ArrestMonthlyVariance: False
+    ArrestMonthlyCOV: False
+    AcademyScore: True # Performance score at the police academy.
+    ArrestMonthlyVariance: False # month-by-month variance of arrest counts.
+    ArrestMonthlyCOV: False # month-by-month coefficient of variation in arrest counts.
+    DivorceCount: False # Number of total divorces in this officer's past.
+    MilesFromPost: True # Number of miles to post.
+    OfficerGender: False # Officer gender code.
+    OfficerRace: False # Officer race code.
+    OfficerEthnicity: False # Officer ethnicity code.
+    OfficerAge: False # Age of officer in years.
+    OfficerRank: False # Officer rank.
+    OfficerEducation: False # Officer education level.
+    ArrestCount: True # Number of arrests made by an officer, time gated.
+    OfficerMilitary: False # Whether or not the officer has had military experience
+    IncidentCount: False # Officer investigatable incident count to fake_today.
+    NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
+    NumberOfArrestsOfType: False # Number of time-gated arrests by categorical type.
+    NumberOfArrestsON: False # Number of time-gated arrests by day of week.
+    NumberOfSuspectsArrestedOfRaceType: False #Number of suspects arrested by race type, time-gated periods.
+    NumberOfSuspectsArrestedOfEthnicityType: False #Number of suspects arrested by ethnicity type, time-gated periods.
+    SustainedRuleViolations: False  # Officer investigatable incident count to fake_today.
+    MeanHoursPerShift: False # Average number of hours per shift.
+    AllAllegations: False # Number of allegations made against an officer, time gated.
+    TotalInterventionsOfType: False # The number of interventions of each type an officer has had, exploded into multiple columns and time gated.
+    NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated.
+    ComplaintToArrestRatio: False # The ratio of complaints per arrest.
+    ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
+    DaysSinceLastAllegation: False # Ther number of days since the last allegation was made against the officer.
+    DaysSinceLastSustainedAllegation: False # The number of days since the last sustained allegation was made against the officer.
+    UOFtoArrestRatio: False #Ratio of uses of force per arrest ratio, time gated.
+    NumOfUsesOfForceOfType: False # The number of uses of force by type of force over time-gated periods.
+    NumOfUnjustifiedUsesOfForceOfType: False # The number of unjustified uses of force by time over time-gated periods.
+    UnjustUOFInterventionsOfType: False #Number of interventions of type X following an unjustified force, time gated.
+    UOFInterventionsOfType: False #Number of interventions of type X following any use of force, time gated.
+    CountUOFwithSuspectInjury: False #Number of uses of force by whether the suspect was injured, time gated
+    CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
+    SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.
+    ResistingArrestToUOFRatio: False #Ratio of resisting arrest to uses of force that an officer has, time gated.
+
+    ###################################################
+    #   Threshold based EIS system Feature Selection  #
+    ###################################################
+
+    ThresholdAccidentFlag: False # Flag if there have been more than 2 accidents in the past 180 days
+    ThresholdUOFFlag: False # Flag if there have been more than 3 UOF incidents in the past 90 days
+    ThresholdSickLeaveFlag: False # Flag if there have been more than 3 sick/medical/family leave days taken in the last 90 days
+    ThresholdComplaintFlag: False # Flag if there have been 3 or more (civilian) complaints in the past 180 days
+    # for MNPD, the injuries data is not loaded in such a way that it is available for the ThresholdInjuryFlag
+    ThresholdInjuryFlag: False # Flag if there have been 2 or more injuries in the past 180 days
+    ThresholdPursuitsFlag: False # Flag if there have been 2 or more pursuits in the past 180 days
+    ThresholdCombinedFlag: False # Flag if there have been 5 or more incidents or sickdays in the past 180 days
+
+
+
+########################
+# Model selection      #
+########################
+
+#ALL MODEL TYPES
+#model: ['RandomForest', 'RandomForestBagging', 'RandomForestBoosting', 'ExtraTrees',
+#        'AdaBoost', 'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
+#        'DecisionTreeClassifier', 'SGDClassifier', 'KNeighborsClassifier']
+
+model: ['ExtraTrees']
+parameters:
+  RandomForest:
+    n_estimators: [10 ] # [25, 50, 100, 1000, 10000]
+    max_depth: [5] #  [10, 20, 50, 100
+    max_features: ['sqrt'] # ['log2', 2, 4, 8, 16, "auto"]
+    criterion: ['gini'] # ['entropy']
+    min_samples_split: [2] # [5, 10]
+  RandomForestBagging:
+    n_estimators: [10] # [25, 50, 100, 1000, 10000]
+    max_depth: [5] # [10, 20, 50, 100]
+    max_features: ['sqrt'] # ['log2', 2, 4, 8, 16, "auto"]
+    criterion: ['gini'] # ['entropy']
+    min_samples_split: [2] # [5, 10]
+    max_samples: [0.5] # [1.0]
+    bootstrap: [True]
+    bootstrap_features: [False] # [True]
+    n_estimators_bag: [10] # [25, 50, 100, 1000, 10000]
+    max_features_bag: [2] # [4, 8, 16]
+  RandomForestBoosting:
+    n_estimators: [100] # [25, 50, 100, 1000, 10000]
+    max_depth: [20] # [10, 20, 50, 100]
+    max_features: [2] # ['sqrt', 'log2', 2, 4, 8, 16, "auto"]
+    criterion: ['gini'] # ['entropy']
+    min_samples_split: [2] # [5, 10]
+    algorithm: ['SAMME'] # ['SAMME.R']
+    learning_rate: [0.01] # [0.1, 1, 10, 100]
+    n_estimators_boost: [10] # [25, 50, 100, 1000, 10000]
+  ExtraTrees:
+    n_estimators: [ 10] # [25, 50, 100, 1000, 10000]
+    max_depth: [3 ] #  5, 10] # [20, 50, 100]
+    max_features: ['log2'] # [4, 8, 16, "auto"]
+    criterion: ['gini'] #, 'entropy']
+    min_samples_split: [2] #, 5, 10]
+  AdaBoost:
+    algorithm: ['SAMME', 'SAMME.R']
+    n_estimators: [1, 10, 100]  # [1000, 10000]
+    learning_rate: [0.01, 0.1, 1, 10, 100]
+  LogisticRegression:
+    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1]  # [1, 10]
+    penalty: ['l1', 'l2']
+  SVM:
+    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1]  # [1, 10]
+    kernel: ['linear']
+  GradientBoostingClassifier:
+    n_estimators: [1, 10, 100]  # [1000, 10000]
+    learning_rate: [0.001, 0.01, 0.05, 0.1, 0.5]
+    subsample: [0.1, 0.5, 1.0]
+    max_depth: [1, 3, 5, 10, 20]  # [50, 100]
+  DecisionTreeClassifier:
+    criterion: ['gini', 'entropy']
+    max_depth: [1, 5, 10, 20]  # [50, 100]
+    max_features: ['sqrt', 'log2']
+    min_samples_split: [2, 5, 10]
+  SGDClassifier:
+    loss: ['log', 'modified_huber']
+    penalty: ['l1', 'l2', 'elasticnet']
+  KNeighborsClassifier:
+    n_neighbors: [1, 3, 5, 10, 25, 50, 100]
+    weights: ['uniform', 'distance']
+    algorithm: ['auto', 'kd_tree']
+
+
+########################
+# Parallelization      #
+########################
+n_cpus: 4
+
+########################
+# Output file details  #
+########################
+directory: 'results/'
+pkl_prefix: 'police_eis_results'
+
+########################
+# Auditing hooks       #
+########################
+auditing: False  # Turn on if you want auditing performed
+audits: 'audits/'

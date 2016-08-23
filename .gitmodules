@@ -1,0 +1,3 @@
+[submodule "schemas/pg_tools"]
+	path = schemas/pg_tools
+	url = git@github.com:jonkeane/pg_tools.git

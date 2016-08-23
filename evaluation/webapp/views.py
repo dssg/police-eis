@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from io import BytesIO
 from itertools import groupby
 import matplotlib as mpl
@@ -11,6 +12,7 @@ from webapp import app
 from webapp.evaluation import *
 from webapp.ioutils import *
 from webapp import config
+import pdb
 
 
 class SortedDisplayDict(dict):
@@ -40,15 +42,15 @@ def details(timestamp):
     # will fail with 404 if exp not known
     get_labels_predictions(timestamp)
     groups = get_aggregate_scores(timestamp)
-    groups["division_order"] = sorted(groups["divisions"].keys())
-    groups["unit_order"] = sorted(groups["units"].keys())
+    #groups["division_order"] = sorted(groups["divisions"].keys())
+    #groups["unit_order"] = sorted(groups["units"].keys())
     eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
     fpr_dict = SortedDisplayDict(fpr)
     tpr_dict = SortedDisplayDict(tpr)
     fnr_dict = SortedDisplayDict(fnr)
     tnr_dict = SortedDisplayDict(tnr)
     return render_template('details.html', timestamp=timestamp, groups=groups,
-                           eis_baseline=eis_baseline, fpr=fpr_dict, tpr=tpr_dict, 
+                           eis_baseline=eis_baseline, fpr=fpr_dict, tpr=tpr_dict,
                            fnr=fnr_dict, tnr=tnr_dict,
                            config=config, threshold_levels=threshold_levels)
 
@@ -64,7 +66,7 @@ def normalized_confusion_matrix(timestamp):
 @app.route("/<timestamp>/confusion_at_x")
 def confusion_at_x(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
-    new_matrix_fig = plot_confusion_matrix_at_x_percent(test_labels,
+    new_matrix_fig = plot_confusion_matrix_at_x_proportion(test_labels,
                                                   test_predictions, 0.10)
     return serve_matplotlib_fig(new_matrix_fig)
 
@@ -72,7 +74,7 @@ def confusion_at_x(timestamp):
 @app.route("/<timestamp>/top_normalized_confusion_at_x")
 def top_normalized_confusion_at_x(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
-    new_matrix_fig = plot_normalized_confusion_matrix_at_x_percent(test_labels,
+    new_matrix_fig = plot_normalized_confusion_matrix_at_x_proportion(test_labels,
                                                   test_predictions, 0.01)
     return serve_matplotlib_fig(new_matrix_fig)
 
@@ -80,7 +82,7 @@ def top_normalized_confusion_at_x(timestamp):
 @app.route("/<timestamp>/top_confusion_at_x")
 def top_confusion_at_x(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
-    new_matrix_fig = plot_confusion_matrix_at_x_percent(test_labels,
+    new_matrix_fig = plot_confusion_matrix_at_x_proportion(test_labels,
                                                   test_predictions, 0.01)
     return serve_matplotlib_fig(new_matrix_fig)
 
@@ -88,7 +90,7 @@ def top_confusion_at_x(timestamp):
 @app.route("/<timestamp>/normalized_confusion_at_x")
 def normalized_confusion_at_x(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
-    new_matrix_fig = plot_normalized_confusion_matrix_at_x_percent(test_labels,
+    new_matrix_fig = plot_normalized_confusion_matrix_at_x_proportion(test_labels,
                                                   test_predictions, 0.10)
     return serve_matplotlib_fig(new_matrix_fig)
 
@@ -125,7 +127,6 @@ def improvement_over_baseline_nothresh(timestamp):
 def feature_importances(timestamp):
     features, importances = get_feature_importances(timestamp)
     importance_fig = plot_feature_importances(features, importances)
-
     return serve_matplotlib_fig(importance_fig)
 
 
@@ -133,7 +134,6 @@ def feature_importances(timestamp):
 def precision_recall(timestamp):
     test_labels, test_predictions = get_labels_predictions(timestamp)
     prec_recall_fig = plot_precision_recall_n(test_labels, test_predictions)
-
     return serve_matplotlib_fig(prec_recall_fig)
 
 
@@ -174,6 +174,7 @@ def serve_matplotlib_fig(fig):
     canvas = FigureCanvas(fig)
     png_output = BytesIO()
     canvas.print_png(png_output)
-    response = make_response(png_output.getvalue())
-    response.headers['Content-Type'] = 'image/png'
+    with app.app_context():
+        response = make_response(png_output.getvalue())
+        response.headers['Content-Type'] = 'image/png'
     return response
