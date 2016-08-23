@@ -1,21 +1,21 @@
-# Luigi pipeline management
+# luigi pipeline management
 
 As described in [the main pipeline documentation](repositories_dependencies_and_pipeline.md), [luigi](https://github.com/spotify/luigi/) is used to create and setup a blank `staging` schema and then to populate this `staging` schema from the `etl` schema.
 
 ## Basics of luigi
 
-The [luigi documentation is robust](https://luigi.readthedocs.io/en/latest/) and pretty complete. Luigi is setup around configuring `tasks` that have a number of properties. Each task is defined by making a class that inherits from the abstract `luigi.Task`, and further defines the things that need to be done before the task, the things that need to be done when the task is run, and the things that need to be true for the task to be considered finished successfully.
+The [luigi documentation is robust](https://luigi.readthedocs.io/en/latest/) and pretty complete. luigi is setup around configuring `tasks` that have a number of properties. Each task is defined by making a class that inherits from the abstract `luigi.Task`, and further defines the things that need to be done before the task, the things that need to be done when the task is run, and the things that need to be true for the task to be considered finished successfully.
 
-We use a number of custom classes from the [`pg_tools` package](https://github.com/jonkeane/pg_tools). This package defines a number of targets for postgress tables, columns, etc.
+We use a number of custom classes from the [`pg_tools` package](https://github.com/jonkeane/pg_tools). This package defines a number of targets for postgres tables, columns, etc.
 
 ## basic `luigi.Task`
 
-Every task should have three things (`output`, `requires`, and `run`), which are all defined as bound methods. These methods will be executed in this order, there the output is checked to see if the output already exists, the requires are run, and then the run method runs the task itself.
+Every task should have three things (`output`, `requires`, and `run`), which are all defined as bound methods. These methods will be executed in this order: the `output` is checked to see if the output already exists, the `requires` are run, and then the `run` method runs the task itself.
 
 1. `def output(self)`  
-  This should return a class that inherits from `luigi.target.Target` this class defines the check that is run to determine if the task has (already) completed successfully. This target can be anything from checking if a file exists or if a table in a postgres database is not empty. Most of our `output`s are custom types from `pg_tools`.
+  This should return a class that inherits from `luigi.target.Target`. This class defines the check that is run to determine if the task has (already) completed successfully. This target can be anything from checking if a file exists or if a table in a postgres database is not empty. Most of our `output`s are custom types from `pg_tools`.
 
-  *example* the following `output` will check if the table `schema_name.table_name` exists, if it does not exist luigi will run the `requires` and `run` methods.
+  *Example:* the following `output` will check if the table `schema_name.table_name` exists; if it does not exist luigi will run the `requires` and `run` methods.
   ```
   def output(self):
     return pg_tools.PGTableTarget(table_name, schema_name)
@@ -24,7 +24,7 @@ Every task should have three things (`output`, `requires`, and `run`), which are
 1. `def requires(self)`  
   This returns (or yields, if there is more than one dependency) luigi task objects that should be completed before the current task is run.
 
-  *example* the following `requires` will yield (and spawn) tasks to create a table for each `file` in the list `files` before the task it is part of is considered complete.
+  *Example:* the following `requires` will yield (and spawn) tasks to create a table for each `file` in the `files` list  before the task it is part of is considered complete.
   ```
   def requires(self):
     for file in files:
@@ -34,7 +34,7 @@ Every task should have three things (`output`, `requires`, and `run`), which are
 1. `def run(self)`  
   Finally, the `run` method is what needs to be executed for the task to run.
 
-  *example* the following `run` will read in a script (`sql_script`) and execute it. This uses a `pg_tools` helper function `pgw.execute()` which executes a postgres query.
+  *Example:* the following `run` will read in a script (`sql_script`) and execute it. This uses a `pg_tools` helper function `pgw.execute()` which executes a postgres query.
   ```
   def run(self):
     with open(sql_script, 'r') as myfile:
@@ -49,17 +49,17 @@ Wrapper tasks are like regular tasks, however they don't have a `output` or `run
 
 ## luigi parameters
 
-Luigi accepts parameters that are passed to each task class. This are defined at the top level of the task class. These are helpful (and used in our code to) pass directories for files to parse, new schema names, etc.
+luigi accepts parameters that are passed to each task class (which all directly or indirectly inherit from the `luigi.Task` class). This are defined at the top level of the task class. These are helpful (and used in our code to) pass directories for files to parse, new schema names, etc.
 
 ```
-class newTask(luigi.Task):
+class NewTask(luigi.Task):
   param = luigi.Parameter(default="")
 ```
-The code above will define a parameter `param` for the task `newTask`, which defaults to an empty string if not supplied.
+The code above will define a parameter `param` for the task `NewTask`, which defaults to an empty string if not supplied.
 
 ## priority
 
-Luigi allows for priority to be set for each task. Luigi will respect dependency order before it respects priority, but if a set of tasks are yielded in one wrapper task, priority can be used to make some of those tasks to be completed before others. This does not guarantee an execution order, but it will try (and if luigi is running on a single machine, on a single core, with a single worker it should guarantee the order). Higher numbers are higher priorities. If priority for a task needs to be set dynamically (that is, you are using an abstract class that is used to generate many similar tasks), you can use an `@property` decorator at the top of the class.
+luigi allows for priority to be set for each task. `priority`, like `run`, `requires`, and `output`, is a reserved method in luigi, so all you should have to do is make a `self.priority` attribute for your custom task class, and luigi will do the rest for you. luigi will respect dependency order before it respects priority, but if a set of tasks are yielded in one wrapper task, priority can be used to make some of those tasks to be completed before others. This does not guarantee an execution order, but it will try (and if luigi is running on a single machine, on a single core, with a single worker it should guarantee the order).  Higher numbers are higher priorities. If priority for a task needs to be set dynamically (that is, you are using an abstract class that is used to generate many similar tasks), you can use an `@property` decorator at the top of the class.
 
 ```
 class CreateTable(pg_tools.PostgresTask):
@@ -68,7 +68,7 @@ class CreateTable(pg_tools.PostgresTask):
       return(prioritize_tables(self.table))
 ```
 
-The above code will call the function prioritize_tables which returns a number which is the priority that specific table creation should be given. This number is taken from a dictionary of table names mapped to priority numbers.
+The above code will call the function prioritize_tables, which returns the priority (as an integer) that that specific table creation should be given. This number is taken from a Python dictionary of table names mapped to priority numbers.
 
 ## `pg_tools`
 
@@ -79,28 +79,39 @@ The luigi code to create the `staging` schema and populate all lookup tables is 
 
 Since the `PopulateLookupTables` task depends on the `CreateAllStagingTables` task, you only need to specify `PopulateLookupTables` and luigi will make sure all staging tables are created first.
 
+An example command you might run is:
+`PYTHONPATH='' luigi --module setupStaging PopulateLookupTables --table-file ./populate_tables/lookup/lookup_tables.yaml --schema staging_dev --CreateAllStagingTables-create-tables-directory ./create_tables  --local-scheduler`
+
+### Constructing a luigi call in bash
+
+1. `PYTHONPATH=''` you always need this to call luigi from bash
+1. `luigi --module [filename (wihtout the .py extension)]`
+1. `SingleTaskToRun` e.g. `PopulateLookupTables` 
+1. parameters (see below)
+1. `--local-scheduler` this tells luigi to run the command locally
+
 ### Parameters
-The following parameters must be passed:
+The following parameters must be both specified in the [`police-eis/schemas/setupStaging.py`](../schemas/setupStaging.py) file, and passed to the bash command that calls luigi:
 
 1. `--table-file   ./populate_tables/lookup/lookup_tables.yaml`  
   This is the yaml file that contains the information to be placed into the lookup tables.
 1. `--schema staging_dev`    
-  This is the name that of the schema where the tables will be created (canonically `staging_dev`, but can be anything)
+  This is the name of the schema where the tables will be created (canonically `staging_dev`, but can be anything)
 1. `--CreateAllStagingTables-create-tables-directory ./create_tables`    
   This is the directory that contains all of the create table SQL statement files that define the names, columns, and data types for each table to be created. The files must be named in the format: `CREATE-staging-[table_name].sql`
 
 ### Globals
-The following global objects and functions are used:
+The following global objects and functions are used in the [`police-eis/schemas/setupStaging.py`](../schemas/setupStaging.py) file:
 
 1. `schema_in_file`  
   This is a string that is the schema that is specified throughout the create table scripts and populate lookup data. This is the string that is replaced by the schema specified in the `--schema` parameter.
-1. `tabel_priorities`
+1. `table_priorities`
   This is a dictionary that gives priorities for tables that must be created early in the process (due to foreign key constraints). The keys are the table names, and the values are integers, >1 where the larger the number the higher the priority given.
 1. `prioritize_tables()`
   This is a function that takes a table name and returns a priority number based on the table_priorities
 
 
-### Tasks
+### Tasks in setupStaging
 
 1. `CreateTable()`
   This task creates a table given a `script`, `table`(name), and `schema`. The task is considered complete if the table exists (which is determined by `pg_tools.PGTableTarget`). If the table doesn't exist the script is executed
