@@ -206,7 +206,7 @@ def populate_dispatch_features_table(config, table_name):
     # join each thread and wait for it to be done to make sure we're done building them all
     # before we move on to joining them
     for i, thread in enumerate(feature_threads):
-        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features/5))
+        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features/5)))
         thread.join()
 
     # join each single-feature to the main table one at a time

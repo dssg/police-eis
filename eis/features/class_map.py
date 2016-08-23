@@ -31,7 +31,8 @@ def find_categorical_features(feature_list):
     """
 
     # TODO: make it so that we don't need to supply a bogus fake today to instantiate an OfficerFeature
-    dummy_kwargs = {'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
+    # TODO: make the passing of 'unit' to lookup nicer
+    dummy_kwargs = {'unit':'dispatch', 'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
     feature_classes = [lookup(feature, **dummy_kwargs) for feature in feature_list]
 
     categorical_features = [feature.feature_name for feature in feature_classes if feature.is_categorical]
@@ -82,7 +83,8 @@ def find_label_features(feature_list):
     """
 
     # TODO: make it so that we don't need to supply a bogus fake today to instantiate an OfficerFeature
-    dummy_kwargs = {'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
+    # TODO: make passing 'unit' to lookup nicer
+    dummy_kwargs = {'unit':'dispatch', 'to_date': '', 'from_date': '', 'fake_today':datetime.datetime.today(), 'table_name':'dummy_table'}
     feature_classes = [lookup(feature, **dummy_kwargs) for feature in feature_list]
 
     label_features = [feature.feature_name for feature in feature_classes if feature.is_label]
