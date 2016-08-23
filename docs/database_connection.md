@@ -28,3 +28,5 @@ Initial setup is performed via two configuration files, one that contains databa
       si_table: "internal_affairs_investigations"
       officer_table: "officers_hub"
    ```
+
+####[Proceed to full model and data pipeline documentation](./repositories_dependencies_and_pipeline.md).
