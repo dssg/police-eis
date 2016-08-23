@@ -12,27 +12,27 @@ The script `prepare.py` is run from the command line and has several required ar
 
 ####Required Arguments:
 
-  ```python
-      timestamp:      models run on or after given timestamp
-                      example: '2016-08-03'
+  ```Python
+     timestamp:      models run on or after given timestamp
+                     example: '2016-08-03'
                   
-     metric:          metric to be optimized
-                      example: 'precision@'
+     metric:         metric to be optimized
+                     example: 'precision@'
   ```
 
 ####Options:
-  ```python
-      --parameter:
-      --p:          parameter value or threshold if any
+  ```Python
+      parameter:
+      p:            parameter value or threshold if any
                     default=None
                     example: '10.0'
                     
-      --number:
-      --n:          maximum number of desired results
+      number:
+      n:            maximum number of desired results
                     default = 25
       
-      --directory:  
-      --d:          the directory the results should be returned
+      directory:  
+      d:            the directory the results should be returned
                     default = 'results/'
   ```
 
