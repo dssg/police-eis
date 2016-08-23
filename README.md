@@ -17,7 +17,7 @@ Our modeling pipeline has some prerequists and structure documentation:
 
 ![Process](docs/tableProces.png)
 
-Once the pipeline has been run, the results can be visualized using the [webapp](docs/webapp.md).
+Once the pipeline has been run, the results can be visualized using the [webapp](docs/results_webapp.md).
 
 Deprecated Documentation Quick Links:
 
