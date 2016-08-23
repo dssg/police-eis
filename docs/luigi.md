@@ -1,12 +1,12 @@
 # Luigi pipeline management
 
-As described in (the main pipeline documentation)[repositories_dependencies_and_pipeline.md], (luigi)[https://github.com/spotify/luigi/] is used to create and setup a blank `staging` schema and then to populate this `staging` schema from the `etl` schema.
+As described in [the main pipeline documentation](repositories_dependencies_and_pipeline.md), [luigi](https://github.com/spotify/luigi/) is used to create and setup a blank `staging` schema and then to populate this `staging` schema from the `etl` schema.
 
 ## Basics of luigi
 
-The (luigi documentation is robust)[https://luigi.readthedocs.io/en/latest/] and pretty complete. Luigi is setup around configuring `tasks` that have a number of properties. Each task is defined by making a class that inherits from the abstract `luigi.Task`, and further defines the things that need to be done before the task, the things that need to be done when the task is run, and the things that need to be true for the task to be considered finished successfully.
+The [luigi documentation is robust](https://luigi.readthedocs.io/en/latest/) and pretty complete. Luigi is setup around configuring `tasks` that have a number of properties. Each task is defined by making a class that inherits from the abstract `luigi.Task`, and further defines the things that need to be done before the task, the things that need to be done when the task is run, and the things that need to be true for the task to be considered finished successfully.
 
-We use a number of custom classes from the (`pg_tools` package)[https://github.com/jonkeane/pg_tools]. This package defines a number of targets for postgress tables, columns, etc.
+We use a number of custom classes from the [`pg_tools` package](https://github.com/jonkeane/pg_tools). This package defines a number of targets for postgress tables, columns, etc.
 
 ## basic `luigi.Task`
 
@@ -75,7 +75,7 @@ The above code will call the function prioritize_tables which returns a number w
 
 ## Create `staging` and populate lookup tables
 
-The luigi code to create the `staging` schema and populate all lookup tables is located at (`police-eis/schemas/setupStaging.py`)[../schemas/setupStaging.py].
+The luigi code to create the `staging` schema and populate all lookup tables is located at [`police-eis/schemas/setupStaging.py`](../schemas/setupStaging.py).
 
 Since the `PopulateLookupTables` task depends on the `CreateAllStagingTables` task, you only need to specify `PopulateLookupTables` and luigi will make sure all staging tables are created first.
 
@@ -115,7 +115,7 @@ The following global objects and functions are used:
 
 ## Creating stored procedures and populating `staging` tables from `etl`
 
-The luigi code to create the stored procedures and populate that `staging` schema is located at (`[police-eis]/police-eis-private/schemas/populateStagingFromMNPD.py`)[https://github.com/dssg/police-eis-private/blob/master/schemas/populateStagingFromMNPD.py].
+The luigi code to create the stored procedures and populate that `staging` schema is located at [`[police-eis]/police-eis-private/schemas/populateStagingFromMNPD.py`](https://github.com/dssg/police-eis-private/blob/master/schemas/populateStagingFromMNPD.py).
 
 There are two main tasks (`PopulateStoredProcedures` and `PopulateAllStagingTables`) which don't currently have dependencies setup in luigi (so they must be run one after the other).
 
@@ -146,7 +146,7 @@ The following parameters must be passed:
   This task requires that the table first be populated with a `PopulateTable` task, once that has completed successfully, it reads in the python script specified in the `tables_and_cleanup_scripts` dictionary, and then runs the function `main()` that is specified in that script. The `main()` function in the cleanup script must run all of the code needed for the cleanup to work. In general, you can pass the PostgresWrangler object (frequently called `pgw`) to this function to make postgres calls without having to worry about additional authentication issues. The cleanup is successful when there are any number of non-null values in the column that was specified in the `tables_and_cleanup_scripts` dictionary. This means one must be careful with the order that this cleanup is run.
 
 1. `PopulateAllStagingTables()`  
-  This task takes a list of files from the directory specified in the `--populate-tables-directory` parameter, and yields a `PopulateTableWithCleanUp` task if there is
+  This task takes a list of files from the directory specified in the `--populate-tables-directory` parameter This task yields a `PopulateTableWithCleanUp` task if there is an entry in the `tables_and_cleanup_scripts` dictionary for that table, and if not it yields a `PopulateTable` task.
 
 <hr/>
 <b id="f1"><sup>1</sup></b> It should be noted that the parameter is passed on the command line with the task name prepended to the parameter name. So the `CreateAllStagingTables` task has a parameter `create_tables_directory` which is specified on the command line with `--CreateAllStagingTables-create-tables-directory [path to directory]`. Further, due to luigi limitations any underscores in parameter names must be replaced with dashes on the command line (that is, this parameter is refered to in the luigi script as `create_tables_directory` but on the command line as `create-tables-directory` ). [↩](#a1)
