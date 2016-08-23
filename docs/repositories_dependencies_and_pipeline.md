@@ -49,9 +49,9 @@ git submodule update
 
 ### Raw to ETL
 
-We use Drake to transfer the raw data from the department to the ETL schema (only the MNPD data uses this system). To run this process use the following command:
+We use Drake to transfer the raw data from the department to the ETL schema (only the MNPD data uses this system). To run this process use the following command in the `[path to police-eis repo]\police-eis-private\schemas\etl\` directory:
 
-`The right drake command here.`
+`drake -w Drakefile_nashville -s ~/.s3cfg `
 
 ### ETL to staging
 
