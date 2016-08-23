@@ -13,7 +13,7 @@ Our modeling pipeline has some prerequists and structure documentation:
 2.  [Documentation about the structure and contents of the repositories](docs/repository_documentation.md).
 3.  [Setup Database Connection](docs/database_connection.md).
 
-### [Full pipeline is documented.](docs/repositories_dependencies_and_pipeline.md).
+### After the prerequisites and requirements are met, the full pipeline can be run ([pipeline documentation](docs/repositories_dependencies_and_pipeline.md)).
 
 ![Process](docs/tableProces.png)
 
