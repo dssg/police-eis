@@ -82,12 +82,12 @@ Since the `PopulateLookupTables` task depends on the `CreateAllStagingTables` ta
 ### Parameters
 The following parameters must be passed:
 
-1. `--table-file ./populate_tables/lookup/lookup_tables.yaml`  
+1. `--table-file   ./populate_tables/lookup/lookup_tables.yaml`  
   This is the yaml file that contains the information to be placed into the lookup tables.
-1. `--schema staging_dev`  
+1. `--schema staging_dev`    
   This is the name that of the schema where the tables will be created (canonically `staging_dev`, but can be anything)
-1. `--CreateAllStagingTables-create-tables-directory ./create_tables`  
-  This is the directory that contains all of the create table SQL statement files that define the names, columns, and data types for each table to be created.
+1. `--CreateAllStagingTables-create-tables-directory ./create_tables`    
+  This is the directory that contains all of the create table SQL statement files that define the names, columns, and data types for each table to be created. The files must be named in the format: `CREATE-staging-[table_name].sql`
 
 ### Globals
 The following global objects and functions are used:
@@ -98,6 +98,7 @@ The following global objects and functions are used:
   This is a dictionary that gives priorities for tables that must be created early in the process (due to foreign key constraints). The keys are the table names, and the values are integers, >1 where the larger the number the higher the priority given.
 1. `prioritize_tables()`
   This is a function that takes a table name and returns a priority number based on the table_priorities
+
 
 ### Tasks
 
@@ -112,12 +113,40 @@ The following global objects and functions are used:
 
   Because this is a quick operation we have not yet defined an output target for this task that checks if it has already completed. This means that any time this task is run it will always repopulate the lookup tables.
 
-## Create stored procedures
+## Creating stored procedures and populating `staging` tables from `etl`
+
+The luigi code to create the stored procedures and populate that `staging` schema is located at (`[police-eis]/police-eis-private/schemas/populateStagingFromMNPD.py`)[https://github.com/dssg/police-eis-private/blob/master/schemas/populateStagingFromMNPD.py].
+
+There are two main tasks (`PopulateStoredProcedures` and `PopulateAllStagingTables`) which don't currently have dependencies setup in luigi (so they must be run one after the other).
 
 
-## Populate `staging`
+### Parameters
+The following parameters must be passed:
 
+1. `--schema staging_dev`  (both tasks)  
+  This is the name that of the schema where the tables will be created (canonically `staging_dev`, but can be anything)
+1. `--populate-tables-directory ./populate_tables/mnpd`  (`PopulateAllStagingTables` task only)
+  This is the directory that contains all population scripts for each table. The files must be named in the format: `POPULATE-staging-[table_name].sql`
+1. `tables_and_cleanup_scripts`  
+  This is a dictionary that has the tables that need to have cleanup scripts run on them after they are populated. The keys are the table name, and the values are lists, the first element is the (relative) path to the cleanup script that must be imported and the second element is the column that will be populated when the cleanup has run successfully. For more information see the `PopulateTableWithCleanUp` task below.
 
+### Tasks
+
+### Create stored procedures
+
+1. `PopulateStoredProcedures`  
+  This task takes a script that contains all of the stored procedure creation code and executes it. Currently, this will drop and recreate all stored procedures whenever it is run.
+
+### Populate `staging`
+
+1. `PopulateTable()`  
+  This task takes a script that populates a table and executes it. The task is successful when the table is not empty (which is checked with the `pg_tools` target class `pg_tools.PGNonEmptyTableTarget()`). If the table is empty, the population script is run, if the table is not empty the task is considered finished, and nothing is run.
+
+1. `PopulateTableWithCleanUp()`  
+  This task requires that the table first be populated with a `PopulateTable` task, once that has completed successfully, it reads in the python script specified in the `tables_and_cleanup_scripts` dictionary, and then runs the function `main()` that is specified in that script. The `main()` function in the cleanup script must run all of the code needed for the cleanup to work. In general, you can pass the PostgresWrangler object (frequently called `pgw`) to this function to make postgres calls without having to worry about additional authentication issues. The cleanup is successful when there are any number of non-null values in the column that was specified in the `tables_and_cleanup_scripts` dictionary. This means one must be careful with the order that this cleanup is run.
+
+1. `PopulateAllStagingTables()`  
+  This task takes a list of files from the directory specified in the `--populate-tables-directory` parameter, and yields a `PopulateTableWithCleanUp` task if there is
 
 <hr/>
 <b id="f1"><sup>1</sup></b> It should be noted that the parameter is passed on the command line with the task name prepended to the parameter name. So the `CreateAllStagingTables` task has a parameter `create_tables_directory` which is specified on the command line with `--CreateAllStagingTables-create-tables-directory [path to directory]`. Further, due to luigi limitations any underscores in parameter names must be replaced with dashes on the command line (that is, this parameter is refered to in the luigi script as `create_tables_directory` but on the command line as `create-tables-directory` ). [↩](#a1)
