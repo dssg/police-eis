@@ -11,12 +11,16 @@ import time
 import pdb
 
 from . import setup_environment, models, scoring
-from . import dataset, experiment, groups
+from . import dataset, experiment
 from . import populate_features
 
 def main(config_file_name, args):
+
+    now = datetime.datetime.now().strftime('%d-%m-%y_%H:%M:S')
+    log_filename = 'logs/{}.log'.format(now)
     logging.basicConfig(format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-                        level=logging.DEBUG)
+                        level=logging.DEBUG,
+                        handlers=[logging.FileHandler(log_filename), logging.StreamHandler()])
     log = logging.getLogger('eis')
 
     try:
@@ -28,7 +32,6 @@ def main(config_file_name, args):
         raise
 
     # read table name from config file
-    # NOTE!!!! this breaks the command line passing of table name
     if config["unit"] == "dispatch":
         table_name = config["dispatch_feature_table_name"]
     else:
@@ -66,35 +69,8 @@ def main(config_file_name, args):
             my_exp.config["parameters"],
             my_exp.config["n_cpus"])
 
-        if my_exp.config["aggregation"]:
-            groupscores = groups.aggregate(my_exp.exp_data["test_x_index"],
-                                           result_y, my_exp.config["fake_today"])
-        else:
-            groupscores = []
-
-        if my_exp.config["pilot"]:
-            log.info("Generating pilot")
-            pilot_y, pilot_importances, __, pilot_individual_imps = models.run(
-                my_exp.pilot_data["train_x"], my_exp.pilot_data["train_y"],
-                my_exp.pilot_data["test_x"], my_exp.config["model"],
-                my_exp.config["parameters"], my_exp.config["n_cpus"])
-            pilot_save = {"test_predictions": pilot_y,
-                          "feature_importances": pilot_importances,
-                          "individual_importances": pilot_individual_imps,
-                          "features": my_exp.pilot_data["names"],
-                          "officer_id_train": my_exp.pilot_data["train_x_index"],
-                          "officer_id_test": my_exp.pilot_data["test_x_index"],
-                          "train_x": my_exp.pilot_data["train_x"],
-                          "train_y": my_exp.pilot_data["train_y"],
-                          "test_x": my_exp.pilot_data["test_x"]}
-            pilot_file = "{}pilot_experiment_{}.pkl".format(my_exp.config["pilot_dir"], timestamp)
-            pickle_results(pilot_file, pilot_save)
-        #commented out for now, but we need to create a flag for whether an eis system already exists in the department
-        #if config['eis_table']:
-        #    confusion_matrices = scoring.test_thresholds(
-        #	    my_exp.exp_data["test_x_index"], result_y,
-        #        my_exp.config['fake_today'], my_exp.exp_data["test_end_date"])
-        #else:
+        # required for to_save dict below, (legacy code)
+        groupscores = []
         confusion_matrices = []
 
         # TODO: make this more robust for officer vs dispatch level predictions
@@ -188,17 +164,6 @@ def main(config_file_name, args):
                 comment = None
 
             dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
-
-        if my_exp.config["auditing"]:
-            audit_outputs = {"train_x": my_exp.exp_data["train_x"],
-                             "train_y": my_exp.exp_data["train_y"],
-                             "officer_id_train": my_exp.exp_data["train_x_index"],
-                             "officer_id_test": my_exp.exp_data["test_x_index"],
-                             "test_predictions": result_y,
-                             "test_y": my_exp.exp_data["test_y"],
-                             "test_x": my_exp.exp_data["test_x"]}
-            audit_file = "{}audit_{}.pkl".format(my_exp.config['audits'], timestamp)
-            pickle_results(audit_file, audit_outputs)
 
     log.info("Done!")
     return None

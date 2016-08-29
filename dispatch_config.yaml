@@ -3,18 +3,13 @@
 #              Model experiments               #
 ################################################
 
-make_feat_dists: False  # Whether you would like distributions of 1 / 0 classes made of training set features
-distdir: 'dists'  # Where to put them
+store_model_object_in_database: False
 
 ########################
 # Type of Experiment   #
 ########################
 
 unit: 'dispatch'  # possible options: [dispatch, officer]
-aggregation: False  # Also produce unit and division level risk scores
-pilot: False  # Turn on pilot experiment
-pilot_today: '01May2016'  # Do pilot beginning date
-pilot_dir: 'pilot/'
 
 ########################
 # Temporal parameters  #
@@ -22,16 +17,14 @@ pilot_dir: 'pilot/'
 
 # these control what subset of the raw data is used to calculate the features
 # used for feature CALCULATION
-raw_data_from_date: '2008-01-01'
-raw_data_to_date: '2016-01-01'
+raw_data_from_date: '2012-01-01'
+raw_data_to_date: '2012-04-01'
 
 # these control what subset of the feature rows will be used to train and test
 # used for row selection in MODELING
-fake_today: ['15Feb2013']  # if you want a specific_today then pass this
-training_window: [45]  # training, days
-prediction_window: [45]  # prediction, days
-autogen_fake_todays: False  # set to off if you want a specific fake_today
-# 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
+fake_today: ['01Mar2012']  # if you want a specific_today then pass this
+training_window: [730]  # training, days
+prediction_window: [365]  # prediction, days
 
 ########################
 # Labelling Details    #
@@ -40,86 +33,253 @@ autogen_fake_todays: False  # set to off if you want a specific fake_today
 # NOTE: this ratio = n_label_1 / n_total
 under_sampling_ratio: 0.1
 
-# Select which events you want the model to use as adverse incidents (class 1)
-
-def_adverse:
-    accidents: False # preventable accidents
-    useofforce: True  # unjustified use of force
-    injury: False  # preventable officer injuries
-    icd: False  # preventable in custody deaths
-    tdd: False  # unjustified use of tire deflation device
-    nfsi: False  # unjustified no force subject injury
-    dof: False  # unjustified discharge of firearm
-    raid: False  # unjustified raid and search
-    pursuit: False  # unjustified pursuit
-    complaint: True  # sustained complaints
-
+# select which officers to generate labels for
 labelling:
     include_all_employed: True # include all officers who were employed during the specified period
-    include_all_active: True # include all oficcers who made an arrest or stop during the specified period.
+    include_all_active: True # include all officers who made an arrest or stop during the specified period.
 
+def_adverse:
+    accidents: True
+    useofforce: True
+    complaint: True
+
+officer_labels:
+
+dispatch_labels:
+    LabelSustained: True
+    LabelUnjustified: True
+    LabelPreventable: True
+    
 ########################
 # Feature selection    #
 ########################
 
-dispatch_feature_table_name: 'dispatch_features_2008_2016'
+dispatch_feature_table_name: 'diditwork3'
 
 officer_features:
     investigation_count_career: True
     arrest_count_career: True
-    arrest_count_1yr: False
+    arrest_count_1yr: True
 
 dispatch_features:
-    LabelSustained: True #TODO move this to somewhere more explicit
-    LabelUnjustified: True #TODO move this to somewhere more explicit
-    LabelPreventable: True #TODO move this to somewhere more explicit
+    LabelSustained: True
+    LabelUnjustified: True
+    LabelPreventable: True
     DispatchMinute: True
     DispatchHour: True
     DispatchDayOfWeek: True
-    DispatchMonth: True
     DispatchYearQuarter: True
+    DispatchMonth: True
     DispatchYear: True
     OriginalPriority: True
     DispatchType: True
     DispatchSubType: True
     NumberOfUnitsAssigned: True
+    AverageOfficerTravelTime: True
+    MinimumOfficerTravelTime: False
+    MaximumOfficerTravelTime: False
+    DispatchCategory: True
     ArrestsInPast1Hour: True
     ArrestsInPast6Hours: True
-    ArrestsInPast12Hours: True
+    ArrestsInPast12Hours: False
     ArrestsInPast24Hours: True
-    ArrestsInPast48Hours: True
+    ArrestsInPast48Hours: False
     ArrestsInPastWeek: True
-    ArrestsInPastMonth: False
-    FelonyArrestsInPast1Hour: False
-    FelonyArrestsInPast6Hours: False
+    FelonyArrestsInPast1Hour: True
+    FelonyArrestsInPast6Hours: True
     FelonyArrestsInPast12Hours: False
     FelonyArrestsInPast24Hours: False
     FelonyArrestsInPast48Hours: False
     FelonyArrestsInPastWeek: False
-    FelonyArrestsInPastMonth: False
-    OfficersDispatchedInPast1Minute: True
-    OfficersDispatchedInPast15Minutes: True
-    OfficersDispatchedInPast30Minutes: True
+    DrugsArrestsInPast1Hour: False
+    DrugsArrestsInPast6Hours: False
+    DrugsArrestsInPast12Hours: False
+    DrugsArrestsInPast24Hours: False
+    DrugsArrestsInPast48Hours: False
+    DrugsArrestsInPastWeek: False
+    StolenVehicleArrestsInPast1Hour: False
+    StolenVehicleArrestsInPast6Hours: False
+    StolenVehicleArrestsInPast12Hours: False
+    StolenVehicleArrestsInPast24Hours: False
+    StolenVehicleArrestsInPast48Hours: False
+    StolenVehicleArrestsInPastWeek: False
+    OfficersDispatchedInPast1Minute: False
+    OfficersDispatchedInPast15Minutes: False
+    OfficersDispatchedInPast30Minutes:
     OfficersDispatchedInPast1Hour: True
-    OfficersDispatchedInPast6Hours: True
-    OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: True
-    OfficersDispatchedAverageJustifiedIncidentsInPastYear: True
-    OfficersDispatchedAverageSustainedAllegationsInPastYear: True
-    OfficersDispatchedAverageUnsustainedAllegationsInPastYear: True
-    OfficersDispatchedAveragePreventableIncidentsInPastYear: True
-    OfficersDispatchedAverageNonPreventableIncidentsInPastYear: True
-    OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months: True
-    OfficersDispatchedAverageJustifiedIncidentsInPast6Months: True
-    OfficersDispatchedAverageSustainedAllegationsInPast6Months: True
-    OfficersDispatchedAverageUnsustainedAllegationsInPast6Months: True
-    OfficersDispatchedAveragePreventableIncidentsInPast6Months: True
-    OfficersDispatchedAverageNonPreventableIncidentsInPast6Months: True
-    OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month: True
-    OfficersDispatchedAverageJustifiedIncidentsInPast1Month: True
-    OfficersDispatchedAverageSustainedAllegationsInPast1Month: True
-    OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: True
-    OfficersDispatchedAveragePreventableIncidentsInPast1Month: True
-    OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: True
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast3Years: True
+    OfficersDispatchedAverageJustifiedIncidentsInPast3Years: True
+    OfficersDispatchedAveragePreventableIncidentsInPast3Years: True
+    OfficersDispatchedAverageNonPreventableIncidentsInPast3Years: True
+    OfficersDispatchedAverageSustainedAllegationsInPast3Years: True
+    OfficersDispatchedAverageUnsustainedAllegationsInPast3Years: True
+    OfficersDispatchedAverageUnjustifiedIncidentsInPastYear: False
+    OfficersDispatchedAverageJustifiedIncidentsInPastYear: False
+    OfficersDispatchedAveragePreventableIncidentsInPastYear: False
+    OfficersDispatchedAverageNonPreventableIncidentsInPastYear: False
+    OfficersDispatchedAverageSustainedAllegationsInPastYear: False
+    OfficersDispatchedAverageUnsustainedAllegationsInPastYear: False
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast6Months: False
+    OfficersDispatchedAverageJustifiedIncidentsInPast6Months: False
+    OfficersDispatchedAveragePreventableIncidentsInPast6Months: False
+    OfficersDispatchedAverageNonPreventableIncidentsInPast6Months: False
+    OfficersDispatchedAverageSustainedAllegationsInPast6Months: False
+    OfficersDispatchedAverageUnsustainedAllegationsInPast6Months: False
+    OfficersDispatchedAverageUnjustifiedIncidentsInPast1Month: False
+    OfficersDispatchedAverageJustifiedIncidentsInPast1Month: False
+    OfficersDispatchedAveragePreventableIncidentsInPast1Month: False
+    OfficersDispatchedAverageNonPreventableIncidentsInPast1Month: False
+    OfficersDispatchedAverageSustainedAllegationsInPast1Month: False
+    OfficersDispatchedAverageUnsustainedAllegationsInPast1Month: False
+    OfficersDispatchedMinimumUnjustifiedIncidentsInPast3Years: False
+    OfficersDispatchedMinimumJustifiedIncidentsInPast3Years: False
+    OfficersDispatchedMinimumPreventableIncidentsInPast3Years: False
+    OfficersDispatchedMinimumNonPreventableIncidentsInPast3Years: False
+    OfficersDispatchedMinimumSustainedAllegationsInPast3Years: False
+    OfficersDispatchedMinimumUnsustainedAllegationsInPast3Years: False
+    OfficersDispatchedMinimumUnjustifiedIncidentsInPastYear: False
+    OfficersDispatchedMinimumJustifiedIncidentsInPastYear: False
+    OfficersDispatchedMinimumPreventableIncidentsInPastYear: False
+    OfficersDispatchedMinimumNonPreventableIncidentsInPastYear: False
+    OfficersDispatchedMinimumSustainedAllegationsInPastYear: False
+    OfficersDispatchedMinimumUnsustainedAllegationsInPastYear: False
+    OfficersDispatchedMinimumUnjustifiedIncidentsInPast6Months: False
+    OfficersDispatchedMinimumJustifiedIncidentsInPast6Months: False
+    OfficersDispatchedMinimumPreventableIncidentsInPast6Months: False
+    OfficersDispatchedMinimumNonPreventableIncidentsInPast6Months: False
+    OfficersDispatchedMinimumSustainedAllegationsInPast6Months: False
+    OfficersDispatchedMinimumUnsustainedAllegationsInPast6Months: False
+    OfficersDispatchedMinimumUnjustifiedIncidentsInPast1Month: False
+    OfficersDispatchedMinimumJustifiedIncidentsInPast1Month: False
+    OfficersDispatchedMinimumPreventableIncidentsInPast1Month: False
+    OfficersDispatchedMinimumNonPreventableIncidentsInPast1Month: False
+    OfficersDispatchedMinimumSustainedAllegationsInPast1Month: False
+    OfficersDispatchedMinimumUnsustainedAllegationsInPast1Month: False
+    OfficersDispatchedMaximumUnjustifiedIncidentsInPast3Years: False
+    OfficersDispatchedMaximumJustifiedIncidentsInPast3Years: False
+    OfficersDispatchedMaximumPreventableIncidentsInPast3Years: False
+    OfficersDispatchedMaximumNonPreventableIncidentsInPast3Years: False
+    OfficersDispatchedMaximumSustainedAllegationsInPast3Years: False
+    OfficersDispatchedMaximumUnsustainedAllegationsInPast3Years: False
+    OfficersDispatchedMaximumUnjustifiedIncidentsInPastYear: False
+    OfficersDispatchedMaximumJustifiedIncidentsInPastYear: False
+    OfficersDispatchedMaximumPreventableIncidentsInPastYear: False
+    OfficersDispatchedMaximumNonPreventableIncidentsInPastYear: False
+    OfficersDispatchedMaximumSustainedAllegationsInPastYear: False
+    OfficersDispatchedMaximumUnsustainedAllegationsInPastYear: False
+    OfficersDispatchedMaximumUnjustifiedIncidentsInPast6Months: False
+    OfficersDispatchedMaximumJustifiedIncidentsInPast6Months: False
+    OfficersDispatchedMaximumPreventableIncidentsInPast6Months: False
+    OfficersDispatchedMaximumNonPreventableIncidentsInPast6Months: False
+    OfficersDispatchedMaximumSustainedAllegationsInPast6Months: False
+    OfficersDispatchedMaximumUnsustainedAllegationsInPast6Months: False
+    OfficersDispatchedMaximumUnjustifiedIncidentsInPast1Month: False
+    OfficersDispatchedMaximumJustifiedIncidentsInPast1Month: False
+    OfficersDispatchedMaximumPreventableIncidentsInPast1Month: False
+    OfficersDispatchedMaximumNonPreventableIncidentsInPast1Month: False
+    OfficersDispatchedMaximumSustainedAllegationsInPast1Month: False
+    OfficersDispatchedMaximumUnsustainedAllegationsInPast1Month: False
+    AverageAgeOfRespondingOfficers: True
+    MaximumAgeOfRespondingOfficers: False
+    MinimumAgeOfRespondingOfficers: False
+    HighestEducationLevelAmongRespondingOfficers: False
+    LowestEducationLevelAmongRespondingOfficers: False
+    ProportionOfRespondingOfficersWithFourYearCollegeDegreeOrHigher: False
+    ProportionOfRespondingOfficersMale: True
+    ProportionOfRespondingOfficersBlack: True
+    ProportionOfRespondingOfficersHispanic: True
+    ProportionOfRespondingOfficersAsian: False
+    ProportionOfRespondingOfficersOtherRace: False
+    ProportionOfRespondingOfficersDivorcedOrSeparated: True
+    ProportionOfRespondingOfficersMarried: True
+    MedianAgeInCT: True
+    MedianAgeOfMenInCT: False
+    MedianAgeOfWomenInCT: False
+    UnweightedSampleCountOfPopulationInCT: True
+    UnweightedSampleCountOfHousingUnitsInCT: True
+    PercentageMenInCT: True
+    PercentageWomenInCT: False
+    PercentageWhiteInCT: False
+    PercentageBlackInCT: True
+    PercentageAsianInCT: False
+    PercentageHispanicInCT: True
+    PercentageForeignBornInCT: False
+    ProportionOfPopulationUnderAge18InCT: True
+    ProportionOfPopulationEnrolledInSchoolInCT: False
+    ProportionOfPopulationOver25WithLessThanHighSchoolEducationInCT: False
+    ProportionOfPopulationVeteransInCT: False
+    ProportionOfPopulationWithIncomeBelowPovertyLevelInPastYearInCT: False
+    ProportionOfPopulationWithIncomeInPast12MonthsBelow45000DollarsInCT: False
+    MedianIncomeInPast12MonthsInCT: False
+    MedianHouseholdIncomeInPast12MonthsInCT: False
+    ProportionOfHouseholdsReceivingAssistanceOrFoodStampsInCT: False
+    ProportionOfHousingUnitsVacantInCT: False
+    ProportionOfHousingUnitsOccupiedByOwnerInCT: False
+    MedianYearStructureBuildInCT: False
+    MedianYearRenterMovedIntoHousingUnitInCT: False
+    MedianYearOwnerMovedIntoHousingUnitInCT: False
+    MedianGrossRentInCT: False
+    MedianPropertyValueInCT: False
+    LowerQuartilePropertyValueInCT: False
+    UpperQuartilePropertyValueInCT: False
+    AverageHouseholdSizeInCT: True
+    ProportionOfChildrenUnder18LivingWithSingleParentInCT: True
+    ProportionOfChildrenUnder18LivingWithMotherInCT: False
+    ProportionOfPopulationNeverMarriedInCT: False
+    ProportionOfPopulationDivorcedOrSeparatedInCT: False
+    ProportionOfPopulationWithoutHealthInsuranceInCT: False
+    ProportionOfWomenWhoGaveBirthInPast12MonthsInCT: False
+    ArrestsWithin1kmRadiusInPast1Hour: False
+    ArrestsWithin1kmRadiusInPast6Hours: True
+    ArrestsWithin1kmRadiusInPast12Hours: False
+    ArrestsWithin1kmRadiusInPast24Hours: False
+    ArrestsWithin500mRadiusInPast1Hour: False
+    ArrestsWithin500mRadiusInPast6Hours: False
+    ArrestsWithin500mRadiusInPast12Hours: True
+    ArrestsWithin500mRadiusInPast24Hours: False
+    ArrestsWithin100mRadiusInPast1Hour: True
+    ArrestsWithin100mRadiusInPast6Hours:  False
+    ArrestsWithin100mRadiusInPast12Hours: False
+    ArrestsWithin100mRadiusInPast24Hours: True
+    DispatchesWithin1kmRadiusInPast15Minutes: False
+    DispatchesWithin1kmRadiusInPast30Minutes: False
+    DispatchesWithin1kmRadiusInPast1Hour: True
+    DispatchesWithin500mRadiusInPast15Minutes: False
+    DispatchesWithin500mRadiusInPast30Minutes: False
+    DispatchesWithin500mRadiusInPast1Hour: False
+    DispatchesWithin100mRadiusInPast15Minutes: False
+    DispatchesWithin100mRadiusInPast30Minutes: False
+    DispatchesWithin100mRadiusInPast1Hour: False
+    AverageOfficerDispatchesWithin100mRadiusInPast1Hour: True
+    AverageOfficerDispatchesWithin100mRadiusInPast3Hours: False
+    AverageOfficerDispatchesWithin100mRadiusInPast6Hours: False
+    AverageOfficerDispatchesWithin100mRadiusInPast24Hours: True
+    AverageOfficerDispatchesWithin100mRadiusInPast48Hours: False
+    AverageOfficerDispatchesWithin500mRadiusInPast1Hour: False
+    AverageOfficerDispatchesWithin500mRadiusInPast3Hours: False
+    AverageOfficerDispatchesWithin500mRadiusInPast6Hours: False
+    AverageOfficerDispatchesWithin500mRadiusInPast24Hours: True
+    AverageOfficerDispatchesWithin500mRadiusInPast48Hours: False
+    AverageOfficerDispatchesWithin1kmRadiusInPast1Hour: True
+    AverageOfficerDispatchesWithin1kmRadiusInPast3Hours: False
+    AverageOfficerDispatchesWithin1kmRadiusInPast6Hours: False
+    AverageOfficerDispatchesWithin1kmRadiusInPast24Hours: False
+    AverageOfficerDispatchesWithin1kmRadiusInPast48Hours: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast1Hour: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast3Hours: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast6Hours: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast24Hours: False
+    MaximumOfficerDispatchesWithin100mRadiusInPast48Hours: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast1Hour: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast3Hours: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast6Hours: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast24Hours: False
+    MaximumOfficerDispatchesWithin500mRadiusInPast48Hours: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast1Hour: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast3Hours: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast6Hours: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast24Hours: False
+    MaximumOfficerDispatchesWithin1kmRadiusInPast48Hours: False
 
 
 
@@ -127,42 +287,26 @@ dispatch_features:
 ########################
 # Model selection      #
 ########################
-#model: ['RandomForest']
-# parameters:
-#   RandomForest:
-#    n_estimators: [10]
-#    depth: [10]
-
-# model: ['SVM']
-# parameters:
-#   SVM:
-#     C_reg: [100.0]
-#     kernel: ['linear']
-
-#model: ['ExtraTrees', 'AdaBoost',
-#        'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
-#        'DecisionTreeClassifier',
-#        'SGDClassifier', 'KNeighborsClassifier']
-model: ['RandomForest'  , 'LogisticRegression'] #,'ExtraTrees', 'AdaBoost', 'SVM']
+model: ['RandomForest'  , 'LogisticRegression','ExtraTrees'] #, 'AdaBoost', 'SVM']
 parameters:
   RandomForest:
-    n_estimators: [10] # [10, 25, 50, 100]  # [1000, 10000]
+    n_estimators: [100] # [10, 25, 50, 100]  # [1000, 10000]
     max_depth: [20] # [5, 10, 20]  # 50, 100
     max_features: ['sqrt'] # 'log2']  # [2, 4, 8, 16, "auto"]
-    criterion: ['entropy'] # ['gini' ] #'entropy']
-    min_samples_split: [5] #[2, 5] #, 10]
+    criterion: ['gini'] # ['gini' ] #'entropy']
+    min_samples_split: [2] #[2, 5] #, 10]
   ExtraTrees:
-    n_estimators: [10, 25, 50, 100, 1000] #, 10000]
-    max_depth: [5, 10, 20]  # 50, 100
+    n_estimators: [50] #10, 25, 50, 100, 1000] #, 10000]
+    max_depth: [20] #[5, 10, 20]  # 50, 100
     max_features: ['sqrt'] # , 'log2']  # [2, 4, 8, 16, "auto"]
     criterion: ['gini'] # , 'entropy']
-    min_samples_split: [2, 5] #, 10]
+    min_samples_split: [2] #5, 10]
   AdaBoost:
     algorithm: ['SAMME', 'SAMME.R']
     n_estimators: [1, 10, 100]  # [1000, 10000]
     learning_rate: [0.01, 0.1, 1, 10, 100]
   LogisticRegression:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
+    C_reg: [0.01] # [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
     penalty: ['l1'] #, 'l2']
   SVM:
     C_reg: [0.001, 0.01, 0.1, 1] # [0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10]
@@ -196,9 +340,3 @@ n_cpus: 4
 ########################
 directory: 'results/'
 pkl_prefix: 'dispatch_results'
-
-########################
-# Auditing hooks       #
-########################
-auditing: False  # Turn on if you want auditing performed
-audits: 'audits/'

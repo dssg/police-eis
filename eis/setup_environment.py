@@ -26,21 +26,13 @@ def get_experiment_config(exp_config_file_name='experiment.yaml'):
 
 def get_database():
     try:
-        engine, dbconf = get_connection_from_profile()
+        engine = get_connection_from_profile()
         log.info("Connected to PostgreSQL database!")
     except IOError:
         log.exception("Failed to get database connection!")
         return None, 'fail'
 
-    try:
-        with open(dbconf, 'r') as f:
-            config = yaml.load(f)
-            log.info("Loaded department information file")
-    except:
-        log.exception("Failed to get department infomration file!")
-        return None, 'fail'
-
-    return engine, config
+    return engine
 
 
 def get_connection_from_profile(config_file_name="default_profile.yaml"):
@@ -63,12 +55,9 @@ def get_connection_from_profile(config_file_name="default_profile.yaml"):
             'PGPORT' in vals.keys()):
         raise Exception('Bad config file: ' + config_file_name)
 
-    if 'DBSETUP' not in vals.keys():
-        raise Exception('Point to PD database config file!')
-
     return get_engine(vals['PGDATABASE'], vals['PGUSER'],
                       vals['PGHOST'], vals['PGPORT'],
-                      vals['PGPASSWORD']),  vals['DBSETUP']
+                      vals['PGPASSWORD'])
 
 
 def get_engine(db, user, host, port, passwd):
@@ -85,5 +74,5 @@ def get_engine(db, user, host, port, passwd):
 
     url = 'postgresql://{user}:{passwd}@{host}:{port}/{db}'.format(
         user=user, passwd=passwd, host=host, port=port, db=db)
-    engine = create_engine(url)
+    engine = create_engine(url, pool_size = 50)
     return engine

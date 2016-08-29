@@ -167,6 +167,7 @@ lookup_event_types:
         - [10, 'pursuit', 'A pursuit']
         - [11, 'raid', 'A raid and or search']
         - [12, 'accident', 'An accident']
+        - [13, 'compliment', 'A compliment from the public']
 
 
 lookup_arrest_types:
