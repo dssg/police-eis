@@ -5,7 +5,7 @@
 # ignore the police-eis-private repo at the root level
 police-eis-private/
 
-# Committing credentials is A Bad Thing 
+# Committing credentials is A Bad Thing
 default_profile*
 *luigi.cfg
 
@@ -83,4 +83,4 @@ target/
 results/*
 
 # ignore the log files
-logs/*
+logs/.log*
