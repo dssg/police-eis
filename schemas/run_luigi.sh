@@ -3,13 +3,17 @@
 ##########################################################
 #USER: Change Schema to Desired Schema Name
 ##########################################################
-export schema=staging_dev
-echo $schema
+export schema=staging_dev_new1
+export dept=CMPD #dept=MNPD #dept=CMPD #
 
 ##########################################################
 #USER: No Need to Modify Below Code
 ##########################################################
 
+echo $schema
+echo $dept
+export deptscript=populateStagingFrom$dept
+echo $deptscript
 
 
 
@@ -20,7 +24,7 @@ echo $schema
 ##########################################################
 
 #Check for Config File
-[ -f luigi.cfg ] && echo "Luigi Config File Exists" || echo "Create Luigi Config File with PSQL Credentials"
+[ -f luigi.cfg ] && echo "Luigi Config File Exists" & cat luigi.cfg || echo "Create Luigi Config File with PSQL Credentials"
 
 #Check to See if PG_Tools Cloned
 [ -d pg_tools/.git ] && echo "PG_Tools Repository Exists" || { echo "Folder does not exist" && git clone --recursive git@github.com:jonkeane/pg_tools.git ; }
@@ -42,6 +46,9 @@ PYTHONPATH='' luigi --module setupStaging PopulateLookupTables --table-file ./po
 #Copy Credentials to Private EIS Repository
 cp luigi.cfg police-eis-private/schemas/
 
+#Copy setupStaging to Private EIS Repository
+cp setupStaging.py police-eis-private/schemas/
+
 #Change to Private EIS Repository
 cd police-eis-private/schemas/
 pwd
@@ -49,9 +56,9 @@ pwd
 ##########################################################
 #Populate SQL Stored Procedures
 ##########################################################
-PYTHONPATH='' luigi --module populateStagingFromMNPD PopulateStoredProcedures --schema $schema --local-scheduler
+PYTHONPATH='' luigi --module $deptscript PopulateStoredProcedures --schema $schema --local-scheduler
 
 ##########################################################
 #Populate Staging Schemas from ETL Schemas
 ##########################################################
-PYTHONPATH='' luigi --module populateStagingFromMNPD PopulateAllStagingTables --schema $schema --populate-tables-directory ./populate_tables/mnpd --local-scheduler
+PYTHONPATH='' luigi --module $deptscript PopulateAllStagingTables --schema $schema --populate-tables-directory ./populate_tables/${dept,,} --local-scheduler
