@@ -3,8 +3,8 @@
 ##########################################################
 #USER: Change Schema to Desired Schema Name
 ##########################################################
-export schema=staging_dev_new1
-export dept=CMPD #dept=MNPD #dept=CMPD #
+export schema=staging_dev
+export dept=CMPD #dept=MNPD
 
 ##########################################################
 #USER: No Need to Modify Below Code
