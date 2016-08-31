@@ -218,7 +218,7 @@ def humanize_names(feature_names):
     return human_readable
 
 
-def plot_feature_importances(feature_names, feature_importances):
+def plot_feature_importances(feature_names, feature_importances, N=30):
     #humanized_featnames = humanize_names(feature_names)
     humanized_featnames = feature_names
 
@@ -229,7 +229,7 @@ def plot_feature_importances(feature_names, feature_importances):
     # Sort by the absolute value of the importance of the feature
     importances["sort"] = abs(importances["Importance"])
     importances = importances.sort(columns="sort", ascending=False).drop("sort", axis=1)
-    importances = importances[0:30]
+    importances = importances[0:N]
 
     # Show the most important positive feature at the top of the graph
     importances = importances.sort(columns="Importance", ascending=True)
