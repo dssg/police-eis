@@ -11,6 +11,8 @@ The webapp does not directly build these plots from the results schema. Instead,
 * [`gunicorn/19.6.0`](http://docs.gunicorn.org/en/stable/install.html)
 * [`nginx/1.4.6`](https://www.nginx.com)
 * [`flask/0.10.1`](http://flask.pocoo.org)
+* [`pandas/0.18.1`](http://pandas.pydata.org/pandas-docs/stable/install.html)
+* [`matplotlib/1.5.1`](http://matplotlib.org/faq/installing_faq.html#clean-install)
 
 ### Installation
 
