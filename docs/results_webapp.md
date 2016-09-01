@@ -68,7 +68,7 @@ sudo ln -s /etc/nginx/sites-available/police.conf /etc/nginx/sites-enabled/polic
 
 Restart nginx: `sudo service nginx restart`
 
-The webapp will be hosted at your designed server name at `[your machine name].io` with username `[modelusername]` and password `[secretpassword]`.
+The webapp will be hosted at your designed server name at `[your machine URL]` with username `[modelusername]` and password `[secretpassword]`.
 
 Because the webapp only visualizes the pickle files for requested top models, you must next request the top models from the database before you can view the results in the webapp.
 
