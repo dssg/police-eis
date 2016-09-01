@@ -1,4 +1,6 @@
 #!/usr/bin/python3
 # to be displayed in overview page
-#results_folder = "../../results/"
-results_folder = "/mnt/data/police/mnpd/repos/jmausolf_police/police-eis/results/"
+# this config file sets the current directory for a given machine without hardcoding the path
+import os
+cwd = os.getcwd()
+results_folder = str(cwd.replace('evaluation', 'results/')).replace("'",'"')
