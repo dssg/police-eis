@@ -14,7 +14,7 @@ The webapp does not directly build these plots from the results schema. Instead,
 
 ### Installation
 
-`apt-get install gunicorn nginx supervisor apache2-utils`
+`sudo apt-get install gunicorn nginx supervisor apache2-utils`
 
 ### Password
 
@@ -63,8 +63,7 @@ server {
 
 Soft link:
 ```
-sudo ln -s /etc/nginx/sites-available/police.conf
-/etc/nginx/sites-enabled/police
+sudo ln -s /etc/nginx/sites-available/police.conf /etc/nginx/sites-enabled/police
 ```
 
 Restart nginx: `sudo service nginx restart`
