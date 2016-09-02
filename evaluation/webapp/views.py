@@ -39,16 +39,21 @@ def index():
 
 @app.route('/<timestamp>')
 def details(timestamp):
+    #pdb.set_trace()
     # will fail with 404 if exp not known
     get_labels_predictions(timestamp)
     groups = get_aggregate_scores(timestamp)
     #groups["division_order"] = sorted(groups["divisions"].keys())
     #groups["unit_order"] = sorted(groups["units"].keys())
     eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
-    fpr_dict = SortedDisplayDict(fpr)
-    tpr_dict = SortedDisplayDict(tpr)
-    fnr_dict = SortedDisplayDict(fnr)
-    tnr_dict = SortedDisplayDict(tnr)
+    #fpr_dict = SortedDisplayDict(fpr)
+    #tpr_dict = SortedDisplayDict(tpr)
+    #fnr_dict = SortedDisplayDict(fnr)
+    #tnr_dict = SortedDisplayDict(tnr)
+    fpr_dict = fpr
+    tpr_dict = tpr
+    fnr_dict = fnr
+    tnr_dict = tnr
     return render_template('details.html', timestamp=timestamp, groups=groups,
                            eis_baseline=eis_baseline, fpr=fpr_dict, tpr=tpr_dict,
                            fnr=fnr_dict, tnr=tnr_dict,
