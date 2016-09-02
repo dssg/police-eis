@@ -94,7 +94,7 @@ def normalized_confusion_at_x(timestamp):
                                                   test_predictions, 0.10)
     return serve_matplotlib_fig(new_matrix_fig)
 
-
+"""
 @app.route("/<timestamp>/improvement_over_baseline")
 def improvement_over_baseline(timestamp):
     eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
@@ -121,7 +121,7 @@ def improvement_over_baseline_nothresh(timestamp):
     eis_baseline, fpr, tpr, fnr, tnr, threshold_levels, config = get_baselines(timestamp)
     improve_fig = plot_fp_tp_percent_nothresh(eis_baseline, fpr, tpr, threshold_levels)
     return serve_matplotlib_fig(improve_fig)
-
+"""
 
 @app.route("/<timestamp>/importances")
 def feature_importances(timestamp):
