@@ -11,8 +11,8 @@
     <!-- Bootstrap core CSS -->
     <link href="static/css/bootstrap.min.css" rel="stylesheet">
      <style>
-          body { 
-          padding-top: 70px; 
+          body {
+          padding-top: 70px;
           }
         </style>
 
@@ -57,7 +57,8 @@
         <div class="col-sm-6"><img src="/{{timestamp}}/precision-recall" height="250"/> </div>
         <div class="col-sm-6"><img src="/{{timestamp}}/precision-cutoff" height="250"/> </div>
       </div>
-      <div class="row">
+      <!--Commenting out baseline comparison for now-->
+      <!--div class="row">
         <div class="col-sm-6"><img src="/{{timestamp}}/improvement_over_baseline" height="250"/> </div>
         <div class="col-sm-6"><img src="/{{timestamp}}/improvement_over_baseline_abs" height="250"/> </div>
       </div>
@@ -72,7 +73,7 @@
       <h1 style="padding-top: 70px; margin-top: -70px;">EIS Baseline <small>How prediction compares to old EIS</small></h1>
       </div>
 
-      {% for level in threshold_levels %} 
+      {% for level in threshold_levels %}
       <h2>DSaPP EIS at {{(level * 100)|round(2)}}%</h2>
       <h3>{{ tpr[level] }} <small> officers flagged correctly (true positives)</small></h3>
       <h3>{{ fpr[level] }} <small> officers flagged incorrectly (false positives)</small></h3>
@@ -85,9 +86,11 @@
       <h3>{{ eis_baseline[0, 1] }}<small> officers flagged incorrectly (false positives)</small></h3>
       <h3>{{ eis_baseline[1, 0] }}<small> officers not flagged by EIS that should have been (false negatives)</small></h3>
       <h3>{{ eis_baseline[0, 0] }}<small> officers not flagged by EIS that should not have been (true negatives)</small></h3>
-      </div>
+      </div-->
 
-      <div class="page-header" id="groups">
+
+      <!--Commenting out groups-->
+      <!--div class="page-header" id="groups">
       <h1  style="padding-top: 70px; margin-top: -70px;">Group Level <small>Aggregate Risk Scores</small></h1>
       </div>
       <div class="row">
@@ -124,7 +127,7 @@
                       {% else %}
                       -
                       {% endif %}
-                  </th>                 
+                  </th>
               </tr>
           {% endfor %}
           </tbody>
@@ -167,7 +170,7 @@
           {% endfor %}
           </tbody>
       </table>
-      </div>
+    </div-->
 
       <div class="page-header" id="confusion">
       <div class="row">
@@ -184,7 +187,7 @@
         <div class="col-sm-6"><img src="/{{timestamp}}/top_confusion_at_x" height="250"/> </div>
         <div class="col-sm-6"><img src="/{{timestamp}}/top_normalized_confusion_at_x" height="250"/> </div>
       </div>
-      
+
 
       <div class="page-header" id="config">
       <div class="row">
