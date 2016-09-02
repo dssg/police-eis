@@ -12,7 +12,7 @@ from flask import abort
 from webapp.evaluation import precision_at_x_proportion, compute_AUC, fpr_tpr
 from webapp.evaluation import recall_at_x_proportion, compute_result_at_x_proportion
 from webapp import config
-
+import pdb
 
 cache = {}
 cache_lock = Lock()
@@ -46,14 +46,15 @@ def experiment_summary(pkl_file):
 
 
     #model_config["features"] = data["features"]
-    #model_config["feature_summary"] = feature_summary(model_config["features"])
+    #model_config["feature_summary"] = feature_summary(model_config["officer_features"])
+    model_config["feature_summary"] = feature_count(model_config["officer_features"])
     prec_at = precision_at_x_proportion(
         data["test_labels"], data["test_predictions"],
         x_proportion=0.01)
     auc_model = compute_AUC(data["test_labels"], data["test_predictions"])
     num_units = len(data["test_labels"])
 
-    threshold_levels = [10.0, 15.0, 20.0]
+    threshold_levels = [10.0, 15.0, 25.0]
     #fpr, tpr, fnr, tnr = {}, {}, {}, {}
     fpr, tpr, fnr, tnr = [], [], [], []
 
@@ -85,11 +86,11 @@ def experiment_summary(pkl_file):
 
     rec_list = []
     pre_list = []
-    for threshold in [10., 15., 20.]:
+    for percent in [10.0, 15.0, 25.0]:
         rec_list.append(recall_at_x_proportion(data["test_labels"],
-            data["test_predictions"], x_proportion=threshold/100.))
+            data["test_predictions"], x_proportion=percent/100.0))
         pre_list.append(precision_at_x_proportion(data["test_labels"],
-            data["test_predictions"], x_proportion=threshold/100.))
+            data["test_predictions"], x_proportion=percent/100.0))
 
     try:
         aggregation = data["aggregation"]
@@ -175,6 +176,10 @@ def get_experiments_list():
     return experiments_copy
 
 
+def feature_count(features):
+    count = len(features)
+    return count
+
 def feature_summary(features):
     known_features = ['height_weight', 'education', 'daysexperience',
                       'yearsexperience', 'malefemale', 'race', 'officerage',
@@ -237,8 +242,9 @@ def feature_summary(features):
                       '1yrunithistory', 'careerunithistory', '1yrdivisionhistory',
                       'careerdivisionhistory']
 
-
     used_features = [key for key, val in features.items() if val == True]
+    print(used_features)
+    number_features = len(used_features)
 
     not_used = set(known_features) - set(used_features)
     if len(not_used) == 0:
