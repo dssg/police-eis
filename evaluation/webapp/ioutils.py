@@ -27,7 +27,7 @@ def timestamp_from_path(pkl_path):
 
 
 Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data",
-                                       "fpr", "tpr", "fnr", "tnr", "recall", "aggregation",
+                                       "fpr", "tpr", "fnr", "tnr", "recall", "precision", "aggregation",
                                        "eis_baseline", "threshold_levels"])
 
 
@@ -75,9 +75,12 @@ def experiment_summary(pkl_file):
     """
 
     rec_list = []
-    for rec_threshold in [10., 15., 20.]:
+    pre_list = []
+    for threshold in [10., 15., 20.]:
         rec_list.append(recall_at_x_proportion(data["test_labels"],
-            data["test_predictions"], x_proportion=rec_threshold/100.))
+            data["test_predictions"], x_proportion=threshold/100.))
+        pre_list.append(precision_at_x_proportion(data["test_labels"],
+            data["test_predictions"], x_proportion=threshold/100.))
 
     try:
         aggregation = data["aggregation"]
@@ -85,13 +88,14 @@ def experiment_summary(pkl_file):
         aggregation = "No aggregated data stored"
 
     recall = "[{}, {}, {}]".format(rec_list[0].round(2), rec_list[1].round(2), rec_list[2].round(2))
+    precision = "[{}, {}, {}]".format(pre_list[0].round(2), pre_list[1].round(2), pre_list[2].round(2))
     #return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
     #                  model_config, auc_model, data, fpr, tpr, fnr, tnr,
     #                  recall, aggregation, eis_baseline, threshold_levels)
 
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config, auc_model, data, fpr, tpr, fnr, tnr,
-                      recall, aggregation, eis_baseline, threshold_levels)
+                      recall, precision, aggregation, eis_baseline, threshold_levels)
 
 
 def update_experiments_cache():
@@ -157,7 +161,7 @@ def get_experiments_list():
     # risk of dirty reads here because outside of lock
     experiments_copy = [Experiment(e.timestamp, e.config,
                                    e.score, None, e.fpr,
-                                   e.tpr, e.fnr, e.tnr, e.recall, e.aggregation,
+                                   e.tpr, e.fnr, e.tnr, e.recall, e.precision, e.aggregation,
                                    e.eis_baseline, e.threshold_levels) for e in cache.values()]
     return experiments_copy
 
