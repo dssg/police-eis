@@ -16,7 +16,7 @@
           margin-bottom: 10px;
           }
           .header {
-          font-weight: bold; 
+          font-weight: bold;
           }
         </style>
 
@@ -33,14 +33,15 @@
       </div>
       <div class="row header">
         <div class="col-sm-1">Time</div>
-        <div class="col-sm-2">Features</div>
+        <div class="col-sm-2">Number of Features</div>
         <div class="col-sm-1">Time Windows</div>
         <div class="col-sm-2">Model</div>
         <div class="col-sm-1">AUC</div>
-        <div class="col-sm-1">Recall in Top 10/15/20%</div>
-        <div class="col-sm-1">False Positives Top 10/15/20/25/30%</div>
-        <div class="col-sm-1">True Positives Top 10/15/20/25/30%</div>
-        <div class="col-sm-1">False Negatives Top 10/15/20/25/30%</div>
+        <div class="col-sm-1">Recall in Top 10/15/25%</div>
+        <div class="col-sm-1">Precision in Top 10/15/25%</div>
+        <div class="col-sm-1">False Positives Top 10/15/25%</div>
+        <div class="col-sm-1">True Positives Top 10/15/25%</div>
+        <div class="col-sm-1">False Negatives Top 10/15/25%</div>
       </div>
     {% for date, date_experiments in experiments %}
       {% for experiment in date_experiments %}
@@ -52,6 +53,7 @@
             <div class="col-sm-2">{{experiment.config.model}}<br/>{{experiment.config.parameters}} </div>
             <div class="col-sm-1">{{experiment.score|round(2)}}</div>
             <div class="col-sm-1">{{experiment.recall}}</div>
+            <div class="col-sm-1">{{experiment.precision}}</div>
             <div class="col-sm-1">{{experiment.fpr}}</div>
             <div class="col-sm-1">{{experiment.tpr}}</div>
             <div class="col-sm-1">{{experiment.fnr}}</div>
