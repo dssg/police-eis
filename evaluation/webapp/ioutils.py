@@ -10,7 +10,7 @@ from threading import Lock
 from flask import abort
 
 from webapp.evaluation import precision_at_x_proportion, compute_AUC, fpr_tpr
-from webapp.evaluation import recall_at_x_proportion
+from webapp.evaluation import recall_at_x_proportion, compute_result_at_x_proportion
 from webapp import config
 
 
@@ -53,16 +53,25 @@ def experiment_summary(pkl_file):
     auc_model = compute_AUC(data["test_labels"], data["test_predictions"])
     num_units = len(data["test_labels"])
 
-    threshold_levels = [1.0, 0.9, 0.8]
-    fpr, tpr, fnr, tnr = {}, {}, {}, {}
+    threshold_levels = [10.0, 15.0, 20.0]
+    #fpr, tpr, fnr, tnr = {}, {}, {}, {}
+    fpr, tpr, fnr, tnr = [], [], [], []
 
-    for each_threshold in sorted(list(threshold_levels)):
+    for percent in sorted(list(threshold_levels)):
         #threshold_levels.append(each_threshold)
-        fpr.update({each_threshold: [0, 1]})
-        tpr.update({each_threshold: [1, 1]})
-        fnr.update({each_threshold: [1, 0]})
-        tnr.update({each_threshold: [0, 0]})
-        eis_baseline = each_threshold
+        #fpr.update({each_threshold: [0, 1]})
+        #tpr.update({each_threshold: [1, 1]})
+        #fnr.update({each_threshold: [1, 0]})
+        #tnr.update({each_threshold: [0, 0]})
+        eis_baseline = None
+
+        # Raw counts of officers we are flagging correctly and incorrectly at various fractions of the test set.
+        fpr.append(compute_result_at_x_proportion(data["test_labels"], data["test_predictions"], 'FP', x_proportion=percent/100.0))
+        fnr.append(compute_result_at_x_proportion(data["test_labels"], data["test_predictions"], 'FN', x_proportion=percent/100.0))
+        tpr.append(compute_result_at_x_proportion(data["test_labels"], data["test_predictions"], 'TP', x_proportion=percent/100.0))
+        tnr.append(compute_result_at_x_proportion(data["test_labels"], data["test_predictions"], 'TN', x_proportion=percent/100.0))
+
+
 
     """
     for each_threshold in sorted(list(data["eis_baseline"].keys())):
