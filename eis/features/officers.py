@@ -756,6 +756,7 @@ class NumberOfIncidentsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                             11: 'officer_injury',
                             12: 'promptness_or_absence',
                             13: 'pursuit',
+							14: 'quality_of_work',
                             15: 'raid',
                             16: 'standard_procedures',
                             17: 'substance_abuse',
