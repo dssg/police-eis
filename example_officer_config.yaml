@@ -4,7 +4,7 @@
 ################################################
 
 # Set the officer table name.
-officer_feature_table_name: "merging_example_officer_features_table"
+officer_feature_table_name: "example_officer_feature_table"
 
 # determine whether model objects get stored in the database or not.
 store_model_object_in_database: True
@@ -102,6 +102,7 @@ officer_features:
     CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
     SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.
     ResistingArrestToUOFRatio: False #Ratio of resisting arrest to uses of force that an officer has, time gated.
+    PreventableAccidents: False #The number of preventable accidents an officer has had, time gated 
 
     ###################################################
     #   Threshold based EIS system Feature Selection  #

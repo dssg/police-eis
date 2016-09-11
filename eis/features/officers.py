@@ -756,7 +756,6 @@ class NumberOfIncidentsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                             11: 'officer_injury',
                             12: 'promptness_or_absence',
                             13: 'pursuit',
-                            14: 'quality_of_work',
                             15: 'raid',
                             16: 'standard_procedures',
                             17: 'substance_abuse',
@@ -1139,6 +1138,30 @@ class UOFInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.fake_today.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class PreventableAccidents(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of preventable accidents an officer has had, time-gated")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.incidents"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON incidents.event_id = events_hub.event_id"
+                      "         WHERE staging.incidents.grouped_incident_type_code=0 "
+		      "		AND staging.incidents.number_of_preventable_allegations > 0" # NB!: does not account for multiple accidents that occurred at the same event
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
         self.set_null_counts_to_zero = True
 
 
