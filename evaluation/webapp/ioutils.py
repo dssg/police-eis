@@ -10,9 +10,9 @@ from threading import Lock
 from flask import abort
 
 from webapp.evaluation import precision_at_x_proportion, compute_AUC, fpr_tpr
-from webapp.evaluation import recall_at_x_proportion
+from webapp.evaluation import recall_at_x_proportion, compute_result_at_x_proportion
 from webapp import config
-
+import pdb
 
 cache = {}
 cache_lock = Lock()
@@ -27,7 +27,7 @@ def timestamp_from_path(pkl_path):
 
 
 Experiment = namedtuple("Experiment", ["timestamp", "config", "score", "data",
-                                       "fpr", "tpr", "fnr", "tnr", "recall", "aggregation",
+                                       "fpr", "tpr", "fnr", "tnr", "recall", "precision", "aggregation",
                                        "eis_baseline", "threshold_levels"])
 
 
@@ -46,23 +46,33 @@ def experiment_summary(pkl_file):
 
 
     #model_config["features"] = data["features"]
-    #model_config["feature_summary"] = feature_summary(model_config["features"])
+    #model_config["feature_summary"] = feature_summary(model_config["officer_features"])
+    model_config["feature_summary"] = feature_count(model_config["officer_features"])
     prec_at = precision_at_x_proportion(
         data["test_labels"], data["test_predictions"],
         x_proportion=0.01)
     auc_model = compute_AUC(data["test_labels"], data["test_predictions"])
     num_units = len(data["test_labels"])
 
-    threshold_levels = [1.0, 0.9, 0.8]
-    fpr, tpr, fnr, tnr = {}, {}, {}, {}
+    threshold_levels = [10.0, 15.0, 25.0]
+    #fpr, tpr, fnr, tnr = {}, {}, {}, {}
+    fpr, tpr, fnr, tnr = [], [], [], []
 
-    for each_threshold in sorted(list(threshold_levels)):
+    for percent in sorted(list(threshold_levels)):
         #threshold_levels.append(each_threshold)
-        fpr.update({each_threshold: [0, 1]})
-        tpr.update({each_threshold: [1, 1]})
-        fnr.update({each_threshold: [1, 0]})
-        tnr.update({each_threshold: [0, 0]})
-        eis_baseline = each_threshold
+        #fpr.update({each_threshold: [0, 1]})
+        #tpr.update({each_threshold: [1, 1]})
+        #fnr.update({each_threshold: [1, 0]})
+        #tnr.update({each_threshold: [0, 0]})
+        eis_baseline = None
+
+        # Raw counts of officers we are flagging correctly and incorrectly at various fractions of the test set.
+        fpr.append(compute_result_at_x_proportion(data["test_labels"], data["test_predictions"], 'FP', x_proportion=percent/100.0))
+        fnr.append(compute_result_at_x_proportion(data["test_labels"], data["test_predictions"], 'FN', x_proportion=percent/100.0))
+        tpr.append(compute_result_at_x_proportion(data["test_labels"], data["test_predictions"], 'TP', x_proportion=percent/100.0))
+        tnr.append(compute_result_at_x_proportion(data["test_labels"], data["test_predictions"], 'TN', x_proportion=percent/100.0))
+
+
 
     """
     for each_threshold in sorted(list(data["eis_baseline"].keys())):
@@ -75,9 +85,12 @@ def experiment_summary(pkl_file):
     """
 
     rec_list = []
-    for rec_threshold in [10., 15., 20.]:
+    pre_list = []
+    for percent in [10.0, 15.0, 25.0]:
         rec_list.append(recall_at_x_proportion(data["test_labels"],
-            data["test_predictions"], x_proportion=rec_threshold/100.))
+            data["test_predictions"], x_proportion=percent/100.0))
+        pre_list.append(precision_at_x_proportion(data["test_labels"],
+            data["test_predictions"], x_proportion=percent/100.0))
 
     try:
         aggregation = data["aggregation"]
@@ -85,13 +98,14 @@ def experiment_summary(pkl_file):
         aggregation = "No aggregated data stored"
 
     recall = "[{}, {}, {}]".format(rec_list[0].round(2), rec_list[1].round(2), rec_list[2].round(2))
+    precision = "[{}, {}, {}]".format(pre_list[0].round(2), pre_list[1].round(2), pre_list[2].round(2))
     #return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
     #                  model_config, auc_model, data, fpr, tpr, fnr, tnr,
     #                  recall, aggregation, eis_baseline, threshold_levels)
 
     return Experiment(dateutil.parser.parse(timestamp_from_path(pkl_file)),
                       model_config, auc_model, data, fpr, tpr, fnr, tnr,
-                      recall, aggregation, eis_baseline, threshold_levels)
+                      recall, precision, aggregation, eis_baseline, threshold_levels)
 
 
 def update_experiments_cache():
@@ -157,10 +171,14 @@ def get_experiments_list():
     # risk of dirty reads here because outside of lock
     experiments_copy = [Experiment(e.timestamp, e.config,
                                    e.score, None, e.fpr,
-                                   e.tpr, e.fnr, e.tnr, e.recall, e.aggregation,
+                                   e.tpr, e.fnr, e.tnr, e.recall, e.precision, e.aggregation,
                                    e.eis_baseline, e.threshold_levels) for e in cache.values()]
     return experiments_copy
 
+
+def feature_count(features):
+    count = len(features)
+    return count
 
 def feature_summary(features):
     known_features = ['height_weight', 'education', 'daysexperience',
@@ -224,8 +242,9 @@ def feature_summary(features):
                       '1yrunithistory', 'careerunithistory', '1yrdivisionhistory',
                       'careerdivisionhistory']
 
-
     used_features = [key for key, val in features.items() if val == True]
+    print(used_features)
+    number_features = len(used_features)
 
     not_used = set(known_features) - set(used_features)
     if len(not_used) == 0:

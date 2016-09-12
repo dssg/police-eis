@@ -23,7 +23,7 @@ python prepare.py '2016-08-03' 'precision@' -p '10.0' -n 10 -d 'example_director
 
 """
 
-engine, config = setup_environment.get_database()
+engine = setup_environment.get_database()
 try:
     con = engine.raw_connection()
     con.cursor().execute("SET SCHEMA '{}'".format('models'))

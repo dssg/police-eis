@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn import metrics
-
 from webapp import config, feature_strings
 
 plt.rc('font', family='sans-serif')
@@ -18,6 +17,51 @@ def weighted_f1(scores):
     f1_1 = scores["f1"][1] * scores["support"][1]
     return (f1_0 + f1_1) / (scores["support"][0] + scores["support"][1])
 
+def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_proportion=0.01):
+
+    """
+    Returns the raw number of a given metric:
+        'TP' = true positives,
+        'TN' = true negatives,
+        'FP' = false positives,
+        'FN' = false negatives
+
+    for a threshold of the results stated as a proportion:
+        x_proportion
+        where x_proportion = 0.01 represents 1.0%
+
+    """
+
+    # sort officers label list by risk score.
+    sorted_officer_labels = [ x for (y,x) in sorted( zip( test_predictions, test_labels ), reverse=True ) ]
+
+    # get index of officers to intervene on.
+    intervene_on                 = int( len(test_predictions) * x_proportion )
+    is_intervened                = [0]*len(sorted_officer_labels)
+    is_intervened[:intervene_on] = [1]*(intervene_on)
+
+    # compute true and false positives and negatives.
+    true_positive  = [ 1 if x==1 and y==1 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    false_positive = [ 1 if x==1 and y==0 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    true_negative  = [ 1 if x==0 and y==0 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+    false_negative = [ 1 if x==0 and y==1 else 0 for (x,y) in zip(is_intervened, sorted_officer_labels) ]
+
+    TP = np.sum( true_positive )
+    TN = np.sum( true_negative )
+    FP = np.sum( false_positive )
+    FN = np.sum( false_negative )
+
+    # return Requested Metric
+    if metric=='TP':
+        return TP
+    elif metric=='TN':
+        return TN
+    elif metric=='FP':
+        return FP
+    elif metric=='FN':
+        return FN
+    else:
+        pass
 
 def plot_fp_tp_percent(eis_baseline, fpr, tpr, threshold_levels):
 
@@ -218,7 +262,7 @@ def humanize_names(feature_names):
     return human_readable
 
 
-def plot_feature_importances(feature_names, feature_importances):
+def plot_feature_importances(feature_names, feature_importances, N=30):
     #humanized_featnames = humanize_names(feature_names)
     humanized_featnames = feature_names
 
@@ -229,7 +273,7 @@ def plot_feature_importances(feature_names, feature_importances):
     # Sort by the absolute value of the importance of the feature
     importances["sort"] = abs(importances["Importance"])
     importances = importances.sort(columns="sort", ascending=False).drop("sort", axis=1)
-    importances = importances[0:30]
+    importances = importances[0:N]
 
     # Show the most important positive feature at the top of the graph
     importances = importances.sort(columns="Importance", ascending=True)
