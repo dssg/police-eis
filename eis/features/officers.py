@@ -1353,3 +1353,38 @@ class ThresholdCombinedFlag(abstract.OfficerFeature):
                     self.feature_name,
                     self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
+
+
+class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 'JU-WEAP': 'juvenile weapon',
+                            'OR-10-18': 'urgent assistance',
+                            'SC-RPE': 'sexual assault',
+                            'SU-P/ATT': 'suicide attempt',
+                            'VC-VCTF': 'violent crimes task force',
+                            'WP-FBF': 'weapon firearm felon',
+                            'WP-PRSN': 'armed person',
+                            'WP-SHOTS': 'discharging a firearm'
+                            }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of dispatches of different type aggregated over time")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub "
+                      "         JOIN staging.dispatches "
+                      "         ON events_hub.event_id = dispatches.event_id "
+                      "         WHERE event_type_code=5 "
+                      "         AND dispatch_final_type = '{4}' "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
