@@ -103,6 +103,13 @@ officer_features:
     SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.
     ResistingArrestToUOFRatio: False #Ratio of resisting arrest to uses of force that an officer has, time gated.
     PreventableAccidents: False #The number of preventable accidents an officer has had, time gated 
+    NumOfTrafficStopsWithSearch: True # time gated
+    NumOfTrafficStopsWithUseOfForce: True # time gated
+    NumOfTrafficStops: True # time gated
+    NumOfTrafficStopsWithArrest: True # time gated
+    NumOfTrafficStopsWithInjury: True # time gated
+    NumOfTrafficStopsWithOfficerInjury: True # time gated
+    NumOfTrafficStopsByRace: True # time gated categorical by stopped person's race
 
     ###################################################
     #   Threshold based EIS system Feature Selection  #
