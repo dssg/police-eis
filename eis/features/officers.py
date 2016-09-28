@@ -1388,3 +1388,99 @@ class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
+
+class PriorSustainedUnknownMajorAllegationsCount(abstract.TimeGatedOfficerFeature):
+        def __init__(self, **kwargs):
+            abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+            self.description = ("Number of prior sustained unknown major allegations per officer, time gated")
+            self.query = ("UPDATE features.{0} feature_table "
+                          "SET {1} = staging_table.count "
+                          "FROM (   SELECT officer_id, count(officer_id) "
+                          "         FROM staging.events_hub "
+                          "         JOIN staging.incidents "
+                          "         ON staging.events_hub.event_id = staging.incidents.event_id"
+                          "         WHERE event_datetime <= '{2}'::date "
+                          "         AND event_datetime >= '{2}'::date - interval '{3}'"
+                          "         AND (grouped_incident_type_code in ( 0, 2, 3, 4, 8, 9, 10, 11, 17, 20 ) "
+                          "         AND final_ruling_code in (0, 1, 4, 5 ))"
+                          "         GROUP BY officer_id "
+                          "         ) AS staging_table"
+                          " WHERE feature_table.officer_id = staging_table.officer_id"
+                          " AND feature_table.fake_today = '{2}'::date"
+                          .format(  self.table_name,
+                                    self.COLUMN,
+                                    self.fake_today.strftime(time_format),
+                                    self.DURATION)
+            self.set_null_counts_to_zero = True
+
+class PriorMajorAllegationsCount(abstract.TimeGatedOfficerFeature):
+        def __init__(self, **kwargs):
+            abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+            self.description = ("Number of prior major allegations per officer, time gated")
+            self.query = ("UPDATE features.{0} feature_table "
+                          "SET {1} = staging_table.count "
+                          "FROM (   SELECT officer_id, count(officer_id) "
+                          "         FROM staging.events_hub "
+                          "         JOIN staging.incidents "
+                          "         ON staging.events_hub.event_id = staging.incidents.event_id"
+                          "         WHERE event_datetime <= '{2}'::date "
+                          "         AND event_datetime >= '{2}'::date - interval '{3}'"
+                          "         AND (grouped_incident_type_code in ( 0, 2, 3, 4, 8, 9, 10, 11, 17, 20 )) "
+                          "         GROUP BY officer_id "
+                          "         ) AS staging_table"
+                          " WHERE feature_table.officer_id = staging_table.officer_id"
+                          " AND feature_table.fake_today = '{2}'::date"
+                          .format(  self.table_name,
+                                    self.COLUMN,
+                                    self.fake_today.strftime(time_format),
+                                    self.DURATION)
+            self.set_null_counts_to_zero = True
+
+class PriorSustainedUnkownMinorAllegationsCount(abstract.TimeGatedOfficerFeature):
+        def __init__(self, **kwargs):
+            abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+            self.description = ("Number of prior sustained unknown minor allegations per officer, time gated")
+            self.query = ("UPDATE features.{0} feature_table "
+                          "SET {1} = staging_table.count "
+                          "FROM (   SELECT officer_id, count(officer_id) "
+                          "         FROM staging.events_hub "
+                          "         JOIN staging.incidents "
+                          "         ON staging.events_hub.event_id = staging.incidents.event_id"
+                          "         WHERE event_datetime <= '{2}'::date "
+                          "         AND event_datetime >= '{2}'::date - interval '{3}'"
+                          "         AND (grouped_incident_type_code in ( 1, 6, 16, 18, 12, 7, 14 ) "
+                          "         AND final_ruling_code in (0, 1, 4, 5 ))"
+                          "         GROUP BY officer_id "
+                          "         ) AS staging_table"
+                          " WHERE feature_table.officer_id = staging_table.officer_id"
+                          " AND feature_table.fake_today = '{2}'::date"
+                          .format(  self.table_name,
+                                    self.COLUMN,
+                                    self.fake_today.strftime(time_format),
+                                    self.DURATION)
+            self.set_null_counts_to_zero = True
+
+class PriorMinorAllegationsCount(abstract.TimeGatedOfficerFeature):
+        def __init__(self, **kwargs):
+            abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+            self.description = ("Number of prior minor allegations per officer, time gated")
+            self.query = ("UPDATE features.{0} feature_table "
+                          "SET {1} = staging_table.count "
+                          "FROM (   SELECT officer_id, count(officer_id) "
+                          "         FROM staging.events_hub "
+                          "         JOIN staging.incidents "
+                          "         ON staging.events_hub.event_id = staging.incidents.event_id"
+                          "         WHERE event_datetime <= '{2}'::date "
+                          "         AND event_datetime >= '{2}'::date - interval '{3}'"
+                          "         AND (grouped_incident_type_code in ( 1, 6, 16, 18, 12, 7, 14 )) "
+                          "         GROUP BY officer_id "
+                          "         ) AS staging_table"
+                          " WHERE feature_table.officer_id = staging_table.officer_id"
+                          " AND feature_table.fake_today = '{2}'::date"
+                          .format(  self.table_name,
+                                    self.COLUMN,
+                                    self.fake_today.strftime(time_format),
+                                    self.DURATION)
+            self.set_null_counts_to_zero = True
+
+
