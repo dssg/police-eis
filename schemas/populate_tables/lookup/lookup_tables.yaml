@@ -309,3 +309,12 @@ lookup_traffic_stop_type:
         - [7, 'vehqp', 'Vehicle issues']
         - [8, 'vehrg', 'Vehicle registration']
         - [9, 'ot', 'Other traffic stop reason']
+
+lookup_traffic_stop_outcome_type:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'A', 'Arrest']
+        - [1, 'C', 'Citation']
+        - [2, 'VW', 'Verbal warning']
+        - [3, 'WW', 'Written warning']
+        - [4, 'None', 'Nothing']
