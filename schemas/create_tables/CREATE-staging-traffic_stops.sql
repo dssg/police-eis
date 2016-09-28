@@ -22,5 +22,6 @@ CREATE UNLOGGED TABLE staging.traffic_stops (
 	stopped_vehicle_code                                                  int,                --kind of vehicle that was stopped
 	stop_narrative                                                        text,               --narrative description of the stop
     injuries_flag                                                         bool,               --were there injuries to the driver or passengers?
-    officer_injury_flag                                                   bool                --was there an injury to the officer?
+    officer_injury_flag                                                   bool,               --was there an injury to the officer?
+    use_of_force_flag                                                     bool                --was force used during the stop?
 );
