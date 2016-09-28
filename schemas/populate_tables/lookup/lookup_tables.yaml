@@ -295,3 +295,17 @@ lookup_use_of_force_type:
         - [2, 'canine', 'Canine']
         - [3, 'pepper_spray', 'Pepper spray']
         - [4, 'other', 'any type of force not listed above']
+
+lookup_traffic_stop_type:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'cp', 'Checkpoint']
+        - [1, 'dwi', 'Driving while intoxicated']
+        - [2, 'inv', 'Investigative stop']
+        - [3, 'safe', 'Traffic safety violation']
+        - [4, 'spd', 'Speeding']
+        - [5, 'stblt', 'Seatbelt violation']
+        - [6, 'stplt', 'Stoplight and stop sign violations']
+        - [7, 'vehqp', 'Vehicle issues']
+        - [8, 'vehrg', 'Vehicle registration']
+        - [9, 'ot', 'Other traffic stop reason']
