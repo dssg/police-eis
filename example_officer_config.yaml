@@ -110,6 +110,7 @@ officer_features:
     NumOfTrafficStopsWithInjury: True # time gated
     NumOfTrafficStopsWithOfficerInjury: True # time gated
     NumOfTrafficStopsByRace: True # time gated categorical by stopped person's race
+    NumOfTrafficStopsByStopType: True # time gated categorical
 
     ###################################################
     #   Threshold based EIS system Feature Selection  #

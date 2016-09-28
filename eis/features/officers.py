@@ -1339,6 +1339,41 @@ class NumOfTrafficStopsByRace(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+class NumOfTrafficStopsByStopType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: 'checkpoint',
+                            1: 'dwi',
+                            2: 'investigative_stop',
+                            3: 'traffic_safety_violation',
+                            4: 'speeding',
+                            5: 'seatbelt_violation',
+                            6: 'stoplight_stopsign_violations',
+                            7: 'vehicle_issues',
+                            8: 'vehicle_registration',
+                            9: 'other' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of traffic stops made by the type of stop, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.stop_type_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+
 ###############################################
 ##### Features for threshold-based EIS modeled
 ##### on CMPD's old EIS system
