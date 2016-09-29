@@ -86,6 +86,14 @@ officer_features:
     NumberOfSuspectsArrestedOfEthnicityType: False #Number of suspects arrested by ethnicity type, time-gated periods.
     SustainedRuleViolations: False  # Officer investigatable incident count to fake_today.
     MeanHoursPerShift: False # Average number of hours per shift.
+    #######################################################
+    #   Features generated from the existing EIS system   #
+    #######################################################
+    TotalEISInterventionsOfType: True
+    FractionEISFlagsWithIntervention: True
+    TotalEISFlagsOfType: True
+    FractionEISFlagsOfType: True
+
     AllAllegations: False # Number of allegations made against an officer, time gated.
     TotalInterventionsOfType: False # The number of interventions of each type an officer has had, exploded into multiple columns and time gated.
     NumberOfIncidentsOfType: False # The number of incidents  of certain types, exploded into multiple columns and time gated.
