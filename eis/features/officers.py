@@ -830,6 +830,28 @@ class OfficerMilitary(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name ) )
+#######
+## Extra duty
+#######
+class TotalOutsideEmploymentHours(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The total number of hours the officer has worked")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.sum "
+                      "FROM (   SELECT officer_id, sum(hours_on_shift) "
+                      "         FROM staging.officer_outside_employment "
+                      "         WHERE date_time <= '{2}'::date "
+                      "         AND date_time >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                              self.COLUMN,
+                              self.fake_today.strftime(time_format),
+                              self.DURATION ))
+        self.set_null_counts_to_zero = True
 
 class ComplaintsPerHourWorked(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
