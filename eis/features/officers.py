@@ -410,6 +410,7 @@ class NumberOfSuspectsArrestedOfEthnicityType(abstract.TimeGatedCategoricalOffic
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+# These are *only* the interventions the stemmed directly from an incident
 class TotalInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "Unknown",
