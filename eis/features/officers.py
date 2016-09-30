@@ -1411,7 +1411,7 @@ class PriorSustainedUnknownMajorAllegationsCount(abstract.TimeGatedOfficerFeatur
                           .format(  self.table_name,
                                     self.COLUMN,
                                     self.fake_today.strftime(time_format),
-                                    self.DURATION)
+                                    self.DURATION))
             self.set_null_counts_to_zero = True
 
 class PriorMajorAllegationsCount(abstract.TimeGatedOfficerFeature):
@@ -1434,7 +1434,7 @@ class PriorMajorAllegationsCount(abstract.TimeGatedOfficerFeature):
                           .format(  self.table_name,
                                     self.COLUMN,
                                     self.fake_today.strftime(time_format),
-                                    self.DURATION)
+                                    self.DURATION))
             self.set_null_counts_to_zero = True
 
 class PriorSustainedUnkownMinorAllegationsCount(abstract.TimeGatedOfficerFeature):
@@ -1458,7 +1458,7 @@ class PriorSustainedUnkownMinorAllegationsCount(abstract.TimeGatedOfficerFeature
                           .format(  self.table_name,
                                     self.COLUMN,
                                     self.fake_today.strftime(time_format),
-                                    self.DURATION)
+                                    self.DURATION))
             self.set_null_counts_to_zero = True
 
 class PriorMinorAllegationsCount(abstract.TimeGatedOfficerFeature):
@@ -1481,7 +1481,7 @@ class PriorMinorAllegationsCount(abstract.TimeGatedOfficerFeature):
                           .format(  self.table_name,
                                     self.COLUMN,
                                     self.fake_today.strftime(time_format),
-                                    self.DURATION)
+                                    self.DURATION))
             self.set_null_counts_to_zero = True
 
 
@@ -1510,7 +1510,7 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
 
 
 
-ass CountComplaintsType(abstract.TimeGatedCategoricalOfficerFeature):
+class CountComplaintsType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = {
                             'Internal': 'internal',
