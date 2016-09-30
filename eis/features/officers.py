@@ -422,7 +422,7 @@ class TotalInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                             6: "Loss of vacation",
                             7: "No intervention required" }
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Total interventions of each type an officer has received")
+        self.description = ("Total interventions of each type an officer has received as the result of an incident")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
@@ -814,6 +814,125 @@ class ComplaintToArrestRatio(abstract.TimeGatedOfficerFeature):
                                 self.COLUMN,
                                 self.fake_today.strftime(time_format),
                                 self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+####################
+### EIS FEATURES ###
+####################
+
+class TotalEISInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "Unknown",
+                            1: "Counseling",
+                            2: "Training",
+                            3: "Suspension",
+                            4: "Termination",
+                            5: "Reprimand",
+                            6: "Loss of vacation",
+                            7: "No intervention required",
+                            8: "Reassignment",
+                            9: "Demotion" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Total interventions of each type an officer has received as a result of an EIS flag")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.department_eis_alerts eis "
+                      "         WHERE eis.intervention_type = {4} "
+                      "         AND date_created <= '{2}'::date "
+                      "         AND date_created >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class FractionEISFlagsWithIntervention(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Fraction of EIS flags that required interventions")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
+                      "FROM (   SELECT officer_id, count(officer_id) as total, sum((intervention_type != 7)::INT) as count"
+                      "         FROM staging.department_eis_alerts eis "
+                      "         WHERE date_created <= '{2}'::date "
+                      "         AND date_created >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class TotalEISFlagsOfType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: 'Accident',
+                            1: 'Complaint',
+                            2: 'Injury',
+                            3: 'Pursuit',
+                            4: 'Sick Leave Frequency',
+                            5: 'Sick Leave or Days Off',
+                            6: 'Supv Initiated',
+                            7: 'Use Of Force',
+                            8: 'Combination',
+                            9: 'Other' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Total interventions of each type an officer has received as a result of an EIS flag")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.department_eis_alerts eis "
+                      "         WHERE eis.event_type = {4} "
+                      "         AND date_created <= '{2}'::date "
+                      "         AND date_created >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class FractionEISFlagsOfType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: 'Accident',
+                            1: 'Complaint',
+                            2: 'Injury',
+                            3: 'Pursuit',
+                            4: 'Sick Leave Frequency',
+                            5: 'Sick Leave or Days Off',
+                            6: 'Supv Initiated',
+                            7: 'Use Of Force',
+                            8: 'Combination',
+                            9: 'Other' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Fraction of interventions of each type an officer has received as a result of an EIS flag")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
+                      "FROM (   SELECT officer_id, count(officer_id) as total, sum((event_type = {4})::INT) as count "
+                      "         FROM staging.department_eis_alerts eis "
+                      "         WHERE date_created <= '{2}'::date "
+                      "         AND date_created >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
 class OfficerMilitary(abstract.OfficerFeature):
