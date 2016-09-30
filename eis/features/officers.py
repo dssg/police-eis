@@ -1630,3 +1630,61 @@ class NumberOfComplaintsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
+
+
+class OfficerAvgNeighborhoodFeatures1(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { "Population_Density_2013": "density",
+                            "Age_of_Residents_2013": "age",
+                            "Black_Population_2010": "black_population",
+                            "311_Calls_Log_2013": "311_calls",
+                            "Household_Income_Log_2013": "household_income",
+                            "Employment_Rate_2013": "employment_rate",
+                            "Vacant_Land_Area_Log_2013": "vacant_land",
+                            "Voter_Participation_2012": "voter_participation" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Officer race, categorical")
+        self.query = ("""UPDATE features.{0} feature_table """
+                      """SET {1} = staging_table.avg """
+                      """FROM (   SELECT officer_id, avg(var_used) """
+                      """         FROM staging.events_hub """
+                      """         JOIN temp_arrest_npa as geo """
+                      """         on geo.event_id = events_hub.event_id"""
+                      """         JOIN (SELECT "NPA", "{2}" as var_used"""
+                      """               FROM mecklenburg.npa2014_part_1) b"""
+                      """               ON npa = b."NPA" """
+                      """       GROUP BY officer_id """
+                      """     ) AS staging_table """
+                      """WHERE feature_table.officer_id = staging_table.officer_id """
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class OfficerAvgNeighborhoodFeatures2(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { "Age_of_Death_2012": "age_of_death",
+                            "Housing_Density_2013": "housing_density",
+                            "Nuisance_Violations_Total_2013": "nuisance_violations",
+                            "Violent_Crime_Rate_2013": "crime_rate",
+                            "Sidewalk_Availability_2013": "sidewalk_availability",
+                            "Foreclosures_2013": "foreclosures",
+                            "Disorder_Call_Rate_Log_2013": "disorder_call" }
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Categorical dummy feature for testing 2016 schema")
+        self.query = ("""UPDATE features.{0} feature_table """
+                      """SET {1} = staging_table.avg """
+                      """FROM (   SELECT officer_id, avg(var_used) """
+                      """         FROM staging.events_hub """
+                      """         JOIN temp_arrest_npa as geo """
+                      """         on geo.event_id = events_hub.event_id"""
+                      """         JOIN (SELECT "NPA", "{2}" as var_used"""
+                      """               FROM mecklenburg.npa2014_part_2) b"""
+                      """               ON npa = b."NPA" """
+                      """       GROUP BY officer_id """
+                      """     ) AS staging_table """
+                      """WHERE feature_table.officer_id = staging_table.officer_id """
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
