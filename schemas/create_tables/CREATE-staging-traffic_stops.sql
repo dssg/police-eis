@@ -12,8 +12,10 @@ CREATE UNLOGGED TABLE staging.traffic_stops (
 	stopped_person_race_code                                              int,                --race of the person stopped
 	stopped_person_ethnicity                                              int,                --ethniciy of the person stopped
 	stopped_person_gender                                                 int,                --gender of the person stopped
+	search_consent_request_flag                                           bool,               --was search consent requested?
 	searched_flag                                                         bool,               --was a search executed?
 	search_justification_code                                             int,                --justification for the search (driver consent)
+	search_justification_narrative                                        text,               --narrative field for the search justification
 	drugs_found_flag                                                      bool,               --were drugs found during the search?
 	drug_type_code                                                        int,                --what kind of drugs were found?
 	weapons_found_flag                                                    bool,               --were weapons found?
