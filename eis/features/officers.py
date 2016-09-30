@@ -836,7 +836,7 @@ class OfficerMilitary(abstract.OfficerFeature):
 class TotalOutsideEmploymentHours(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
-        self.description = ("The total number of hours the officer has worked")
+        self.description = ("The total number of hours of extra duty the officer has worked (outside employment)")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.sum "
                       "FROM (   SELECT officer_id, sum(hours_on_shift) "
