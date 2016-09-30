@@ -103,6 +103,18 @@ officer_features:
     SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.
     ResistingArrestToUOFRatio: False #Ratio of resisting arrest to uses of force that an officer has, time gated.
     PreventableAccidents: False #The number of preventable accidents an officer has had, time gated 
+    DispatchTypeCount: True #Number of dispatches of different type aggregated over time
+    PriorSustainedUnknownMajorAllegationsCount: True #Number of prior sustained unknown major allegations per officer, time gated
+    PriorMajorAllegationsCount: True #Number of prior major allegations per officer, time gated
+    PriorSustainedUnkownMinorAllegationsCount: True #Number of prior sustained unknown minor allegations per officer, time gated
+    PriorMinorAllegationsCount: True #Number of prior minor allegations per officer, time gated
+    NumOfUnjustifiedUsesOfForce: True #Number of unjustified use of force, time gated
+    CountComplaintsTypeSource: True #Number of complaints by type an officer had, time gated
+    ComplaintsCount: True #Number of complaints an officer had, time gated
+    SustainedComplaintsCount: True #Number of complaints an officer had, time gated
+    NumberOfComplaintsOfType: True #Complaint type categorical feature, time gated
+    OfficerAvgNeighborhoodFeatures1: True #Average demographics of arrests for each officer part 1
+    OfficerAvgNeighborhoodFeatures2: True #Average demographics of arrests for each officer part 2
 
     ###################################################
     #   Threshold based EIS system Feature Selection  #

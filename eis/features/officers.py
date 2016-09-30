@@ -1510,7 +1510,7 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
 
 
 ## IMPORTANT: Change to point to staging
-class CountComplaintsType(abstract.TimeGatedCategoricalOfficerFeature):
+class CountComplaintsTypeSource(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = {
                             'Internal': 'internal',
