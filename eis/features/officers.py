@@ -1509,7 +1509,7 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
 
 
 
-
+## IMPORTANT: Change to point to staging
 class CountComplaintsType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = {
@@ -1631,7 +1631,7 @@ class NumberOfComplaintsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-
+## IMPORTANT: Change to point to staging
 class OfficerAvgNeighborhoodFeatures1(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { "Population_Density_2013": "density",
@@ -1643,7 +1643,7 @@ class OfficerAvgNeighborhoodFeatures1(abstract.CategoricalOfficerFeature):
                             "Vacant_Land_Area_Log_2013": "vacant_land",
                             "Voter_Participation_2012": "voter_participation" }
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Officer race, categorical")
+        self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.avg """
                       """FROM (   SELECT officer_id, avg(var_used) """
@@ -1661,6 +1661,7 @@ class OfficerAvgNeighborhoodFeatures1(abstract.CategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
+## IMPORTANT: Change to point to staging
 class OfficerAvgNeighborhoodFeatures2(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { "Age_of_Death_2012": "age_of_death",
@@ -1671,7 +1672,7 @@ class OfficerAvgNeighborhoodFeatures2(abstract.CategoricalOfficerFeature):
                             "Foreclosures_2013": "foreclosures",
                             "Disorder_Call_Rate_Log_2013": "disorder_call" }
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Categorical dummy feature for testing 2016 schema")
+        self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.avg """
                       """FROM (   SELECT officer_id, avg(var_used) """
