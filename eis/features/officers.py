@@ -919,7 +919,7 @@ class FractionEISFlagsOfType(abstract.TimeGatedCategoricalOfficerFeature):
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Fraction of interventions of each type an officer has received as a result of an EIS flag")
         self.query = ("UPDATE features.{0} feature_table "
-                      "SET {1} = staging_table.count "
+                      "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
                       "FROM (   SELECT officer_id, count(officer_id) as total, sum((event_type = {4})::INT) as count "
                       "         FROM staging.department_eis_alerts eis "
                       "         WHERE date_created <= '{2}'::date "
