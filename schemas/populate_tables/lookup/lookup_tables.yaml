@@ -82,6 +82,19 @@ lookup_complaint_origins:
         - [2, 'external', 'External']
         - [3, 'automatic', 'Automatic']
 
+lookup_eis_flag_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'accident', 'Accident']
+        - [1, 'complaint', 'Complaint']
+        - [2, 'injury', 'Injury']
+        - [3, 'pursuit', 'Pursuit']
+        - [4, 'sick leave frequency', 'Sick Leave Frequency']
+        - [5, 'sick leave/days off', 'Sick Leave/Days Off']
+        - [6, 'supv initiated', 'Supv Initiated']
+        - [7, 'use of force', 'Use Of Force']
+        - [8, 'combination', 'Combination']
+        - [9, 'other', 'Other']
 
 lookup_incident_types:
     columns: ['code', 'value', 'description']
