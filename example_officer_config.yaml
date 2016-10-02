@@ -65,18 +65,18 @@ officer_features:
     TimeGatedDummyFeature: False # Time gated dummy feature. Example feature.
     ArrestMonthlyVariance: False
     ArrestMonthlyCOV: False
-    AcademyScore: True # Performance score at the police academy.
+    AcademyScore: False # Performance score at the police academy.
     ArrestMonthlyVariance: False # month-by-month variance of arrest counts.
     ArrestMonthlyCOV: False # month-by-month coefficient of variation in arrest counts.
     DivorceCount: False # Number of total divorces in this officer's past.
-    MilesFromPost: True # Number of miles to post.
+    MilesFromPost: False # Number of miles to post.
     OfficerGender: False # Officer gender code.
     OfficerRace: False # Officer race code.
     OfficerEthnicity: False # Officer ethnicity code.
     OfficerAge: False # Age of officer in years.
     OfficerRank: False # Officer rank.
     OfficerEducation: False # Officer education level.
-    ArrestCount: True # Number of arrests made by an officer, time gated.
+    ArrestCount: False # Number of arrests made by an officer, time gated.
     OfficerMilitary: False # Whether or not the officer has had military experience
     IncidentCount: False # Officer investigatable incident count to fake_today.
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
@@ -91,10 +91,22 @@ officer_features:
     #######################################################
     #   Features generated from the existing EIS system   #
     #######################################################
-    TotalEISInterventionsOfType: True
-    FractionEISFlagsWithIntervention: True
-    TotalEISFlagsOfType: True
-    FractionEISFlagsOfType: True
+    TotalEISInterventionsOfType: False
+    FractionEISFlagsWithIntervention: False
+    TotalEISFlagsOfType: False
+    FractionEISFlagsOfType: False
+    ####################################################
+    #   Features generated from field interview data   #
+    ####################################################
+    NumOfFieldInterviews: True
+    AvgHourOfFieldInterviews: True
+    ModeHourOfFieldInterviews: True
+    NumOfFieldInterviewsByRace: False
+    FractionOfFieldInterviewsByRace: False
+    NumOfFieldInterviewsByOutcome: False
+    FractionOfFieldInterviewsByOutcome: False
+    NumOfFieldInterviewsWithFlag: True
+    FractionOfFieldInterviewsWithFlag: True
 
     AllAllegations: False # Number of allegations made against an officer, time gated.
     TotalInterventionsOfType: False # The number of interventions of each type an officer has had, exploded into multiple columns and time gated.

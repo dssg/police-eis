@@ -701,6 +701,244 @@ class MilesFromPost(abstract.OfficerFeature):
                                 self.feature_name,
                                 self.fake_today.strftime(time_format) ) )
 
+##############
+## Field interview features
+##############
+class NumOfFieldInterviews(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of field interviews within a time window")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.field_interviews "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON field_interviews.event_id = events_hub.event_id "
+                      "         WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+# TODO: This is a little strange -- average hour isn't very meaningful with
+# transitions around midnight... but it's how 2015 did it.
+class AvgHourOfFieldInterviews(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Average hour that field interviews are conducted")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.avg_hour "
+                      "FROM (   SELECT officer_id, avg(date_part('hour',event_datetime)-12) as avg_hour"
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code = 2 "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True # This is also strange, but again, matches 2015
+
+class ModeHourOfFieldInterviews(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Average hour that field interviews are conducted")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.mode "
+                      "FROM (   SELECT officer_id, mode() within group (order by date_part('hour',event_datetime)-12) as mode"
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code = 2 "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class NumOfFieldInterviewsByRace(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "unknown",
+                            1: "black",
+                            2: "white",
+                            3: "american_indian",
+                            4: "asian",
+                            5: "pacific_islander",
+                            6: "other",
+                            7: "mixed" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of field interviews within a time window, by race")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.field_interviews "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON field_interviews.event_id = events_hub.event_id "
+                      "         WHERE field_interviews.interviewed_person_race = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class FractionOfFieldInterviewsByRace(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "unknown",
+                            1: "black",
+                            2: "white",
+                            3: "american_indian",
+                            4: "asian",
+                            5: "pacific_islander",
+                            6: "other",
+                            7: "mixed" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Fraction of field interviews within a time window, by race")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count::Float / staging_table.total::Float "
+                      "FROM (   SELECT officer_id, count(interviewed_person_race) as total, sum((interviewed_person_race = {4})::INT) as count"
+                      "         FROM staging.field_interviews "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON field_interviews.event_id = events_hub.event_id "
+                      "         WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumOfFieldInterviewsByOutcome(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "Arrest",
+                            3: "Ban",
+                            4: "None" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of field interviews within a time window, by outcome")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.field_interviews "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON field_interviews.event_id = events_hub.event_id "
+                      "         WHERE field_interviews.field_interview_outcome_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class FractionOfFieldInterviewsByOutcome(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "Arrest",
+                            3: "Ban",
+                            4: "None" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Fraction of field interviews within a time window, by outcome")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count::Float / staging_table.total::Float "
+                      "FROM (   SELECT officer_id, count(field_interviews.event_id) as total, sum((field_interview_outcome_code = {4})::INT) as count"
+                      "         FROM staging.field_interviews "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON field_interviews.event_id = events_hub.event_id "
+                      "         WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumOfFieldInterviewsWithFlag(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 'searched_flag': "Did search",
+                            'drugs_found_flag': "Found drugs",
+                            'weapons_found_flag': "Found weapons" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of field interviews with a particular feature within a time window")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.field_interviews "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON field_interviews.event_id = events_hub.event_id "
+                      "         WHERE {4}"
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class FractionOfFieldInterviewsWithFlag(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 'searched_flag': "Did search",
+                            'drugs_found_flag': "Found drugs",
+                            'weapons_found_flag': "Found weapons" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Fraction of field interviews with a search within a time window")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
+                      "FROM (   SELECT officer_id, count({4}) as total, sum({4}::INT) as count"
+                      "         FROM staging.field_interviews "
+                      "         INNER JOIN staging.events_hub "
+                      "         ON field_interviews.event_id = events_hub.event_id "
+                      "         WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
 class ArrestCount(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
