@@ -80,6 +80,8 @@ officer_features:
     OfficerMilitary: False # Whether or not the officer has had military experience
     IncidentCount: False # Officer investigatable incident count to fake_today.
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
+    NumberOfSuspensionsOfType: True # time-gated
+    TotalHoursOfSuspensionsOfType: True # time-gated
     NumberOfArrestsOfType: False # Number of time-gated arrests by categorical type.
     NumberOfArrestsON: False # Number of time-gated arrests by day of week.
     NumberOfSuspectsArrestedOfRaceType: False #Number of suspects arrested by race type, time-gated periods.
