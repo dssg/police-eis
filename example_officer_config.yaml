@@ -115,7 +115,8 @@ officer_features:
     NumberOfComplaintsOfType: True #Complaint type categorical feature, time gated
     OfficerAvgNeighborhoodFeatures1: True #Average demographics of arrests for each officer part 1
     OfficerAvgNeighborhoodFeatures2: True #Average demographics of arrests for each officer part 2
-
+    OfficerAvgNeighborhoodPatrolFeatures1: True #Average demographics of patrols for each officer parte 1
+    OfficerAvgNeighborhoodPatrolFeatures2: True #Average demographics of patrols for each officer parte 2
     ###################################################
     #   Threshold based EIS system Feature Selection  #
     ###################################################
