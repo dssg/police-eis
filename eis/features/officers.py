@@ -1597,6 +1597,411 @@ class PreventableAccidents(abstract.TimeGatedOfficerFeature):
         self.set_null_counts_to_zero = True
 
 
+# =====================================
+# = Features related to traffic stops =
+# =====================================
+
+class NumOfTrafficStops(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of traffic stops an officer has made")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub "
+                      "         WHERE event_type_code=1 "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsWithSearch(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of traffic stops an officer has made where a search occurred")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.searched_flag=true "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsWithUseOfForce(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of traffic stops an officer has made where force was used")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.use_of_force_flag=true "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsWithArrest(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of traffic stops an officer has made where an arrest was made")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.arrest_flag=true "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsWithInjury(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of traffic stops an officer has made where a driver or passenger was injured")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.injuries_flag=true "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsWithOfficerInjury(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of traffic stops an officer has made where the officer was injured")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.officer_injury_flag=true "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsWithSearchRequest(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The number of traffic stops an officer has made where the officer requested consent for a search")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.search_consent_request_flag=true "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class FractionOfTrafficStopsWithSearchRequest(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("The fraction of traffic stops an officer has made where the officer requested consent for a search")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
+                      "FROM (   SELECT officer_id, count(search_consent_request_flag) as total, sum(search_consent_request_flag::INT) as count"
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date"
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsByRace(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "unknown",
+                            1: "black",
+                            2: "white",
+                            3: "american_indian",
+                            4: "asian",
+                            5: "pacific_islander",
+                            6: "other",
+                            7: "mixed" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of traffic stops made by race, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.stopped_person_race_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsByStopType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: 'checkpoint',
+                            1: 'dwi',
+                            2: 'investigative_stop',
+                            3: 'traffic_safety_violation',
+                            4: 'speeding',
+                            5: 'seatbelt_violation',
+                            6: 'stoplight_stopsign_violations',
+                            7: 'vehicle_issues',
+                            8: 'vehicle_registration',
+                            9: 'other' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of traffic stops made by the type of stop, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.stop_type_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsByStopResult(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: 'Arrest',
+                            1: 'Citation',
+                            2: 'Verbal warning',
+                            3: 'Written warning',
+                            4: 'Nothing' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of traffic stops made by the stop outcome, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.stop_outcome_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsBySearchReason(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: 'Consent',
+                            1: 'Prob Cause',
+                            2: 'Frisk',
+                            3: 'Arrest',
+                            4: 'Warrent' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of traffic stop searches made by the search justification, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.search_justification_code = {4} "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class FractionOfTrafficStopsBySearchReason(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: 'Consent',
+                            1: 'Prob Cause',
+                            2: 'Frisk',
+                            3: 'Arrest',
+                            4: 'Warrent' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of traffic stop searches made by the search justification, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
+                      "FROM (   SELECT officer_id, count(officer_id) as total, sum((search_justification_code = {4})::INT) as count"
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.searched_flag "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        # This is a bit of a hack of the categorical officer feature to simply look up interesting* words
+        # (* as deemed interesting by the 2015 team)
+        self.categories = { 'crime': 'crime',
+                            'suspicious': 'suspicious',
+                            'marijuana': 'marijuana',
+                            'consent': 'consent',
+                            'all my stops': 'all my stops',
+                            'area': 'area',
+                            'drug': 'drug' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of traffic stop searches made by interesting words in the search justification narrative, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id)"
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE staging.traffic_stops.search_justification_narrative like '%%{4}%%' "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+
+
+
+class FractionOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        # This is a bit of a hack of the categorical officer feature to simply look up interesting* words
+        # (* as deemed interesting by the 2015 team)
+        self.categories = { 'crime': 'crime',
+                            'suspicious': 'suspicious',
+                            'marijuana': 'marijuana',
+                            'consent': 'consent',
+                            'all my stops': 'all my stops',
+                            'area': 'area',
+                            'drug': 'drug' }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Fraction of traffic stop searches made by interesting words in the search justification narrative, time-gated periods")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
+                      "FROM (   SELECT officer_id, count(search_justification_narrative) as total, sum((search_justification_narrative like '%%{4}%%')::INT) as count"
+                      "         FROM staging.traffic_stops"
+                      "         INNER JOIN staging.events_hub"
+                      "         ON traffic_stops.event_id = events_hub.event_id"
+                      "         WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
 
 ###############################################
 ##### Features for threshold-based EIS modeled

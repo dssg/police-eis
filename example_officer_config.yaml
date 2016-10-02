@@ -119,14 +119,29 @@ officer_features:
     NumOfUsesOfForceOfType: False # The number of uses of force by type of force over time-gated periods.
     NumOfUnjustifiedUsesOfForceOfType: False # The number of unjustified uses of force by time over time-gated periods.
     UnjustUOFInterventionsOfType: False #Number of interventions of type X following an unjustified force, time gated.
-    # Extra duty features
-    TotalOutsideEmploymentHours: True
-    UOFInterventionsOfType: False #Number of interventions of type X following any use of force, time gated.
+    TotalOutsideEmploymentHours: True #Extra duty feature
     CountUOFwithSuspectInjury: False #Number of uses of force by whether the suspect was injured, time gated
     CountUOFwithResistingArrest: False #Number of uses of force by whether the suspect resisted arrest, time gated
     SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.
     ResistingArrestToUOFRatio: False #Ratio of resisting arrest to uses of force that an officer has, time gated.
     PreventableAccidents: False #The number of preventable accidents an officer has had, time gated 
+    
+    NumOfTrafficStopsWithSearch: False # time gated
+    NumOfTrafficStopsWithUseOfForce: False # time gated
+    NumOfTrafficStops: False # time gated
+    NumOfTrafficStopsWithArrest: False # time gated
+    NumOfTrafficStopsWithInjury: False # time gated
+    NumOfTrafficStopsWithOfficerInjury: False # time gated
+    NumOfTrafficStopsWithSearchRequest: True # time gated
+    FractionOfTrafficStopsWithSearchRequest: True # time gated
+    NumOfTrafficStopsByRace: False # time gated categorical by stopped person's race
+    NumOfTrafficStopsByStopType: False # time gated categorical
+    NumOfTrafficStopsByStopResult: False # time gated categorical
+    NumOfTrafficStopsBySearchReason: False
+    FractionOfTrafficStopsBySearchReason: False
+    NumOfTrafficStopsByInterestingSearchText: False
+    FractionOfTrafficStopsByInterestingSearchText: False
+
     DispatchTypeCount: True #Number of dispatches of different type aggregated over time
     PriorSustainedUnknownMajorAllegationsCount: True #Number of prior sustained unknown major allegations per officer, time gated
     PriorMajorAllegationsCount: True #Number of prior major allegations per officer, time gated
@@ -141,6 +156,10 @@ officer_features:
     OfficerAvgNeighborhoodFeatures2: True #Average demographics of arrests for each officer part 2
     OfficerAvgNeighborhoodPatrolFeatures1: True #Average demographics of patrols for each officer parte 1
     OfficerAvgNeighborhoodPatrolFeatures2: True #Average demographics of patrols for each officer parte 2
+
+    TotalOutsideEmploymentHours: True #Extra duty feature
+   
+ 
     ###################################################
     #   Threshold based EIS system Feature Selection  #
     ###################################################
