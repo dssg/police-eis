@@ -124,7 +124,11 @@ def main(config_file_name, args):
             user_batch_model_comment = ""
 
         # pickle all the model data (everything in the to_save dict)
-        model_filename = "{}/{}_{}.pkl".format(config["directory"].strip('/'), config["pkl_prefix"], timestamp)
+        model_filename = "{}/{}/{}/{}_{}.pkl".format(config["root_path"],
+                                                     config["department_unit"],
+                                                     config["directory"].strip('/'),
+                                                     config["pkl_prefix"],
+                                                     timestamp)
 
         # store the pickle data to disk or prepare it to save into the results.data table.
         log.debug("storing model information and data")
