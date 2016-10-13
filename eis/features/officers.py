@@ -2344,24 +2344,23 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
 
 
 
-## IMPORTANT: Change to point to staging
 class CountComplaintsTypeSource(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = {
-                            'Internal': 'internal',
-                            'External': 'external'}
+                             1 : 'internal',
+                             2 : 'external'}
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of complaints by type an officer had, time gated")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.count """
-                      """FROM (   SELECT officer_id, count(officer_id) """
+                      """FROM (   SELECT officer_id, count(distinct complaints.event_id) """
                       """         FROM staging.events_hub """
-                      """         JOIN cmpd_merged.tblsilog_eis AS silog """
-                      """         ON dispatch_id = staging.clean_silog_complaint_no(silog."ComplaintNo")"""
+                      """         JOIN staging.complaints """
+                      """         ON events_hub.event_id = complaints.event_id"""
                       """         WHERE event_type_code = 6 """
                       """         AND event_datetime <= '{2}'::date """
                       """         AND event_datetime >= '{2}'::date - interval '{3}' """
-                      """         AND "Source" = '{4}' """
+                      """         AND complaint_origin_code = {4} """
                       """         GROUP BY officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
@@ -2382,7 +2381,7 @@ class ComplaintsCount(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.events_hub "
-                      "         WHERE event_type_code=6 "
+                      "         WHERE event_type_code = 6 "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
