@@ -1,0 +1,34 @@
+{% extends "_base.html" %}
+
+{% block content %}
+
+<div>
+    <h2>Evaluation Dashboard</h2>
+</div>
+
+<div class="container">
+<div class="row">
+    <div class="col-md-8">
+        <form action="{{ url_for('search_best_models')}}" method ="post">
+            Show <input type="text" name="number" size="4" value="{{number}}"> models with
+            <select name="metric">
+                <option value="precision">precision</option>
+                <option value="recall">recall</option>
+                <option value="auc">auc</option>
+            </select>
+            @ <input type="text" name="parameter" size="4" value="{{parameter}}"> %
+            <input type="submit" value="Go" >
+        </form>
+    </div>
+
+</div>
+</div>
+
+<div class="row">
+    {% for table in tables %}
+    {{ table|safe }}
+    {% endfor %}
+</div>
+
+
+{% endblock %}
