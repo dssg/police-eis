@@ -1,11 +1,13 @@
 # Evaluation Dashboard Web App
 
-1. ssh -i `key` -f -N -L localhost:5002:localhost:5002 `username`@`example.com`
+## To run locally
 
-2. ssh -i `key` `username`@`example.com`
+1. Set up a tunnel by `ssh -i key -f -N -L localhost:5002:localhost:5002 username@example.com`
 
-3. cd webapp/
+2. Log in to the machine by `ssh -i key username@example.com`
 
-4. run `python3 run_webapp.py`
+3. `cd webapp/`
 
-5. enter `http://localhost:5002/` in your local browser
+4. Run `python3 run_webapp.py`
+
+5. Enter `http://localhost:5002/` in your local browser
