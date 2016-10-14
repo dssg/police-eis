@@ -1,9 +1,10 @@
 import pandas as pd
 from sqlalchemy import create_engine
 import json
+from webapp import app
+import os
 
-CONFIG_PATH = "/home/tlin/default_profile.json"
-with open(CONFIG_PATH) as f:
+with open(os.path.join(app.instance_path, 'default_profile.json')) as f:
     config = json.load(f)
 
 dbengine = create_engine('postgres://', connect_args=config)
