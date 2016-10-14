@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS staging.dispatches;
 CREATE UNLOGGED TABLE staging.dispatches (
   event_id                        INT REFERENCES staging.events_hub (event_id) PRIMARY KEY, --Primary key
-  department_defined_dispatch_id  VARCHAR, --
+  dispatch_id                     BIGINT, --
   dispatch_address_id             INT, --
   police_area_id                  INT, --
   unit_division                   VARCHAR,
@@ -27,5 +27,6 @@ CREATE UNLOGGED TABLE staging.dispatches (
   sequence_arrived                INT,
   units_assigned                  INT,
   units_arrived                   INT,
-  dispatch_category               VARCHAR
+  dispatch_category               VARCHAR,
+  event_datetime                  TIMESTAMP
 );
