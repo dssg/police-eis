@@ -3,7 +3,7 @@ CREATE UNLOGGED TABLE staging.complaints (
 	event_id                                                              int references staging.events_hub(event_id),                --event that the complaint maps to in the events hub
 	complaint_id                                                          int,                --the unique id of the complaint. If there are multiple officers for the same complaint, they will share the same id. The pk of this table is the combination of complaint_id and accused_officer_id
 	accusing_officer_id                                                   int,                --the officer who is doing the complaining, if internal
-	incident_type_code                                                    int,                --the type of incident being complained about e.g. uniform, profanity
+	grouped_incident_type_code                                            int,                --the type of incident being complained about e.g. uniform, profanity
 	complaint_narrative                                                   text,               --raw text describing the complaint
 	datetime                                                              date,               --the datetime the complaint was filed
 	department_defined_complaint_id                                       varchar,                --mapping to the original complaint id
