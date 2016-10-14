@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS staging.incidents;
 CREATE UNLOGGED TABLE staging.incidents (
-	event_id 																int references staging.events_hub(event_id) PRIMARY KEY on delete cascade, 				--links to event_hub
+	event_id 																int PRIMARY KEY references staging.events_hub(event_id)  on delete cascade, 				--links to event_hub
 	investigation_id 												int, 				--auto generated id for the investigation
 	department_defined_investigation_id			text, 				-- the investigation number from the department
 	department_defined_policy_type					text, 				-- the kind of department policy that was (allegedly) violated
