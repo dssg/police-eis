@@ -1,11 +1,11 @@
 import pandas as pd
 from sqlalchemy import create_engine
-import json
+import yaml
 from webapp import app
 import os
 
-with open(os.path.join(app.instance_path, 'default_profile.json')) as f:
-    config = json.load(f)
+with open('../example_default_profile.yaml') as f:
+    config = yaml.load(f)
 
 dbengine = create_engine('postgres://', connect_args=config)
 
