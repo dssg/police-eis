@@ -13,7 +13,11 @@ tr:hover            { background-color: #cce6ff;}
 
 
 .row{
-  margin-top: 15px;
-  margin-bottom: 30px
+    margin-top: 30px;
+    margin-bottom: 20px
 }
 
+.headrow{
+    margin-top:15px;
+    margin-bottom:30px;
+}
