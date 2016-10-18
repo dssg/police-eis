@@ -84,3 +84,6 @@ results/*
 
 # ignore the log files
 logs/.log*
+
+# webapp secret instance
+instance/*
