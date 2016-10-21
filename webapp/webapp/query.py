@@ -10,6 +10,7 @@ with open('../default_profile.yaml') as f:
 config = {'host':config['PGHOST'], 'user':config['PGUSER'], 'database':config['PGDATABASE'], 'password':config['PGPASSWORD']}
 dbengine = create_engine('postgres://', connect_args=config)
 
+
 def get_best_models(timestamp, metric, parameter=None, number=25):
 
     """

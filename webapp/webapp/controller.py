@@ -19,6 +19,7 @@ def index():
 def search_best_models():
     if request.method == 'POST':
         metric = request.form['metric']
+        timestamp = request.form['timestamp']
         if len(request.form['parameter']) == 0:
             parameter = None
         else:
@@ -29,7 +30,7 @@ def search_best_models():
         else:
             number = request.form['number']
 
-    timestamp = '2016-08-03'
+    #timestamp = '2016-08-03'
     output = query.get_best_models(timestamp=timestamp, metric=metric, parameter=parameter, number=number)
     print(output)
     #return render_template('index.html',tables=[output.to_html(classes='bestmodels')], number=number, parameter=parameter)
