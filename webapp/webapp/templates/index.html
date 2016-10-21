@@ -9,8 +9,8 @@
 <div>
 <ul class="nav nav-tabs">
   <li class="active"><a href="{{url_for('index')}}">Models Search</a></li>
-  <li><a href="{{url_for('within_models')}}">Within Models Comparison</a></li>
-  <li><a href="{{url_for('between_models')}}">Between Models Comparison</a></li>
+  <li><a href="{{url_for('within_models')}}">Within-Model Comparison</a></li>
+  <li><a href="{{url_for('between_models')}}">Between-Models Comparison</a></li>
 </ul>
 </div>
 
@@ -29,7 +29,7 @@
                 <option value="false positives">false positives</option>
                 <option value="false negatives">false negatives</option>
             </select>
-            @ <input type="text" name="parameter" size="4" > % after
+            @ <input type="text" name="parameter" size="3" > % after
             <input name="timestamp" id="timestamp" value="2016-08-03" data-format="YYYY-MM-DD" data-template="YYYY MMM D">
             &nbsp; &nbsp;
             <button type="button" class="btn btn-primary btn-sm" id="GoButton">Go</button>
@@ -42,6 +42,7 @@
     <table class="table" id="results-table">
       <thead>
         <tr>
+          <th>&nbsp; &nbsp; &nbsp;</th>
           <th>Run Time</th>
           <th>Model Type</th>
           <th>Metric</th>
