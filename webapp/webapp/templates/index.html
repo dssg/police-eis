@@ -2,14 +2,22 @@
 
 {% block content %}
 
-<div>
+<div class="headrow">
     <h2>Evaluation Dashboard</h2>
+</div>
+
+<div>
+<ul class="nav nav-tabs">
+  <li class="active"><a href="{{url_for('index')}}">Models Search</a></li>
+  <li><a href="{{url_for('within_models')}}">Within Models Comparison</a></li>
+  <li><a href="{{url_for('between_models')}}">Between Models Comparison</a></li>
+</ul>
 </div>
 
 <div class="container">
 <div class="row">
     <div class="col-md-8">
-        <form action="{{ url_for('search_best_models')}}" method ="post">
+        <form method="post" role ="form">
             Show <input type="text" name="number" size="4" > models with
             <select name="metric">
                 <option value="auc">auc</option>
@@ -21,19 +29,37 @@
                 <option value="false positives">false positives</option>
                 <option value="false negatives">false negatives</option>
             </select>
-            @ <input type="text" name="parameter" size="4" > %
-            <input type="submit" value="Go" >
+            @ <input type="text" name="parameter" size="4" > % after
+            <input name="timestamp" id="timestamp" value="2016-08-03" data-format="YYYY-MM-DD" data-template="YYYY MMM D">
+            &nbsp; &nbsp;
+            <button type="button" class="btn btn-primary btn-sm" id="GoButton">Go</button>
         </form>
     </div>
+</div>
 
-</div>
-</div>
 
 <div class="row">
+    <table class="table" id="results-table">
+      <thead>
+        <tr>
+          <th>Run Time</th>
+          <th>Model Type</th>
+          <th>Metric</th>
+          <th>Parameter</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody id="results">
+      </tbody>
+    </table>
+</div>
+</div>
+
+<!--<div class="row">
     {% for table in tables %}
     {{ table|safe }}
     {% endfor %}
-</div>
+</div>-->
 
 
 {% endblock %}
