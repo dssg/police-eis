@@ -406,7 +406,7 @@ class FeatureLoader():
             # see lookup_event_types for the explanation of (1, 2, 3)
             query_all_officers += (         "UNION "
                                         "SELECT DISTINCT officer_id FROM staging.events_hub "
-                                        "WHERE event_type_code in (1, 2, 3) "
+                                        "WHERE event_type_code in (1, 2, 3, 6) "
                                         "AND event_datetime >= '{}' "
                                         "AND event_datetime <= '{}' "
                                         .format(

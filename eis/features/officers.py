@@ -2325,6 +2325,8 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of unjustified use of force, time gated")
         self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count"
+                      " FROM (   SELECT officer_id, count(officer_id)"
                       "         FROM staging.incidents "
                       "         INNER JOIN staging.events_hub"
                       "         ON incidents.event_id = events_hub.event_id"
@@ -2353,14 +2355,14 @@ class CountComplaintsTypeSource(abstract.TimeGatedCategoricalOfficerFeature):
         self.description = ("Number of complaints by type an officer had, time gated")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.count """
-                      """FROM (   SELECT officer_id, count(distinct complaints.event_id) """
+                      """FROM (   SELECT officer_id, count(officer_id) """
                       """         FROM staging.events_hub """
-                      """         JOIN staging.complaints """
-                      """         ON events_hub.event_id = complaints.event_id"""
+                      """         JOIN staging.incidents """
+                      """         ON events_hub.event_id = incidents.event_id"""
                       """         WHERE event_type_code = 6 """
                       """         AND event_datetime <= '{2}'::date """
                       """         AND event_datetime >= '{2}'::date - interval '{3}' """
-                      """         AND complaint_origin_code = {4} """
+                      """         AND origination_type_code = {4} """
                       """         GROUP BY officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
@@ -2594,3 +2596,36 @@ class OfficerAvgNeighborhoodPatrolFeatures2(abstract.CategoricalOfficerFeature):
                                 self.COLUMN,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
+
+class ComplimentsToComplaintsRatio(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Ratio of internal compliments to complaints and officer has")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.ratio "
+                      "FROM (  "
+                      "   WITH compliments as ( "
+                      "      SELECT  officer_id, COUNT(officer_id)::float as num_compliments "
+                      "      FROM staging.events_hub as e "
+                      "         JOIN staging.officer_compliments as c "
+                      "            ON e.event_id = c.event_id "
+                      "      WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "      GROUP BY officer_id),  "
+                      "   complaints as ( "
+                      "      SELECT officer_id, COUNT(officer_id)::float  as num_complaints "
+                      "      FROM staging.events_hub "
+                      "      WHERE event_type_code = 6 "
+                      "        AND event_datetime <= '{2}'::date "
+                      "        AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "     GROUP BY officer_id )"
+                      "   SELECT compliments.officer_id, num_compliments/num_complaints "
+                      "   FROM  compliments "
+                      "   FULL OUTHER JOIN complaints "
+                      "   ON compliments.officer_id = complaints.officer_id"
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.fake_today.strftime(time_format),
+                              self.DURATION ))
+        self.set_null_counts_to_zero = True
+           
