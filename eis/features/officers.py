@@ -1816,15 +1816,15 @@ class NumOfTrafficStopsByRace(abstract.TimeGatedCategoricalOfficerFeature):
 
 class NumOfTrafficStopsByStopType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { 0: 'checkpoint',
+        self.categories = { 0: 'investigative',
                             1: 'dwi',
-                            2: 'investigative_stop',
-                            3: 'traffic_safety_violation',
-                            4: 'speeding',
+                            2: 'parking_violation',
+                            3: 'safety_violation',
+                            4: 'regulatory_violation',
                             5: 'seatbelt_violation',
-                            6: 'stoplight_stopsign_violations',
-                            7: 'vehicle_issues',
-                            8: 'vehicle_registration',
+                            6: 'moving_violation',
+                            7: 'equipment_violation',
+                            8: 'checkpoint',
                             9: 'other' }
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of traffic stops made by the type of stop, time-gated periods")
