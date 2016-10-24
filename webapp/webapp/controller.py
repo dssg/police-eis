@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 import pandas as pd
 from webapp import app
 from webapp import query
-
+import time
 #DBSession = sessionmaker(bind=engine)
 #session = DBSession()
 
@@ -40,6 +40,16 @@ def search_best_models():
         print('there are some problems')
         return jsonify({"sorry": "Sorry, no results! Please try again."}), 500
 
+@app.route('/evaluations/<int:model_id>/individual',methods=['GET','POST'])
+def get_model_individual(model_id):
+    tic = time.time()
+    output = query.get_model_prediction(id=model_id)
+    print("Query Time: ", time.time() - tic)
+    return render_template('individual.html',tables=[output.to_html(classes='bestmodels')])
+    #output.to_dict('records')
+    #return jsonify(results=(output))
+    #return render_template('individual.html')
+
 @app.route('/evaluations/within_model',methods=['GET','POST'])
 def within_model():
     return render_template('within_model.html')
@@ -48,8 +58,4 @@ def within_model():
 def between_models():
     return render_template('between_models.html')
 
-@app.route('/evaluations/<int:model_id>/individual',methods=['GET','POST'])
-def get_model_individual(model_id):
-    output = query.get_model_prediction(id=model_id)
-    return render_template('individual.html',tables=[output.to_html(classes='bestmodels')])
-    #return render_template('individual.html')
+
