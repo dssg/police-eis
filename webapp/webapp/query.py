@@ -35,7 +35,7 @@ def get_best_models(timestamp, metric, parameter=None, number=25):
     --------------------------------------------------------
     """
     if parameter is None:
-        query = ("SELECT run_time, model_type, metric, parameter, value FROM results.evaluations JOIN results.models "
+        query = ("SELECT results.evaluations.model_id, run_time, model_type, metric, parameter, value FROM results.evaluations JOIN results.models "
                  "ON evaluations.model_id=models.model_id "
                  "WHERE run_time >= '{}' "
                  "AND value is not null "
@@ -45,13 +45,23 @@ def get_best_models(timestamp, metric, parameter=None, number=25):
     elif parameter is not None:
         parameter = float(parameter)
         metric = metric + "@"
-        query = ("SELECT run_time, model_type, metric, parameter, value FROM results.evaluations JOIN results.models "
+        query = ("SELECT results.evaluations.model_id, run_time, model_type, metric, parameter, value FROM results.evaluations JOIN results.models "
                  "ON evaluations.model_id=models.model_id "
                  "WHERE run_time >= '{}' "
                  "AND value is not null "
                  "AND metric = '{}' "
                  "AND parameter = '{}' "
                  "ORDER BY value DESC LIMIT {} ; ").format(timestamp, metric, parameter, number)
+
+    df_models = pd.read_sql(query, con=dbengine)
+    output = df_models
+    return output
+
+
+def get_model_prediction(id):
+    query = ("SELECT unit_id, unit_score, label_value FROM results.predictions "
+             "WHERE model_id = '{}' "
+             "ORDER BY unit_score DESC LIMIT 50 ; ".format(id))
 
     df_models = pd.read_sql(query, con=dbengine)
     output = df_models

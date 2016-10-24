@@ -30,9 +30,8 @@ def search_best_models():
         else:
             number = request.form['number']
 
-    #timestamp = '2016-08-03'
     output = query.get_best_models(timestamp=timestamp, metric=metric, parameter=parameter, number=number)
-    print(output)
+    #print(output)
     #return render_template('index.html',tables=[output.to_html(classes='bestmodels')], number=number, parameter=parameter)
     try:
         output = output.to_dict('records')
@@ -41,14 +40,16 @@ def search_best_models():
         print('there are some problems')
         return jsonify({"sorry": "Sorry, no results! Please try again."}), 500
 
-@app.route('/evaluations/within_models',methods=['GET','POST'])
-def within_models():
-    return render_template('within_models.html')
+@app.route('/evaluations/within_model',methods=['GET','POST'])
+def within_model():
+    return render_template('within_model.html')
 
 @app.route('/evaluations/between_models',methods=['GET','POST'])
 def between_models():
     return render_template('between_models.html')
 
-@app.route('/evaluations/individual',methods=['GET','POST'])
-def get_model_individual():
-    return render_template('individual.html')
+@app.route('/evaluations/<int:model_id>/individual',methods=['GET','POST'])
+def get_model_individual(model_id):
+    output = query.get_model_prediction(id=model_id)
+    return render_template('individual.html',tables=[output.to_html(classes='bestmodels')])
+    #return render_template('individual.html')
