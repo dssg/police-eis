@@ -73,7 +73,7 @@ BEGIN
       ON ' || partition_name || '(event_datetime)';
 
 
-    RAISE NOTICE 'A partition has been created %', partition_name;
+    RAISE NOTICE 'A partition has been created %%', partition_name;
   END IF;
 
   EXECUTE 'INSERT INTO ' || partition_name || ' VALUES ($1.*)' USING NEW;
