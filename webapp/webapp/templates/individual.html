@@ -9,7 +9,7 @@
 <div>
 <ul class="nav nav-tabs">
   <li class="active"><a href="{{url_for('index')}}">Models Search</a></li>
-  <li><a href="{{url_for('within_models')}}">Within Models Comparison</a></li>
+  <li><a href="{{url_for('within_model')}}">Within Models Comparison</a></li>
   <li><a href="{{url_for('between_models')}}">Between Models Comparison</a></li>
 </ul>
 </div>
@@ -17,7 +17,12 @@
 <div class="container">
 <div class="row">
     <h3>Individual Predictions</h3>
-    <p>Coming Soon!</p>
 </div>
+<div class="row">
+    {% for table in tables %}
+    {{ table|safe }}
+    {% endfor %}
+</div>
+
 </div>
 {% endblock %}

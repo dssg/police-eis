@@ -29,13 +29,15 @@ $(function() {
                 console.log(data.length);
                 // loop through results, append to dom
                 for (i = 0; i < data.length; i++) {
+                    var url =  flask_util.url_for("get_model_individual", {model_id:data[i]['model_id']});
                     $("#results").append('<tr><th>'+(i+1)
-                                          +'</th><td><a href="'+'/evaluations/individual">'
-                                          +data[i]['run_time']+'</a></td><td>'
+                                          +'</th><td><a href="'+ url +'" method="post">'
+                                          +data[i]['model_id']+'</a></td><td>'
+                                          +data[i]['run_time']+'</td><td>'
                                           +data[i]['model_type']+'</td><td>'
                                           +data[i]['metric']+'</td><td>'
                                           +data[i]['parameter']+'</td><td>'
-                                          +data[i]['value'].toPrecision(4)+'</tr>')
+                                          +data[i]['value'].toPrecision(4)+'</tr>');
                 };
             }
         });

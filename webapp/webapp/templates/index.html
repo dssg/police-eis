@@ -9,7 +9,7 @@
 <div>
 <ul class="nav nav-tabs">
   <li class="active"><a href="{{url_for('index')}}">Models Search</a></li>
-  <li><a href="{{url_for('within_models')}}">Within-Model Comparison</a></li>
+  <li><a href="{{url_for('within_model')}}">Within-Model Comparison</a></li>
   <li><a href="{{url_for('between_models')}}">Between-Models Comparison</a></li>
 </ul>
 </div>
@@ -43,6 +43,7 @@
       <thead>
         <tr>
           <th>&nbsp; &nbsp; &nbsp;</th>
+          <th>Model ID</th>
           <th>Run Time</th>
           <th>Model Type</th>
           <th>Metric</th>
