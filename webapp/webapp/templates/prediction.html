@@ -1,0 +1,31 @@
+{% extends "_base.html" %}
+
+{% block content %}
+
+<div class="container">
+<div class="row">
+<button href="{{url_for('index')}}" onclick="goBack()" class="btn btn-primary">Back to Search</button>
+<script>
+function goBack() {
+    window.history.back();
+}
+</script>
+</div>
+
+<div class="row">
+<ul id="navigation" class="nav nav-tabs">
+    {% for href, id, caption in navigation_bar %}
+        <li{% if id == active_page %} class="active"{% endif
+        %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+    {% endfor %}
+</ul>
+</div>
+
+<div class="row">
+    {% for table in tables %}
+    {{ table|safe }}
+    {% endfor %}
+</div>
+
+</div>
+{% endblock %}

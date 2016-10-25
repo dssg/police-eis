@@ -33,19 +33,13 @@
         </div>
 
       {% endfor %}
+
       {% set navigation_bar = [
-      ('/', 'index', 'Models Search'),
+      ('/evaluations/individual', 'individual', 'Individual Prediction'),
       ('/evaluations/within_model', 'within_model', 'Within-Model Comparison'),
       ('/evaluations/between_models', 'between_models', 'Between-Models Comparison')
       ] -%}
       {% set active_page = active_page|default('index') -%}
-
-      <ul id="navigation" class="nav nav-tabs">
-          {% for href, id, caption in navigation_bar %}
-          <li{% if id == active_page %} class="active"{% endif
-          %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
-      {% endfor %}
-      </ul>
 
       <!-- child template -->
       {% block content %}

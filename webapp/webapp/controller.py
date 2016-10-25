@@ -40,12 +40,12 @@ def search_best_models():
         print('there are some problems')
         return jsonify({"sorry": "Sorry, no results! Please try again."}), 500
 
-@app.route('/evaluations/<int:model_id>/individual',methods=['GET','POST'])
-def get_model_individual(model_id):
+@app.route('/evaluations/<int:model_id>/prediction',methods=['GET','POST'])
+def get_model_prediction(model_id):
     tic = time.time()
     output = query.get_model_prediction(id=model_id)
     print("Query Time: ", time.time() - tic)
-    return render_template('individual.html',tables=[output.to_html(classes='bestmodels')])
+    return render_template('prediction.html',tables=[output.to_html(classes='bestmodels')])
     #output.to_dict('records')
     #return jsonify(results=(output))
     #return render_template('individual.html')

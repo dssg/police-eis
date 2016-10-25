@@ -2,6 +2,11 @@
 {% set active_page = "within_model" %}
 {% block content %}
 
-
+<ul id="navigation" class="nav nav-tabs">
+    {% for href, id, caption in navigation_bar %}
+    <li{% if id == active_page %} class="active"{% endif
+    %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+    {% endfor %}
+</ul>
 
 {% endblock %}
