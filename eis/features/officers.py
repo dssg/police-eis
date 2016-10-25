@@ -2193,14 +2193,28 @@ class ThresholdCombinedFlag(abstract.OfficerFeature):
 
 class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { 'JU-WEAP': 'juvenile weapon',
-                            'OR-10-18': 'urgent assistance',
-                            'SC-RPE': 'sexual assault',
-                            'SU-P/ATT': 'suicide attempt',
-                            'VC-VCTF': 'violent crimes task force',
-                            'WP-FBF': 'weapon firearm felon',
-                            'WP-PRSN': 'armed person',
-                            'WP-SHOTS': 'discharging a firearm'
+        self.categories = { 0 : '911',
+                            2:  'theft',
+                            3:  'domestic_disturb',
+                            4:  'person_wweapon',
+                            5:  'assault',
+                            6:  'shooting',
+                            7:  'suicide',
+                            8:  'kidnap',
+                            9:  'disorder',
+                            10:  'rape_related',
+                            11:  'safety_hazard',
+                            12:  'want_officer',
+                            13:  'criminal_vice',
+                            14:  'intoxicated',
+                            15:  'missing_person',
+                            16:  'prisioner_escapee',
+                            17:  'gang_activity',
+                            18:  'injury',
+                            19:  'riot',
+                            20:  'suspucious',
+                            21:  'stabbing',
+                            22:  'other'
                             }
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of dispatches of different type aggregated over time")
@@ -2211,7 +2225,7 @@ class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
                       "         JOIN staging.dispatches "
                       "         ON events_hub.event_id = dispatches.event_id "
                       "         WHERE event_type_code=5 "
-                      "         AND dispatch_final_type = '{4}' "
+                      "         AND dispatch_type_code = '{4}' "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
