@@ -1,0 +1,45 @@
+{% extends "_base.html" %}
+{% block content %}
+
+<div class="container">
+<div class="row">
+<button onclick="window.location.href='{{url_for('index')}}'" class="btn btn-primary">Back to Search</button>
+</div>
+
+
+
+<div id="tabs">
+    <ul class="nav nav-tabs" id="prodTabs">
+        <li class="active"><a href="#tab_model">Model Prediction</a></li>
+        <li><a href="#tab_individual" data-url="?action=individual">Individul Prediction</a></li>
+        <li><a href="#tab_within" data-url="">Within-Model Comparison</a></li>
+        <li><a href="#tab_between" data-url="">Between-Models Comparison</a></li>
+    </ul>
+    <div class="tab-content">
+        <div id="tab_model" class="tab-pane active">
+            <div class="row">
+                {% for table in tables %}
+                {{ table|safe }}
+                {% endfor %}
+            </div>
+        </div>
+        <div id="tab_individual" class="tab-pane active"></div>
+        <div id="tab_within" class="tab-pane active"></div>
+        <div id="tab_between" class="tab-pane active"></div>
+    </div>
+</div>
+
+<!--
+<div class="row">
+<ul id="navigation" class="nav nav-tabs">
+    {% for href, id, caption in navigation_bar %}
+        <li{% if id == active_page %} class="active"{% endif
+        %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+    {% endfor %}
+</ul>
+</div>
+-->
+
+
+</div>
+{% endblock %}

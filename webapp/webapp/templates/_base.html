@@ -34,13 +34,15 @@
 
       {% endfor %}
 
+      <!--
       {% set navigation_bar = [
+      ('/evaluations/model','model', 'Model Prediction'),
       ('/evaluations/individual', 'individual', 'Individual Prediction'),
       ('/evaluations/within_model', 'within_model', 'Within-Model Comparison'),
       ('/evaluations/between_models', 'between_models', 'Between-Models Comparison')
       ] -%}
-      {% set active_page = active_page|default('index') -%}
-
+      {% set active_page = active_page|default('model') -%}
+      -->
       <!-- child template -->
       {% block content %}
       {% endblock %}

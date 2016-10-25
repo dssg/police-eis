@@ -1,12 +1,10 @@
-$("#results-table").hide();
-
 $(function(){
     $('#timestamp').combodate({
           minYear: 2016,
           maxYear: moment().format('YYYY')
     });
 });
-
+$("#results-table").hide();
 $(function() {
     $("#GoButton").click(function() {
         $("#results").empty();
@@ -40,3 +38,15 @@ $(function() {
         });
     });
 
+
+var choices = ["precision", "recall", "auc", "f1", "true positives", "true negatives", "false positives", "false negatives"];
+var m = 1;
+function addInput(divName) {
+    var input = $("<input/>").attr({type:"text", name:"parameter"+m.toString(), size:"3"});
+    var select = $("<select/>").attr("name","metric"+m.toString());
+    $.each(choices, function(a, b) {
+        select.append($("<option/>").attr("value", b).text(b));
+    });
+    $("#" + divName).append(select).append(" @ ").append(input).append(" % ").append("</br>")
+    m = m + 1
+}

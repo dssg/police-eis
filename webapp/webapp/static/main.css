@@ -8,7 +8,7 @@ table.dataframe, .dataframe th, .dataframe td {
     font-size: 1.0em;
 }
 
-tr:hover            { background-color: #cce6ff;}
+tr:hover { background-color: #cce6ff;}
 
 
 
@@ -19,5 +19,5 @@ tr:hover            { background-color: #cce6ff;}
 
 .headrow{
     margin-top:15px;
-    margin-bottom:30px;
+    margin-bottom:5px;
 }
