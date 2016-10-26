@@ -365,5 +365,5 @@ lookup_field_interview_type:
     columns: ['code', 'value', 'description']
     rows: 
         - [0, 'fi', 'Field Interviews']
-	- [1, 'terry', 'Terry Stop Type']
-	- [2, 'home', 'Home Interview']
+        - [1, 'terry', 'Terry Stop Type']
+        - [2, 'home', 'Home Interview']
