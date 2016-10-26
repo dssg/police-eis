@@ -360,3 +360,10 @@ lookup_dispatch_types:
         - [20, 'suspucious', 'Suspucious person']
         - [21, 'stabbing', 'Cutting / Stabbing']
         - [22, 'other', 'Other']
+
+lookup_field_interview_type:
+    columns: ['code', 'value', 'description']
+    rows: 
+        - [0, 'fi', 'Field Interviews']
+	- [1, 'terry', 'Terry Stop Type']
+	- [2, 'home', 'Home Interview']
