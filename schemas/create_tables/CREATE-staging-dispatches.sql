@@ -26,6 +26,7 @@ CREATE UNLOGGED TABLE staging.dispatches (
 	sequence_assigned													  int,
 	sequence_arrived													  int,
 	units_assigned														  int,
-	units_arrived														  int
+	units_arrived														  int,
+	dispatch_category 							varchar		-- officer/civilian/alarm iniciated
 );
 

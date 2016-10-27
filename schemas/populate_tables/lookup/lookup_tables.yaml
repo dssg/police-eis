@@ -322,6 +322,8 @@ lookup_traffic_stop_type:
         - [7, 'equipment_violation', 'Vehicle equipment issues']
         - [8, 'checkpoint', 'Checkpoints']
         - [9, 'other', 'Other traffic stop reason']
+
+
 lookup_traffic_stop_outcome_type:
     columns: ['code', 'value', 'description']
     rows:
@@ -331,3 +333,37 @@ lookup_traffic_stop_outcome_type:
         - [3, 'written_warning', 'Written warning']
         - [4, 'none', 'Nothing']
         - [5, 'unknown', 'Unknown']
+
+lookup_dispatch_types:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, '911', '911 hang up, wireless, nuisence, busy']
+        - [1, 'bomb_threat', 'Bomb threat related']
+        - [2, 'theft', 'Theft / burlary / robbery / holdup']
+        - [3, 'domestic_disturb', 'Domestic Disturbance / Report']
+        - [4, 'person_wweapon', 'Person with weapon']
+        - [5, 'assault', 'Fight / Assault']
+        - [6, 'shooting', 'Shooting / Shots Fired']
+        - [7, 'suicide', 'Suicidal Person / Report']
+        - [8, 'kidnap', 'Kidnapping Report']
+        - [9, 'disorder', 'Mental Illness / Disorderly person / Report / indecent']
+        - [10, 'rape_related', 'Rape related / prowler']
+        - [11, 'safety_hazard', 'safety hazard']
+        - [12, 'want_officer', 'Want officer']
+        - [13, 'criminal_vice', 'Criminal Vice related']
+        - [14, 'intoxicated', 'Intoxicated person']
+        - [15, 'missing_person', 'Missing person']
+        - [16, 'prisioner_escapee', 'Prisioner Escapee']
+        - [17, 'gang_activity', 'Gang activity']
+        - [18, 'injury', 'Injury Accident']
+        - [19, 'riot', 'Riot']
+        - [20, 'suspucious', 'Suspucious person']
+        - [21, 'stabbing', 'Cutting / Stabbing']
+        - [22, 'other', 'Other']
+
+lookup_field_interview_type:
+    columns: ['code', 'value', 'description']
+    rows: 
+        - [0, 'fi', 'Field Interviews']
+        - [1, 'terry', 'Terry Stop Type']
+        - [2, 'home', 'Home Interview']
