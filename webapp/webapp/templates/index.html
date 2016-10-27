@@ -12,7 +12,7 @@
 <div class="container">
 <div class="row">
     <div class="col-md-8">
-        <form method="post" role ="form">
+        <form method="post" role="form" id="form_arg">
             <div class="row">
               Show <input type="text" name="number" size="4" value="20"> models with columns of
             </div>
@@ -34,17 +34,18 @@
     </div>
 </div>
 
+
 <div class="row">
     <table class="table" id="results-table">
       <thead>
         <tr>
           <th>&nbsp; &nbsp; &nbsp;</th>
           <th>Model ID</th>
-          <th>Model Type</th>
-          <th>Run Time</th>
+          <th>precision@5.0</th>
+<!--          <th>Run Time</th>
           <th>Metric</th>
           <th>Parameter</th>
-          <th>Value</th>
+          <th>Value</th> -->
         </tr>
       </thead>
       <tbody id="results">
@@ -55,12 +56,11 @@
 
 
 
-
-<!--<div class="row">
+<div class="row">
     {% for table in tables %}
     {{ table|safe }}
     {% endfor %}
-</div>-->
+</div>
 
 
 {% endblock %}

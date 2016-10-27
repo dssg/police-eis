@@ -66,3 +66,37 @@ def get_model_prediction(id):
     df_models = pd.read_sql(query, con=dbengine)
     output = df_models
     return output
+
+
+def get_models(query_arg):
+    print("number: ", query_arg['number'])
+    print("timestamp: ", query_arg['timestamp'])
+    print("metric: ", query_arg['metric'])
+
+    def subquery(metric_arg):
+        metric = metric_arg[0]
+        parameter = metric_arg[1]
+        subquery = ("SELECT model_id, value as \"{}\" FROM results.evaluations "
+                    "WHERE metric='{}' and parameter='{}' ").format(metric+parameter,metric, parameter)
+        return subquery
+
+    #print(subquery(query_arg['metric'][0]))
+    #df_models = pd.read_sql(subquery(query_arg['metric'][0]), con=dbengine)
+    #output = df_models
+    head = "SELECT t0.model_id, t0.\"{}\" as \"{}\" ".format("".join(query_arg['metric'][0]),"".join(query_arg['metric'][0]))
+    t = "FROM ({}) t0 ".format(subquery(query_arg['metric'][0]))
+    subt = ""
+    for q in range(len(query_arg['metric'])-1):
+        subt = subt + " inner join " + "("+ subquery(query_arg['metric'][q+1]) + ") " + 't'+str(q+1) + " on " + 't0' + ".model_id="+'t'+str(q+1)+".model_id "
+        head = head + ', t'+str(q+1) + ".\"" + "".join(query_arg['metric'][q+1]) + "\" as \"" + "".join(query_arg['metric'][q+1]) +"\""
+
+    final_query = head + t + subt + "LIMIT 30; "
+    df_models = pd.read_sql(final_query, con=dbengine)
+    output = df_models
+    print(output)
+    #query = ("SELECT ")
+    return output
+
+
+
+
