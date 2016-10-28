@@ -1,13 +1,14 @@
-DROP TABLE IF EXISTS staging.addresses; 
+DROP TABLE IF EXISTS staging.addresses;
 CREATE UNLOGGED TABLE staging.addresses (
-	address_id                                                            serial PRIMARY KEY ,                --
-	department_defined_reference_id										  varchar UNIQUE,
-	street_address                                                        text,               --street address 
-	second_street_address                                                 text,               --unit/apartment
-	city                                                                  text,               --city
-	zip                                                                   int,                --zip code
-	state                                                                 text,               --state
-	latitude                                                              numeric,            --
-	longitude                                                             numeric,            --
-	hundreds_block                                                        text                --
+  address_id                      SERIAL PRIMARY KEY, --
+  department_defined_reference_id VARCHAR UNIQUE,
+  street_address                  TEXT, --street address
+  second_street_address           TEXT, --unit/apartment
+  city                            TEXT, --city
+  zip                             INT, --zip code
+  state                           TEXT, --state
+  latitude                        NUMERIC, --
+  longitude                       NUMERIC, --
+  hundreds_block                  TEXT, --
+  geom                            GEOMETRY(POINT, 4326)
 );

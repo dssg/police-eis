@@ -1,8 +1,8 @@
-DROP TABLE IF EXISTS staging.dispatches CASCADE ;
+DROP TABLE IF EXISTS staging.dispatches CASCADE;
 CREATE UNLOGGED TABLE staging.dispatches (
   event_id                        INT REFERENCES staging.events_hub (event_id), --Primary key (cannot be passed on in partitions, would require advisory lock when inserting)
   dispatch_id                     BIGINT, --
-  dispatch_address_id             INT, --
+  dispatch_address_id             INT REFERENCES staging.addresses (address_id), --
   police_area_id                  INT, --
   unit_division                   VARCHAR,
   unit_beat                       VARCHAR,
@@ -28,5 +28,7 @@ CREATE UNLOGGED TABLE staging.dispatches (
   units_assigned                  INT,
   units_arrived                   INT,
   dispatch_category               VARCHAR,
-  event_datetime                  TIMESTAMP
+  event_datetime                  TIMESTAMP,
+  officer_id                      INT REFERENCES staging.officers_hub (officer_id)
+
 );
