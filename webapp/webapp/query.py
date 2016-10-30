@@ -69,10 +69,11 @@ def get_model_prediction(id):
 
 
 def get_models(query_arg):
+
     print("number: ", query_arg['number'])
     print("timestamp: ", query_arg['timestamp'])
     print("metric: ", query_arg['metric'])
-
+    '''
     def subquery(metric_arg):
         metric = metric_arg[0]
         parameter = metric_arg[1]
@@ -92,6 +93,23 @@ def get_models(query_arg):
 
     final_query = head + t + subt + "LIMIT 30; "
     df_models = pd.read_sql(final_query, con=dbengine)
+    '''
+    query_metric =''
+    for q in range(len(query_arg['metric'])):
+        query_metric += 'new_metric=$$'+query_arg['metric'][q]+'$$ or '
+
+    #print(query_metric[:-3])
+
+    query = ("BEGIN; "
+             "SELECT public.colpivot(\'test\', \'SELECT * FROM "
+             "(SELECT model_id, metric || parameter as new_metric, value "
+             "FROM cmpd_2015.results.evaluations) t0 where new_metric NOTNULL and "
+             "{}\', "
+             "array['model_id'], array['new_metric'],'#.value',null); "
+             "select * from test limit 30; ").format(query_metric[:-3])
+    print(query)
+             #"rollback; ")
+    df_models = pd.read_sql(query, con=dbengine)
     output = df_models
     print(output)
     #query = ("SELECT ")
