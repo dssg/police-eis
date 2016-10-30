@@ -37,16 +37,7 @@
 
 <div class="row">
     <table class="table" id="results-table">
-      <thead>
-        <tr>
-          <th>&nbsp; &nbsp; &nbsp;</th>
-          <th>Model ID</th>
-          <th>precision@5.0</th>
-<!--          <th>Run Time</th>
-          <th>Metric</th>
-          <th>Parameter</th>
-          <th>Value</th> -->
-        </tr>
+      <thead id="results-head">
       </thead>
       <tbody id="results">
       </tbody>
@@ -54,13 +45,20 @@
 </div>
 </div>
 
-
-
+<!--        <tr>
+          <th>&nbsp; &nbsp; &nbsp;</th>
+          <th>Model ID</th>
+          <th>Run Time</th>
+          <th>Metric</th>
+          <th>Parameter</th>
+          <th>Value</th>
+        </tr>-->
+<!--
 <div class="row">
     {% for table in tables %}
     {{ table|safe }}
     {% endfor %}
 </div>
-
+-->
 
 {% endblock %}

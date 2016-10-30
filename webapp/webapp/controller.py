@@ -26,18 +26,18 @@ def search_models():
             parameter.append(key)
         elif 'metric' in key:
             metric.append(key)
-    mp = [(f[m]+'@', str(float(f[p]))) for m, p in zip(sorted(metric),sorted(parameter))]
+    mp = [f[m]+'@'+str(float(f[p])) for m, p in zip(sorted(metric),sorted(parameter))]
     query_arg['number'] = f['number']
     query_arg['timestamp'] = f['timestamp']
     query_arg['metric'] = mp
 
     output = query.get_models(query_arg)
-
     #print(output)
-    #return render_template('index.html',tables=[output.to_html(classes='bestmodels')])
     try :
         output = output.to_dict('records')
+        #print(output)
         return jsonify(results=(output))
+        #return render_template('index.html',tables=[output.to_html(classes='bestmodels')])
     except:
         print('there are some problems')
         return jsonify({"sorry": "Sorry, no results! Please try again."}), 500
