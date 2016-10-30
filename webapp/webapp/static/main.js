@@ -38,20 +38,29 @@ $(function() {
                 var data = result.results;
                 // show table
                 $("#results-table").show();
-                console.log(data);
+                var head = Object.keys(data[0]);
+                head.splice(head.indexOf('model_id'),1);
+                //console.log(head);
+                var results_head = '';
+                for (j=0; j< head.length; j++) {
+                    results_head = results_head.concat('<th>'+head[j]+'</th>');
+                };
+                //console.log(results_head)
+                $("#results-head").append('<tr><th>&nbsp; &nbsp; &nbsp;</th>' + '<th>Model ID</th>' + results_head + '</tr>')
                 // loop through results, append to dom
                 for (i = 0; i < data.length; i++) {
                     var url =  flask_util.url_for("get_model_prediction", {model_id:data[i]['model_id']});
-                    $("#results").append('<tr><th>'+(i+1)
-                                          +'</th><td><a href="'
+                    var columns = '';
+                    for (j=0; j< head.length; j++) {
+                        columns = columns.concat('<td>'+data[i][head[j]].toPrecision(4)+'</td>');
+                    };
+                    //console.log(columns)
+                        $("#results").append('<tr><td>'+(i+1)
+                                          +'</td><td><a href="'
                                           + url
                                           +'" method="post">'
-                                          +data[i]['model_id']+'</td><td>'
-                                          +data[i]['precision@5.0']+'</td><td>' + '</tr>'
-                                   //       +data[i]['run_time']+'</td><td>'
-                                   //       +data[i]['metric']+'</td><td>'
-                                   //       +data[i]['parameter']+'</td><td>'
-                                   //       +data[i]['value'].toPrecision(4)+'</tr>'
+                                          +data[i]['model_id']+'</td>'
+                                          +columns + '</tr>'
                                    );
                 };
             }
@@ -68,5 +77,14 @@ function addInput(divName) {
         select.append($("<option/>").attr("value", b).text(b));
     });
     $("#" + divName).append(select).append(" @ ").append(input).append(" % ").append("</br>")
+    console.log(divName)
     m = m + 1
+}
+
+function addMetric(divName) {
+  console.log("addmetric!")
+  select.attr("onchange","addMetric('dynamicInput')")
+  if ($("#" + divName + " option:selected") == "precision") {
+    $("#" + divName).append(" @ ").append(input).append(" % ");
+  }
 }
