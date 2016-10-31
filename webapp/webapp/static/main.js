@@ -26,6 +26,7 @@ $(function() {
 $(function() {
     $("#GoButton").click(function() {
         $("#results").empty();
+        $("#results-head").empty();
         $("#results-table").show();
         console.log("pressed!");
         $.ajax({
@@ -68,18 +69,53 @@ $(function() {
         });
     });
 
+
+$("body").on("click", ".delete", function (e) {
+  $(this).closest("div").remove();
+});
+
 var m = 0
 var choices = ["precision", "recall", "auc", "f1", "true positives", "true negatives", "false positives", "false negatives"];
 function addInput(divName) {
     var input = $("<input/>").attr({type:"text", name:"parameter"+ m.toString(), size:"3"});
     var select = $("<select/>").attr("name","metric"+ m.toString());
+    var button = "<button class='btn btn-xs btn-danger delete'>-</button>"
+    var div = $("<div>")
     $.each(choices, function(a, b) {
         select.append($("<option/>").attr("value", b).text(b));
     });
-    $("#" + divName).append(select).append(" @ ").append(input).append(" % ").append("</br>")
-    console.log(divName)
-    m = m + 1
+    //select.wrap("<div></div>");
+    console.log(div.append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>"));
+    $("#"+divName).append(div);//append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>");
+    console.log($("#"+divName));
+    m = m + 1;
 }
+
+
+$(function()
+{
+    $(document).on('click', '.btn-add', function(e)
+    {
+        e.preventDefault();
+
+        var controlForm = $('.controls form:first'),
+            currentEntry = $(this).parents('.entry:first'),
+            newEntry = $(currentEntry.clone()).appendTo(controlForm);
+
+        newEntry.find('input').val('');
+        controlForm.find('.entry:not(:last) .btn-add')
+            .removeClass('btn-add').addClass('btn-remove')
+            .removeClass('btn-success').addClass('btn-danger')
+            .html('<span class="glyphicon glyphicon-minus"></span>');
+    }).on('click', '.btn-remove', function(e)
+    {
+    $(this).parents('.entry:first').remove();
+
+    e.preventDefault();
+    return false;
+  });
+});
+
 
 function addMetric(divName) {
   console.log("addmetric!")
