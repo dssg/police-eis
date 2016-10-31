@@ -12,11 +12,12 @@
 <div class="container">
 
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-3">
         <form method="post" role="form" id="form_arg">
             <div class="row">
-              Show <input type="text" name="number" size="4" value="20"> models with columns of
+              Show <input type="text" name="number" size="4" value="20"> models
             </div>
+            <div class="row"> With columns of </div>
             <div class="row">
                 <div id="dynamicInput"></div>
             </div>
@@ -32,10 +33,19 @@
               <button type="button" class="btn btn-success btn-sm" id="GoButton">Go</button>
           </div>
         </form>
+      </div>
+    <div class="col-md-9">
+      <table class="table" id="results-table">
+        <thead id="results-head">
+        </thead>
+        <tbody id="results">
+        </tbody>
+      </table>
     </div>
+
 </div>
 
-
+<!--
 <div class="row">
     <table class="table" id="results-table">
       <thead id="results-head">
@@ -44,6 +54,7 @@
       </tbody>
     </table>
 </div>
+-->
 </div>
 
 <!--        <tr>
