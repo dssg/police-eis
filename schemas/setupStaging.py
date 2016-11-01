@@ -19,7 +19,8 @@ schema_in_file="staging"
 # priority. If there is no entry here, the priority will be 0
 table_priorities = {
     'officers_hub': 1000,
-    'events_hub': 999
+    'events_hub': 999,
+    'addresses': 998
     }
 
 def prioritize_tables(table_name, table_priorities=table_priorities):
