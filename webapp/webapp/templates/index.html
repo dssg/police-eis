@@ -11,11 +11,13 @@
 
 <div class="container">
 
+
+
 <div class="row">
     <div class="col-md-3">
         <form method="post" role="form" id="form_arg">
             <div class="row">
-              Show <input type="text" name="number" size="4" value="20"> models
+              Show <input type="text" name="number" size="4" value="200"> models
             </div>
             <div class="row"> With columns of </div>
             <div class="row">
@@ -35,26 +37,39 @@
         </form>
       </div>
     <div class="col-md-9">
-      <table class="table" id="results-table">
+      <div class="row">
+        <div class="col-md-12">
+          <div id="loader" style="margin:0 auto;" class="loader"></div>
+        </div>
+      </div>
+      <table class="table tablesorter-dropbox" id="results-table">
         <thead id="results-head">
         </thead>
         <tbody id="results">
         </tbody>
       </table>
+
+      <!-- pager -->
+      <div class="row pager">
+        <form id="pagerp">
+          <ul class="pagination pagination-sm">
+            <li class="prev"><a href="#">&laquo;</a></li>
+            <li><span class="pagedisplay"></span></li><!-- this can be any element, including an input -->
+            <li class="next"><a href="#">&raquo;</a></li>
+            <li><select class="pagesize">
+                  <option selected="selected" value="15">15</option>
+                  <option value="20">20</option>
+                  <option value="25">25</option>
+                  <option value="30">30</option>
+                  <!--<option value="all">All Rows</option>-->
+                </select></li>
+          </ul>
+        </form>
+      </div>
     </div>
+  </div>
 
-</div>
 
-<!--
-<div class="row">
-    <table class="table" id="results-table">
-      <thead id="results-head">
-      </thead>
-      <tbody id="results">
-      </tbody>
-    </table>
-</div>
--->
 </div>
 
 <!--        <tr>

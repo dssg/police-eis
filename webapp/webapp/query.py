@@ -106,7 +106,7 @@ def get_models(query_arg):
              "FROM cmpd_2015.results.evaluations) t0 where new_metric NOTNULL and "
              "{}\', "
              "array['model_id'], array['new_metric'],'#.value',null); "
-             "select * from test limit {}; ").format(query_metric[:-3], query_arg['number'])
+             "select * from test order by 2 desc; ").format(query_metric[:-3])#, query_arg['number'])
     #print(query)
              #"rollback; ")
     df_models = pd.read_sql(query, con=dbengine)
