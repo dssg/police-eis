@@ -27,7 +27,7 @@ CREATE UNLOGGED TABLE staging.dispatches (
   sequence_arrived                INT,
   units_assigned                  INT,
   units_arrived                   INT,
-  dispatch_category               VARCHAR,
+  dispatch_category               VARCHAR, -- officer/civilian/alarm initiated
   event_datetime                  TIMESTAMP,
   officer_id                      INT REFERENCES staging.officers_hub (officer_id)
 
