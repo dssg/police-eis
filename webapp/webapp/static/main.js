@@ -33,7 +33,6 @@ $(function() {
                 $("#results-table").show();
                 var head = Object.keys(data[0]);
                 head.splice(head.indexOf('model_id'),1);
-                //console.log(head);
                 var results_head = '';
                 for (j=0; j< head.length; j++) {
                     results_head = results_head.concat('<th>'+head[j]+'</th>');
@@ -47,15 +46,12 @@ $(function() {
                     for (j=0; j< head.length; j++) {
                         columns = columns.concat('<td>'+data[i][head[j]].toFixed(4)+'</td>');
                     };
-                    //console.log(columns)
                         $("#results").append('<tr>'
                                           +'<td><a href="'
                                           + url
                                           +'" method="post">'
                                           +data[i]['model_id']+'</td>'
-                                          +columns + '</tr>'
-                                   );
-                      };
+                                          +columns + '</tr>');};
                 $("#loader").hide();
                 $("#pagerp").show();
                 $("#results-table").trigger("updateAll").trigger("appendCache");
@@ -70,12 +66,13 @@ $("body").on("click", ".delete", function (e) {
   $(this).closest("div").remove();
 });
 
+// Dynamic form
 var m = 0
 var choices = ["precision", "recall", "auc", "f1", "true positives", "true negatives", "false positives", "false negatives"];
 function addInput(divName) {
     var input = $("<input/>").attr({type:"text", name:"parameter"+ m.toString(), size:"3"});
     var select = $("<select/>").attr("name","metric"+ m.toString());
-    var button = "<button class='btn btn-xs btn-danger delete'>-</button>"
+    var button = "<button class='btn btn-xs btn-danger delete'>X</button>"
     var div = $("<div>")
     $.each(choices, function(a, b) {
         select.append($("<option/>").attr("value", b).text(b));
@@ -130,7 +127,7 @@ $(function(){
     updateArrows: true,
 
     // starting page of the pager (zero based index)
-    page: 0,
+    page: 1,
 
     // Number of visible rows - default is 10
     size: 10,
@@ -197,39 +194,5 @@ $(function(){
     // initialize the pager plugin
     // ****************************
     .tablesorterPager(pagerOptions);
-
-    // Add two new rows using the "addRows" method
-    // the "update" method doesn't work here because not all rows are
-    // present in the table when the pager is applied ("removeRows" is false)
-    // ***********************************************************************
-    var r, $row, num = 50,
-      row = '<tr><td>Student{i}</td><td>{m}</td><td>{g}</td><td>{r}</td><td>{r}</td><td>{r}</td><td>{r}</td><td><button type="button" class="remove" title="Remove this row">X</button></td></tr>' +
-        '<tr><td>Student{j}</td><td>{m}</td><td>{g}</td><td>{r}</td><td>{r}</td><td>{r}</td><td>{r}</td><td><button type="button" class="remove" title="Remove this row">X</button></td></tr>';
-    $('button:contains(Add)').click(function(){
-      // add two rows of random data!
-      r = row.replace(/\{[gijmr]\}/g, function(m){
-        return {
-          '{i}' : num + 1,
-          '{j}' : num + 2,
-          '{r}' : Math.round(Math.random() * 100),
-          '{g}' : Math.random() > 0.5 ? 'male' : 'female',
-          '{m}' : Math.random() > 0.5 ? 'Mathematics' : 'Languages'
-        }[m];
-      });
-      num = num + 2;
-      $row = $(r);
-      $('table')
-        .find('tbody').append($row)
-        .trigger('addRows', [$row]);
-      return false;
-    });
-
-    // go to page 1 showing 10 rows
-    $('.goto').click(function(){
-      // triggering "pageAndSize" without parameters will reset the
-      // pager to page 1 and the original set size (10 by default)
-      // $('table').trigger('pageAndSize')
-      $('table').trigger('pageAndSize', [1, 10]);
-    });
 
 });

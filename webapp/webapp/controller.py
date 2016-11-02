@@ -27,7 +27,7 @@ def search_models():
         elif 'metric' in key:
             metric.append(key)
     mp = [f[m]+'@'+str(float(f[p])) for m, p in zip(sorted(metric),sorted(parameter))]
-    query_arg['number'] = f['number']
+    #query_arg['number'] = f['number']
     query_arg['timestamp'] = f['timestamp']
     query_arg['metric'] = mp
 
