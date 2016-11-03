@@ -1760,15 +1760,15 @@ class NumOfTrafficStopsByRace(abstract.TimeGatedCategoricalOfficerFeature):
 
 class NumOfTrafficStopsByStopType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { 0: 'checkpoint',
+        self.categories = { 0: 'investigative',
                             1: 'dwi',
-                            2: 'investigative_stop',
-                            3: 'traffic_safety_violation',
-                            4: 'speeding',
+                            2: 'parking_violation',
+                            3: 'safety_violation',
+                            4: 'regulatory_violation',
                             5: 'seatbelt_violation',
-                            6: 'stoplight_stopsign_violations',
-                            7: 'vehicle_issues',
-                            8: 'vehicle_registration',
+                            6: 'moving_violation',
+                            7: 'equipment_violation',
+                            8: 'checkpoint',
                             9: 'other' }
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of traffic stops made by the type of stop, time-gated periods")
@@ -2113,14 +2113,28 @@ class ThresholdCombinedFlag(abstract.OfficerFeature):
 
 class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { 'JU-WEAP': 'juvenile weapon',
-                            'OR-10-18': 'urgent assistance',
-                            'SC-RPE': 'sexual assault',
-                            'SU-P/ATT': 'suicide attempt',
-                            'VC-VCTF': 'violent crimes task force',
-                            'WP-FBF': 'weapon firearm felon',
-                            'WP-PRSN': 'armed person',
-                            'WP-SHOTS': 'discharging a firearm'
+        self.categories = { 0 : '911',
+                            2:  'theft',
+                            3:  'domestic_disturb',
+                            4:  'person_wweapon',
+                            5:  'assault',
+                            6:  'shooting',
+                            7:  'suicide',
+                            8:  'kidnap',
+                            9:  'disorder',
+                            10:  'rape_related',
+                            11:  'safety_hazard',
+                            12:  'want_officer',
+                            13:  'criminal_vice',
+                            14:  'intoxicated',
+                            15:  'missing_person',
+                            16:  'prisioner_escapee',
+                            17:  'gang_activity',
+                            18:  'injury',
+                            19:  'riot',
+                            20:  'suspucious',
+                            21:  'stabbing',
+                            22:  'other'
                             }
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of dispatches of different type aggregated over time")
@@ -2128,7 +2142,7 @@ class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.dispatches "
-                      "         WHERE dispatch_final_type = '{4}' "
+                      "         WHERE dispatch_type_code = '{4}' "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
@@ -2234,8 +2248,8 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of unjustified use of force, time gated")
         self.query = ("UPDATE features.{0} feature_table "
-                      "         SET {1} = staging_table.count "
-                      "         FROM (SELECT officer_id, count(officer_id) "
+                      "         SET {1} = staging_table.count"
+                      "         FROM (SELECT officer_id, count(officer_id)"
                       "         FROM staging.incidents "
                       "         WHERE staging.incidents.grouped_incident_type_code = 20 "
                       "         AND event_datetime <= '{2}'::date "
@@ -2253,24 +2267,23 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
 
 
 
-## IMPORTANT: Change to point to staging
 class CountComplaintsTypeSource(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = {
-                            'Internal': 'internal',
-                            'External': 'external'}
+                             1 : 'internal',
+                             2 : 'external'}
         abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of complaints by type an officer had, time gated")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.count """
                       """FROM (   SELECT officer_id, count(officer_id) """
                       """         FROM staging.events_hub """
-                      """         JOIN cmpd_merged.tblsilog_eis AS silog """
-                      """         ON dispatch_id = staging.clean_silog_complaint_no(silog."ComplaintNo")"""
+                      """         JOIN staging.incidents """
+                      """         ON events_hub.event_id = incidents.event_id"""
                       """         WHERE event_type_code = 6 """
                       """         AND event_datetime <= '{2}'::date """
                       """         AND event_datetime >= '{2}'::date - interval '{3}' """
-                      """         AND "Source" = '{4}' """
+                      """         AND origination_type_code = {4} """
                       """         GROUP BY officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
@@ -2291,7 +2304,7 @@ class ComplaintsCount(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.events_hub "
-                      "         WHERE event_type_code=6 "
+                      "         WHERE event_type_code = 6 "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
@@ -2504,3 +2517,36 @@ class OfficerAvgNeighborhoodPatrolFeatures2(abstract.CategoricalOfficerFeature):
                                 self.COLUMN,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
+
+class ComplimentsToComplaintsRatio(abstract.TimeGatedOfficerFeature):
+    def __init__(self, **kwargs):
+        abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Ratio of internal compliments to complaints and officer has")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.ratio "
+                      "FROM (  "
+                      "   WITH compliments as ( "
+                      "      SELECT  officer_id, COUNT(officer_id)::float as num_compliments "
+                      "      FROM staging.events_hub as e "
+                      "         JOIN staging.officer_compliments as c "
+                      "            ON e.event_id = c.event_id "
+                      "      WHERE event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "      GROUP BY officer_id),  "
+                      "   complaints as ( "
+                      "      SELECT officer_id, COUNT(officer_id)::float  as num_complaints "
+                      "      FROM staging.events_hub "
+                      "      WHERE event_type_code = 6 "
+                      "        AND event_datetime <= '{2}'::date "
+                      "        AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "     GROUP BY officer_id )"
+                      "   SELECT compliments.officer_id, num_compliments/num_complaints "
+                      "   FROM  compliments "
+                      "   FULL OUTHER JOIN complaints "
+                      "   ON compliments.officer_id = complaints.officer_id"
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.fake_today.strftime(time_format),
+                              self.DURATION ))
+        self.set_null_counts_to_zero = True
+           

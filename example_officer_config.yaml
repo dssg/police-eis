@@ -155,12 +155,16 @@ officer_features:
     ComplaintsCount: True #Number of complaints an officer had, time gated
     SustainedComplaintsCount: True #Number of complaints an officer had, time gated
     NumberOfComplaintsOfType: True #Complaint type categorical feature, time gated
-    OfficerAvgNeighborhoodFeatures1: True #Average demographics of arrests for each officer part 1
-    OfficerAvgNeighborhoodFeatures2: True #Average demographics of arrests for each officer part 2
-    OfficerAvgNeighborhoodPatrolFeatures1: True #Average demographics of patrols for each officer parte 1
-    OfficerAvgNeighborhoodPatrolFeatures2: True #Average demographics of patrols for each officer parte 2
+    ComplimentsToComplaintsRatio: True #Ratio of internal compliments to complaints and officer has
 
-    TotalOutsideEmploymentHours: True #Extra duty feature
+    #############################
+    # Demographic Features
+    ############################
+    OfficerAvgNeighborhoodFeatures1: False #Average demographics of arrests for each officer part 1
+    OfficerAvgNeighborhoodFeatures2: False #Average demographics of arrests for each officer part 2
+    OfficerAvgNeighborhoodPatrolFeatures1: False #Average demographics of patrols for each officer parte 1
+    OfficerAvgNeighborhoodPatrolFeatures2: False #Average demographics of patrols for each officer parte 2
+
    
  
     ###################################################
