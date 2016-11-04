@@ -414,7 +414,7 @@ class FeatureLoader():
                                           self.end_date))
 
         # create the query to find all officer ID's associated with an adverse incident.
-        query_base = (  "SELECT officer_id "
+        query_base = (  "SELECT incidents.officer_id "
                         "FROM staging.events_hub "
                         "JOIN staging.incidents "
                         "ON staging.events_hub.event_id = staging.incidents.event_id " )
@@ -496,6 +496,8 @@ class FeatureLoader():
         # pull in all the officer_ids to use for labelling
         all_officers = pd.read_sql(query_all_officers, con=db_conn).drop_duplicates()
 
+        log.debug("Query labels: {}".format(query_labels))
+
         # pull in the officer_ids of officers who had adverse incidents
         adverse_officers = pd.read_sql(query_labels, con=db_conn).drop_duplicates()
         adverse_officers["adverse_by_ourdef"] = 1
@@ -531,6 +533,8 @@ class FeatureLoader():
                   "table_name": self.table_name,
                   "feat_time_window": 0}
 
+        log.debug("Staring loader {},{}".format(feature_to_load,ids_to_use))
+
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
             id_column = 'officer_id'
@@ -563,6 +567,8 @@ class FeatureLoader():
             returns(pd.DataFrame): dataframe of the feature values indexed by officer_id or dispatch_id
             """
 
+        log.debug("Staring loader {},{}".format(features_to_load, ids_to_use))
+
         feature_name_list = ', '.join(features_to_load)
 
         # select the appropriate id column and feature table name for this feature type
@@ -581,6 +587,8 @@ class FeatureLoader():
                         self.table_name,
                         self.start_date,
                         self.end_date))
+
+        log.debug("Query: {}".format(query))
 
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
@@ -612,7 +620,7 @@ class FeatureLoader():
 
         # -1 in feature count is b/c 'label' is also a column, but not a feature
         log.debug("... {} rows, {} features".format(len(results),
-                                                    len(results.columns) - 1))
+                                                    len(results.columns)))
         return results
 
 
@@ -649,6 +657,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
+    log.debug("Calling FeatureLoader with: {},{},{},{}".format(start_date, end_date, time_bound, table_name))
     data = FeatureLoader(start_date, end_date, time_bound, table_name)
 
     # get the officer labels and make them the key in the dataframe.
