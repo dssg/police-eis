@@ -2142,7 +2142,7 @@ class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.dispatches "
-                      "         WHERE dispatch_type_code = '{4}' "
+                      "         WHERE dispatch_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
