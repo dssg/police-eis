@@ -2,32 +2,52 @@
 {% block content %}
 
 <div class="container">
+
 <div class="row">
-<button onclick="window.location.href='{{url_for('index')}}'" class="btn btn-primary">Back to Search</button>
+<button onclick="window.location.href='{{url_for('index')}}'" id="GoBack" class="btn btn-primary">Back to Search</button>
 </div>
 
-
-
+<div class="row>">
 <div id="tabs">
-    <ul class="nav nav-tabs" id="prodTabs">
-        <li class="active"><a href="#tab_model">Model Prediction</a></li>
-        <li><a href="#tab_individual" data-url="?action=individual">Individul Prediction</a></li>
-        <li><a href="#tab_within" data-url="">Within-Model Comparison</a></li>
-        <li><a href="#tab_between" data-url="">Between-Models Comparison</a></li>
+    <ul class="nav nav-tabs row" id="prodTabs">
+        <li class="active"><a href="#tab_model" data-toggle="tab">Model Prediction</a></li>
+        <li><a href="#tab_individual" data-toggle="tab">Individul Prediction</a></li>
+        <li><a href="#tab_within" data-toggle="tab">Within-Model Comparison</a></li>
+        <li><a href="#tab_between" data-toggle="tab">Between-Models Comparison</a></li>
     </ul>
     <div class="tab-content">
-        <div id="tab_model" class="tab-pane active">
+        <div id="tab_model" class="tab-pane fade in active">
             <div class="row">
                 {% for table in tables %}
                 {{ table|safe }}
                 {% endfor %}
             </div>
         </div>
-        <div id="tab_individual" class="tab-pane active"></div>
-        <div id="tab_within" class="tab-pane active"></div>
-        <div id="tab_between" class="tab-pane active"></div>
+        <div id="tab_individual" class="tab-pane fade"><p> content of tab_individual </p></div>
+        <div id="tab_within" class="tab-pane fade"><p> content of tab_within </p></div>
+        <div id="tab_between" class="tab-pane fade"><p> content of tab_between </p></div>
     </div>
 </div>
+</div>
+
+
+<div class="row pager">
+    <form id="pagerp_model">
+      <ul class="pagination pagination-sm">
+        <li class="prev"><a href="#">&laquo;</a></li>
+        <li><span class="pagedisplay"></span></li><!-- this can be any element, including an input -->
+        <li class="next"><a href="#">&raquo;</a></li>
+        <li><select class="pagesize">
+              <option selected="selected" value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="40">40</option>
+              <!--<option value="all">All Rows</option>-->
+            </select></li>
+      </ul>
+    </form>
+  </div>
+
 
 <!--
 <div class="row">

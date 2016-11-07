@@ -75,6 +75,7 @@ def search_best_models():
 def get_model_prediction(model_id):
     tic = time.time()
     output = query.get_model_prediction(id=model_id)
+    print("get_model_prediction")
     print("Query Time: ", time.time() - tic)
     return render_template('model.html',tables=[output.to_html(classes='bestmodels')])
     #output.to_dict('records')

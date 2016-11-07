@@ -1,6 +1,8 @@
 $(document).ready(function() {
   document.getElementsByTagName("html")[0].style.visibility = "visible";
+
 });
+
 
 $(function(){
     $('#timestamp').combodate({
@@ -9,7 +11,7 @@ $(function(){
     });
 });
 
-$("#results-table").hide();
+//$("#results-table").hide();
 $("#pagerp").hide();
 $("#loader").hide();
 
@@ -56,6 +58,7 @@ $(function() {
                 $("#pagerp").show();
                 $("#results-table").trigger("updateAll").trigger("appendCache");
                 $("#results-table").tablesorter();
+});
             }
         });
         });
@@ -172,7 +175,6 @@ $(function(){
   };
 
   $("table")
-
     // Initialize tablesorter
     // ***********************
     .tablesorter({
@@ -196,3 +198,11 @@ $(function(){
     .tablesorterPager(pagerOptions);
 
 });
+
+$( function() {
+    $( "#tabs" ).tabs();
+    $("#pagerp_model").hide();
+
+  });
+
+

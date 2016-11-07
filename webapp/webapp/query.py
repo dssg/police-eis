@@ -61,7 +61,7 @@ def get_best_models(timestamp, metric, parameter=None, number=25):
 def get_model_prediction(id):
     query = ("SELECT unit_id, unit_score, label_value FROM results.predictions "
              "WHERE model_id = '{}' "
-             "ORDER BY unit_score DESC LIMIT 100 ; ".format(id))
+             "ORDER BY unit_score DESC ; ".format(id))
 
     df_models = pd.read_sql(query, con=dbengine)
     output = df_models
