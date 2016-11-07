@@ -1,18 +1,19 @@
 DROP TABLE IF EXISTS staging.officer_shifts;
 CREATE UNLOGGED TABLE staging.officer_shifts (
-	shift_id                                                              serial,                --unique shift id
-	officer_id                                                            int references staging.officers_hub(officer_id) on delete cascade,                --officer id
-	start_datetime                                                        timestamp,          --datetime when the shift started
-	stop_datetime                                                         timestamp,          --datetime when the shift ended
-	shift_length                                                          interval,           --the length of the shift
-	shift_bodycam_code                                                    int,                --
-	shift_overtime_code                                                   int,                --
-	shift_type_code                                                       int,                --
-	shift_pay_multiplier                                                  float,              --
-	shift_body_armor_code                                                 int,                --
-	car_code                                                              int,                --
-	weapon_type_code                                                      int,                --
-	unit_type_code                                                        varchar,                --e.g. bomb squad, k9, swat, csi, mounted, cycle
-	hazard_code                                                           int,
-	police_area_id														  int
+  shift_id              SERIAL, --unique shift id
+  officer_id            INT REFERENCES staging.officers_hub (officer_id) ON DELETE CASCADE, --officer id
+  start_datetime        TIMESTAMP, --datetime when the shift started
+  stop_datetime         TIMESTAMP, --datetime when the shift ended
+  shift_length          INTERVAL, --the length of the shift
+  shift_bodycam_code    INT, --
+  shift_overtime_code   INT, --
+  shift_type_code       INT, --
+  shift_pay_multiplier  FLOAT, --
+  shift_body_armor_code INT, --
+  car_code              INT, --
+  weapon_type_code      INT, --
+  unit_type_code        VARCHAR, --e.g. bomb squad, k9, swat, csi, mounted, cycle
+  hazard_code           INT,
+  police_area_id        INT,
+  start_stop_range      TSRANGE
 );
