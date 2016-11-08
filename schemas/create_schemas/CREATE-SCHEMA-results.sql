@@ -37,3 +37,9 @@ CREATE TABLE results.data(
     pickle_blob                 									bytea
 );
 
+
+-- feature_importance table for storing a json with feature importances
+CREATE TABLE results.feature_importances(
+    model_id                                                                                            int references results.models(model_id),
+    feature_importance                                                                                  json
+);
