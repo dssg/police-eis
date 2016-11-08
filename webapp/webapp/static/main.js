@@ -29,7 +29,7 @@ $(function() {
             success: function(result) {
 
                 console.log("load data!");
-                console.log(result.results);
+                //console.log(result.results);
                 var data = result.results;
                 // show table
                 $("#results-table").show();
@@ -58,7 +58,6 @@ $(function() {
                 $("#pagerp").show();
                 $("#results-table").trigger("updateAll").trigger("appendCache");
                 $("#results-table").tablesorter();
-});
             }
         });
         });
@@ -81,9 +80,9 @@ function addInput(divName) {
         select.append($("<option/>").attr("value", b).text(b));
     });
     //select.wrap("<div></div>");
-    console.log(div.append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>"));
+    //console.log(div.append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>"));
     $("#"+divName).append(div);//append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>");
-    console.log($("#"+divName));
+    //console.log($("#"+divName));
     m = m + 1;
 }
 
@@ -200,9 +199,14 @@ $(function(){
 });
 
 $( function() {
-    $( "#tabs" ).tabs();
-    $("#pagerp_model").hide();
-
+    $("#tabs").tabs({ activate: function(event, ui) {
+        var $activeTab = $("#tabs").tabs('option', 'active');
+        console.log($activeTab)
+        if ($activeTab != 0 ) {
+            $("#pagerp_model").hide();
+        } else {$("#pagerp_model").show();}
+    }});
   });
+
 
 

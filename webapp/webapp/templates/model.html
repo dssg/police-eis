@@ -10,22 +10,22 @@
 <div class="row>">
 <div id="tabs">
     <ul class="nav nav-tabs row" id="prodTabs">
-        <li class="active"><a href="#tab_model" data-toggle="tab">Model Prediction</a></li>
-        <li><a href="#tab_individual" data-toggle="tab">Individul Prediction</a></li>
-        <li><a href="#tab_within" data-toggle="tab">Within-Model Comparison</a></li>
-        <li><a href="#tab_between" data-toggle="tab">Between-Models Comparison</a></li>
+        <li class="active" id="tab_model"><a href="#model" data-toggle="tab">Model Prediction</a></li>
+        <li id="tab_individual"><a href="#individual" data-toggle="tab">Individul Prediction</a></li>
+        <li id="tab_within"><a href="#within" data-toggle="tab">Within-Model Comparison</a></li>
+        <li id="tab_between"><a href="#between" data-toggle="tab">Between-Models Comparison</a></li>
     </ul>
     <div class="tab-content">
-        <div id="tab_model" class="tab-pane fade in active">
+        <div id="model" class="tab-pane fade in active">
             <div class="row">
                 {% for table in tables %}
                 {{ table|safe }}
                 {% endfor %}
             </div>
         </div>
-        <div id="tab_individual" class="tab-pane fade"><p> content of tab_individual </p></div>
-        <div id="tab_within" class="tab-pane fade"><p> content of tab_within </p></div>
-        <div id="tab_between" class="tab-pane fade"><p> content of tab_between </p></div>
+        <div id="individual" class="tab-pane fade"><p> content of individual prediction </p></div>
+        <div id="within" class="tab-pane fade"><p> content of within-model comparison </p></div>
+        <div id="between" class="tab-pane fade"><p> content of between-model comparison </p></div>
     </div>
 </div>
 </div>
