@@ -80,14 +80,13 @@ function addInput(divName) {
         select.append($("<option/>").attr("value", b).text(b));
     });
     //select.wrap("<div></div>");
-    //console.log(div.append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>"));
+    console.log(div.append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>"));
     $("#"+divName).append(div);//append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>");
-    //console.log($("#"+divName));
+    console.log($("#"+divName));
     m = m + 1;
 }
 
 $(function(){
-
   // **********************************
   //  Description of ALL pager options
   // **********************************
@@ -129,10 +128,10 @@ $(function(){
     updateArrows: true,
 
     // starting page of the pager (zero based index)
-    page: 1,
+    page: 0,
 
     // Number of visible rows - default is 10
-    size: 10,
+    //size: 15,
 
     // Save pager page & size if the storage script is loaded (requires $.tablesorter.storage in jquery.tablesorter.widgets.js)
     savePages : true,
@@ -207,6 +206,12 @@ $( function() {
         } else {$("#pagerp_model").show();}
     }});
   });
+
+
+
+
+
+
 
 
 

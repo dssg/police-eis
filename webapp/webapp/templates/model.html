@@ -23,9 +23,19 @@
                 {% endfor %}
             </div>
         </div>
-        <div id="individual" class="tab-pane fade"><p> content of individual prediction </p></div>
-        <div id="within" class="tab-pane fade"><p> content of within-model comparison </p></div>
-        <div id="between" class="tab-pane fade"><p> content of between-model comparison </p></div>
+        <div id="individual" class="tab-pane fade">
+          <p> content of individual prediction </p>
+          <style>#chart svg {height: 400px; width: 800px;}</style>
+          <div id="chart">
+            <svg></svg>
+          </div>
+        </div>
+        <div id="within" class="tab-pane fade">
+          <p> content of within-model comparison </p>
+        </div>
+        <div id="between" class="tab-pane fade">
+          <p> content of between-model comparison </p>
+        </div>
     </div>
 </div>
 </div>
