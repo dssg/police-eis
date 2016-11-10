@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS staging.acs_demographics; 
 CREATE UNLOGGED TABLE staging.acs_demographics (
-	acs_area_id                                                           int,                --id for this particular shapefile: FK
+	acs_area_id                                                           varchar,                --id for this particular shapefile: FK
 	valid_start_date                                                      date,               --the date from which the demographic data is correct
 	valid_end_date                                                        date,               --
 	family_count_poverty_all_families                                     float,              --number of families and people whose income in the past 12 months is below the poverty level
@@ -24,6 +24,7 @@ CREATE UNLOGGED TABLE staging.acs_demographics (
 	race_count_hispanic_latino                                            float,              --
 	population_count_male                                                 float,              --
 	population_count_female                                               float,              --
+	population_median_age						      float,              --
 	population_under_5_years                                              float,              --
 	population_5_to_9_years                                               float,              --
 	population_10_to_14_years                                             float,              --

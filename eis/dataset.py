@@ -87,6 +87,31 @@ def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_
 
     return None
 
+def store_feature_importances( timestamp, to_save):
+    """  Write the feature importances of the model into the results schema
+
+    :param str timestamp: the timestamp at which this model was run.
+    :param dict to_save: 
+    """
+
+    # get the model primary key corresponding to this timestamp.
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    cur = db_conn.cursor()
+    cur.execute(query)
+    this_model_id = cur.fetchone()
+    this_model_id = this_model_id[0]
+
+    # get json of feature importances
+    feature_importances = dict(zip(to_save["feature_importances_names"],to_save["feature_importances"]))
+
+    # insert into the features importance table
+    query = ( "INSERT INTO results.feature_importances(model_id, feature_importance) "
+                                                      " VALUES ({}, '{}')".format(this_model_id,
+                                                                               json.dumps(feature_importances)))
+    db_conn.cursor().execute(query)
+    db_conn.commit()
+    return None
+
 def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, store_as_csv=False ):
     """ Write the model predictions (officer or dispatch risk scores) to the results schema.
 

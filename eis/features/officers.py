@@ -1053,7 +1053,10 @@ class ComplaintToArrestRatio(abstract.TimeGatedOfficerFeature):
                         "full outer join "
                         "(SELECT officer_id, COUNT(officer_id)::float "
                         "FROM staging.events_hub "
-                        "WHERE event_type_code = 4 "
+                        "JOIN staging.incidents "
+                        "ON events_hub.event_id = incidents.event_id "
+                        "WHERE event_type_code in (4,6) "
+                        "AND origination_type_code = 2 "
                         "AND event_datetime <= '{2}'::date "
                         "AND event_datetime >= '{2}'::date - interval '{3}' "
                         "GROUP by officer_id) num_complaints "
@@ -1238,7 +1241,10 @@ class ComplaintsPerHourWorked(abstract.TimeGatedOfficerFeature):
             "full outer join "
             "(SELECT officer_id, COUNT(officer_id)::float "
             "FROM staging.events_hub "
-            "WHERE event_type_code = 4 "
+            "JOIN staging.incidents "
+            " ON events_hub.event_id = incidents.event_id "
+            "WHERE event_type_code in (4,6) "
+            "AND origination_type_code = 2"
             "AND event_datetime <= '{2}'::date "
             "AND event_datetime >= '{2}'::date - interval '{3}' "
             "GROUP by officer_id) num_complaints "
@@ -2142,7 +2148,7 @@ class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.dispatches "
-                      "         WHERE dispatch_type_code = '{4}' "
+                      "         WHERE dispatch_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
@@ -2388,135 +2394,227 @@ class NumberOfComplaintsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-## IMPORTANT: Change to point to staging
-class OfficerAvgNeighborhoodFeatures1(abstract.CategoricalOfficerFeature):
+class OfficerAvgArrestDemographics_1(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { "Population_Density_2013": "density",
-                            "Age_of_Residents_2013": "age",
-                            "Black_Population_2010": "black_population",
-                            "311_Calls_Log_2013": "311_calls",
-                            "Household_Income_Log_2013": "household_income",
-                            "Employment_Rate_2013": "employment_rate",
-                            "Vacant_Land_Area_Log_2013": "vacant_land",
-                            "Voter_Participation_2012": "voter_participation" }
+        self.categories = {"median_household_income": "income",
+                           "unemployment_rate": "unemployment",
+                           "family_count_poverty_all_families": "family_poverty",
+                           "family_count_poverty_female_no_husband_families": "family_poverty_nhusband",
+                           "population_median_age": "age"}
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.avg """
-                      """FROM (   SELECT officer_id, avg(var_used) """
-                      """         FROM staging.events_hub """
-                      """         JOIN temp_arrest_npa as geo """
-                      """         on geo.event_id = events_hub.event_id"""
-                      """         JOIN (SELECT "NPA", "{2}" as var_used"""
-                      """               FROM mecklenburg.npa2014_part_1) b"""
-                      """               ON npa = b."NPA" """
-                      """       GROUP BY officer_id """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """    SELECT event_id, {2} """
+                      """    FROM staging.events_geoid as g """
+                      """    JOIN staging.acs_demographics as d """
+                      """      ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date))) """
+                      """ SELECT officer_id, avg({2}) """
+                      """ FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """   ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 3 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.LOOKUPCODE ))
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-## IMPORTANT: Change to point to staging
-class OfficerAvgNeighborhoodFeatures2(abstract.CategoricalOfficerFeature):
+class OfficerAvgArrestDemographics_2(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { "Age_of_Death_2012": "age_of_death",
-                            "Housing_Density_2013": "housing_density",
-                            "Nuisance_Violations_Total_2013": "nuisance_violations",
-                            "Violent_Crime_Rate_2013": "crime_rate",
-                            "Sidewalk_Availability_2013": "sidewalk_availability",
-                            "Foreclosures_2013": "foreclosures",
-                            "Disorder_Call_Rate_Log_2013": "disorder_call" }
+        self.categories = {"race_count_black": "race_black",
+                           "race_count_white": "race_white",
+                           "race_count_native_american": "race_native_american",
+                           "race_count_asian": "race_asian",
+                           "population_count_male": "male"}
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Average demographics of arrests for each officer")
+        self.query = ("""UPDATE features.{0} feature_table """
+                     """SET {1} = staging_table.avg """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2}/(population_count*1.0) as var """
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date)) """
+                      """ AND population_count > 5 ) """
+                      """ SELECT officer_id, avg(var) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 3 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
+                      """     ) AS staging_table """
+                      """WHERE feature_table.officer_id = staging_table.officer_id """
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class OfficerAvgDispatchDemographics_1(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = {"median_household_income": "income",
+                           "unemployment_rate": "unemployment",
+                           "family_count_poverty_all_families": "family_poverty",
+                           "family_count_poverty_female_no_husband_families": "family_poverty_nhusband",
+                           "population_median_age": "age"}
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.avg """
-                      """FROM (   SELECT officer_id, avg(var_used) """
-                      """         FROM staging.events_hub """
-                      """         JOIN temp_arrest_npa as geo """
-                      """         on geo.event_id = events_hub.event_id"""
-                      """         JOIN (SELECT "NPA", "{2}" as var_used"""
-                      """               FROM mecklenburg.npa2014_part_2) b"""
-                      """               ON npa = b."NPA" """
-                      """       GROUP BY officer_id """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2} """
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date))) """
+                      """ SELECT officer_id, avg({2}) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 5 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.LOOKUPCODE ))
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-
-## IMPORTANT: Change to point to staging
-class OfficerAvgNeighborhoodPatrolFeatures1(abstract.CategoricalOfficerFeature):
+class OfficerAvgDispatchDemographics_2(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { "Population_Density_2013": "density",
-                            "Age_of_Residents_2013": "age",
-                            "Black_Population_2010": "black_population",
-                            "311_Calls_Log_2013": "311_calls",
-                            "Household_Income_Log_2013": "household_income",
-                            "Employment_Rate_2013": "employment_rate",
-                            "Vacant_Land_Area_Log_2013": "vacant_land",
-                            "Voter_Participation_2012": "voter_participation" }
+        self.categories = {"race_count_black": "race_black",
+                           "race_count_white": "race_white",
+                           "race_count_native_american": "race_native_american",
+                           "race_count_asian": "race_asian",
+                           "population_count_male": "male"}
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Average demographics of patrols for each officer")
+        self.description = ("Average demographics of arrests for each officer")
+        self.query = ("""UPDATE features.{0} feature_table """
+                     """SET {1} = staging_table.avg """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2}/(population_count*1.0) as var"""
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date)) """
+                      """ AND population_count > 5) """
+                      """ SELECT officer_id, avg(var) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 5 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
+                      """     ) AS staging_table """
+                      """WHERE feature_table.officer_id = staging_table.officer_id """
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                             self.fake_today.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class OfficerAvgStopsDemographics_1(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = {"median_household_income": "income",
+                           "unemployment_rate": "unemployment",
+                           "family_count_poverty_all_families": "family_poverty",
+                           "family_count_poverty_female_no_husband_families": "family_poverty_nhusband",
+                           "population_median_age": "age"}
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.avg """
-                      """FROM (   WITH patrols as ( """
-                      """         SELECT complnt FROM cmpd_merged.ods_cad_events where patrol = 'Y'), """
-                      """          patrols_npa as ( """
-                      """         SELECT dispatch_id, npa, "{2}" as var_used  from patrols"""
-                      """         JOIN temp_dispatch_npa"""
-                      """             ON complnt = temp_dispatch_npa.dispatch_id"""
-                      """             JOIN mecklenburg.npa2014_part_1 """
-                      """                ON "NPA" = npa) """
-                      """       SELECT officer_id, avg(var_used) """
-                      """       FROM  staging.events_hub  """
-                      """       JOIN patrols_npa """
-                      """           on patrols_npa.dispatch_id = events_hub.dispatch_id """
-                      """       GROUP BY officer_id """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2} """
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date))) """
+                      """ SELECT officer_id, avg({2}) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 1 """
+                      """ AND event_datetime <='{3}'::date """
+                      """ GROUP BY  officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.LOOKUPCODE ))
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-
-## IMPORTANT: Change to point to staging
-class OfficerAvgNeighborhoodPatrolFeatures2(abstract.CategoricalOfficerFeature):
+class OfficerAvgStopsDemographics_2(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { "Age_of_Death_2012": "age_of_death",
-                            "Housing_Density_2013": "housing_density",
-                            "Nuisance_Violations_Total_2013": "nuisance_violations",
-                            "Violent_Crime_Rate_2013": "crime_rate",
-                            "Sidewalk_Availability_2013": "sidewalk_availability",
-                            "Foreclosures_2013": "foreclosures",
-                            "Disorder_Call_Rate_Log_2013": "disorder_call" }
+        self.categories = {"race_count_black": "race_black",
+                           "race_count_white": "race_white",
+                           "race_count_native_american": "race_native_american",
+                           "race_count_asian": "race_asian",
+                           "population_count_male": "male"}
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Average demographics of patrols for each officer")
+        self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
-                      """SET {1} = staging_table.avg """
-                      """FROM (   WITH patrols as ( """
-                      """         SELECT complnt FROM cmpd_merged.ods_cad_events where patrol = 'Y'), """
-                      """          patrols_npa as ( """
-                      """         SELECT dispatch_id, npa, "{2}" as var_used  from patrols"""
-                      """         JOIN temp_dispatch_npa"""
-                      """             ON complnt = temp_dispatch_npa.dispatch_id"""
-                      """             JOIN mecklenburg.npa2014_part_2 """
-                      """                ON "NPA" = npa) """
-                      """       SELECT officer_id, avg(var_used) """
-                      """       FROM  staging.events_hub  """
-                      """       JOIN patrols_npa """
-                      """           on patrols_npa.dispatch_id = events_hub.dispatch_id """
-                      """       GROUP BY officer_id """
+                     """SET {1} = staging_table.avg """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2}/(population_count*1.0) as var"""
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date)) """
+                      """ AND population_count > 5) """
+                      """ SELECT officer_id, avg(var) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 1 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.LOOKUPCODE ))
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.fake_today.strftime(time_format)))
         self.set_null_counts_to_zero = True
+
+
+
 
 class ComplimentsToComplaintsRatio(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
@@ -2542,11 +2640,68 @@ class ComplimentsToComplaintsRatio(abstract.TimeGatedOfficerFeature):
                       "     GROUP BY officer_id )"
                       "   SELECT compliments.officer_id, num_compliments/num_complaints "
                       "   FROM  compliments "
-                      "   FULL OUTHER JOIN complaints "
+                      "   FULL OUTER JOIN complaints "
                       "   ON compliments.officer_id = complaints.officer_id"
                       .format(self.table_name,
                               self.COLUMN,
                               self.fake_today.strftime(time_format),
                               self.DURATION ))
         self.set_null_counts_to_zero = True
-           
+
+
+class NumberOfDispatchInitiatiationType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 'CI': "civilians initiated",
+                            'OI': "officer initated",
+                             'AL': "alarm" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of dispatches by type of initation")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub as e"
+                      "         JOIN staging.dispatches as d"
+                      "         ON d.event_id = e.event_id "
+                      "         WHERE dispatch_category = '{4}' "
+                      "         AND event_type_code = 5 "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumberOfInterviewType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "field interviews",
+                            1: "terry stops",
+                            2: "home" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of interviews by type time window")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "         FROM staging.events_hub as e"
+                      "         JOIN staging.field_interviews as i"
+                      "         ON i.event_id = e.event_id "
+                      "         WHERE field_interview_type_code = {4} "
+                      "         AND event_type_code = 2 "
+                      "         AND event_datetime <= '{2}'::date "
+                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.fake_today = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.fake_today.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True 
+

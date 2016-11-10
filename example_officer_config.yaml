@@ -110,6 +110,7 @@ officer_features:
     FractionOfFieldInterviewsByOutcome: False
     NumOfFieldInterviewsWithFlag: True
     FractionOfFieldInterviewsWithFlag: True
+    NumberOfInterviewType: True
 
     AllAllegations: False # Number of allegations made against an officer, time gated.
     TotalInterventionsOfType: False # The number of interventions of each type an officer has had, exploded into multiple columns and time gated.
@@ -146,6 +147,7 @@ officer_features:
     FractionOfTrafficStopsByInterestingSearchText: False
 
     DispatchTypeCount: True #Number of dispatches of different type aggregated over time
+    NumberOfDispatchInitiatiationType: True
     PriorSustainedUnknownMajorAllegationsCount: True #Number of prior sustained unknown major allegations per officer, time gated
     PriorMajorAllegationsCount: True #Number of prior major allegations per officer, time gated
     PriorSustainedUnkownMinorAllegationsCount: True #Number of prior sustained unknown minor allegations per officer, time gated
@@ -160,13 +162,13 @@ officer_features:
     #############################
     # Demographic Features
     ############################
-    OfficerAvgNeighborhoodFeatures1: False #Average demographics of arrests for each officer part 1
-    OfficerAvgNeighborhoodFeatures2: False #Average demographics of arrests for each officer part 2
-    OfficerAvgNeighborhoodPatrolFeatures1: False #Average demographics of patrols for each officer parte 1
-    OfficerAvgNeighborhoodPatrolFeatures2: False #Average demographics of patrols for each officer parte 2
+    OfficerAvgArrestDemographics_1: True
+    OfficerAvgArrestDemographics_2: True
+    OfficerAvgDispatchDemographics_1: False
+    OfficerAvgDispatchDemographics_2: False
+    OfficerAvgStopsDemographics_1: True
+    OfficerAvgStopsDemographics_2: True
 
-   
- 
     ###################################################
     #   Threshold based EIS system Feature Selection  #
     ###################################################

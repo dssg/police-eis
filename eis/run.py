@@ -105,6 +105,7 @@ def main(config_file_name, args):
                        "config": my_exp.config,
                        "timestamp": timestamp,
                        "parameters": my_exp.config["parameters"],
+                       "feature_importances": None,
                        "feature_importances_names": my_exp.exp_data["features"],
                        "modelobj": modelobj,
                        "time_for_model_in_seconds": model_time_in_seconds }
@@ -166,6 +167,10 @@ def main(config_file_name, args):
                 comment = None
 
             dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
+
+        #Insert Feature Importaces
+        log.debug("Storing feature importances")
+        dataset.store_feature_importances( timestamp, to_save)
 
     log.info("Done!")
     return None
