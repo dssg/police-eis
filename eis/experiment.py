@@ -4,7 +4,7 @@ from itertools import product
 import datetime
 import logging
 from IPython.core.debugger import Tracer
-
+from dateutil.relativedelta import relativedelta
 from . import officer, dispatch, explore
 
 log = logging.getLogger(__name__)
@@ -41,52 +41,39 @@ def get_fake_todays(prediction_window, begin_date="01Jan2007", end_date="01Jan20
     return generated_todays 
 
 
-def generate_time_info(config):
+def generate_time_sets(config):
     """Takes a config file and generates a list of dicts, each of which
     will be an experiment.
 
-    If autogen_fake_today is set to False, then for every element of the
-    fake_today array, we try every combination of training_window and
-    prediction_window. 
-
-    If the autogeneration is set to True, then first we use
-    prediction_window to generate the fake_today array (by stepping forward
-    by one prediction_window for every time step). Then for every fake_today
-    we try each training_window. Note that if the prediction_window is 
-    quite small, then this option can result in a large number of experiments
-    to run.
-
-    Args: 
-        config: Python dict read in from YAML config file containing
+    Args:
+         config: Python dict read in from YAML config file containing
                 user-supplied details of the experiments to be run
 
     Returns:
-        temporal_info: dict containing time related fields for experiments 
+        temporal_info: dict containing time related fields for experiments
     """
-
     temporal_info = []
 
-    # automatically generate 'fake_todays' for temporal cross validation
-    #if config["autogen_fake_todays"]:
-    #    fake_todays = []
-    #    for prediction_window in config["prediction_window"]:
-    #        fake_todays.extend(get_fake_todays(prediction_window))
+    end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
+    start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
 
-    ## use 'fake_todays' specified in the experiment configuration file
-    #else:
-    fake_todays = config["fake_today"] 
 
-    
-    # populate temporal_info with all the parameter dictionaries
-    for fake_today, training_window, prediction_window in product(
-        fake_todays, config['training_window'], config['prediction_window']):
+    for prediction_window, update_window, officer_past_activity in product(
+         config['prediction_window'], config['update_window'], config['officer_past_activity_window']):
+        test_end_date = end_date
+        while start_date < test_end_date - relativedelta(months=prediction_window*2):
+            train_end_date = test_end_date - relativedelta(months=prediction_window)
+            lookup_back_activity = train_end_date - relativedelta( )
+            if lookup_back_activity >= start_date:
+                temporal_info.append({'prediction_window':prediction_window,
+                                      'officer_past_activiy_window': officer_past_activity,
+                                      'test_end_date': test_end_date,
+                                      'train_end_date': train_end_date})
+                log.debug("test_end_date:'{}', train_end_date:'{}', update_window: '{}', 'prediction_window: '{}' '".format(test_end_date,
+                       train_end_date, update_window, prediction_window)) 
+            test_end_date -= relativedelta(months=update_window)
 
-            temporal_info.append({"fake_today": fake_today,
-                                  "training_window": training_window,
-                                  "prediction_window": prediction_window})
-
-    return temporal_info 
-
+    return temporal_info
 
 def generate_models_to_run(config, query_db=True):
     """Generates a list of experiments with the various options
@@ -107,21 +94,21 @@ def generate_models_to_run(config, query_db=True):
     experiment_list = []
 
     # generate a list of {fake_today, training_window, prediction_window} dictionaries
-    all_temporal_info = generate_time_info(config)
+    all_temporal_info = generate_time_sets(config)
 
     for temporal_info in all_temporal_info:
 
         # create a copy of the dictionary from the experiment configuration yaml and add
         # the temporal cross validation information
         this_config = copy.copy(config)
+        this_config["train_end_date"] = temporal_info["train_end_date"].strftime("%d%b%Y")
+        this_config["test_end_date"] = temporal_info["test_end_date"].strftime("%d%b%Y")
         this_config["prediction_window"] = temporal_info["prediction_window"]
-        this_config["training_window"] = temporal_info["training_window"]
-        this_config["fake_today"] = temporal_info["fake_today"]
+        this_config["officer_past_activiy_window"] = temporal_info["officer_past_activiy_window"]
         
         # get the appropriate feature data from the database
         if config["unit"] == "officer":
             # get officer-level features to use
-            #this_config["officer_features"] = [feat for feat, is_set_true in config['officer_features'].items() if is_set_true]
             this_config["officer_features"] = officer.get_officer_features_table_columns( config )
             exp_data = officer.run_traintest(this_config)
 
