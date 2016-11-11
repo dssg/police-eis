@@ -17,10 +17,10 @@ class OfficerFeature():
         self.is_categorical = False
         self.type_of_imputation = None
         self.set_null_counts_to_zero = False
-        
         # allow instantiation without kwargs
         try:
-            self.fake_today = kwargs["fake_today"]
+            # self.fake_today = kwargs["fake_today"]
+            self.as_of_date = kwargs["as_of_date"]
             self.table_name = kwargs["table_name"]
         except (KeyError, AttributeError):
             log.info("WARNING: no fake today set for officer feature: {}".format(self.feature_name))
