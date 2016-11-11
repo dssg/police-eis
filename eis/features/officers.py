@@ -476,30 +476,6 @@ class TotalInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-# class IncidentCount(abstract.OfficerFeature):
-#     def __init__(self, **kwargs):
-#         abstract.OfficerFeature.__init__(self, **kwargs)
-#         self.description = "Number of investigable incidents"
-#         self.name_of_features = ["IncidentCount"]
-#         self.start_date = kwargs["as_of_date"] - datetime.timedelta(days=365)
-#         self.query = ("UPDATE features.{} feature_table "
-#                       "SET {} = staging_table.count "
-#                       "FROM (   SELECT officer_id, count(officer_id) "
-#                       "         FROM staging.events_hub "
-#                       "         WHERE event_type_code=4 "
-#                       "         AND event_datetime <= '{}'::date "
-#                       "         GROUP BY officer_id "
-#                       "     ) AS staging_table "
-#                       "WHERE feature_table.officer_id = staging_table.officer_id "
-#                       "AND feature_table.as_of_date = '{}'::date"
-#                       .format(  self.table_name,
-#                                 self.feature_name,
-#                                 self.as_of_date.strftime(time_format),
-#                                 self.as_of_date.strftime(time_format),
-#                                 self.as_of_date.strftime(time_format)))
-#         self.name_of_features = ["incident_count"]
-#         self.type_of_features = "categorical"
-#         self.set_null_counts_to_zero = True
 
 class OfficerGender(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
