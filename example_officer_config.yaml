@@ -27,15 +27,12 @@ unit: 'officer'  # other options: 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-
-fake_today: ['01May2013']  # if you want a specific_today then pass this
+start_date: '2010-04-01'
+end_date: '2016-04-01'
+prediction_window: [6, 12] #months
+update_window: [12] #months
+officer_past_activity_window: [12] #months
 timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"]
-autogen_fake_todays: False  # set to off if you want a specific fake_today
-training_window: [365, 730, 10000]  # training, days, used for officer-level prediction
-prediction_window: [365, 180]  # prediction, days, used for officer-level prediction
-testing_interval_days: 365  # days, used for dispatch-level prediction
-training_interval_days: 1460  # days, used for dispatch-level prediction
-# 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
 
 ########################
 # Labelling Details    #

@@ -21,13 +21,6 @@ except:
     log.warning('Could not connect to the database')
     raise
 
-#try:
-#    db_conn.cursor().execute("SET SCHEMA '{}'".format(db_config['schema']))
-#    log.debug('Changed the schema to ', db_config['schema'])
-#except:
-#    log.warning('Could not set the database schema')
-#    raise
-
 
 def change_schema(schema):
     db_conn.cursor().execute("SET SCHEMA '{}'".format(schema))
@@ -55,7 +48,7 @@ def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_
 
     # set some parameters model comment.
     model_comment = "" # TODO: feature not implemented, should read from config.
-
+    log.info('CONFIG: {}'.format(config))
     # insert into the models table.
     query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config, pickle_file_path_name ) "
                  " VALUES(  %s, %s, %s, %s, %s, %s, %s, %s )" )
@@ -383,16 +376,13 @@ def convert_categorical(feature_df, feature_columns):
 
 class FeatureLoader():
 
-    def __init__(self, start_date=None, end_date=None, fake_today=None, table_name=None):
+    def __init__(self, start_date=None, end_date=None, end_label_date=None, table_name=None):
 
         self.start_date = start_date
         self.end_date = end_date
-        self.fake_today = fake_today
-        #self.tables = db_config  # Dict of tables
-        #self.schema = db_config['schema']
+        self.end_label_date = end_label_date
         self.table_name = table_name
 
-        #change_schema(self.schema)
 
     def officer_labeller(self, officer_labels, ids_to_label=None):
         """
@@ -446,9 +436,9 @@ class FeatureLoader():
 
         # create the query to mask in time.
         query_time =  (  "WHERE events_hub.event_datetime >= '{}'::date "
-                         "AND events_hub.event_datetime <= '{}'::date "
-                         .format(    self.start_date,
-                                    self.end_date ) )
+                         "AND events_hub.event_datetime < '{}'::date "
+                         .format(    self.end_date,
+                                    self.end_label_date ) )
 
         # set the individual queries for each type of label.
         query_sustained = "final_ruling_code in ( 1, 4, 5 ) "
@@ -521,8 +511,6 @@ class FeatureLoader():
         # pull in all the officer_ids to use for labelling
         all_officers = pd.read_sql(query_all_officers, con=db_conn).drop_duplicates()
 
-        log.debug("Query labels: {}".format(query_labels))
-
         # pull in the officer_ids of officers who had adverse incidents
         adverse_officers = pd.read_sql(query_labels, con=db_conn).drop_duplicates()
         adverse_officers["adverse_by_ourdef"] = 1
@@ -554,11 +542,10 @@ class FeatureLoader():
             feature_name: the name of the feature
             """
 
-        kwargs = {"fake_today": self.fake_today,
+        kwargs = {"end_date": self.end_date,
                   "table_name": self.table_name,
                   "feat_time_window": 0}
 
-        log.debug("Staring loader {},{}".format(feature_to_load,ids_to_use))
 
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
@@ -592,7 +579,6 @@ class FeatureLoader():
             returns(pd.DataFrame): dataframe of the feature values indexed by officer_id or dispatch_id
             """
 
-        log.debug("Staring loader {},{}".format(features_to_load, ids_to_use))
 
         feature_name_list = ', '.join(features_to_load)
 
@@ -605,7 +591,7 @@ class FeatureLoader():
         # Create the query for this feature list
         query = (   "SELECT {}, {} "
                     "FROM features.{} "
-                    "WHERE fake_today BETWEEN '{}' AND '{}'"
+                    "WHERE as_of_date >= '{}' AND as_of_date < '{}'"
                     .format(
                         id_column,
                         feature_name_list,
@@ -613,7 +599,7 @@ class FeatureLoader():
                         self.start_date,
                         self.end_date))
 
-        log.debug("Query: {}".format(query))
+        #log.debug("Query: {}".format(query))
 
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
@@ -665,7 +651,7 @@ class FeatureLoader():
 
 
 # TODO: make this use load_all_features() instead of loader()
-def grab_officer_data(features, start_date, end_date, time_bound, labelling, table_name ):
+def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):
     """
     Function that defines the dataset.
 
@@ -674,7 +660,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
     features: list containing which features to use
     start_date: start date for selecting officers
     end_date: end date for selecting officers
-    time_bound: build features with respect to this date
+    end_label_date: build features with respect to this date
     labelling: dict containing options to label officers
     by IA should be labelled, if False then only those investigated will
     be labelled
@@ -682,8 +668,8 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
-    log.debug("Calling FeatureLoader with: {},{},{},{}".format(start_date, end_date, time_bound, table_name))
-    data = FeatureLoader(start_date, end_date, time_bound, table_name)
+    log.debug("Calling FeatureLoader with: {},{},{},{}".format(start_date, end_date, end_label_date, table_name))
+    data = FeatureLoader(start_date, end_date, end_label_date, table_name)
 
     # get the officer labels and make them the key in the dataframe.
     officers = data.officer_labeller(labelling)
