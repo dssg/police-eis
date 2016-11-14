@@ -15,6 +15,7 @@ $(function(){
 $("#pagerp").hide();
 $("#loader").hide();
 
+
 $(function() {
     $("#GoButton").click(function() {
         $("#results").empty();
@@ -39,7 +40,7 @@ $(function() {
                 for (j=0; j< head.length; j++) {
                     results_head = results_head.concat('<th>'+head[j]+'</th>');
                 };
-                //console.log(results_head)
+                console.log(results_head);
                 $("#results-head").append('<tr>' + '<th>Model ID</th>' + results_head + '</tr>')
                 // loop through results, append to dom
                 for (i = 0; i < data.length; i++) {
@@ -58,6 +59,10 @@ $(function() {
                 $("#pagerp").show();
                 $("#results-table").trigger("updateAll").trigger("appendCache");
                 $("#results-table").tablesorter();
+                //var htmlContents = document.documentElement.innerHTML;
+                //sessionStorage.setItem("local_results_table", JSON.stringify(htmlContents));
+                sessionStorage.setItem("local_results_table", data);
+
             }
         });
         });
@@ -209,7 +214,17 @@ $( function() {
 
 
 
+/*
+$(function() {
+    $("#GoBack").click(function() {
+        window.location.href = '/';
+        var local_results_table = sessionStorage.getItem("local_results_table");
+        console.log(JSON.parse(local_results_table));
+        //console.log(local_results_table)
 
+    });
+});
+*/
 
 
 

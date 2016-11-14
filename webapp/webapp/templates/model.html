@@ -1,8 +1,7 @@
 {% extends "_base.html" %}
 {% block content %}
 
-<div class="container">
-
+<div class="container center-container">
 <div class="row">
 <button onclick="window.location.href='{{url_for('index')}}'" id="GoBack" class="btn btn-primary">Back to Search</button>
 </div>
@@ -10,37 +9,27 @@
 <div class="row>">
 <div id="tabs">
     <ul class="nav nav-tabs row" id="prodTabs">
-        <li class="active" id="tab_model"><a href="#model" data-toggle="tab">Model Prediction</a></li>
-        <li id="tab_individual"><a href="#individual" data-toggle="tab">Individul Prediction</a></li>
+        <li class="active" id="tab_model"><a href="#model" data-toggle="tab">Model Summary</a></li>
+        <li id="tab_individual"><a href="#individual" data-toggle="tab">Individual Prediction</a></li>
         <li id="tab_within"><a href="#within" data-toggle="tab">Within-Model Comparison</a></li>
         <li id="tab_between"><a href="#between" data-toggle="tab">Between-Models Comparison</a></li>
     </ul>
+
+
     <div class="tab-content">
-        <div id="model" class="tab-pane fade in active">
+        <div id="model" class="tab-pane fade in active" align="left">
+            <div class="col-lg-8">
+            <style>#scatter svg {height:500px;} svg {margin-left:0;}</style>
+            <div id="scatter" class="with-3d-shadow with-transitions" >
+              <svg preserveAspectRatio="xMaxYMin"></svg>
+            </div>
+          </div>
+          <div class="col-lg-4">
             <div class="row">
                 {% for table in tables %}
                 {{ table|safe }}
                 {% endfor %}
             </div>
-        </div>
-        <div id="individual" class="tab-pane fade">
-          <p> content of individual prediction </p>
-          <style>#chart svg {height: 400px; width: 800px;}</style>
-          <div id="chart">
-            <svg></svg>
-          </div>
-        </div>
-        <div id="within" class="tab-pane fade">
-          <p> content of within-model comparison </p>
-        </div>
-        <div id="between" class="tab-pane fade">
-          <p> content of between-model comparison </p>
-        </div>
-    </div>
-</div>
-</div>
-
-
 <div class="row pager">
     <form id="pagerp_model">
       <ul class="pagination pagination-sm">
@@ -57,19 +46,32 @@
       </ul>
     </form>
   </div>
-
-
-<!--
-<div class="row">
-<ul id="navigation" class="nav nav-tabs">
-    {% for href, id, caption in navigation_bar %}
-        <li{% if id == active_page %} class="active"{% endif
-        %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
-    {% endfor %}
-</ul>
+          </div>
+        </div>
+        <div id="individual" class="tab-pane fade">
+          <p> content of individual prediction </p>
+        </div>
+        <div id="within" class="tab-pane fade">
+          <p> content of within-model comparison </p>
+          <style>#chart svg {height: 400px; width: 800px;}</style>
+          <div id="chart">
+            <svg></svg>
+          </div>
+          <style>#barchart svg {height:400px; width:800px;}</style>
+          <div id="barchart">
+            <svg></svg>
+          </div>
+        </div>
+        <div id="between" class="tab-pane fade">
+          <p> content of between-model comparison </p>
+        </div>
 </div>
--->
+    </div>
+    </div>
+    </div>
 
 
-</div>
+
+
+
 {% endblock %}

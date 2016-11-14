@@ -64,6 +64,7 @@ def get_model_prediction(id):
              "ORDER BY unit_score DESC ; ".format(id))
 
     df_models = pd.read_sql(query, con=dbengine)
+    print(df_models)
     output = df_models
     return output
 

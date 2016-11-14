@@ -16,7 +16,7 @@
   <!-- <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" media="screen"> -->
   <link href="{{ url_for('static', filename='css/theme.dropbox.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='css/nv.d3.css')}}" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.css" rel="stylesheet">
   {{ flask_util_js.js }}
 
 </head>
@@ -36,16 +36,6 @@
         </div>
 
       {% endfor %}
-
-      <!--
-      {% set navigation_bar = [
-      ('/evaluations/model','model', 'Model Prediction'),
-      ('/evaluations/individual', 'individual', 'Individual Prediction'),
-      ('/evaluations/within_model', 'within_model', 'Within-Model Comparison'),
-      ('/evaluations/between_models', 'between_models', 'Between-Models Comparison')
-      ] -%}
-      {% set active_page = active_page|default('model') -%}
-      -->
       <!-- child template -->
       {% block content %}
       {% endblock %}
@@ -62,17 +52,20 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.4/d3.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.js" charset="utf-8"></script>
   <!-- <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js" type="text/javascript"></script> -->
   <!--<script src="//code.jquery.com/jquery-2.1.1.min.js" type="text/javascript"></script>-->
   <script src="{{ url_for('static', filename='js/jquery.tablesorter.js')}}"></script>
   <script src="{{ url_for('static', filename='js/jquery.tablesorter.widgets.js')}}"></script>
   <script src="{{ url_for('static', filename='js/jquery.tablesorter.pager.js')}}"></script>
   <script src="{{ url_for('static', filename='main.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/nv.d3.js')}}"></script>
   <script src="{{ url_for('static', filename='js/moment.js')}}"></script>
   <script src="{{ url_for('static', filename='js/combodate.js')}}"></script>
   <script src="{{ url_for('static', filename='testchart.js')}}" ></script>
+  <script src="{{ url_for('static', filename='barchart.js')}}"></script>
+  <script src="{{ url_for('static', filename='scatterchart.js')}}"></script>
+
 </body>
 
 </html>

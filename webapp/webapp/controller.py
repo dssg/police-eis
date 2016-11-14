@@ -78,9 +78,20 @@ def get_model_prediction(model_id):
     print("get_model_prediction")
     print("Query Time: ", time.time() - tic)
     return render_template('model.html',tables=[output.to_html(classes='bestmodels')])
+
     #output.to_dict('records')
     #return jsonify(results=(output))
     #return render_template('individual.html')
+
+@app.route('/evaluations/<int:model_id>/model_result',methods=['GET','POST'])
+def get_model_result(model_id):
+    output = query.get_model_prediction(id=model_id)
+    try:
+        output = output.to_dict('records')
+        return jsonify(results=(output))
+    except:
+        print('there are some problems')
+        return jsonify({"sorry": "Sorry, no results! Please try again."}), 500
 
 @app.route('/evaluations/within_model',methods=['GET','POST'])
 def within_model():
