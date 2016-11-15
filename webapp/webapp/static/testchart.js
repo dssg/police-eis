@@ -3,7 +3,7 @@ nv.addGraph(function() {
   var chart = nv.models.lineChart()
                 .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
                 .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-                .x(function(d) { return d[0].toString() })
+                .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
                 .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
                 .showYAxis(true)        //Show the y-axis
