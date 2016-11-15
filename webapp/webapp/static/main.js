@@ -85,9 +85,9 @@ function addInput(divName) {
         select.append($("<option/>").attr("value", b).text(b));
     });
     //select.wrap("<div></div>");
-    console.log(div.append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>"));
+    div.append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>");
     $("#"+divName).append(div);//append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>");
-    console.log($("#"+divName));
+    //console.log($("#"+divName));
     m = m + 1;
 }
 

@@ -17,6 +17,8 @@
   <link href="{{ url_for('static', filename='css/theme.dropbox.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.2/react.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.2/JSXTransformer.js"></script>
   {{ flask_util_js.js }}
 
 </head>
@@ -25,9 +27,19 @@
 
     <!-- Page Content -->
     <div class="container center-container">
-      <div class="headrow">
-          <h2>Evaluation Dashboard</h2>
+
+      <div class="headrow" id="headrow">
+
       </div>
+        <script type="text/jsx">
+        /*** @jsx React.DOM */
+        var PageTitle = React.createClass({
+        render: function() {
+            return (<h2>Evaluation Dashboard</h2>);
+        }
+        });
+        React.render(<PageTitle />, document.getElementById('headrow') );
+     </script>
       <!-- messages -->
       {% for message in get_flashed_messages() %}
         <div class="alert alert-success alert-dismissible" role="alert">
@@ -52,7 +64,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
   <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.4/d3.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.4/d3.js" charset="utf-8"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.js" charset="utf-8"></script>
   <!-- <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js" type="text/javascript"></script> -->
   <!--<script src="//code.jquery.com/jquery-2.1.1.min.js" type="text/javascript"></script>-->
