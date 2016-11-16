@@ -15,13 +15,14 @@ class ConfigError():
     pass
 
 
-def get_individual_importances(model, model_name, test_x):
+def get_individual_importances(model, model_name, test_x, train_x):
     """
     Generate list of most important features for dashboard
     """
 
     if model_name == 'LogisticRegression':
-        coefficients = get_feature_importances(model)
+        coefficients = np.std(train_x, 0)*model.coef_[0]
+        #coefficients = get_feature_importances(model)
         importances = np.copy(test_x)
 
         for person in range(test_x.shape[0]):
@@ -45,7 +46,7 @@ def run(train_x, train_y, test_x, model, parameters, n_cores):
                                   parameters, n_cores=n_cores)
 
     # Model interpretability
-    individual_imp = get_individual_importances(modelobj, model, test_x)
+    individual_imp = get_individual_importances(modelobj, model, test_x, train_x)
     importances = get_feature_importances(modelobj)
 
     return predicted_y_probability, predicted_y_binary, importances, modelobj, individual_imp

@@ -6,6 +6,7 @@ import sys
 import psycopg2
 import datetime
 import json
+import pdb
 
 from . import setup_environment
 from .features import class_map
@@ -48,7 +49,6 @@ def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_
 
     # set some parameters model comment.
     model_comment = "" # TODO: feature not implemented, should read from config.
-    log.info('CONFIG: {}'.format(config))
     # insert into the models table.
     query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config, pickle_file_path_name ) "
                  " VALUES(  %s, %s, %s, %s, %s, %s, %s, %s )" )
@@ -104,6 +104,33 @@ def store_feature_importances( timestamp, to_save):
     db_conn.cursor().execute(query)
     db_conn.commit()
     return None
+
+def obtain_top5_risk(row):
+    ind = sorted(range(len(row)), key=lambda i: abs(row[i]), reverse=True)[:min(len(row),5) ]
+    important_names = [row.index[i] if row[i] > 0 else '-{}'.format(row.index[i]) if row[i] < 0 else None for i in ind ]
+    return [ important_names[i] if i < len(important_names) else None for i in range(5) ]
+        
+
+def store_individual_feature_importances(timestamp, to_save):
+
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    cur = db_conn.cursor()
+    cur.execute(query)
+    this_model_id = cur.fetchone()
+    this_model_id = this_model_id[0]
+
+    # get json of individual feature importances into df
+    df_individual_importances = pd.DataFrame(to_save["individual_importances"])
+    df_individual_importances.columns = to_save["feature_importances_names"]
+    # Obtain the top 5 risks
+    df_individual_importances["risks"] = df_individual_importances.apply(lambda x: obtain_top5_risk(x), axis=1)
+    df_individual_importances['officer_id_test'] = to_save['officer_id_test']
+    df_risks = pd.DataFrame(df_individual_importances["risks"].tolist(), )
+    df_risks["unit_id"] = df_individual_importances["officer_id_test"]
+    df_risks.columns = ["risk_1", "risk_2","risk_3","risk_4","risk_5","unit_id"]
+    df_risks["model_id"] = this_model_id
+
+    df_risks.to_sql( "individual_importances", engine, if_exists="append", schema="results", index=False )
 
 def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, store_as_csv=False ):
     """ Write the model predictions (officer or dispatch risk scores) to the results schema.
@@ -409,7 +436,7 @@ class FeatureLoader():
                                         "FROM staging.events_hub AS events_hub "
                                         "LEFT JOIN staging.internal_affairs_investigations AS ia_table "
                                         "   ON events_hub.event_id = ia_table.event_id "
-                                        "WHERE events_hub.event_datetime >= '{}'::date "
+                                        "WHERE events_hub.event_datetime > '{}'::date "
                                         "AND events_hub.event_datetime <= '{}'::date "
                                         .format(
                                             self.start_date,
@@ -422,7 +449,7 @@ class FeatureLoader():
             query_all_officers += (         "UNION "
                                         "SELECT DISTINCT officer_id FROM staging.events_hub "
                                         "WHERE event_type_code in (1, 2, 3, 6) "
-                                        "AND event_datetime >= '{}' "
+                                        "AND event_datetime > '{}' "
                                         "AND event_datetime <= '{}' "
                                         .format(
                                           self.start_date,
@@ -435,8 +462,8 @@ class FeatureLoader():
                         "ON staging.events_hub.event_id = staging.incidents.event_id " )
 
         # create the query to mask in time.
-        query_time =  (  "WHERE events_hub.event_datetime >= '{}'::date "
-                         "AND events_hub.event_datetime < '{}'::date "
+        query_time =  (  "WHERE events_hub.event_datetime > '{}'::date "
+                         "AND events_hub.event_datetime <= '{}'::date "
                          .format(    self.end_date,
                                     self.end_label_date ) )
 
@@ -591,7 +618,7 @@ class FeatureLoader():
         # Create the query for this feature list
         query = (   "SELECT {}, {} "
                     "FROM features.{} "
-                    "WHERE as_of_date >= '{}' AND as_of_date < '{}'"
+                    "WHERE as_of_date > '{}' AND as_of_date <= '{}'"
                     .format(
                         id_column,
                         feature_name_list,

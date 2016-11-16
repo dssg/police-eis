@@ -9,8 +9,8 @@ department_unit: 'department_name'
 # Set the officer table name.
 officer_feature_table_name: "example_officer_feature_table"
 
-# determine whether model objects get stored in the database or not.
-store_model_object_in_database: False
+# determine whether model objects gets stored in a pickle in root_path/department_unit/directory
+store_model_object: False
 
 ########################
 # Comment fields       #

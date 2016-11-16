@@ -88,7 +88,8 @@ def main(config_file_name, args):
                        "features": my_exp.exp_data["names"],
                        "timestamp": timestamp,
                        "parameters": my_exp.config["parameters"],
-                       "train_start_date": my_exp.exp_data["train_start_date"],
+                       "train_end_date": my_exp.exp_data["train_end_date"],
+                       "officer_past_activity_window": my_exp.exp_data["officer_past_activity_window"],
                        "test_end_date": my_exp.exp_data["test_end_date"],
                        "feature_importances": importances,
                        "feature_importances_names": my_exp.exp_data["features"],
@@ -129,15 +130,19 @@ def main(config_file_name, args):
         model_path = os.path.join(config["root_path"], config["department_unit"], config["directory"], config["pkl_prefix"])
         model_filename = "{}_{}.pkl".format(model_path, timestamp)
 
-        # store the pickle data to disk or prepare it to save into the results.data table.
+        # store the pickle data to disk .
         log.debug("storing model information and data")
-        if config["store_model_object_in_database"]:
+        if config["store_model_object"]:
             model_data_pickle_object = pickle.dumps( to_save )
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_obj=model_data_pickle_object)
         else:
             pickle_results(model_filename, to_save)
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_file=model_filename)
             model_data_pickle_object = None
+
+        # To store in results.data:
+        #    model_data_pickle_object = pickle.dumps( to_save )
+        #    dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_obj=model_data_pickle_object)
 
         # Store information about this experiment into the results schema.
         log.debug("storing predictions information")
@@ -171,6 +176,8 @@ def main(config_file_name, args):
         #Insert Feature Importaces
         log.debug("Storing feature importances")
         dataset.store_feature_importances( timestamp, to_save)
+        if to_save['individual_importances']:
+            dataset.store_individual_feature_importances(timestamp, to_save)
 
     log.info("Done!")
     return None

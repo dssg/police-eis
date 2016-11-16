@@ -43,3 +43,14 @@ CREATE TABLE results.feature_importances(
     model_id                                                                                            int references results.models(model_id),
     feature_importance                                                                                  json
 );
+
+-- individual feature importance
+CREATE TABLE results.individual_importances(
+    model_id                                                                                            int references results.models(model_id),
+    unit_id                                                                                             bigint,
+    risk_1                                                                                              text,
+    risk_2                                                                                              text,
+    risk_3                                                                                              text,
+    risk_4                                                                                              text,
+    risk_5                                                                                              text
+);
