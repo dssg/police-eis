@@ -1,32 +1,34 @@
-DROP TABLE IF EXISTS staging.dispatches; 
+DROP TABLE IF EXISTS staging.dispatches CASCADE;
 CREATE UNLOGGED TABLE staging.dispatches (
-	event_id                                                              int references staging.events_hub(event_id),                --Primary key
-	department_defined_dispatch_id                                        varchar,                --
-	dispatch_address_id                                                   int,                --
-	police_area_id                                                        int,                --
-	unit_division														  varchar,
-	unit_beat															  varchar,
-	unit_type														      varchar,
-	unit_shift															  varchar,
-	unit_call_sign														  varchar,
-	dispatch_type_code                                                    int,                --the reason for the dispatch
-	dispatch_original_type												  varchar,
-	dispatch_original_subtype											  varchar,
-	dispatch_final_type													  varchar,
-	dispatch_final_subtype												  varchar,
-	response_plan_code                                                    int,                --result of the dispatch
-	dispatch_original_priority_code                                       int,                --
-	dispatch_final_priority_code                                          int,                --
-	travel_time_minutes                                                   int,                --
-	response_time_minutes                                                 int,                --
-	time_on_scene_minutes                                                 int,                --
-	datetime_assigned                                                     timestamp,          --
-	datetime_arrived                                                      timestamp,          --
-	datetime_cleared                                                      timestamp,           --
-	sequence_assigned													  int,
-	sequence_arrived													  int,
-	units_assigned														  int,
-	units_arrived														  int,
-	dispatch_category 							varchar		-- officer/civilian/alarm iniciated
-);
+  event_id                        INT REFERENCES staging.events_hub (event_id), --Primary key (cannot be passed on in partitions, would require advisory lock when inserting)
+  dispatch_id                     BIGINT, --
+  dispatch_address_id             INT REFERENCES staging.addresses (address_id), --
+  police_area_id                  INT, --
+  unit_division                   VARCHAR,
+  unit_beat                       VARCHAR,
+  unit_type                       VARCHAR,
+  unit_shift                      VARCHAR,
+  unit_call_sign                  VARCHAR,
+  dispatch_type_code              INT, --the reason for the dispatch
+  dispatch_original_type          VARCHAR,
+  dispatch_original_subtype       VARCHAR,
+  dispatch_final_type             VARCHAR,
+  dispatch_final_subtype          VARCHAR,
+  response_plan_code              INT, --result of the dispatch
+  dispatch_original_priority_code INT, --
+  dispatch_final_priority_code    INT, --
+  travel_time_minutes             INT, --
+  response_time_minutes           INT, --
+  time_on_scene_minutes           INT, --
+  datetime_assigned               TIMESTAMP, --
+  datetime_arrived                TIMESTAMP, --
+  datetime_cleared                TIMESTAMP, --
+  sequence_assigned               INT,
+  sequence_arrived                INT,
+  units_assigned                  INT,
+  units_arrived                   INT,
+  dispatch_category               VARCHAR, -- officer/civilian/alarm initiated
+  event_datetime                  TIMESTAMP,
+  officer_id                      INT REFERENCES staging.officers_hub (officer_id)
 
+);

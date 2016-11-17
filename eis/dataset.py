@@ -6,6 +6,7 @@ import sys
 import psycopg2
 import datetime
 import json
+import pdb
 
 from . import setup_environment
 from .features import class_map
@@ -20,13 +21,6 @@ try:
 except:
     log.warning('Could not connect to the database')
     raise
-
-#try:
-#    db_conn.cursor().execute("SET SCHEMA '{}'".format(db_config['schema']))
-#    log.debug('Changed the schema to ', db_config['schema'])
-#except:
-#    log.warning('Could not set the database schema')
-#    raise
 
 
 def change_schema(schema):
@@ -55,7 +49,6 @@ def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_
 
     # set some parameters model comment.
     model_comment = "" # TODO: feature not implemented, should read from config.
-
     # insert into the models table.
     query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config, pickle_file_path_name ) "
                  " VALUES(  %s, %s, %s, %s, %s, %s, %s, %s )" )
@@ -86,6 +79,58 @@ def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_
         db_conn.commit()
 
     return None
+
+def store_feature_importances( timestamp, to_save):
+    """  Write the feature importances of the model into the results schema
+
+    :param str timestamp: the timestamp at which this model was run.
+    :param dict to_save: 
+    """
+
+    # get the model primary key corresponding to this timestamp.
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    cur = db_conn.cursor()
+    cur.execute(query)
+    this_model_id = cur.fetchone()
+    this_model_id = this_model_id[0]
+
+    # get json of feature importances
+    feature_importances = dict(zip(to_save["feature_importances_names"],to_save["feature_importances"]))
+
+    # insert into the features importance table
+    query = ( "INSERT INTO results.feature_importances(model_id, feature_importance) "
+                                                      " VALUES ({}, '{}')".format(this_model_id,
+                                                                               json.dumps(feature_importances)))
+    db_conn.cursor().execute(query)
+    db_conn.commit()
+    return None
+
+def obtain_top5_risk(row):
+    ind = sorted(range(len(row)), key=lambda i: abs(row[i]), reverse=True)[:min(len(row),5) ]
+    important_names = [row.index[i] if row[i] > 0 else '-{}'.format(row.index[i]) if row[i] < 0 else None for i in ind ]
+    return [ important_names[i] if i < len(important_names) else None for i in range(5) ]
+        
+
+def store_individual_feature_importances(timestamp, to_save):
+
+    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
+    cur = db_conn.cursor()
+    cur.execute(query)
+    this_model_id = cur.fetchone()
+    this_model_id = this_model_id[0]
+
+    # get json of individual feature importances into df
+    df_individual_importances = pd.DataFrame(to_save["individual_importances"])
+    df_individual_importances.columns = to_save["feature_importances_names"]
+    # Obtain the top 5 risks
+    df_individual_importances["risks"] = df_individual_importances.apply(lambda x: obtain_top5_risk(x), axis=1)
+    df_individual_importances['officer_id_test'] = to_save['officer_id_test']
+    df_risks = pd.DataFrame(df_individual_importances["risks"].tolist(), )
+    df_risks["unit_id"] = df_individual_importances["officer_id_test"]
+    df_risks.columns = ["risk_1", "risk_2","risk_3","risk_4","risk_5","unit_id"]
+    df_risks["model_id"] = this_model_id
+
+    df_risks.to_sql( "individual_importances", engine, if_exists="append", schema="results", index=False )
 
 def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, store_as_csv=False ):
     """ Write the model predictions (officer or dispatch risk scores) to the results schema.
@@ -358,16 +403,13 @@ def convert_categorical(feature_df, feature_columns):
 
 class FeatureLoader():
 
-    def __init__(self, start_date=None, end_date=None, fake_today=None, table_name=None):
+    def __init__(self, start_date=None, end_date=None, end_label_date=None, table_name=None):
 
         self.start_date = start_date
         self.end_date = end_date
-        self.fake_today = fake_today
-        #self.tables = db_config  # Dict of tables
-        #self.schema = db_config['schema']
+        self.end_label_date = end_label_date
         self.table_name = table_name
 
-        #change_schema(self.schema)
 
     def officer_labeller(self, officer_labels, ids_to_label=None):
         """
@@ -394,7 +436,7 @@ class FeatureLoader():
                                         "FROM staging.events_hub AS events_hub "
                                         "LEFT JOIN staging.internal_affairs_investigations AS ia_table "
                                         "   ON events_hub.event_id = ia_table.event_id "
-                                        "WHERE events_hub.event_datetime >= '{}'::date "
+                                        "WHERE events_hub.event_datetime > '{}'::date "
                                         "AND events_hub.event_datetime <= '{}'::date "
                                         .format(
                                             self.start_date,
@@ -407,23 +449,23 @@ class FeatureLoader():
             query_all_officers += (         "UNION "
                                         "SELECT DISTINCT officer_id FROM staging.events_hub "
                                         "WHERE event_type_code in (1, 2, 3, 6) "
-                                        "AND event_datetime >= '{}' "
+                                        "AND event_datetime > '{}' "
                                         "AND event_datetime <= '{}' "
                                         .format(
                                           self.start_date,
                                           self.end_date))
 
         # create the query to find all officer ID's associated with an adverse incident.
-        query_base = (  "SELECT officer_id "
+        query_base = (  "SELECT incidents.officer_id "
                         "FROM staging.events_hub "
                         "JOIN staging.incidents "
                         "ON staging.events_hub.event_id = staging.incidents.event_id " )
 
         # create the query to mask in time.
-        query_time =  (  "WHERE events_hub.event_datetime >= '{}'::date "
+        query_time =  (  "WHERE events_hub.event_datetime > '{}'::date "
                          "AND events_hub.event_datetime <= '{}'::date "
-                         .format(    self.start_date,
-                                    self.end_date ) )
+                         .format(    self.end_date,
+                                    self.end_label_date ) )
 
         # set the individual queries for each type of label.
         query_sustained = "final_ruling_code in ( 1, 4, 5 ) "
@@ -527,9 +569,10 @@ class FeatureLoader():
             feature_name: the name of the feature
             """
 
-        kwargs = {"fake_today": self.fake_today,
+        kwargs = {"end_date": self.end_date,
                   "table_name": self.table_name,
                   "feat_time_window": 0}
+
 
         # select the appropriate id column for this feature type
         if feature_type == 'officer':
@@ -563,6 +606,7 @@ class FeatureLoader():
             returns(pd.DataFrame): dataframe of the feature values indexed by officer_id or dispatch_id
             """
 
+
         feature_name_list = ', '.join(features_to_load)
 
         # select the appropriate id column and feature table name for this feature type
@@ -574,13 +618,15 @@ class FeatureLoader():
         # Create the query for this feature list
         query = (   "SELECT {}, {} "
                     "FROM features.{} "
-                    "WHERE fake_today BETWEEN '{}' AND '{}'"
+                    "WHERE as_of_date > '{}' AND as_of_date <= '{}'"
                     .format(
                         id_column,
                         feature_name_list,
                         self.table_name,
                         self.start_date,
                         self.end_date))
+
+        #log.debug("Query: {}".format(query))
 
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
@@ -612,7 +658,7 @@ class FeatureLoader():
 
         # -1 in feature count is b/c 'label' is also a column, but not a feature
         log.debug("... {} rows, {} features".format(len(results),
-                                                    len(results.columns) - 1))
+                                                    len(results.columns)))
         return results
 
 
@@ -632,7 +678,7 @@ class FeatureLoader():
 
 
 # TODO: make this use load_all_features() instead of loader()
-def grab_officer_data(features, start_date, end_date, time_bound, labelling, table_name ):
+def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):
     """
     Function that defines the dataset.
 
@@ -641,7 +687,7 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
     features: list containing which features to use
     start_date: start date for selecting officers
     end_date: end date for selecting officers
-    time_bound: build features with respect to this date
+    end_label_date: build features with respect to this date
     labelling: dict containing options to label officers
     by IA should be labelled, if False then only those investigated will
     be labelled
@@ -649,7 +695,8 @@ def grab_officer_data(features, start_date, end_date, time_bound, labelling, tab
 
     start_date = start_date.strftime('%Y-%m-%d')
     end_date = end_date.strftime('%Y-%m-%d')
-    data = FeatureLoader(start_date, end_date, time_bound, table_name)
+    log.debug("Calling FeatureLoader with: {},{},{},{}".format(start_date, end_date, end_label_date, table_name))
+    data = FeatureLoader(start_date, end_date, end_label_date, table_name)
 
     # get the officer labels and make them the key in the dataframe.
     officers = data.officer_labeller(labelling)

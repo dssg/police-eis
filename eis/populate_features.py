@@ -66,7 +66,7 @@ def create_officer_features_table(config, table_name="officer_features"):
     create_query = (    "CREATE UNLOGGED TABLE features.{} ( "
                         "   {}              int, "
                         "   created_on      timestamp, "
-                        "   fake_today      timestamp, "
+                        "   as_of_date      timestamp, "
                         .format(
                             table_name,
                             id_column))
@@ -78,21 +78,23 @@ def create_officer_features_table(config, table_name="officer_features"):
 
     engine.execute(final_query)
 
-    # Get the list of fake_todays.
-    temporal_info = experiment.generate_time_info(config)
-    fake_todays = {time_dict['fake_today'] for time_dict in temporal_info}
-
+    # Get the list of as_of_dates
+    temporal_info = experiment.generate_time_sets(config)
+    as_of_date_train = {time_dict['test_end_date'] for time_dict in temporal_info}
+    as_of_date_test = {time_dict['train_end_date'] for time_dict in temporal_info}
+    as_of_dates = as_of_date_test.union(as_of_date_train)
+    
     # Populate the features table with officer_id.
-    log.info("Populating feature table {} with officer ids and fake todays...".format(table_name))
+    log.info("Populating feature table {} with officer ids and as_of_dates...".format(table_name))
     time_format = "%Y-%m-%d %X"
-    for fake_today in fake_todays:
-        fake_today = datetime.datetime.strptime(fake_today, '%d%b%Y') 
-        fake_today.strftime(time_format)
-        officer_id_query = (    "INSERT INTO features.{} (officer_id, created_on, fake_today) "
+    for as_of_date in as_of_dates:
+        # as_of_date = datetime.datetime.strptime(as_of_date, '%d%b%Y') 
+        as_of_date.strftime(time_format)
+        officer_id_query = (    "INSERT INTO features.{} (officer_id, created_on, as_of_date) "
                                 "SELECT staging.officers_hub.officer_id, '{}'::timestamp, '{}'::date "
                                 "FROM staging.officers_hub").format(    table_name,
                                                                         datetime.datetime.now(),
-                                                                        fake_today)
+                                                                        as_of_date)
         engine.execute(officer_id_query)
 
 
@@ -228,23 +230,24 @@ def populate_officer_features_table(config, table_name):
     """Calculate all the feature values and store them in the features table in the database"""
 
     # get the list of fake todays specified by the config file
-    temporal_info = experiment.generate_time_info(config)
-
-    # using a set comprehension to remove duplicates, bc temporal_info gives multiple time windows
-    # which we don't care about here
-    fake_todays = {time_dict['fake_today'] for time_dict in temporal_info}
+    temporal_info = experiment.generate_time_sets(config)
+    as_of_date_train = {time_dict['test_end_date'] for time_dict in temporal_info}
+    as_of_date_test = {time_dict['train_end_date'] for time_dict in temporal_info}
+    as_of_dates = as_of_date_test.union(as_of_date_train)
+    log.debug(as_of_dates)
 
     # get a list of all features that are set to true.
     active_features = [ key for key in config["officer_features"] if config["officer_features"][key] == True ] 
 
     # loop over all fake todays, populating the active features for each.
     for feature_name in active_features:
-        for fake_today in fake_todays:
+        for as_of_date in as_of_dates:
             feature_class = class_map.lookup(   feature_name, 
 					        unit = 'officer',
-                                                fake_today=datetime.datetime.strptime(fake_today, "%d%b%Y" ),
+                                                #fake_today=datetime.datetime.strptime(as_of_date, "%d%b%Y" ),
+                                                as_of_date = as_of_date,
                                                 table_name=table_name, 
                                                 lookback_durations=config["timegated_feature_lookback_duration"])
             feature_class.build_and_insert(engine)
-            log.debug('Calculated and inserted feature {} for fake_today {}'
-                        .format(feature_class.feature_name, fake_today))
+            log.debug('Calculated and inserted feature {} for date {}'
+                        .format(feature_class.feature_name, as_of_date))

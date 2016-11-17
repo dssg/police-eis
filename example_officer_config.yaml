@@ -9,8 +9,8 @@ department_unit: 'department_name'
 # Set the officer table name.
 officer_feature_table_name: "example_officer_feature_table"
 
-# determine whether model objects get stored in the database or not.
-store_model_object_in_database: False
+# determine whether model objects gets stored in a pickle in root_path/department_unit/directory
+store_model_object: False
 
 ########################
 # Comment fields       #
@@ -27,15 +27,12 @@ unit: 'officer'  # other options: 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-
-fake_today: ['01May2013']  # if you want a specific_today then pass this
-timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"]
-autogen_fake_todays: False  # set to off if you want a specific fake_today
-training_window: [365, 730, 10000]  # training, days, used for officer-level prediction
-prediction_window: [365, 180]  # prediction, days, used for officer-level prediction
-testing_interval_days: 365  # days, used for dispatch-level prediction
-training_interval_days: 1460  # days, used for dispatch-level prediction
-# 1 year = 365, 2 year = 730, 3 year = 1095, 4 year = 1460
+start_date: '2010-04-01' # The first day of the data
+end_date: '2016-04-01' # The last day of the data
+prediction_window: [6, 12] # prediction, months, used for officer-level prediction
+update_window: [12] # update, months, used for updating the model
+officer_past_activity_window: [12] # Include officers that have activity x months from now
+timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] # Aggregation time for features
 
 ########################
 # Labelling Details    #
@@ -81,7 +78,6 @@ officer_features:
     OfficerEducation: False # Officer education level.
     ArrestCount: False # Number of arrests made by an officer, time gated.
     OfficerMilitary: False # Whether or not the officer has had military experience
-    IncidentCount: False # Officer investigatable incident count to fake_today.
     NumberOfShiftsOfType: False # Number of time-gated shifts by categorical type.
     NumberOfSuspensionsOfType: True # time-gated
     TotalHoursOfSuspensionsOfType: True # time-gated
@@ -110,6 +106,7 @@ officer_features:
     FractionOfFieldInterviewsByOutcome: False
     NumOfFieldInterviewsWithFlag: True
     FractionOfFieldInterviewsWithFlag: True
+    NumberOfInterviewType: True
 
     AllAllegations: False # Number of allegations made against an officer, time gated.
     TotalInterventionsOfType: False # The number of interventions of each type an officer has had, exploded into multiple columns and time gated.
@@ -146,6 +143,7 @@ officer_features:
     FractionOfTrafficStopsByInterestingSearchText: False
 
     DispatchTypeCount: True #Number of dispatches of different type aggregated over time
+    NumberOfDispatchInitiatiationType: True
     PriorSustainedUnknownMajorAllegationsCount: True #Number of prior sustained unknown major allegations per officer, time gated
     PriorMajorAllegationsCount: True #Number of prior major allegations per officer, time gated
     PriorSustainedUnkownMinorAllegationsCount: True #Number of prior sustained unknown minor allegations per officer, time gated
@@ -160,13 +158,13 @@ officer_features:
     #############################
     # Demographic Features
     ############################
-    OfficerAvgNeighborhoodFeatures1: False #Average demographics of arrests for each officer part 1
-    OfficerAvgNeighborhoodFeatures2: False #Average demographics of arrests for each officer part 2
-    OfficerAvgNeighborhoodPatrolFeatures1: False #Average demographics of patrols for each officer parte 1
-    OfficerAvgNeighborhoodPatrolFeatures2: False #Average demographics of patrols for each officer parte 2
+    OfficerAvgArrestDemographics_1: True
+    OfficerAvgArrestDemographics_2: True
+    OfficerAvgDispatchDemographics_1: False
+    OfficerAvgDispatchDemographics_2: False
+    OfficerAvgStopsDemographics_1: True
+    OfficerAvgStopsDemographics_2: True
 
-   
- 
     ###################################################
     #   Threshold based EIS system Feature Selection  #
     ###################################################

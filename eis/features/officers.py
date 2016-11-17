@@ -25,7 +25,7 @@ class LabelSustained(abstract.OfficerFeature):
         self.query = (  "UPDATE features.{0} feature_table "
                         "SET {1} = staging_table.feature_column "
                         "FROM (     "
-                        "       SELECT officer_id, CASE WHEN SUM(COALESCE(incidents.number_of_sustained_allegations, 0)) > 0 "
+                        "       SELECT events_hub.officer_id, CASE WHEN SUM(COALESCE(incidents.number_of_sustained_allegations, 0)) > 0 "
                         "                               THEN 1 "  #
                         "                               ELSE 0 "  # COALESCE here maps NULL values to zero.
                         "       END AS sustained_flag from staging.events_hub LEFT JOIN staging.incidents "
@@ -34,10 +34,10 @@ class LabelSustained(abstract.OfficerFeature):
                         "       WHERE events_hub.event_datetime <= '{3}'::date "
                         "       GROUP BY officer_id ) AS staging_table"
                         " WHERE feature_table.officer_id = staging_table.officer_id "
-                        " AND feature_table.fake_today = '{2}'::date "
+                        " AND feature_table.as_of_date = '{2}'::date "
                         .format(self.table_name,
                                 self.feature_name,
-                                self.fake_today,
+                                self.as_of_date,
                                 self.to_date))
 
 ### Dummy instances of the abstract classes to use as templates.
@@ -92,10 +92,10 @@ class TimeGatedDummyFeature(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
 
 class TimeGatedCategoricalDummyFeature(abstract.TimeGatedCategoricalOfficerFeature):
@@ -120,10 +120,10 @@ class TimeGatedCategoricalDummyFeature(abstract.TimeGatedCategoricalOfficerFeatu
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -148,10 +148,10 @@ class ArrestMonthlyVariance(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -177,10 +177,10 @@ class ArrestMonthlyCOV(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -194,15 +194,13 @@ class DaysSinceLastAllegation(abstract.OfficerFeature):
                       "SET {1} = staging_table.days "
                       "FROM (   SELECT officer_id, ABS( EXTRACT( DAY FROM MAX( event_datetime - '{2}'::date ) ) ) AS days "
                       "         FROM staging.incidents "
-                      "         JOIN staging.events_hub "
-                      "         ON incidents.event_id = events_hub.event_id "
                       "         WHERE event_datetime < '{2}'::date "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name,
-                                self.fake_today.strftime(time_format) ) )
+                                self.as_of_date.strftime(time_format) ) )
 
 class DaysSinceLastSustainedAllegation(abstract.OfficerFeature):
     def __init__(self, **kwargs):
@@ -214,8 +212,6 @@ class DaysSinceLastSustainedAllegation(abstract.OfficerFeature):
                       "SET {1} = staging_table.days "
                       "FROM (   SELECT officer_id, ABS( EXTRACT( DAY FROM MAX( event_datetime - '{2}'::date ) ) ) AS days "
                       "         FROM staging.incidents "
-                      "         JOIN staging.events_hub "
-                      "         ON incidents.event_id = events_hub.event_id "
                       "         WHERE event_datetime < '{2}'::date "
                       "         AND final_ruling_code in (1,4,5) "
                       "         GROUP BY officer_id "
@@ -223,7 +219,7 @@ class DaysSinceLastSustainedAllegation(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name,
-                                self.fake_today.strftime(time_format) ) )
+                                self.as_of_date.strftime(time_format) ) )
 
 class NumberOfShiftsOfType(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
@@ -276,10 +272,10 @@ class NumberOfShiftsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -294,18 +290,16 @@ class NumberOfSuspensionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.incidents "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON incidents.event_id = events_hub.event_id "
                       "         WHERE incidents.{4} > 0 "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -320,17 +314,15 @@ class TotalHoursOfSuspensionsOfType(abstract.TimeGatedCategoricalOfficerFeature)
                       "SET {1} = staging_table.sum "
                       "FROM (   SELECT officer_id, sum({4}) "
                       "         FROM staging.incidents "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON incidents.event_id = events_hub.event_id "
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -347,8 +339,6 @@ class NumberOfArrestsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.arrests "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON arrests.event_id = events_hub.event_id "
                       "         WHERE arrests.arrest_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
@@ -357,10 +347,10 @@ class NumberOfArrestsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -380,8 +370,6 @@ class NumberOfArrestsON(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.arrests "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON arrests.event_id = events_hub.event_id "
                       "         WHERE arrests.arrest_day_of_week = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
@@ -390,10 +378,10 @@ class NumberOfArrestsON(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -414,8 +402,6 @@ class NumberOfSuspectsArrestedOfRaceType(abstract.TimeGatedCategoricalOfficerFea
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.arrests "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON arrests.event_id = events_hub.event_id "
                       "         WHERE arrests.suspect_race_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
@@ -424,10 +410,10 @@ class NumberOfSuspectsArrestedOfRaceType(abstract.TimeGatedCategoricalOfficerFea
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -443,8 +429,6 @@ class NumberOfSuspectsArrestedOfEthnicityType(abstract.TimeGatedCategoricalOffic
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.arrests "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON arrests.event_id = events_hub.event_id "
                       "         WHERE arrests.suspect_ethnicity_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
@@ -453,10 +437,10 @@ class NumberOfSuspectsArrestedOfEthnicityType(abstract.TimeGatedCategoricalOffic
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -478,46 +462,20 @@ class TotalInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.incidents "
-					  "         INNER JOIN staging.events_hub"
-					  "         ON incidents.event_id = events_hub.event_id"
                       "         WHERE staging.incidents.intervention_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class IncidentCount(abstract.OfficerFeature):
-    def __init__(self, **kwargs):
-        abstract.OfficerFeature.__init__(self, **kwargs)
-        self.description = "Number of investigable incidents"
-        self.name_of_features = ["IncidentCount"]
-        self.start_date = kwargs["fake_today"] - datetime.timedelta(days=365)
-        self.query = ("UPDATE features.{} feature_table "
-                      "SET {} = staging_table.count "
-                      "FROM (   SELECT officer_id, count(officer_id) "
-                      "         FROM staging.events_hub "
-                      "         WHERE event_type_code=4 "
-                      "         AND event_datetime <= '{}'::date "
-                      "         GROUP BY officer_id "
-                      "     ) AS staging_table "
-                      "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{}'::date"
-                      .format(  self.table_name,
-                                self.feature_name,
-                                self.fake_today.strftime(time_format),
-                                self.fake_today.strftime(time_format),
-                                self.fake_today.strftime(time_format)))
-        self.name_of_features = ["incident_count"]
-        self.type_of_features = "categorical"
-        self.set_null_counts_to_zero = True
 
 class OfficerGender(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
@@ -549,10 +507,10 @@ class OfficerAge(abstract.OfficerFeature):
                       "         FROM staging.officers_hub"
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.feature_name,
-                                self.fake_today.strftime(time_format)))
+                                self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
 class OfficerRace(abstract.CategoricalOfficerFeature):
@@ -682,7 +640,7 @@ class DivorceCount(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name,
-                                self.fake_today.strftime(time_format) ) )
+                                self.as_of_date.strftime(time_format) ) )
         self.set_null_counts_to_zero = True
 
 class MilesFromPost(abstract.OfficerFeature):
@@ -699,7 +657,7 @@ class MilesFromPost(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name,
-                                self.fake_today.strftime(time_format) ) )
+                                self.as_of_date.strftime(time_format) ) )
 
 ##############
 ## Field interview features
@@ -712,17 +670,15 @@ class NumOfFieldInterviews(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.field_interviews "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON field_interviews.event_id = events_hub.event_id "
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -742,10 +698,10 @@ class AvgHourOfFieldInterviews(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True # This is also strange, but again, matches 2015
 
@@ -763,10 +719,10 @@ class ModeHourOfFieldInterviews(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -786,18 +742,16 @@ class NumOfFieldInterviewsByRace(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.field_interviews "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON field_interviews.event_id = events_hub.event_id "
                       "         WHERE field_interviews.interviewed_person_race = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -818,17 +772,15 @@ class FractionOfFieldInterviewsByRace(abstract.TimeGatedCategoricalOfficerFeatur
                       "SET {1} = staging_table.count::Float / staging_table.total::Float "
                       "FROM (   SELECT officer_id, count(interviewed_person_race) as total, sum((interviewed_person_race = {4})::INT) as count"
                       "         FROM staging.field_interviews "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON field_interviews.event_id = events_hub.event_id "
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -844,18 +796,16 @@ class NumOfFieldInterviewsByOutcome(abstract.TimeGatedCategoricalOfficerFeature)
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.field_interviews "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON field_interviews.event_id = events_hub.event_id "
                       "         WHERE field_interviews.field_interview_outcome_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -871,17 +821,15 @@ class FractionOfFieldInterviewsByOutcome(abstract.TimeGatedCategoricalOfficerFea
                       "SET {1} = staging_table.count::Float / staging_table.total::Float "
                       "FROM (   SELECT officer_id, count(field_interviews.event_id) as total, sum((field_interview_outcome_code = {4})::INT) as count"
                       "         FROM staging.field_interviews "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON field_interviews.event_id = events_hub.event_id "
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -897,18 +845,16 @@ class NumOfFieldInterviewsWithFlag(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.field_interviews "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON field_interviews.event_id = events_hub.event_id "
                       "         WHERE {4}"
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -924,17 +870,15 @@ class FractionOfFieldInterviewsWithFlag(abstract.TimeGatedCategoricalOfficerFeat
                       "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
                       "FROM (   SELECT officer_id, count({4}) as total, sum({4}::INT) as count"
                       "         FROM staging.field_interviews "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON field_interviews.event_id = events_hub.event_id "
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -953,10 +897,10 @@ class ArrestCount(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -977,7 +921,7 @@ class MeanHoursPerShift(abstract.OfficerFeature):
                       "WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(  self.table_name,
                                 self.feature_name,
-                                self.fake_today.strftime(time_format)))
+                                self.as_of_date.strftime(time_format)))
 
 class SustainedRuleViolations(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
@@ -989,8 +933,6 @@ class SustainedRuleViolations(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, sum(number_of_sustained_allegations) as count "
                       "         FROM staging.incidents "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON incidents.event_id = events_hub.event_id "
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       # the following line must be removed when not-sworn officers are removed. GIANT HACK
@@ -998,10 +940,10 @@ class SustainedRuleViolations(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1013,8 +955,6 @@ class AllAllegations(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, sum(number_of_allegations) as count "
                       "         FROM staging.incidents "
-                      "         INNER JOIN staging.events_hub "
-                      "         ON incidents.event_id = events_hub.event_id "
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       # the following line must be removed when not-sworn officers are removed. GIANT HACK
@@ -1022,10 +962,10 @@ class AllAllegations(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1059,18 +999,16 @@ class NumberOfIncidentsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.incidents "
-                      "         INNER JOIN staging.events_hub"
-                      "         ON incidents.event_id = events_hub.event_id"
                       "         WHERE staging.incidents.grouped_incident_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1082,26 +1020,29 @@ class ComplaintToArrestRatio(abstract.TimeGatedOfficerFeature):
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.complaintdensity "
                       "FROM ( SELECT num_arrests.officer_id, num_complaints.count/num_arrests.count complaintdensity FROM "
-                      "(SELECT officer_id, COUNT(officer_id)::float "
+                      "(SELECT events_hub.officer_id, COUNT(events_hub.officer_id)::float "
                         "FROM staging.events_hub "
                         "WHERE event_type_code = 3 "
                         "AND event_datetime <= '{2}'::date "
                         "AND event_datetime >= '{2}'::date - interval '{3}' "
-                        "GROUP by officer_id) num_arrests "
+                        "GROUP by events_hub.officer_id) num_arrests "
                         "full outer join "
-                        "(SELECT officer_id, COUNT(officer_id)::float "
+                        "(SELECT events_hub.officer_id, COUNT(events_hub.officer_id)::float "
                         "FROM staging.events_hub "
-                        "WHERE event_type_code = 4 "
-                        "AND event_datetime <= '{2}'::date "
-                        "AND event_datetime >= '{2}'::date - interval '{3}' "
-                        "GROUP by officer_id) num_complaints "
+                        "JOIN staging.incidents "
+                        "ON events_hub.event_id = incidents.event_id "
+                        "WHERE event_type_code in (4,6) "
+                        "AND origination_type_code = 2 "
+                        "AND events_hub.event_datetime <= '{2}'::date "
+                        "AND events_hub.event_datetime >= '{2}'::date - interval '{3}' "
+                        "GROUP by events_hub.officer_id) num_complaints "
                         "ON num_arrests.officer_id = num_complaints.officer_id "
                       ") AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1133,10 +1074,10 @@ class TotalEISInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1154,10 +1095,10 @@ class FractionEISFlagsWithIntervention(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1185,10 +1126,10 @@ class TotalEISFlagsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1216,10 +1157,10 @@ class FractionEISFlagsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1254,10 +1195,10 @@ class TotalOutsideEmploymentHours(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                               self.COLUMN,
-                              self.fake_today.strftime(time_format),
+                              self.as_of_date.strftime(time_format),
                               self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1268,25 +1209,28 @@ class ComplaintsPerHourWorked(abstract.TimeGatedOfficerFeature):
         self.query = ("UPDATE features.{0} feature_table "
             "SET {1} = staging_table.complaintstohours "
             "FROM ( SELECT  hours_worked.officer_id, num_complaints.count/hours_worked.hours complaintstohours FROM "
-            "(SELECT officer_id, SUM( EXTRACT( EPOCH from shift_length)/3600 ) hours "
+            "(SELECT officer_shifts.officer_id, SUM( EXTRACT( EPOCH from shift_length)/3600 ) hours "
             "FROM staging.officer_shifts "
             "WHERE EXTRACT( EPOCH from shift_length)/3600 < 48 " # Discarding tremendous outliers (bad data).
             "AND stop_datetime < '{2}'::date "
-            "GROUP BY officer_id) hours_worked "
+            "GROUP BY officer_shifts.officer_id) hours_worked "
             "full outer join "
-            "(SELECT officer_id, COUNT(officer_id)::float "
+            "(SELECT incidents.officer_id, COUNT(incidents.officer_id)::float "
             "FROM staging.events_hub "
-            "WHERE event_type_code = 4 "
-            "AND event_datetime <= '{2}'::date "
-            "AND event_datetime >= '{2}'::date - interval '{3}' "
-            "GROUP by officer_id) num_complaints "
+            "JOIN staging.incidents "
+            " ON events_hub.event_id = incidents.event_id "
+            "WHERE event_type_code in (4,6) "
+            "AND origination_type_code = 2"
+            "AND events_hub.event_datetime <= '{2}'::date "
+            "AND events_hub.event_datetime >= '{2}'::date - interval '{3}' "
+            "GROUP by incidents.officer_id) num_complaints "
             "ON hours_worked.officer_id = num_complaints.officer_id "
             ") AS staging_table "
             "WHERE feature_table.officer_id = staging_table.officer_id "
-            "AND feature_table.fake_today = '{2}'::date"
+            "AND feature_table.as_of_date = '{2}'::date"
             .format(  self.table_name,
                     self.COLUMN,
-                    self.fake_today.strftime(time_format),
+                    self.as_of_date.strftime(time_format),
                     self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1313,10 +1257,10 @@ class UOFtoArrestRatio(abstract.TimeGatedOfficerFeature):
                         "ON num_arrests.officer_id = num_uof.officer_id "
                       ") AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1341,10 +1285,10 @@ class NumOfUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1367,10 +1311,10 @@ class CountUOFwithSuspectInjury(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1400,10 +1344,10 @@ class SuspectInjuryToUOFRatio(abstract.TimeGatedOfficerFeature):
                         "ON num_suspect_injuries.officer_id = num_uof.officer_id "
                       ") AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1425,10 +1369,10 @@ class CountUOFwithResistingArrest(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1458,10 +1402,10 @@ class ResistingArrestToUOFRatio(abstract.TimeGatedOfficerFeature):
                         "ON num_resisting.officer_id = num_uof.officer_id "
                       ") AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1491,10 +1435,10 @@ class NumOfUnjustifiedUsesOfForceOfType(abstract.TimeGatedCategoricalOfficerFeat
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1528,10 +1472,10 @@ class UnjustUOFInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1564,10 +1508,10 @@ class UOFInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1580,8 +1524,6 @@ class PreventableAccidents(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.incidents"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON incidents.event_id = events_hub.event_id"
                       "         WHERE staging.incidents.grouped_incident_type_code=0 "
 		      "		AND staging.incidents.number_of_preventable_allegations > 0" # NB!: does not account for multiple accidents that occurred at the same event
                       "         AND event_datetime <= '{2}'::date "
@@ -1589,10 +1531,10 @@ class PreventableAccidents(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1615,10 +1557,10 @@ class NumOfTrafficStops(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1630,18 +1572,16 @@ class NumOfTrafficStopsWithSearch(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.searched_flag=true "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1653,18 +1593,16 @@ class NumOfTrafficStopsWithUseOfForce(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.use_of_force_flag=true "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1676,18 +1614,16 @@ class NumOfTrafficStopsWithArrest(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.arrest_flag=true "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1699,18 +1635,16 @@ class NumOfTrafficStopsWithInjury(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.injuries_flag=true "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1722,18 +1656,16 @@ class NumOfTrafficStopsWithOfficerInjury(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.officer_injury_flag=true "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1745,18 +1677,16 @@ class NumOfTrafficStopsWithSearchRequest(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.search_consent_request_flag=true "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1768,17 +1698,15 @@ class FractionOfTrafficStopsWithSearchRequest(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
                       "FROM (   SELECT officer_id, count(search_consent_request_flag) as total, sum(search_consent_request_flag::INT) as count"
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -1798,18 +1726,16 @@ class NumOfTrafficStopsByRace(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.stopped_person_race_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1832,18 +1758,16 @@ class NumOfTrafficStopsByStopType(abstract.TimeGatedCategoricalOfficerFeature):
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.stop_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1861,18 +1785,16 @@ class NumOfTrafficStopsByStopResult(abstract.TimeGatedCategoricalOfficerFeature)
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.stop_outcome_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1890,18 +1812,16 @@ class NumOfTrafficStopsBySearchReason(abstract.TimeGatedCategoricalOfficerFeatur
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.search_justification_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1919,18 +1839,16 @@ class FractionOfTrafficStopsBySearchReason(abstract.TimeGatedCategoricalOfficerF
                       "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
                       "FROM (   SELECT officer_id, count(officer_id) as total, sum((search_justification_code = {4})::INT) as count"
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.searched_flag "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1952,18 +1870,16 @@ class NumOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOffi
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id)"
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE staging.traffic_stops.search_justification_narrative like '%%{4}%%' "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -1988,17 +1904,15 @@ class FractionOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategorica
                       "SET {1} = staging_table.count::FLOAT / staging_table.total::FLOAT "
                       "FROM (   SELECT officer_id, count(search_justification_narrative) as total, sum((search_justification_narrative like '%%{4}%%')::INT) as count"
                       "         FROM staging.traffic_stops"
-                      "         INNER JOIN staging.events_hub"
-                      "         ON traffic_stops.event_id = events_hub.event_id"
                       "         WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date "
+                      "AND feature_table.as_of_date = '{2}'::date "
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -2017,8 +1931,6 @@ class ThresholdAccidentFlag(abstract.OfficerFeature):
             SET {1} = staging_table.flag::int
             FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
                    FROM staging.incidents
-                   INNER JOIN staging.events_hub
-                   ON incidents.event_id = events_hub.event_id
                    WHERE staging.incidents.grouped_incident_type_code in (0,7)
                    AND event_datetime <= '{2}'::date
                    AND event_datetime >= '{2}'::date - interval '180 days'
@@ -2026,10 +1938,10 @@ class ThresholdAccidentFlag(abstract.OfficerFeature):
                    GROUP BY officer_id
                ) AS staging_table
             WHERE feature_table.officer_id = staging_table.officer_id
-            AND feature_table.fake_today = '{2}'::date
+            AND feature_table.as_of_date = '{2}'::date
             """.format(self.table_name,
                     self.feature_name,
-                    self.fake_today.strftime(time_format)))
+                    self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
 class ThresholdUOFFlag(abstract.OfficerFeature):
@@ -2041,8 +1953,6 @@ class ThresholdUOFFlag(abstract.OfficerFeature):
             SET {1} = staging_table.flag::int
             FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 3 as flag
                    FROM staging.incidents
-                   INNER JOIN staging.events_hub
-                   ON incidents.event_id = events_hub.event_id
                    WHERE staging.incidents.grouped_incident_type_code = 20
                    AND event_datetime <= '{2}'::date
                    AND event_datetime >= '{2}'::date - interval '90 days'
@@ -2050,10 +1960,10 @@ class ThresholdUOFFlag(abstract.OfficerFeature):
                    GROUP BY officer_id
                ) AS staging_table
             WHERE feature_table.officer_id = staging_table.officer_id
-            AND feature_table.fake_today = '{2}'::date
+            AND feature_table.as_of_date = '{2}'::date
             """.format(self.table_name,
                     self.feature_name,
-                    self.fake_today.strftime(time_format)))
+                    self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
 class ThresholdComplaintFlag(abstract.OfficerFeature):
@@ -2063,21 +1973,19 @@ class ThresholdComplaintFlag(abstract.OfficerFeature):
         self.query = ("""
             UPDATE features.{0} feature_table
             SET {1} = staging_table.flag::int
-            FROM ( SELECT officer_id, count(origination_type_code) >= 3 as flag
+            FROM ( SELECT incidents.officer_id, count(origination_type_code) >= 3 as flag
                    FROM staging.incidents
-                   INNER JOIN staging.events_hub
-                   ON incidents.event_id = events_hub.event_id
                    WHERE staging.incidents.origination_type_code in (0) -- this might also need to include type 1
                    AND event_datetime <= '{2}'::date
                    AND event_datetime >= '{2}'::date - interval '180 days'
                    AND officer_id IS NOT null
-                   GROUP BY officer_id
+                   GROUP BY incidents.officer_id
                ) AS staging_table
             WHERE feature_table.officer_id = staging_table.officer_id
-            AND feature_table.fake_today = '{2}'::date
+            AND feature_table.as_of_date = '{2}'::date
             """.format(self.table_name,
                     self.feature_name,
-                    self.fake_today.strftime(time_format)))
+                    self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
 class ThresholdSickLeaveFlag(abstract.OfficerFeature):
@@ -2096,10 +2004,10 @@ class ThresholdSickLeaveFlag(abstract.OfficerFeature):
                    GROUP BY officer_id
                ) AS staging_table
             WHERE feature_table.officer_id = staging_table.officer_id
-            AND feature_table.fake_today = '{2}'::date
+            AND feature_table.as_of_date = '{2}'::date
             """.format(self.table_name,
                     self.feature_name,
-                    self.fake_today.strftime(time_format)))
+                    self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
 class ThresholdInjuryFlag(abstract.OfficerFeature):
@@ -2111,8 +2019,6 @@ class ThresholdInjuryFlag(abstract.OfficerFeature):
             SET {1} = staging_table.flag::int
             FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
                    FROM staging.incidents
-                   INNER JOIN staging.events_hub
-                   ON incidents.event_id = events_hub.event_id
                    WHERE staging.incidents.grouped_incident_type_code in (11)
                    AND event_datetime <= '{2}'::date
                    AND event_datetime >= '{2}'::date - interval '180 days'
@@ -2120,10 +2026,10 @@ class ThresholdInjuryFlag(abstract.OfficerFeature):
                    GROUP BY officer_id
                ) AS staging_table
             WHERE feature_table.officer_id = staging_table.officer_id
-            AND feature_table.fake_today = '{2}'::date
+            AND feature_table.as_of_date = '{2}'::date
             """.format(self.table_name,
                     self.feature_name,
-                    self.fake_today.strftime(time_format)))
+                    self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
 
@@ -2136,8 +2042,6 @@ class ThresholdPursuitsFlag(abstract.OfficerFeature):
             SET {1} = staging_table.flag::int
             FROM ( SELECT officer_id, count(grouped_incident_type_code) >= 2 as flag
                    FROM staging.incidents
-                   INNER JOIN staging.events_hub
-                   ON incidents.event_id = events_hub.event_id
                    WHERE staging.incidents.grouped_incident_type_code in (13)
                    AND event_datetime <= '{2}'::date
                    AND event_datetime >= '{2}'::date - interval '180 days'
@@ -2145,10 +2049,10 @@ class ThresholdPursuitsFlag(abstract.OfficerFeature):
                    GROUP BY officer_id
                ) AS staging_table
             WHERE feature_table.officer_id = staging_table.officer_id
-            AND feature_table.fake_today = '{2}'::date
+            AND feature_table.as_of_date = '{2}'::date
             """.format(self.table_name,
                     self.feature_name,
-                    self.fake_today.strftime(time_format)))
+                    self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
 
@@ -2159,12 +2063,10 @@ class ThresholdCombinedFlag(abstract.OfficerFeature):
         self.query = ("""
             UPDATE features.{0} feature_table
             SET {1} = staging_table.flag::int
-            FROM ( SELECT events_hub.officer_id, count(grouped_incident_type_code) >= 5 as flag
+            FROM ( SELECT incidents.officer_id, count(grouped_incident_type_code) >= 5 as flag
                    FROM staging.incidents
-                   INNER JOIN staging.events_hub
-                   ON incidents.event_id = events_hub.event_id
                    inner join staging.officer_shifts
-                   on events_hub.officer_id = officer_shifts.officer_id
+                   on incidents.officer_id = officer_shifts.officer_id
                    WHERE (
 					staging.incidents.origination_type_code in (0)
 					or
@@ -2180,14 +2082,14 @@ class ThresholdCombinedFlag(abstract.OfficerFeature):
                    )
                    AND event_datetime <= '{2}'::date
                    AND event_datetime >= '{2}'::date - interval '180 days'
-                   AND events_hub.officer_id IS NOT null
-                   GROUP BY events_hub.officer_id
+                   AND incidents.officer_id IS NOT null
+                   GROUP BY incidents.officer_id
                ) AS staging_table
             WHERE feature_table.officer_id = staging_table.officer_id
-            AND feature_table.fake_today = '{2}'::date
+            AND feature_table.as_of_date = '{2}'::date
             """.format(self.table_name,
                     self.feature_name,
-                    self.fake_today.strftime(time_format)))
+                    self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
 
@@ -2221,20 +2123,17 @@ class DispatchTypeCount(abstract.TimeGatedCategoricalOfficerFeature):
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
                       "FROM (   SELECT officer_id, count(officer_id) "
-                      "         FROM staging.events_hub "
-                      "         JOIN staging.dispatches "
-                      "         ON events_hub.event_id = dispatches.event_id "
-                      "         WHERE event_type_code=5 "
-                      "         AND dispatch_type_code = '{4}' "
+                      "         FROM staging.dispatches "
+                      "         WHERE dispatch_type_code = {4} "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -2246,9 +2145,7 @@ class PriorSustainedUnknownMajorAllegationsCount(abstract.TimeGatedOfficerFeatur
             self.query = ("UPDATE features.{0} feature_table "
                           "SET {1} = staging_table.count "
                           "FROM (   SELECT officer_id, count(officer_id) "
-                          "         FROM staging.events_hub "
-                          "         JOIN staging.incidents "
-                          "         ON staging.events_hub.event_id = staging.incidents.event_id"
+                          "         FROM staging.incidents "
                           "         WHERE event_datetime <= '{2}'::date "
                           "         AND event_datetime >= '{2}'::date - interval '{3}'"
                           "         AND (grouped_incident_type_code in ( 0, 2, 3, 4, 8, 9, 10, 11, 17, 20 ) "
@@ -2256,10 +2153,10 @@ class PriorSustainedUnknownMajorAllegationsCount(abstract.TimeGatedOfficerFeatur
                           "         GROUP BY officer_id "
                           "         ) AS staging_table"
                           " WHERE feature_table.officer_id = staging_table.officer_id"
-                          " AND feature_table.fake_today = '{2}'::date"
+                          " AND feature_table.as_of_date = '{2}'::date"
                           .format(  self.table_name,
                                     self.COLUMN,
-                                    self.fake_today.strftime(time_format),
+                                    self.as_of_date.strftime(time_format),
                                     self.DURATION))
             self.set_null_counts_to_zero = True
 
@@ -2270,19 +2167,17 @@ class PriorMajorAllegationsCount(abstract.TimeGatedOfficerFeature):
             self.query = ("UPDATE features.{0} feature_table "
                           "SET {1} = staging_table.count "
                           "FROM (   SELECT officer_id, count(officer_id) "
-                          "         FROM staging.events_hub "
-                          "         JOIN staging.incidents "
-                          "         ON staging.events_hub.event_id = staging.incidents.event_id"
+                          "         FROM staging.incidents "
                           "         WHERE event_datetime <= '{2}'::date "
                           "         AND event_datetime >= '{2}'::date - interval '{3}'"
                           "         AND (grouped_incident_type_code in ( 0, 2, 3, 4, 8, 9, 10, 11, 17, 20 )) "
                           "         GROUP BY officer_id "
                           "         ) AS staging_table"
                           " WHERE feature_table.officer_id = staging_table.officer_id"
-                          " AND feature_table.fake_today = '{2}'::date"
+                          " AND feature_table.as_of_date = '{2}'::date"
                           .format(  self.table_name,
                                     self.COLUMN,
-                                    self.fake_today.strftime(time_format),
+                                    self.as_of_date.strftime(time_format),
                                     self.DURATION))
             self.set_null_counts_to_zero = True
 
@@ -2293,9 +2188,7 @@ class PriorSustainedUnkownMinorAllegationsCount(abstract.TimeGatedOfficerFeature
             self.query = ("UPDATE features.{0} feature_table "
                           "SET {1} = staging_table.count "
                           "FROM (   SELECT officer_id, count(officer_id) "
-                          "         FROM staging.events_hub "
-                          "         JOIN staging.incidents "
-                          "         ON staging.events_hub.event_id = staging.incidents.event_id"
+                          "         FROM staging.incidents "
                           "         WHERE event_datetime <= '{2}'::date "
                           "         AND event_datetime >= '{2}'::date - interval '{3}'"
                           "         AND (grouped_incident_type_code in ( 1, 6, 16, 18, 12, 7, 14 ) "
@@ -2303,10 +2196,10 @@ class PriorSustainedUnkownMinorAllegationsCount(abstract.TimeGatedOfficerFeature
                           "         GROUP BY officer_id "
                           "         ) AS staging_table"
                           " WHERE feature_table.officer_id = staging_table.officer_id"
-                          " AND feature_table.fake_today = '{2}'::date"
+                          " AND feature_table.as_of_date = '{2}'::date"
                           .format(  self.table_name,
                                     self.COLUMN,
-                                    self.fake_today.strftime(time_format),
+                                    self.as_of_date.strftime(time_format),
                                     self.DURATION))
             self.set_null_counts_to_zero = True
 
@@ -2317,19 +2210,17 @@ class PriorMinorAllegationsCount(abstract.TimeGatedOfficerFeature):
             self.query = ("UPDATE features.{0} feature_table "
                           "SET {1} = staging_table.count "
                           "FROM (   SELECT officer_id, count(officer_id) "
-                          "         FROM staging.events_hub "
-                          "         JOIN staging.incidents "
-                          "         ON staging.events_hub.event_id = staging.incidents.event_id"
+                          "         FROM staging.incidents "
                           "         WHERE event_datetime <= '{2}'::date "
                           "         AND event_datetime >= '{2}'::date - interval '{3}'"
                           "         AND (grouped_incident_type_code in ( 1, 6, 16, 18, 12, 7, 14 )) "
                           "         GROUP BY officer_id "
                           "         ) AS staging_table"
                           " WHERE feature_table.officer_id = staging_table.officer_id"
-                          " AND feature_table.fake_today = '{2}'::date"
+                          " AND feature_table.as_of_date = '{2}'::date"
                           .format(  self.table_name,
                                     self.COLUMN,
-                                    self.fake_today.strftime(time_format),
+                                    self.as_of_date.strftime(time_format),
                                     self.DURATION))
             self.set_null_counts_to_zero = True
 
@@ -2339,11 +2230,9 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
         abstract.TimeGatedOfficerFeature.__init__(self, **kwargs)
         self.description = ("Number of unjustified use of force, time gated")
         self.query = ("UPDATE features.{0} feature_table "
-                      "SET {1} = staging_table.count"
-                      " FROM (   SELECT officer_id, count(officer_id)"
+                      "         SET {1} = staging_table.count"
+                      "         FROM (SELECT officer_id, count(officer_id)"
                       "         FROM staging.incidents "
-                      "         INNER JOIN staging.events_hub"
-                      "         ON incidents.event_id = events_hub.event_id"
                       "         WHERE staging.incidents.grouped_incident_type_code = 20 "
                       "         AND event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
@@ -2351,10 +2240,10 @@ class NumOfUnjustifiedUsesOfForce(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -2369,21 +2258,21 @@ class CountComplaintsTypeSource(abstract.TimeGatedCategoricalOfficerFeature):
         self.description = ("Number of complaints by type an officer had, time gated")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.count """
-                      """FROM (   SELECT officer_id, count(officer_id) """
+                      """FROM (   SELECT incidents.officer_id, count(incidents.officer_id) """
                       """         FROM staging.events_hub """
                       """         JOIN staging.incidents """
                       """         ON events_hub.event_id = incidents.event_id"""
                       """         WHERE event_type_code = 6 """
-                      """         AND event_datetime <= '{2}'::date """
-                      """         AND event_datetime >= '{2}'::date - interval '{3}' """
+                      """         AND incidents.event_datetime <= '{2}'::date """
+                      """         AND incidents.event_datetime >= '{2}'::date - interval '{3}' """
                       """         AND origination_type_code = {4} """
-                      """         GROUP BY officer_id """
+                      """         GROUP BY incidents.officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      """AND feature_table.fake_today = '{2}'::date """
+                      """AND feature_table.as_of_date = '{2}'::date """
                       .format( self.table_name,
                                self.COLUMN,
-                               self.fake_today.strftime(time_format),
+                               self.as_of_date.strftime(time_format),
                                self.DURATION,
                                self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
@@ -2403,10 +2292,10 @@ class ComplaintsCount(abstract.TimeGatedOfficerFeature):
                       "         GROUP BY officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -2416,21 +2305,21 @@ class SustainedComplaintsCount(abstract.TimeGatedOfficerFeature):
         self.description = ("Number of complaints an officer had, time gated")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
-                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "FROM (   SELECT incidents.officer_id, count(incidents.officer_id) "
                       "         FROM staging.events_hub "
                       "         JOIN staging.incidents "
                       "         ON staging.events_hub.event_id = staging.incidents.event_id "
-                      "         WHERE event_type_code=6 "
-                      "         AND event_datetime <= '{2}'::date "
-                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
+                      "         WHERE events_hub.event_type_code=6 "
+                      "         AND events_hub.event_datetime <= '{2}'::date "
+                      "         AND events_hub.event_datetime >= '{2}'::date - interval '{3}' "
                       "         AND final_ruling_code in (1,4,5) "
-                      "         GROUP BY officer_id "
+                      "         GROUP BY incidents.officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION ))
         self.set_null_counts_to_zero = True
 
@@ -2462,154 +2351,246 @@ class NumberOfComplaintsOfType(abstract.TimeGatedCategoricalOfficerFeature):
         self.description = ("Complaint type categorical feature, time gated")
         self.query = ("UPDATE features.{0} feature_table "
                       "SET {1} = staging_table.count "
-                      "FROM (   SELECT officer_id, count(officer_id) "
+                      "FROM (   SELECT incidents.officer_id, count(incidents.officer_id) "
                       "         FROM staging.incidents "
                       "         INNER JOIN staging.events_hub"
                       "         ON incidents.event_id = events_hub.event_id"
                       "         WHERE staging.incidents.grouped_incident_type_code = {4} "
                       "         AND event_type_code=6 "
-                      "         AND event_datetime <= '{2}'::date "
-                      "         AND event_datetime >= '{2}'::date - interval '{3}' "
-                      "         GROUP BY officer_id "
+                      "         AND events_hub.event_datetime <= '{2}'::date "
+                      "         AND events_hub.event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY incidents.officer_id "
                       "     ) AS staging_table "
                       "WHERE feature_table.officer_id = staging_table.officer_id "
-                      "AND feature_table.fake_today = '{2}'::date"
+                      "AND feature_table.as_of_date = '{2}'::date"
                       .format(  self.table_name,
                                 self.COLUMN,
-                                self.fake_today.strftime(time_format),
+                                self.as_of_date.strftime(time_format),
                                 self.DURATION,
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-## IMPORTANT: Change to point to staging
-class OfficerAvgNeighborhoodFeatures1(abstract.CategoricalOfficerFeature):
+class OfficerAvgArrestDemographics_1(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { "Population_Density_2013": "density",
-                            "Age_of_Residents_2013": "age",
-                            "Black_Population_2010": "black_population",
-                            "311_Calls_Log_2013": "311_calls",
-                            "Household_Income_Log_2013": "household_income",
-                            "Employment_Rate_2013": "employment_rate",
-                            "Vacant_Land_Area_Log_2013": "vacant_land",
-                            "Voter_Participation_2012": "voter_participation" }
+        self.categories = {"median_household_income": "income",
+                           "unemployment_rate": "unemployment",
+                           "family_count_poverty_all_families": "family_poverty",
+                           "family_count_poverty_female_no_husband_families": "family_poverty_nhusband",
+                           "population_median_age": "age"}
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.avg """
-                      """FROM (   SELECT officer_id, avg(var_used) """
-                      """         FROM staging.events_hub """
-                      """         JOIN temp_arrest_npa as geo """
-                      """         on geo.event_id = events_hub.event_id"""
-                      """         JOIN (SELECT "NPA", "{2}" as var_used"""
-                      """               FROM mecklenburg.npa2014_part_1) b"""
-                      """               ON npa = b."NPA" """
-                      """       GROUP BY officer_id """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """    SELECT event_id, {2} """
+                      """    FROM staging.events_geoid as g """
+                      """    JOIN staging.acs_demographics as d """
+                      """      ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date))) """
+                      """ SELECT officer_id, avg({2}) """
+                      """ FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """   ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 3 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.LOOKUPCODE ))
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-## IMPORTANT: Change to point to staging
-class OfficerAvgNeighborhoodFeatures2(abstract.CategoricalOfficerFeature):
+class OfficerAvgArrestDemographics_2(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { "Age_of_Death_2012": "age_of_death",
-                            "Housing_Density_2013": "housing_density",
-                            "Nuisance_Violations_Total_2013": "nuisance_violations",
-                            "Violent_Crime_Rate_2013": "crime_rate",
-                            "Sidewalk_Availability_2013": "sidewalk_availability",
-                            "Foreclosures_2013": "foreclosures",
-                            "Disorder_Call_Rate_Log_2013": "disorder_call" }
+        self.categories = {"race_count_black": "race_black",
+                           "race_count_white": "race_white",
+                           "race_count_native_american": "race_native_american",
+                           "race_count_asian": "race_asian",
+                           "population_count_male": "male"}
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Average demographics of arrests for each officer")
+        self.query = ("""UPDATE features.{0} feature_table """
+                     """SET {1} = staging_table.avg """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2}/(population_count*1.0) as var """
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date)) """
+                      """ AND population_count > 5 ) """
+                      """ SELECT officer_id, avg(var) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 3 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
+                      """     ) AS staging_table """
+                      """WHERE feature_table.officer_id = staging_table.officer_id """
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.as_of_date.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class OfficerAvgDispatchDemographics_1(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = {"median_household_income": "income",
+                           "unemployment_rate": "unemployment",
+                           "family_count_poverty_all_families": "family_poverty",
+                           "family_count_poverty_female_no_husband_families": "family_poverty_nhusband",
+                           "population_median_age": "age"}
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
         self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.avg """
-                      """FROM (   SELECT officer_id, avg(var_used) """
-                      """         FROM staging.events_hub """
-                      """         JOIN temp_arrest_npa as geo """
-                      """         on geo.event_id = events_hub.event_id"""
-                      """         JOIN (SELECT "NPA", "{2}" as var_used"""
-                      """               FROM mecklenburg.npa2014_part_2) b"""
-                      """               ON npa = b."NPA" """
-                      """       GROUP BY officer_id """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2} """
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date))) """
+                      """ SELECT officer_id, avg({2}) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 5 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.LOOKUPCODE ))
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-
-## IMPORTANT: Change to point to staging
-class OfficerAvgNeighborhoodPatrolFeatures1(abstract.CategoricalOfficerFeature):
+class OfficerAvgDispatchDemographics_2(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { "Population_Density_2013": "density",
-                            "Age_of_Residents_2013": "age",
-                            "Black_Population_2010": "black_population",
-                            "311_Calls_Log_2013": "311_calls",
-                            "Household_Income_Log_2013": "household_income",
-                            "Employment_Rate_2013": "employment_rate",
-                            "Vacant_Land_Area_Log_2013": "vacant_land",
-                            "Voter_Participation_2012": "voter_participation" }
+        self.categories = {"race_count_black": "race_black",
+                           "race_count_white": "race_white",
+                           "race_count_native_american": "race_native_american",
+                           "race_count_asian": "race_asian",
+                           "population_count_male": "male"}
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Average demographics of patrols for each officer")
+        self.description = ("Average demographics of arrests for each officer")
+        self.query = ("""UPDATE features.{0} feature_table """
+                     """SET {1} = staging_table.avg """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2}/(population_count*1.0) as var"""
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date)) """
+                      """ AND population_count > 5) """
+                      """ SELECT officer_id, avg(var) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 5 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
+                      """     ) AS staging_table """
+                      """WHERE feature_table.officer_id = staging_table.officer_id """
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                             self.as_of_date.strftime(time_format)))
+        self.set_null_counts_to_zero = True
+
+class OfficerAvgStopsDemographics_1(abstract.CategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = {"median_household_income": "income",
+                           "unemployment_rate": "unemployment",
+                           "family_count_poverty_all_families": "family_poverty",
+                           "family_count_poverty_female_no_husband_families": "family_poverty_nhusband",
+                           "population_median_age": "age"}
+        abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
                       """SET {1} = staging_table.avg """
-                      """FROM (   WITH patrols as ( """
-                      """         SELECT complnt FROM cmpd_merged.ods_cad_events where patrol = 'Y'), """
-                      """          patrols_npa as ( """
-                      """         SELECT dispatch_id, npa, "{2}" as var_used  from patrols"""
-                      """         JOIN temp_dispatch_npa"""
-                      """             ON complnt = temp_dispatch_npa.dispatch_id"""
-                      """             JOIN mecklenburg.npa2014_part_1 """
-                      """                ON "NPA" = npa) """
-                      """       SELECT officer_id, avg(var_used) """
-                      """       FROM  staging.events_hub  """
-                      """       JOIN patrols_npa """
-                      """           on patrols_npa.dispatch_id = events_hub.dispatch_id """
-                      """       GROUP BY officer_id """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2} """
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date))) """
+                      """ SELECT officer_id, avg({2}) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 1 """
+                      """ AND event_datetime <='{3}'::date """
+                      """ GROUP BY  officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.LOOKUPCODE ))
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-
-## IMPORTANT: Change to point to staging
-class OfficerAvgNeighborhoodPatrolFeatures2(abstract.CategoricalOfficerFeature):
+class OfficerAvgStopsDemographics_2(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
-        self.categories = { "Age_of_Death_2012": "age_of_death",
-                            "Housing_Density_2013": "housing_density",
-                            "Nuisance_Violations_Total_2013": "nuisance_violations",
-                            "Violent_Crime_Rate_2013": "crime_rate",
-                            "Sidewalk_Availability_2013": "sidewalk_availability",
-                            "Foreclosures_2013": "foreclosures",
-                            "Disorder_Call_Rate_Log_2013": "disorder_call" }
+        self.categories = {"race_count_black": "race_black",
+                           "race_count_white": "race_white",
+                           "race_count_native_american": "race_native_american",
+                           "race_count_asian": "race_asian",
+                           "population_count_male": "male"}
         abstract.CategoricalOfficerFeature.__init__(self, **kwargs)
-        self.description = ("Average demographics of patrols for each officer")
+        self.description = ("Average demographics of arrests for each officer")
         self.query = ("""UPDATE features.{0} feature_table """
-                      """SET {1} = staging_table.avg """
-                      """FROM (   WITH patrols as ( """
-                      """         SELECT complnt FROM cmpd_merged.ods_cad_events where patrol = 'Y'), """
-                      """          patrols_npa as ( """
-                      """         SELECT dispatch_id, npa, "{2}" as var_used  from patrols"""
-                      """         JOIN temp_dispatch_npa"""
-                      """             ON complnt = temp_dispatch_npa.dispatch_id"""
-                      """             JOIN mecklenburg.npa2014_part_2 """
-                      """                ON "NPA" = npa) """
-                      """       SELECT officer_id, avg(var_used) """
-                      """       FROM  staging.events_hub  """
-                      """       JOIN patrols_npa """
-                      """           on patrols_npa.dispatch_id = events_hub.dispatch_id """
-                      """       GROUP BY officer_id """
+                     """SET {1} = staging_table.avg """
+                      """FROM (                          """
+                      """ WITH  acs_demo as ( """
+                      """ SELECT event_id, {2}/(population_count*1.0) as var"""
+                      """ FROM staging.events_geoid as g """
+                      """ JOIN staging.acs_demographics as d """
+                      """    ON g.geoid = d.acs_area_id """
+                      """    WHERE  extract(year from valid_end_date) = """
+                      """                   (SELECT max(extract(year from valid_end_date)) """
+                      """                    FROM staging.acs_demographics """
+                      """                    WHERE extract(year from valid_end_date) < extract(year from '{3}'::date)) """
+                      """ AND population_count > 5) """
+                      """ SELECT officer_id, avg(var) """
+                      """  FROM staging.events_hub    """
+                      """ JOIN acs_demo """
+                      """ ON events_hub.event_id = acs_demo.event_id """
+                      """ WHERE event_type_code = 1 """
+                      """ AND event_datetime <= '{3}'::date """
+                      """ GROUP BY  officer_id """
                       """     ) AS staging_table """
                       """WHERE feature_table.officer_id = staging_table.officer_id """
-                      .format(  self.table_name,
-                                self.COLUMN,
-                                self.LOOKUPCODE ))
+                      .format(self.table_name,
+                              self.COLUMN,
+                              self.LOOKUPCODE,
+                              self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
+
+
+
 
 class ComplimentsToComplaintsRatio(abstract.TimeGatedOfficerFeature):
     def __init__(self, **kwargs):
@@ -2619,13 +2600,13 @@ class ComplimentsToComplaintsRatio(abstract.TimeGatedOfficerFeature):
                       "SET {1} = staging_table.ratio "
                       "FROM (  "
                       "   WITH compliments as ( "
-                      "      SELECT  officer_id, COUNT(officer_id)::float as num_compliments "
+                      "      SELECT e.officer_id, COUNT(e.officer_id)::float as num_compliments "
                       "      FROM staging.events_hub as e "
                       "         JOIN staging.officer_compliments as c "
                       "            ON e.event_id = c.event_id "
                       "      WHERE event_datetime <= '{2}'::date "
                       "         AND event_datetime >= '{2}'::date - interval '{3}' "
-                      "      GROUP BY officer_id),  "
+                      "      GROUP BY  e.officer_id),  "
                       "   complaints as ( "
                       "      SELECT officer_id, COUNT(officer_id)::float  as num_complaints "
                       "      FROM staging.events_hub "
@@ -2633,13 +2614,71 @@ class ComplimentsToComplaintsRatio(abstract.TimeGatedOfficerFeature):
                       "        AND event_datetime <= '{2}'::date "
                       "        AND event_datetime >= '{2}'::date - interval '{3}' "
                       "     GROUP BY officer_id )"
-                      "   SELECT compliments.officer_id, num_compliments/num_complaints "
+                      "   SELECT compliments.officer_id, num_compliments/num_complaints as ratio "
                       "   FROM  compliments "
-                      "   FULL OUTHER JOIN complaints "
-                      "   ON compliments.officer_id = complaints.officer_id"
+                      "   FULL OUTER JOIN complaints "
+                      "   ON compliments.officer_id = complaints.officer_id) AS staging_table "
+                      "   WHERE feature_table.officer_id = staging_table.officer_id "
                       .format(self.table_name,
                               self.COLUMN,
-                              self.fake_today.strftime(time_format),
+                              self.as_of_date.strftime(time_format),
                               self.DURATION ))
         self.set_null_counts_to_zero = True
-           
+
+
+class NumberOfDispatchInitiatiationType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 'CI': "civilians initiated",
+                            'OI': "officer initated",
+                             'AL': "alarm" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of dispatches by type of initation")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT d.officer_id, count(d.officer_id) "
+                      "         FROM staging.events_hub as e"
+                      "         JOIN staging.dispatches as d"
+                      "         ON d.event_id = e.event_id "
+                      "         WHERE dispatch_category = '{4}' "
+                      "         AND e.event_type_code = 5 "
+                      "         AND e.event_datetime <= '{2}'::date "
+                      "         AND e.event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY d.officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.as_of_date = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.as_of_date.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True
+
+class NumberOfInterviewType(abstract.TimeGatedCategoricalOfficerFeature):
+    def __init__(self, **kwargs):
+        self.categories = { 0: "field interviews",
+                            1: "terry stops",
+                            2: "home" }
+        abstract.TimeGatedCategoricalOfficerFeature.__init__(self, **kwargs)
+        self.description = ("Number of interviews by type time window")
+        self.query = ("UPDATE features.{0} feature_table "
+                      "SET {1} = staging_table.count "
+                      "FROM (   SELECT i.officer_id, count(i.officer_id) "
+                      "         FROM staging.events_hub as e"
+                      "         JOIN staging.field_interviews as i"
+                      "         ON i.event_id = e.event_id "
+                      "         WHERE field_interview_type_code = {4} "
+                      "         AND e.event_type_code = 2 "
+                      "         AND e.event_datetime <= '{2}'::date "
+                      "         AND e.event_datetime >= '{2}'::date - interval '{3}' "
+                      "         GROUP BY i.officer_id "
+                      "     ) AS staging_table "
+                      "WHERE feature_table.officer_id = staging_table.officer_id "
+                      "AND feature_table.as_of_date = '{2}'::date "
+                      .format(  self.table_name,
+                                self.COLUMN,
+                                self.as_of_date.strftime(time_format),
+                                self.DURATION,
+                                self.LOOKUPCODE ))
+        self.set_null_counts_to_zero = True 
+
