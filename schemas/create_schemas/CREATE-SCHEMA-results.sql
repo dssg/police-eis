@@ -7,10 +7,10 @@ CREATE TABLE results.models(
     run_time                    									timestamp,
     batch_run_time              									timestamp,
     model_type                                                      text,
-    model_parameters                                                json,
+    model_parameters                                                jsonb,
     model_comment                                                   text,
     batch_comment                                                   text,
-    config 				        		                            json,
+    config 				        		                            jsonb,
     pickle_file_path_name                                           text
 );
 
@@ -41,7 +41,7 @@ CREATE TABLE results.data(
 -- feature_importance table for storing a json with feature importances
 CREATE TABLE results.feature_importances(
     model_id                                                                                            int references results.models(model_id),
-    feature_importance                                                                                  json
+    feature_importance                                                                                  jsonb
 );
 
 -- individual feature importance
