@@ -1,65 +1,89 @@
 {% extends "_base.html" %}
-
 {% block content %}
 
-<div class="headrow">
-    <h2>Evaluation Dashboard</h2>
-</div>
-
-<div>
+<!--
 <ul class="nav nav-tabs">
   <li class="active"><a href="{{url_for('index')}}">Models Search</a></li>
-  <li><a href="{{url_for('within_models')}}">Within Models Comparison</a></li>
-  <li><a href="{{url_for('between_models')}}">Between Models Comparison</a></li>
+  <li><a href="{{url_for('within_model')}}">Within-Model Comparison</a></li>
+  <li><a href="{{url_for('between_models')}}">Between-Models Comparison</a></li>
 </ul>
-</div>
+-->
 
-<div class="container">
+<div class="container center-container">
+
 <div class="row">
-    <div class="col-md-8">
-        <form method="post" role ="form">
-            Show <input type="text" name="number" size="4" > models with
-            <select name="metric">
-                <option value="auc">auc</option>
-                <option value="precision">precision</option>
-                <option value="recall">recall</option>
-                <option value="f1">f1</option>
-                <option value="true positives">true positives</option>
-                <option value="true negatives">true negatives</option>
-                <option value="false positives">false positives</option>
-                <option value="false negatives">false negatives</option>
-            </select>
-            @ <input type="text" name="parameter" size="4" > % after
+    <div class="col-lg-3">
+        <form method="post" role="form" id="form_arg">
+            <!--<div class="row">
+              Show <input type="text" name="number" size="4" value="200"> models
+            </div>-->
+            <div class="row"> Show models with </div>
+            <div class="row">
+                <div id="dynamicInput"></div>
+            </div>
+            <div class="row">
+              <input type="button" style="padding: 5px 10px;" class="btn btn-info btn-xs" value="Add" onclick="addInput('dynamicInput');" />
+            </div>
+            <div class="row">
+            After
             <input name="timestamp" id="timestamp" value="2016-08-03" data-format="YYYY-MM-DD" data-template="YYYY MMM D">
             &nbsp; &nbsp;
-            <button type="button" class="btn btn-primary btn-sm" id="GoButton">Go</button>
+            </div>
+          <div class="row">
+              <button type="button" class="btn btn-primary btn-sm" id="GoButton">Go</button>
+          </div>
         </form>
+      </div>
+    <div class="col-lg-9">
+      <div class="row">
+        <div class="col-lg-12">
+          <div id="loader" style="margin:0 auto;" class="loader"></div>
+        </div>
+      </div>
+      <table class="table tablesorter-dropbox" id="results-table">
+        <thead id="results-head">
+        </thead>
+        <tbody id="results">
+        </tbody>
+      </table>
+
+      <!-- pager -->
+      <div class="row pager">
+        <form id="pagerp">
+          <ul class="pagination pagination-sm">
+            <li class="prev"><a href="#">&laquo;</a></li>
+            <li><span class="pagedisplay"></span></li><!-- this can be any element, including an input -->
+            <li class="next"><a href="#">&raquo;</a></li>
+            <li><select class="pagesize">
+                  <option selected="selected" value="15">15</option>
+                  <option value="20">20</option>
+                  <option value="25">25</option>
+                  <option value="30">30</option>
+                  <!--<option value="all">All Rows</option>-->
+                </select></li>
+          </ul>
+        </form>
+      </div>
     </div>
+  </div>
+
+
 </div>
 
-
-<div class="row">
-    <table class="table" id="results-table">
-      <thead>
-        <tr>
+<!--        <tr>
+          <th>&nbsp; &nbsp; &nbsp;</th>
+          <th>Model ID</th>
           <th>Run Time</th>
-          <th>Model Type</th>
           <th>Metric</th>
           <th>Parameter</th>
           <th>Value</th>
-        </tr>
-      </thead>
-      <tbody id="results">
-      </tbody>
-    </table>
-</div>
-</div>
-
-<!--<div class="row">
+        </tr>-->
+<!--
+<div class="row">
     {% for table in tables %}
     {{ table|safe }}
     {% endfor %}
-</div>-->
-
+</div>
+-->
 
 {% endblock %}

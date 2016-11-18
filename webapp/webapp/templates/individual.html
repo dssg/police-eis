@@ -1,23 +1,19 @@
+<!--
 {% extends "_base.html" %}
+{% set active_page = "individual" %}
+-->
 
-{% block content %}
-
-<div class="headrow">
-    <h2>Evaluation Dashboard</h2>
-</div>
-
-<div>
-<ul class="nav nav-tabs">
-  <li class="active"><a href="{{url_for('index')}}">Models Search</a></li>
-  <li><a href="{{url_for('within_models')}}">Within Models Comparison</a></li>
-  <li><a href="{{url_for('between_models')}}">Between Models Comparison</a></li>
-</ul>
-</div>
 
 <div class="container">
+
+<!--
 <div class="row">
-    <h3>Individual Predictions</h3>
-    <p>Coming Soon!</p>
+<ul id="navigation" class="nav nav-tabs">
+    {% for href, id, caption in navigation_bar %}
+    <li{% if id == active_page %} class="active"{% endif
+    %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+    {% endfor %}
+</ul>
 </div>
+-->
 </div>
-{% endblock %}
