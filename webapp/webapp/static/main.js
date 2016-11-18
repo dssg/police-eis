@@ -1,5 +1,6 @@
 $(document).ready(function() {
   document.getElementsByTagName("html")[0].style.visibility = "visible";
+	React.render(<MetricList />, document.getElementById('metric-selector-list'));
 
 });
 
@@ -73,23 +74,6 @@ $("body").on("click", ".delete", function (e) {
   $(this).closest("div").remove();
 });
 
-// Dynamic form
-var m = 0
-var choices = ["precision", "recall", "auc", "f1", "true positives", "true negatives", "false positives", "false negatives"];
-function addInput(divName) {
-    var input = $("<input/>").attr({type:"text", name:"parameter"+ m.toString(), size:"3"});
-    var select = $("<select/>").attr("name","metric"+ m.toString());
-    var button = "<button class='btn btn-xs btn-danger delete'>X</button>"
-    var div = $("<div>")
-    $.each(choices, function(a, b) {
-        select.append($("<option/>").attr("value", b).text(b));
-    });
-    //select.wrap("<div></div>");
-    div.append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>");
-    $("#"+divName).append(div);//append(select).append(" @ ").append(input).append(" % ").append(button).append("</br>");
-    //console.log($("#"+divName));
-    m = m + 1;
-}
 
 $(function(){
   // **********************************
