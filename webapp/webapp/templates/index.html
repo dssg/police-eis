@@ -1,5 +1,7 @@
 {% extends "_base.html" %}
 {% block content %}
+<script src="{{ url_for('static', filename='components/metric-selector.js') }}"></script>
+<script src="{{ url_for('static', filename='components/metric-list.js') }}"></script>
 
 <!--
 <ul class="nav nav-tabs">
@@ -17,13 +19,8 @@
             <!--<div class="row">
               Show <input type="text" name="number" size="4" value="200"> models
             </div>-->
-            <div class="row"> Show models with </div>
-            <div class="row">
-                <div id="dynamicInput"></div>
-            </div>
-            <div class="row">
-              <input type="button" style="padding: 5px 10px;" class="btn btn-info btn-xs" value="Add" onclick="addInput('dynamicInput');" />
-            </div>
+			<div class="row" id="metric-selector-list" />
+
             <div class="row">
             After
             <input name="timestamp" id="timestamp" value="2016-08-03" data-format="YYYY-MM-DD" data-template="YYYY MMM D">
