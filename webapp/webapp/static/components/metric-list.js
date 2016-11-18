@@ -1,8 +1,9 @@
-class MetricList extends React.Component {
-    addMetric() {
+var MetricList = React.createClass ({
+    addMetric: function() {
         this.metrics.push(this.metrics.length)
     },
-    render() {
+    render: function() {
+        console.log("MetricList checkpoint");
         return (
             {this.metrics.map(function(metric_num) {
                 return <MetricSelector index={metric_num} />
@@ -10,4 +11,4 @@ class MetricList extends React.Component {
             <button onClick={this.addMetric}>Add</button>
         )
     }
-}
+})

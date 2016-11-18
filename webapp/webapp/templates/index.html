@@ -1,8 +1,60 @@
 {% extends "_base.html" %}
 {% block content %}
-<script src="{{ url_for('static', filename='components/metric-selector.js') }}"></script>
-<script src="{{ url_for('static', filename='components/metric-list.js') }}"></script>
+<!--<script type="text/jsx" src="{{ url_for('static', filename='components/metric-selector.js') }}"></script>
+<script type="text/jsx" src="{{ url_for('static', filename='components/metric-list.js') }}"></script>-->
+<script type="text/jsx">
+  var MetricSelector = React.createClass({
+    choices: function() {
+        return ["precision", "recall", "auc", "f1", "true positives", "true negatives", "false positives", "false negatives"];
+    },
+    inputName: function() {
+        return "parameter" + this.props.index.toString();
+    },
+    selectName: function() {
+        return "metric" + this.props.index.toString();
+    },
+    render: function() {
+        console.log("MetricSelector checkpoint")
+        return (
+            //<h1>test</h1>
+            <span>
+            <select name={this.selectName()}>@
+            {this.choices().map(function(choice){
+                return <option value={choice}>{choice}</option>;
+            })}
+            </select>
+            <input type='text' name={this.inputName()} size="3" /> %
+            <button className='btn btn-xs btn-danger delete'>X</button>
+            </span>
+        );
+    }
+});
 
+  var MetricList = React.createClass ({
+    getInitialState: function() {
+        return {metrics: []};
+    },
+    addMetric: function() {
+        console.log("addMetric checkpoint")
+        //this.state.metrics.push(this.state.metrics.length);
+        this.setState({'metrics': this.state.metrics.concat([this.state.metrics.length]) });
+        console.log(this.state.metrics)
+    },
+    render: function() {
+        console.log("MetricList checkpoint");
+        return (
+            <span>
+            <ul>
+              {this.state.metrics.map(function(metric_num) {
+                return <MetricSelector index={metric_num} />;
+              })}
+            </ul>
+            <button type="button" onClick={this.addMetric}>Add</button>
+            </span>
+        )
+    }
+});
+</script>
 <!--
 <ul class="nav nav-tabs">
   <li class="active"><a href="{{url_for('index')}}">Models Search</a></li>
@@ -19,8 +71,11 @@
             <!--<div class="row">
               Show <input type="text" name="number" size="4" value="200"> models
             </div>-->
-			<div class="row" id="metric-selector-list" />
-
+      <div class="row" id="metric-selector-list">
+      </div>
+      <script type="text/jsx">
+        React.render(<MetricList />, document.getElementById('metric-selector-list'));
+      </script>
             <div class="row">
             After
             <input name="timestamp" id="timestamp" value="2016-08-03" data-format="YYYY-MM-DD" data-template="YYYY MMM D">

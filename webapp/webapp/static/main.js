@@ -1,7 +1,5 @@
 $(document).ready(function() {
   document.getElementsByTagName("html")[0].style.visibility = "visible";
-	React.render(<MetricList />, document.getElementById('metric-selector-list'));
-
 });
 
 
