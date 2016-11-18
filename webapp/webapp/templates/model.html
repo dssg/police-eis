@@ -19,49 +19,55 @@
     <div class="tab-content">
         <div id="model" class="tab-pane fade in active" align="left">
             <div class="col-lg-8">
-            <style>#scatter svg {height:500px;} svg {margin-left:0;}</style>
-            <div id="scatter" class="with-3d-shadow with-transitions" >
-              <svg preserveAspectRatio="xMaxYMin"></svg>
+              <style>#scatter svg {height:500px;} svg {margin-left:0;}</style>
+              <div id="scatter" class="with-3d-shadow with-transitions" >
+                <svg preserveAspectRatio="xMaxYMin"></svg>
+              </div>
             </div>
-          </div>
-          <div class="col-lg-4">
-            <div class="row">
+            <div class="col-lg-4">
+              <div class="row">
                 {% for table in tables %}
                 {{ table|safe }}
                 {% endfor %}
+              </div>
+            <div class="row pager">
+              <form id="pagerp_model">
+                <ul class="pagination pagination-sm">
+                  <li class="prev"><a href="#">&laquo;</a></li>
+                  <li><span class="pagedisplay"></span></li><!-- this can be any element, including an input -->
+                  <li class="next"><a href="#">&raquo;</a></li>
+                  <li><select class="pagesize">
+                    <option selected="selected" value="10">10</option>
+                    <option value="20">20</option>
+                    <option value="30">30</option>
+                    <option value="40">40</option>
+                    <!--<option value="all">All Rows</option>-->
+                  </select></li>
+                </ul>
+              </form>
             </div>
-<div class="row pager">
-    <form id="pagerp_model">
-      <ul class="pagination pagination-sm">
-        <li class="prev"><a href="#">&laquo;</a></li>
-        <li><span class="pagedisplay"></span></li><!-- this can be any element, including an input -->
-        <li class="next"><a href="#">&raquo;</a></li>
-        <li><select class="pagesize">
-              <option selected="selected" value="10">10</option>
-              <option value="20">20</option>
-              <option value="30">30</option>
-              <option value="40">40</option>
-              <!--<option value="all">All Rows</option>-->
-            </select></li>
-      </ul>
-    </form>
-  </div>
           </div>
         </div>
         <div id="individual" class="tab-pane fade">
           <h3> content of individual prediction </h3>
+          <h3> Feature Distribution</h3>
+            <style>#fdistchart svg {height:400px; width:800px;}</style>
+            <div id="fdistchart">
+              <svg></svg>
+            </div>
+          <div id="testd3"></div>
         </div>
         <div id="within" class="tab-pane fade">
           <h3>Metrics Over Time </h3>
-          <style>#testchart svg {height: 400px; width:800px; svg {margin-left:0;}}</style>
-          <div id="testchart">
-            <svg></svg>
-          </div>
+            <style>#metrictimechart svg {height: 400px; width:800px; svg {margin-left:0;}}</style>
+            <div id="metrictimechart">
+              <svg></svg>
+            </div>
           <h3>Feature Importance</h3>
-          <style>#barchart svg {height:400px; width:800px}</style>
-          <div id="barchart">
-            <svg></svg>
-          </div>
+            <style>#barchart svg {height:400px; width:800px}</style>
+            <div id="barchart">
+              <svg></svg>
+            </div>
         </div>
         <div id="between" class="tab-pane fade">
           <p> content of between-model comparison </p>

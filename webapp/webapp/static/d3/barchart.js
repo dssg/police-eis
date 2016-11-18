@@ -1,4 +1,4 @@
-d3.json('/static/fakeFeatureImportanceData.json', function(data) {
+d3.json('/static/d3/fakeFeatureImportanceData.json', function(data) {
 nv.addGraph(function() {
     var chart = nv.models.multiBarHorizontalChart()
         .x(function(d) { return d.label })
