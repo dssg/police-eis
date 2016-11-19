@@ -16,17 +16,29 @@ var MetricList = React.createClass({
     render: function() {
 		var self = this;
         return (
-            <span>
-            <ul>
-              {this.state.metrics.map(function(metricId) {
-				return <MetricSelector
-						key={metricId}
-						index={metricId}
-						handleDeleteClick={self.removeMetric} />;
-              })}
-            </ul>
-            <button type="button" onClick={this.addMetric}>Add</button>
-            </span>
+			<span>
+				<div className="row">
+					Show models with
+				</div>
+				<div className="row">
+				  {this.state.metrics.map(function(metricId) {
+					return <MetricSelector
+							key={metricId}
+							index={metricId}
+							handleDeleteClick={self.removeMetric} />;
+				  })}
+				</div>
+				<div className="row">
+					<button
+						type="button"
+						onClick={this.addMetric}
+						style={ { padding: '5px 10px' } }
+						className="btn btn-info btn-xs"
+					>
+						Add
+					</button>
+				</div>
+			</span>
         )
     }
 });

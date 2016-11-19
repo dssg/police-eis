@@ -26,7 +26,7 @@ var MetricSelector = React.createClass({
 					return <option value={choice}>{choice}</option>;
 				})}
 				</select>
-				@
+				<span style={ { margin: '0 1em 0 1em' }}>@</span>
 				<input type='text' name={this.inputName()} size="3" /> %
 				<button
 					className='btn btn-xs btn-danger'
