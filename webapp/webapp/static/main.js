@@ -68,10 +68,6 @@ $(function() {
     });
 
 
-$("body").on("click", ".delete", function (e) {
-  $(this).closest("div").remove();
-});
-
 
 $(function(){
   // **********************************
