@@ -28,7 +28,6 @@ setup(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Other Audience',
         'Topic :: Scientific/Engineering :: Information Analysis', 
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
