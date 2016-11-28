@@ -10,64 +10,6 @@ $(function(){
     });
 });
 
-//$("#results-table").hide();
-$("#pagerp").hide();
-$("#loader").hide();
-
-
-$(function() {
-    $("#GoButton").click(function() {
-        $("#results").empty();
-        $("#results-head").empty();
-        $("#results-table").show();
-        $("#loader").show();
-        console.log("pressed!");
-        $.ajax({
-            type: "POST",
-            url: "/evaluations/search_models",
-            data: $("form").serialize(),
-            success: function(result) {
-
-                console.log("load data!");
-                //console.log(result.results);
-                var data = result.results;
-                // show table
-                $("#results-table").show();
-                var head = Object.keys(data[0]);
-                head.splice(head.indexOf('model_id'),1);
-                var results_head = '';
-                for (j=0; j< head.length; j++) {
-                    results_head = results_head.concat('<th>'+head[j]+'</th>');
-                };
-                console.log(results_head);
-                $("#results-head").append('<tr>' + '<th>Model ID</th>' + results_head + '</tr>')
-                // loop through results, append to dom
-                for (i = 0; i < data.length; i++) {
-                    var url =  flask_util.url_for("get_model_prediction", {model_id:data[i]['model_id']});
-                    var columns = '';
-                    for (j=0; j< head.length; j++) {
-                        columns = columns.concat('<td>'+data[i][head[j]].toFixed(4)+'</td>');
-                    };
-                        $("#results").append('<tr>'
-                                          +'<td><a href="'
-                                          + url
-                                          +'" method="post">'
-                                          +data[i]['model_id']+'</td>'
-                                          +columns + '</tr>');};
-                $("#loader").hide();
-                $("#pagerp").show();
-                $("#results-table").trigger("updateAll").trigger("appendCache");
-                $("#results-table").tablesorter();
-                //var htmlContents = document.documentElement.innerHTML;
-                //sessionStorage.setItem("local_results_table", JSON.stringify(htmlContents));
-                sessionStorage.setItem("local_results_table", data);
-
-            }
-        });
-        });
-    });
-
-
 
 $(function(){
   // **********************************

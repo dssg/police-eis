@@ -7,7 +7,13 @@ import os
 with open('../default_profile.yaml') as f:
     config = yaml.load(f)
 
-config = {'host':config['PGHOST'], 'user':config['PGUSER'], 'database':config['PGDATABASE'], 'password':config['PGPASSWORD']}
+config = {
+    'host':config['PGHOST'],
+    'user':config['PGUSER'],
+    'database':config['PGDATABASE'],
+    'password':config['PGPASSWORD'],
+    'port':config['PGPORT'],
+}
 dbengine = create_engine('postgres://', connect_args=config)
 
 
