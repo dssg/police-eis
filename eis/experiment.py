@@ -57,20 +57,25 @@ def generate_time_sets(config):
     end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
     start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
 
+    for prediction_window, update_window, officer_past_activity, training_window in product(
+                           config['prediction_window'], config['update_window'], 
+                           config['officer_past_activity_window'], config['training_window']):
 
-    for prediction_window, update_window, officer_past_activity in product(
-         config['prediction_window'], config['update_window'], config['officer_past_activity_window']):
         test_end_date = end_date
+        # loop through update_window
         while start_date < test_end_date - relativedelta(months=prediction_window*2):
-            train_end_date = test_end_date - relativedelta(months=prediction_window)
-            lookup_back_activity = train_end_date - relativedelta( )
-            if lookup_back_activity >= start_date:
-                temporal_info.append({'prediction_window':prediction_window,
-                                      'officer_past_activity_window': officer_past_activity,
-                                      'test_end_date': test_end_date,
-                                      'train_end_date': train_end_date})
-                log.debug("test_end_date:'{}', train_end_date:'{}', update_window: '{}', 'prediction_window: '{}' '".format(test_end_date,
-                       train_end_date, update_window, prediction_window)) 
+            test_start_date = test_end_date - relativedelta(months=prediction_window)
+            train_end_date = test_start_date
+            train_start_date = train_end_date - relativedelta(months=training_window)
+            temporal_info.append({ 'test_end_date': test_end_date,
+                                   'test_start_date': test_start_date,
+                                   'train_end_date': train_end_date,
+                                   'train_start_date': train_start_date,
+                                    'prediction_window':prediction_window,
+                                    'officer_past_activity_window': officer_past_activity})
+            log.debug("test_end_date:'{}', test_start_date:'{}', train_end_date:'{}', train_start_date:'{}',"
+                       "update_window: '{}', 'prediction_window: '{}' '".format(test_end_date, test_start_date,
+                       train_end_date, train_start_date, update_window, prediction_window))
             test_end_date -= relativedelta(months=update_window)
 
     return temporal_info
@@ -101,10 +106,15 @@ def generate_models_to_run(config, query_db=True):
         # create a copy of the dictionary from the experiment configuration yaml and add
         # the temporal cross validation information
         this_config = copy.copy(config)
+        this_config["train_start_date"] = temporal_info["train_start_date"].strftime("%Y-%m-%d")
         this_config["train_end_date"] = temporal_info["train_end_date"].strftime("%Y-%m-%d")
+        this_config["test_start_date"] = temporal_info["test_start_date"].strftime("%Y-%m-%d")
         this_config["test_end_date"] = temporal_info["test_end_date"].strftime("%Y-%m-%d")
         this_config["prediction_window"] = temporal_info["prediction_window"]
         this_config["officer_past_activity_window"] = temporal_info["officer_past_activity_window"]
+
+        # pass only the labels names selected in the config as True
+        this_config["officer_labels"] = [ key for key in config["officer_labels"] if config["officer_labels"][key] == True ]
         
         # get the appropriate feature data from the database
         if config["unit"] == "officer":

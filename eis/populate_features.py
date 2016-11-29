@@ -97,6 +97,9 @@ def create_officer_features_table(config, table_name="officer_features"):
                                                                         as_of_date)
         engine.execute(officer_id_query)
 
+    # Create index
+    query_index = ("CREATE INDEX ON features.{} (as_of_date, officer_id)".format(table_name))
+    engine.execute(query_index)
 
 def create_dispatch_features_table(config, table_name="dispatch_features"):
 

@@ -94,15 +94,13 @@ def store_feature_importances( timestamp, to_save):
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
-    # get json of feature importances
-    feature_importances = dict(zip(to_save["feature_importances_names"],to_save["feature_importances"]))
+    # Create pandas db of features importance
+    dataframe_for_insert = pd.DataFrame( {  "model_id": this_model_id,
+                                            "feature": to_save["feature_importances_names"],
+                                            "feature_importance": to_save["feature_importances"] })
+    # Insert
+    dataframe_for_insert.to_sql( "feature_importances", engine, if_exists="append", schema="results", index=False )
 
-    # insert into the features importance table
-    query = ( "INSERT INTO results.feature_importances(model_id, feature_importance) "
-                                                      " VALUES ({}, '{}')".format(this_model_id,
-                                                                               json.dumps(feature_importances)))
-    db_conn.cursor().execute(query)
-    db_conn.commit()
     return None
 
 def obtain_top5_risk(row):
@@ -676,6 +674,57 @@ class FeatureLoader():
 
         return results
 
+
+def get_dataset(start_date, end_date, prediction_window, officer_past_activity_window, features_list,
+                label_list, features_table, labels_table):
+
+    features_list = [ feature.lower() for feature in features_list]
+    features_list_string = ", ".join(['"{}"'.format(feature) for feature in features_list])
+    label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
+
+    query_labels = (""" WITH features_labels as ( """
+                    """     SELECT officer_id, {0}, """
+                    """             as_of_date, """ 
+                    """             coalesce(label,0) as label """
+                    """     FROM features.{2} f """
+                    """     LEFT JOIN LATERAL ( """
+                    """           SELECT 1 as label """
+                    """           FROM features.{3} l """
+                    """           WHERE f.officer_id = l.officer_id """
+                    """                AND l.event_datetime - INTERVAL '{4}months' <= f.as_of_date """
+                    """                AND l.event_datetime > f.as_of_date """
+                    """                AND label in ({1}) LIMIT 1"""
+                    """                 ) AS l ON TRUE """
+                    """     WHERE f.as_of_date >= '{5}'::date AND f.as_of_date < '{6}' ) """
+                      .format(features_list_string,
+                              label_list_string,
+                              features_table,
+                              labels_table,
+                              prediction_window,
+                              start_date,
+                              end_date))
+
+    query_active =  (""" SELECT officer_id, {0}, label """
+                    """ FROM features_labels as f, """
+                    """        LATERAL """
+                    """          (SELECT 1 """
+                    """           FROM staging.events_hub e """
+                    """           WHERE f.officer_id = e.officer_id """
+                    """           AND e.event_datetime + INTERVAL '{1}months' > f.as_of_date """
+                    """           AND e.event_datetime <= f.as_of_date """
+                    """            LIMIT 1 ) sub; """
+                    .format(features_list_string,
+                            officer_past_activity_window))
+    query = (query_labels + query_active)
+    all_data = pd.read_sql(query, con=db_conn)
+
+    # fill missing values with zero
+    all_data = all_data.fillna(0)
+    # remove rows with only zero values
+    all_data = all_data.loc[~(all_data==0).all(axis=1)]
+
+    all_data = all_data.set_index('officer_id')
+    return all_data[features_list], all_data.label
 
 # TODO: make this use load_all_features() instead of loader()
 def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):

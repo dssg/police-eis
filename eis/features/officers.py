@@ -1843,7 +1843,7 @@ class FractionOfTrafficStopsBySearchReason(abstract.TimeGatedCategoricalOfficerF
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class NumOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOfficerFeature):
+class NumOfTrafficStopsByInterestingSearch(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         # This is a bit of a hack of the categorical officer feature to simply look up interesting* words
         # (* as deemed interesting by the 2015 team)
@@ -1877,7 +1877,7 @@ class NumOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOffi
 
 
 
-class FractionOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOfficerFeature):
+class FractionOfTrafficStopsByInterestingSearch(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         # This is a bit of a hack of the categorical officer feature to simply look up interesting* words
         # (* as deemed interesting by the 2015 team)
