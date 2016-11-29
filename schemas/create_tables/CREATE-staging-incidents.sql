@@ -42,5 +42,7 @@ CREATE UNLOGGED TABLE staging.incidents (
   last_modified                              TIMESTAMP, --timestamp for when the table was last updated
   department_source_table                    TEXT, --free text field showing which source table the data comes from
   event_datetime                             TIMESTAMP,
+  date_created                               TIMESTAMP,
+  date_completed                             TIMESTAMP,
   officer_id                                 INT REFERENCES staging.officers_hub (officer_id)
 );
