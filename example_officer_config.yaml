@@ -31,6 +31,7 @@ start_date: '2010-04-01' # The first day of the data
 end_date: '2016-04-01' # The last day of the data
 prediction_window: [6, 12] # prediction, months, used for officer-level prediction
 update_window: [12] # update, months, used for updating the model
+training_window: [12] # months, used for training the model
 officer_past_activity_window: [12] # Include officers that have activity in the x months preceding start time of test/train
 timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] # Aggregation time for features
 
