@@ -41,7 +41,8 @@ CREATE TABLE results.data(
 -- feature_importance table for storing a json with feature importances
 CREATE TABLE results.feature_importances(
     model_id                                                                                            int references results.models(model_id),
-    feature_importance                                                                                  jsonb
+    feature                                                                                             text,
+    feature_importance                                                                                  numeric
 );
 
 -- individual feature importance
