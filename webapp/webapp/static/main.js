@@ -3,13 +3,6 @@ $(document).ready(function() {
 });
 
 
-$(function(){
-    $('#timestamp').combodate({
-          minYear: 2016,
-          maxYear: moment().format('YYYY')
-    });
-});
-
 
 $(function(){
   // **********************************

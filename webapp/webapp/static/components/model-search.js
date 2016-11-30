@@ -2,16 +2,21 @@ var ModelSearcher = React.createClass({
 	getInitialState: function() {
 		return {
 			modelData: [],
-			loading: false
+			loading: false,
+			startDate: moment('2016-08-03'),
 		};
 	},
 	handleSearch: function() {
 		var self = this;
 		self.setState({ loading: true });
+		var params = { timestamp: this.state.startDate.format('YYYY-MM-DD') };
+		$.each($('form').serializeArray(), function(_, kv) {
+		  params[kv.name] = kv.value;
+		});
         $.ajax({
             type: "POST",
             url: "/evaluations/search_models",
-            data: $("form").serialize(),
+            data: $.param(params),
             success: function(result) {
 				self.setState({
 					modelData: result.results,
@@ -30,6 +35,9 @@ var ModelSearcher = React.createClass({
 			<ModelTable data={ this.state.modelData } />
 		);
 	},
+	handleDateChange: function(dt) {
+		this.setState({startDate: dt});
+	},
 	render: function() {
 		return (
 			<div className="container center-container">
@@ -40,12 +48,9 @@ var ModelSearcher = React.createClass({
 						</div>
 						<div className="row">
 						After
-						<input
-							name="timestamp"
-							id="timestamp"
-							defaultValue="2016-08-03"
-							data-format="YYYY-MM-DD"
-							data-template="YYYY MMM D" />
+						<DatePicker
+							selected={this.state.startDate}
+							onChange={this.handleDateChange} />
 						&nbsp; &nbsp;
 						</div>
 						<div className="row">
