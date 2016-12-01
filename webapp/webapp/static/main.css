@@ -117,4 +117,8 @@ table.focus-highlight td:before {
     100% { transform: rotate(360deg); }
 }
 
+.reactable-page-button {
+	padding-right: 10px;
+}
+
 

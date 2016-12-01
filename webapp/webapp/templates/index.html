@@ -2,6 +2,8 @@
 {% block content %}
 <script type="text/jsx" src="{{ url_for('static', filename='components/metric-selector.js') }}"></script>
 <script type="text/jsx" src="{{ url_for('static', filename='components/metric-list.js') }}"></script>
+<script type="text/jsx" src="{{ url_for('static', filename='components/model-search.js') }}"></script>
+<script type="text/jsx" src="{{ url_for('static', filename='components/model-table.js') }}"></script>
 <!--
 <ul class="nav nav-tabs">
   <li class="active"><a href="{{url_for('index')}}">Models Search</a></li>
@@ -10,78 +12,10 @@
 </ul>
 -->
 
-<div class="container center-container">
 
-<div class="row">
-    <div class="col-lg-3">
-        <form method="post" role="form" id="form_arg">
-            <!--<div class="row">
-              Show <input type="text" name="number" size="4" value="200"> models
-            </div>-->
-      <div class="row" id="metric-selector-list"></div>
-        <script type="text/jsx">
-          React.render(<MetricList />, document.getElementById('metric-selector-list'));
-        </script>
-            <div class="row">
-            After
-            <input name="timestamp" id="timestamp" value="2016-08-03" data-format="YYYY-MM-DD" data-template="YYYY MMM D">
-            &nbsp; &nbsp;
-            </div>
-          <div class="row">
-              <button type="button" class="btn btn-primary btn-sm" id="GoButton">Go</button>
-          </div>
-        </form>
-      </div>
-    <div class="col-lg-9">
-      <div class="row">
-        <div class="col-lg-12">
-          <div id="loader" style="margin:0 auto;" class="loader"></div>
-        </div>
-      </div>
-      <table class="table tablesorter-dropbox" id="results-table">
-        <thead id="results-head">
-        </thead>
-        <tbody id="results">
-        </tbody>
-      </table>
-
-      <!-- pager -->
-      <div class="row pager">
-        <form id="pagerp">
-          <ul class="pagination pagination-sm">
-            <li class="prev"><a href="#">&laquo;</a></li>
-            <li><span class="pagedisplay"></span></li><!-- this can be any element, including an input -->
-            <li class="next"><a href="#">&raquo;</a></li>
-            <li><select class="pagesize">
-                  <option selected="selected" value="15">15</option>
-                  <option value="20">20</option>
-                  <option value="25">25</option>
-                  <option value="30">30</option>
-                  <!--<option value="all">All Rows</option>-->
-                </select></li>
-          </ul>
-        </form>
-      </div>
-    </div>
-  </div>
-
-
-</div>
-
-<!--        <tr>
-          <th>&nbsp; &nbsp; &nbsp;</th>
-          <th>Model ID</th>
-          <th>Run Time</th>
-          <th>Metric</th>
-          <th>Parameter</th>
-          <th>Value</th>
-        </tr>-->
-<!--
-<div class="row">
-    {% for table in tables %}
-    {{ table|safe }}
-    {% endfor %}
-</div>
--->
+<div id="model-searcher"></div>
+<script type="text/jsx">
+	ReactDOM.render(<ModelSearcher />, document.getElementById('model-searcher'));
+</script>
 
 {% endblock %}

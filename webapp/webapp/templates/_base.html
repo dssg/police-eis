@@ -16,9 +16,11 @@
   <!-- <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" media="screen"> -->
   <link href="{{ url_for('static', filename='css/theme.dropbox.css') }}" rel="stylesheet">
   <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/react-datepicker.min.css') }}" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.3/nv.d3.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.2/react.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.2/JSXTransformer.js"></script>
+  <script src="https://fb.me/react-15.0.1.js"></script>
+  <script src="https://fb.me/react-dom-15.0.1.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
   {{ flask_util_js.js }}
 
 </head>
@@ -32,13 +34,12 @@
 
       </div>
         <script type="text/jsx">
-        /*** @jsx React.DOM */
         var PageTitle = React.createClass({
-        render: function() {
-            return (<h2>Evaluation Dashboard</h2>);
-        }
+			render: function() {
+				return (<h2>Evaluation Dashboard</h2>);
+			}
         });
-        React.render(<PageTitle />, document.getElementById('headrow') );
+        ReactDOM.render(<PageTitle />, document.getElementById('headrow') );
      </script>
       <!-- messages -->
       {% for message in get_flashed_messages() %}
@@ -71,9 +72,11 @@
   <script src="{{ url_for('static', filename='js/jquery.tablesorter.js')}}"></script>
   <script src="{{ url_for('static', filename='js/jquery.tablesorter.widgets.js')}}"></script>
   <script src="{{ url_for('static', filename='js/jquery.tablesorter.pager.js')}}"></script>
+  <script src="{{ url_for('static', filename='js/reactable.js')}}"></script>
   <script src="{{ url_for('static', filename='main.js') }}"></script>
   <script src="{{ url_for('static', filename='js/moment.js')}}"></script>
-  <script src="{{ url_for('static', filename='js/combodate.js')}}"></script>
+  <script src="{{ url_for('static', filename='js/react-datepicker.min.js')}}"></script>
+  <!-- <script src="{{ url_for('static', filename='js/combodate.js')}}"></script> -->
   <script src="{{ url_for('static', filename='d3/metrictimechart.js')}}" ></script>
   <script src="{{ url_for('static', filename='d3/barchart.js')}}"></script>
   <script src="{{ url_for('static', filename='d3/scatterchart.js')}}"></script>
