@@ -24,22 +24,25 @@ class EISExperiment(object):
        self.pilot_data = None
 
 
-def get_fake_todays(prediction_window, begin_date="01Jan2007", end_date="01Jan2016"):
-    """Generate a list of start dates for temporal cross validation. Start with
-    begin_date and increment by prediction_window until you get to end_date."""
+def generate_as_of_dates(config):
+    end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
+    start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
+    as_of_dates = set()
+    
 
-    first_today = datetime.datetime.strptime(begin_date, "%d%b%Y")
-    last_today = datetime.datetime.strptime(end_date, "%d%b%Y")
-    generated_todays = [first_today]
-    test_today = first_today
+    as_of_dates = []
+    for update_window in config['update_window']:
+        while end_date > start_date:
+            log.debug('end_date: {}'.format(end_date))
+            for prediction_window in config['prediction_window']:
+                as_of_date = end_date
+                while as_of_date > start_date:
+                    as_of_dates.append(as_of_date)
+                    as_of_date -= relativedelta(months=prediction_window)
+                    log.debug(as_of_date)
+            end_date -= relativedelta(months=update_window) 
 
-    # think generated_todays = all_days[begin_date:end_date:prediction_window]
-    while test_today + datetime.timedelta(days=prediction_window) < last_today:
-        test_today += datetime.timedelta(days=prediction_window)
-        generated_todays.append(test_today)
-
-    return generated_todays 
-
+    return as_of_dates
 
 def generate_time_sets(config):
     """Takes a config file and generates a list of dicts, each of which
@@ -62,7 +65,7 @@ def generate_time_sets(config):
                            config['officer_past_activity_window'], config['training_window']):
 
         test_end_date = end_date
-        # loop through update_window
+        # loop moving giving an update_window
         while start_date < test_end_date - relativedelta(months=prediction_window*2):
             test_start_date = test_end_date - relativedelta(months=prediction_window)
             train_end_date = test_start_date
@@ -77,7 +80,6 @@ def generate_time_sets(config):
                        "update_window: '{}', 'prediction_window: '{}' '".format(test_end_date, test_start_date,
                        train_end_date, train_start_date, update_window, prediction_window))
             test_end_date -= relativedelta(months=update_window)
-
     return temporal_info
 
 def generate_models_to_run(config, query_db=True):

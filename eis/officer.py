@@ -96,7 +96,10 @@ def get_officer_features_table_columns( config ):
         
     # get a list of all features that are set to true.
     feature_names = config["officer_features"]
-    active_features = [ key for key in feature_names if feature_names[key] == True ] 
+    feature_blocks = config["feature_blocks"]
+    active_features = []
+    for block in feature_names:
+        active_features += [ key for key in feature_blocks[block] if feature_blocks[block][key] == True ]
 
     # loop over active features, populating list of column names.
     feature_table_columns = []

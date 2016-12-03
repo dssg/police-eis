@@ -685,15 +685,15 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     query_labels = (""" WITH features_labels as ( """
                     """     SELECT officer_id, {0}, """
                     """             as_of_date, """ 
-                    """             coalesce(label,0) as label """
+                    """             coalesce(label,0) as outcome """
                     """     FROM features.{2} f """
                     """     LEFT JOIN LATERAL ( """
-                    """           SELECT 1 as label """
+                    """           SELECT 1 as outcome """
                     """           FROM features.{3} l """
                     """           WHERE f.officer_id = l.officer_id """
-                    """                AND l.event_datetime - INTERVAL '{4}months' <= f.as_of_date """
-                    """                AND l.event_datetime > f.as_of_date """
-                    """                AND label in ({1}) LIMIT 1"""
+                    """                AND l.outcome_timestamp - INTERVAL '{4}months' <= f.as_of_date """
+                    """                AND l.outcome_timestamp > f.as_of_date """
+                    """                AND outcome in ({1}) LIMIT 1"""
                     """                 ) AS l ON TRUE """
                     """     WHERE f.as_of_date >= '{5}'::date AND f.as_of_date < '{6}' ) """
                       .format(features_list_string,
@@ -704,7 +704,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                               start_date,
                               end_date))
 
-    query_active =  (""" SELECT officer_id, {0}, label """
+    query_active =  (""" SELECT officer_id, {0}, outcome """
                     """ FROM features_labels as f, """
                     """        LATERAL """
                     """          (SELECT 1 """
@@ -724,7 +724,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     all_data = all_data.loc[~(all_data==0).all(axis=1)]
 
     all_data = all_data.set_index('officer_id')
-    return all_data[features_list], all_data.label
+    return all_data[features_list], all_data.outcome
 
 # TODO: make this use load_all_features() instead of loader()
 def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):
