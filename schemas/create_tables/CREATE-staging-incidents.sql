@@ -32,7 +32,7 @@ CREATE UNLOGGED TABLE staging.incidents (
   hours_active_suspension                    INT, --number of days suspended, if any.
   hours_inactive_suspension                  INT, --number of days suspended, if any.
   training_id                                INT, --this links to the training table, which describes what training an officer received as a result of the investigation
-  date_of_judgement                          TIMESTAMP, --date that a judgement was reached
+  date_of_judgment                          TIMESTAMP, --date that a judgement was reached
   final_ruling_code                          INT, -- the code for what the final ruling was
   date_intervention_received                 TIMESTAMP, --date that an intervention was received. May duplicated what is seen in the training table.
   reprimand_type_code                        INT, --the kind of repirmand, e.g. verbal, written, none etc
@@ -42,7 +42,5 @@ CREATE UNLOGGED TABLE staging.incidents (
   last_modified                              TIMESTAMP, --timestamp for when the table was last updated
   department_source_table                    TEXT, --free text field showing which source table the data comes from
   event_datetime                             TIMESTAMP,
-  date_created                               TIMESTAMP,
-  date_completed                             TIMESTAMP,
   officer_id                                 INT REFERENCES staging.officers_hub (officer_id)
 );
