@@ -135,12 +135,10 @@ def main(config_file_name, args):
         # store the pickle data to disk .
         log.debug("storing model information and data")
         if config["store_model_object"]:
-            model_data_pickle_object = pickle.dumps( to_save )
-            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_obj=model_data_pickle_object)
-        else:
             pickle_results(model_filename, to_save)
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_file=model_filename)
-            model_data_pickle_object = None
+        else: 
+            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config)
 
         # To store in results.data:
         #    model_data_pickle_object = pickle.dumps( to_save )

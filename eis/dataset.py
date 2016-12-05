@@ -553,45 +553,6 @@ class FeatureLoader():
 
         return outcomes
 
-
-    def loader(self, feature_to_load, ids_to_use, feature_type = 'officer'):
-        """Get the feature values from the database
-
-        Args:
-            feature_to_load(str): name of feature to be loaded, must be in classmap
-            ids_to_use(list): the subset of ids to return feature values for
-            feature_type(str): the type of feature being loaded, either officer or dispatch
-
-        Returns:
-            returns(pd.DataFrame): dataframe of the feature values indexed by id
-            feature_name: the name of the feature
-            """
-
-        kwargs = {"end_date": self.end_date,
-                  "table_name": self.table_name,
-                  "feat_time_window": 0}
-
-
-        # select the appropriate id column for this feature type
-        if feature_type == 'officer':
-            id_column = 'officer_id'
-        if feature_type == 'dispatch':
-            id_column = 'dispatch_id'
-
-        # Create the query for this feature.
-        query = (   "SELECT {}, {} FROM features.{}"
-                    .format(
-                        id_column,
-                        feature_to_load,
-                        self.table_name))
-
-        # Execute the query.
-        results = self.__read_feature_table(query, id_column)
-        results = results.ix[ids_to_use]
-
-        return results, feature_to_load
-
-
     def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
         """Get the feature values from the database
 
@@ -623,8 +584,6 @@ class FeatureLoader():
                         self.table_name,
                         self.start_date,
                         self.end_date))
-
-        #log.debug("Query: {}".format(query))
 
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
@@ -685,7 +644,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     query_labels = (""" WITH features_labels as ( """
                     """     SELECT officer_id, {0}, """
                     """             as_of_date, """ 
-                    """             coalesce(label,0) as outcome """
+                    """             coalesce(outcome,0) as outcome """
                     """     FROM features.{2} f """
                     """     LEFT JOIN LATERAL ( """
                     """           SELECT 1 as outcome """
@@ -726,7 +685,6 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     all_data = all_data.set_index('officer_id')
     return all_data[features_list], all_data.outcome
 
-# TODO: make this use load_all_features() instead of loader()
 def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):
     """
     Function that defines the dataset.

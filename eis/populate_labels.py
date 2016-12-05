@@ -83,19 +83,19 @@ def populate_officer_labels_table(config, table_name):
     query_unknown   = "grouped_incident_type_code = 19 "
 
     labels_rules = {
-         "ForceAllegations": {"query": query_force, "timestamp": 'date_reported'},
+         "ForceAllegations": {"query": query_force, "timestamp": 'report_date'},
          "SustainedForceAllegations": {"query": query_force + " AND " + query_sustained, "timestamp": 'date_of_judgment'},
          #"SustainedandUnknownForceAllegations": {"query": query_force + " AND " + query_sustained_and_unknown_outcome, "timestamp": 'date_completed'},
          #"all_allegations": query_all,
          "SustainedAllegations": {"query": query_sustained, "timestamp": 'date_of_judgment'},
          #"SustainedandUnknownOutcomeAllegations": {"query": query_sustained_and_unknown_outcome, "timestamp": 'date_completed'},
-         "MajorAllegations": {"query": query_major, "timestamp": 'date_reported'},
+         "MajorAllegations": {"query": query_major, "timestamp": 'report_date'},
          "SustainedMajorAllegations": {"query": query_major + " AND " + query_sustained, "timestamp": 'date_of_judgment'},
          #"SustainedUnknownMajorAllegations": {"query": query_major + " AND " + query_sustained_and_unknown_outcome, "timestamp": 'date_completed'},
-         "MinorAllegations": {"query": query_minor, "timestamp": 'date_reported'},
+         "MinorAllegations": {"query": query_minor, "timestamp": 'report_date'},
          "SustainedMinorAllegations": {"query": query_minor + " AND " + query_sustained, "timestamp": 'date_of_judgment'},
          #"SustainedUnkownMinorAllegations": query_minor + " AND " + query_sustained_and_unknown_outcome,
-         "UnknownAllegations": {"query": query_unknown, "timestamp": 'date_reported'},
+         "UnknownAllegations": {"query": query_unknown, "timestamp": 'report_date'},
          "SustainedUnknownAllegation": {"query": query_unknown + " AND " + query_sustained, "timestamp": 'date_of_judgment'},
          #"SustainedUnknownUnknownAllegations": query_unknown + " AND " + query_sustained_and_unknown_outcome
                  }
