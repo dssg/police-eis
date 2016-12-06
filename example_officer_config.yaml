@@ -34,7 +34,7 @@ prediction_window: [6, 12] # prediction, months, used for officer-level predicti
 update_window: [12] # update, months, used for updating the model
 training_window: [12] # months, used for training the model
 officer_past_activity_window: [12] # Include officers that have activity in the x months preceding start time of test/train
-timegated_feature_lookback_duration: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] # Aggregation time for features
+timegated_feature_lookback_duration: ["1 day", "1 week", "1 month", "1 year"] # Aggregation time for features eg: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] 
 
 ########################
 # Labelling Details    #
@@ -118,8 +118,8 @@ feature_blocks:
         NumOfTrafficStopsByStopResult: True # time gated categorical
         NumOfTrafficStopsBySearchReason: True
         FractionOfTrafficStopsBySearchReason: True
-        NumOfTrafficStopsByInterestingSearchText: True
-        FractionOfTrafficStopsByInterestingSearchText: True
+        NumOfTrafficStopsByInterestingSearcht: True
+        FractionOfTrafficStopsByInterestingSearch: True
 
     Use_of_Force:
         UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.

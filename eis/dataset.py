@@ -636,11 +636,34 @@ class FeatureLoader():
 
 def get_dataset(start_date, end_date, prediction_window, officer_past_activity_window, features_list,
                 label_list, features_table, labels_table):
-
+    '''
+    This function returns dataset and labels to use for training / testing
+    It is splitted in two queries:
+        - query_labels: which joins the features table with labels table
+        - query_active: using the first table created in query_labels, and returns it only 
+                        for officers that are have any activity given the officer_past_activity_window
+    
+    Inputs:
+    -------
+    start_date: start date for selecting officers in features table
+    end_date: end date for selecting officers in features table
+    prediction_window: months, used for selecting labels proceding the as_of_date in features_table
+    officer_past_activity_window: months, to select officers with activity preceding the as_of_date in features_table
+    features_list: list of features to use
+    label_list: outcome name to use 
+    features_table: name of the features table
+    labels_table: name of the labels table 
+    '''
     features_list = [ feature.lower() for feature in features_list]
     features_list_string = ", ".join(['"{}"'.format(feature) for feature in features_list])
     label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
+    # convert features to string for querying while replacing NULL values with ceros in sql
+    features_coalesce = ", ".join(['coalesce("{0}",0) as {0}'.format(feature) for feature in features_list])
 
+    
+    # First part of the query that joins the features table with labels table
+    #NOTE: The lateral join with LIMIT 1 constraint is used for speed optimization 
+    # as we assign a positive label to the officers as soon as there is one designated event in the prediction windows
     query_labels = (""" WITH features_labels as ( """
                     """     SELECT officer_id, {0}, """
                     """             as_of_date, """ 
@@ -655,7 +678,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                     """                AND outcome in ({1}) LIMIT 1"""
                     """                 ) AS l ON TRUE """
                     """     WHERE f.as_of_date >= '{5}'::date AND f.as_of_date < '{6}' ) """
-                      .format(features_list_string,
+                      .format(features_coalesce,
                               label_list_string,
                               features_table,
                               labels_table,
@@ -663,6 +686,8 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                               start_date,
                               end_date))
 
+    # We only want to train and test on officers that have been active (any logged activity in events_hub)
+    # NOTE: it uses the feature_labels created in query_labels 
     query_active =  (""" SELECT officer_id, {0}, outcome """
                     """ FROM features_labels as f, """
                     """        LATERAL """
@@ -672,16 +697,15 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                     """           AND e.event_datetime + INTERVAL '{1}months' > f.as_of_date """
                     """           AND e.event_datetime <= f.as_of_date """
                     """            LIMIT 1 ) sub; """
-                    .format(features_list_string,
+                    .format(features_coalesce,
                             officer_past_activity_window))
+    
+    # join both queries together and load data
     query = (query_labels + query_active)
     all_data = pd.read_sql(query, con=db_conn)
 
-    # fill missing values with zero
-    all_data = all_data.fillna(0)
     # remove rows with only zero values
-    all_data = all_data.loc[~(all_data==0).all(axis=1)]
-
+    all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
     all_data = all_data.set_index('officer_id')
     return all_data[features_list], all_data.outcome
 
