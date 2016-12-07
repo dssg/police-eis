@@ -477,7 +477,7 @@ class TotalInterventionsOfType(abstract.TimeGatedCategoricalOfficerFeature):
         self.set_null_counts_to_zero = True
 
 
-class OfficerGender(abstract.CategoricalOfficerFeature):
+class DummyOfficerGender(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "unknown",
                             1: "male",
@@ -513,7 +513,7 @@ class OfficerAge(abstract.OfficerFeature):
                                 self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-class OfficerRace(abstract.CategoricalOfficerFeature):
+class DummyOfficerRace(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "unknown",
                             1: "black",
@@ -538,7 +538,7 @@ class OfficerRace(abstract.CategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class OfficerEthnicity(abstract.CategoricalOfficerFeature):
+class DummyOfficerEthnicity(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "unknown",
                             1: "non_hispanic",
@@ -558,7 +558,7 @@ class OfficerEthnicity(abstract.CategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class OfficerRank(abstract.CategoricalOfficerFeature):
+class DummyOfficerRank(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = {
                 0: "Civilian",
@@ -586,7 +586,7 @@ class OfficerRank(abstract.CategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class OfficerEducation(abstract.CategoricalOfficerFeature):
+class DummyOfficerEducation(abstract.CategoricalOfficerFeature):
     def __init__(self, **kwargs):
         self.categories = { 0: "less_than_high_school",
                             1: "high_school",
@@ -1165,7 +1165,7 @@ class FractionEISFlagsOfType(abstract.TimeGatedCategoricalOfficerFeature):
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class OfficerMilitary(abstract.OfficerFeature):
+class DummyOfficerMilitary(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Whether or not officer has had military experience")
@@ -1843,7 +1843,7 @@ class FractionOfTrafficStopsBySearchReason(abstract.TimeGatedCategoricalOfficerF
                                 self.LOOKUPCODE ))
         self.set_null_counts_to_zero = True
 
-class NumOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOfficerFeature):
+class NumOfTrafficStopsByInterestingSearch(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         # This is a bit of a hack of the categorical officer feature to simply look up interesting* words
         # (* as deemed interesting by the 2015 team)
@@ -1877,7 +1877,7 @@ class NumOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOffi
 
 
 
-class FractionOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategoricalOfficerFeature):
+class FractionOfTrafficStopsByInterestingSearch(abstract.TimeGatedCategoricalOfficerFeature):
     def __init__(self, **kwargs):
         # This is a bit of a hack of the categorical officer feature to simply look up interesting* words
         # (* as deemed interesting by the 2015 team)
@@ -1912,7 +1912,7 @@ class FractionOfTrafficStopsByInterestingSearchText(abstract.TimeGatedCategorica
 ##### on CMPD's old EIS system
 ###############################################
 
-class ThresholdAccidentFlag(abstract.OfficerFeature):
+class DummyThresholdAccidentFlag(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Flag if there have been more than 2 accidents in the past 180 days")
@@ -1934,7 +1934,7 @@ class ThresholdAccidentFlag(abstract.OfficerFeature):
                     self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-class ThresholdUOFFlag(abstract.OfficerFeature):
+class DummyThresholdUOFFlag(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Flag if there have been more than 3 UOF incidents in the past 90 days")
@@ -1956,7 +1956,7 @@ class ThresholdUOFFlag(abstract.OfficerFeature):
                     self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-class ThresholdComplaintFlag(abstract.OfficerFeature):
+class DummyThresholdComplaintFlag(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Flag if there have been more than 3 accidents in the past 180 days")
@@ -1978,7 +1978,7 @@ class ThresholdComplaintFlag(abstract.OfficerFeature):
                     self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-class ThresholdSickLeaveFlag(abstract.OfficerFeature):
+class DummyThresholdSickLeaveFlag(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Flag if there have been more than 3 sick leave days in the past 120 days")
@@ -2000,7 +2000,7 @@ class ThresholdSickLeaveFlag(abstract.OfficerFeature):
                     self.as_of_date.strftime(time_format)))
         self.set_null_counts_to_zero = True
 
-class ThresholdInjuryFlag(abstract.OfficerFeature):
+class DummyThresholdInjuryFlag(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Flag if there have been more than 2 injuries in the past 180 days")
@@ -2023,7 +2023,7 @@ class ThresholdInjuryFlag(abstract.OfficerFeature):
         self.set_null_counts_to_zero = True
 
 
-class ThresholdPursuitsFlag(abstract.OfficerFeature):
+class DummyThresholdPursuitsFlag(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Flag if there have been more than 2 pursuits in the past 180 days")
@@ -2046,7 +2046,7 @@ class ThresholdPursuitsFlag(abstract.OfficerFeature):
         self.set_null_counts_to_zero = True
 
 
-class ThresholdCombinedFlag(abstract.OfficerFeature):
+class DummyThresholdCombinedFlag(abstract.OfficerFeature):
     def __init__(self, **kwargs):
         abstract.OfficerFeature.__init__(self, **kwargs)
         self.description = ("Flag if there have been more than 5 incidents or sick days in the past 180 days")

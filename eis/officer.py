@@ -27,42 +27,42 @@ def setup(config):
     today: string containing the date to split on for temporal cross-validation
     """
     
+    train_start_date = datetime.datetime.strptime(config['train_start_date'], "%Y-%m-%d")
     train_end_date = datetime.datetime.strptime(config['train_end_date'], "%Y-%m-%d")
-    train_lookback_date = train_end_date - relativedelta(months=config["officer_past_activity_window"])
-    train_labels_end_date = train_end_date + relativedelta(months=config['prediction_window'])
-
     test_end_date =  datetime.datetime.strptime(config['test_end_date'], "%Y-%m-%d")
-    test_lookback_date = test_end_date - relativedelta(months=config["officer_past_activity_window"])
-    test_labels_end_date = test_end_date + relativedelta(months=config['prediction_window'])
+    test_start_date =  datetime.datetime.strptime(config['test_start_date'], "%Y-%m-%d")
 
-    log.info("Train activity  starts: {}".format(train_lookback_date))
+    log.info("Train start: {}".format(train_start_date))
     log.info("Train end date: {}".format(train_end_date))
-    log.info("Train label end: {}".format(train_labels_end_date))
-    log.info("Test activity  starts: {}".format(test_lookback_date))
+    log.info("Test start date: {}".format(test_start_date))
     log.info("Test end datet: {}".format(test_end_date))
-    log.info("Test label window stop: {}".format(test_labels_end_date))
 
     log.info("Loading officers and features to use as training...")
-    table_name = config["officer_feature_table_name"]
-    train_x, train_y, train_id, names = dataset.grab_officer_data(
-        config["officer_features"], 
-        train_lookback_date,
-        train_end_date,
-        train_labels_end_date,
-        config["officer_labels"],
-        table_name)
+    features_table  = config["officer_feature_table_name"]
+    train_x, train_y = dataset.get_dataset(
+          train_start_date,
+          train_end_date,
+          config['prediction_window'],
+          config['officer_past_activity_window'],
+          config["officer_features"],
+          config['officer_labels'],
+          config['officer_feature_table_name'],
+          config['officer_label_table_name'])
+     
+    log.info("Loading officers and features to use as testing...")
+    test_x, test_y = dataset.get_dataset(
+          test_start_date,
+          test_end_date,
+          config['prediction_window'],
+          config['officer_past_activity_window'],
+          config["officer_features"],
+          config['officer_labels'],
+          config['officer_feature_table_name'],
+          config['officer_label_table_name'])
+    
     # Testing data should include ALL officers, ignoring "noinvest" keyword
     testing_labelling_config = config["officer_labels"].copy()
-    testing_labelling_config["noinvest"] = True
-
-    log.info("Loading officers and features to use as testing...")
-    test_x, test_y, test_id, names = dataset.grab_officer_data(
-        config["officer_features"],
-        test_lookback_date,
-        test_end_date,
-        test_labels_end_date,
-        testing_labelling_config,
-        table_name)
+    #testing_labelling_config["noinvest"] = True
 
     train_x_index = train_x.index
     test_x_index = test_x.index
@@ -77,13 +77,15 @@ def setup(config):
 
     return {"train_x": train_x,
             "train_y": train_y,
-            "train_id": train_id,
+            "train_id": train_x_index,
             "test_x": test_x,
             "test_y": test_y,  # For pilot test_y will not be used
-            "test_id": test_id,
-            "names": names,
+            "test_id": test_x_index,
+            "names": features,
+            "train_start_date": train_start_date,
             "train_end_date": train_end_date,
             "officer_past_activity_window": config["officer_past_activity_window"],
+            "test_start_date": test_start_date,
             "test_end_date": test_end_date,
             "train_x_index": train_x_index,
             "test_x_index": test_x_index,
@@ -94,7 +96,10 @@ def get_officer_features_table_columns( config ):
         
     # get a list of all features that are set to true.
     feature_names = config["officer_features"]
-    active_features = [ key for key in feature_names if feature_names[key] == True ] 
+    feature_blocks = config["feature_blocks"]
+    active_features = []
+    for block in feature_names:
+        active_features += [ key for key in feature_blocks[block] if feature_blocks[block][key] == True ]
 
     # loop over active features, populating list of column names.
     feature_table_columns = []

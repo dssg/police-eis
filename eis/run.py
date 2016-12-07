@@ -13,7 +13,7 @@ import pdb
 
 from . import setup_environment, models, scoring
 from . import dataset, experiment
-from . import populate_features
+from . import populate_features, populate_labels
 
 def main(config_file_name, args):
 
@@ -45,11 +45,13 @@ def main(config_file_name, args):
 
         log.info("Re-building features...")
 
-        # Create the features table.
+        # Create the features and labels table.
         populate_features.create_features_table(config, table_name)
+        populate_labels.create_labels_table(config, config['officer_label_table_name'])
 
-        # Populate the featuress table
+        # Populate the featuress  and labels table
         populate_features.populate_features_table(config, table_name)
+        populate_labels.populate_labels_table(config, config['officer_label_table_name'])
 
         log.info('Done creating features table')
         sys.exit()
@@ -133,12 +135,10 @@ def main(config_file_name, args):
         # store the pickle data to disk .
         log.debug("storing model information and data")
         if config["store_model_object"]:
-            model_data_pickle_object = pickle.dumps( to_save )
-            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_obj=model_data_pickle_object)
-        else:
             pickle_results(model_filename, to_save)
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_file=model_filename)
-            model_data_pickle_object = None
+        else: 
+            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config)
 
         # To store in results.data:
         #    model_data_pickle_object = pickle.dumps( to_save )
@@ -176,8 +176,12 @@ def main(config_file_name, args):
         #Insert Feature Importaces
         log.debug("Storing feature importances")
         dataset.store_feature_importances( timestamp, to_save)
-        if to_save['individual_importances']:
-            dataset.store_individual_feature_importances(timestamp, to_save)
+        try:
+            if to_save['individual_importances'].size:
+                dataset.store_individual_feature_importances(timestamp, to_save)
+                log.debug("Storing individual importances")
+        except AttributeError:
+            log.debug("No individual importances to store")
 
     log.info("Done!")
     return None

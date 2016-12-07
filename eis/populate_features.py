@@ -50,13 +50,8 @@ def create_officer_features_table(config, table_name="officer_features"):
     # get a list of table column names.
     column_names = officer.get_officer_features_table_columns( config )
 
-    # Get a list of all the features that are set to true.
-    features = config["officer_features"]
-    feature_list = [ key for key in features if features[key] == True ]
-    feature_value = [True]*len(feature_list)
-
     # make sure we have at least 1 feature
-    assert len(feature_list) > 0, 'List of features to build is empty'
+    #assert len(feature_list) > 0, 'List of features to build is empty'
 
     # use the appropriate id column, depending on feature types (officer / dispatch)
     id_column = '{}_id'.format(config['unit'])
@@ -79,10 +74,7 @@ def create_officer_features_table(config, table_name="officer_features"):
     engine.execute(final_query)
 
     # Get the list of as_of_dates
-    temporal_info = experiment.generate_time_sets(config)
-    as_of_date_train = {time_dict['test_end_date'] for time_dict in temporal_info}
-    as_of_date_test = {time_dict['train_end_date'] for time_dict in temporal_info}
-    as_of_dates = as_of_date_test.union(as_of_date_train)
+    as_of_dates = set(experiment.generate_as_of_dates(config))
     
     # Populate the features table with officer_id.
     log.info("Populating feature table {} with officer ids and as_of_dates...".format(table_name))
@@ -97,6 +89,9 @@ def create_officer_features_table(config, table_name="officer_features"):
                                                                         as_of_date)
         engine.execute(officer_id_query)
 
+    # Create index
+    query_index = ("CREATE INDEX ON features.{} (as_of_date, officer_id)".format(table_name))
+    engine.execute(query_index)
 
 def create_dispatch_features_table(config, table_name="dispatch_features"):
 
@@ -230,14 +225,13 @@ def populate_officer_features_table(config, table_name):
     """Calculate all the feature values and store them in the features table in the database"""
 
     # get the list of fake todays specified by the config file
-    temporal_info = experiment.generate_time_sets(config)
-    as_of_date_train = {time_dict['test_end_date'] for time_dict in temporal_info}
-    as_of_date_test = {time_dict['train_end_date'] for time_dict in temporal_info}
-    as_of_dates = as_of_date_test.union(as_of_date_train)
+    as_of_dates = set(experiment.generate_as_of_dates(config))
     log.debug(as_of_dates)
 
     # get a list of all features that are set to true.
-    active_features = [ key for key in config["officer_features"] if config["officer_features"][key] == True ] 
+    active_features = []
+    for block in config["officer_features"]:
+        active_features += [key for key in config['feature_blocks'][block] if config['feature_blocks'][block][key] == True]
 
     # loop over all fake todays, populating the active features for each.
     for feature_name in active_features:

@@ -94,15 +94,13 @@ def store_feature_importances( timestamp, to_save):
     this_model_id = cur.fetchone()
     this_model_id = this_model_id[0]
 
-    # get json of feature importances
-    feature_importances = dict(zip(to_save["feature_importances_names"],to_save["feature_importances"]))
+    # Create pandas db of features importance
+    dataframe_for_insert = pd.DataFrame( {  "model_id": this_model_id,
+                                            "feature": to_save["feature_importances_names"],
+                                            "feature_importance": to_save["feature_importances"] })
+    # Insert
+    dataframe_for_insert.to_sql( "feature_importances", engine, if_exists="append", schema="results", index=False )
 
-    # insert into the features importance table
-    query = ( "INSERT INTO results.feature_importances(model_id, feature_importance) "
-                                                      " VALUES ({}, '{}')".format(this_model_id,
-                                                                               json.dumps(feature_importances)))
-    db_conn.cursor().execute(query)
-    db_conn.commit()
     return None
 
 def obtain_top5_risk(row):
@@ -555,45 +553,6 @@ class FeatureLoader():
 
         return outcomes
 
-
-    def loader(self, feature_to_load, ids_to_use, feature_type = 'officer'):
-        """Get the feature values from the database
-
-        Args:
-            feature_to_load(str): name of feature to be loaded, must be in classmap
-            ids_to_use(list): the subset of ids to return feature values for
-            feature_type(str): the type of feature being loaded, either officer or dispatch
-
-        Returns:
-            returns(pd.DataFrame): dataframe of the feature values indexed by id
-            feature_name: the name of the feature
-            """
-
-        kwargs = {"end_date": self.end_date,
-                  "table_name": self.table_name,
-                  "feat_time_window": 0}
-
-
-        # select the appropriate id column for this feature type
-        if feature_type == 'officer':
-            id_column = 'officer_id'
-        if feature_type == 'dispatch':
-            id_column = 'dispatch_id'
-
-        # Create the query for this feature.
-        query = (   "SELECT {}, {} FROM features.{}"
-                    .format(
-                        id_column,
-                        feature_to_load,
-                        self.table_name))
-
-        # Execute the query.
-        results = self.__read_feature_table(query, id_column)
-        results = results.ix[ids_to_use]
-
-        return results, feature_to_load
-
-
     def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
         """Get the feature values from the database
 
@@ -625,8 +584,6 @@ class FeatureLoader():
                         self.table_name,
                         self.start_date,
                         self.end_date))
-
-        #log.debug("Query: {}".format(query))
 
         # Execute the query.
         results = self.__read_feature_table(query, id_column)
@@ -677,7 +634,81 @@ class FeatureLoader():
         return results
 
 
-# TODO: make this use load_all_features() instead of loader()
+def get_dataset(start_date, end_date, prediction_window, officer_past_activity_window, features_list,
+                label_list, features_table, labels_table):
+    '''
+    This function returns dataset and labels to use for training / testing
+    It is splitted in two queries:
+        - query_labels: which joins the features table with labels table
+        - query_active: using the first table created in query_labels, and returns it only 
+                        for officers that are have any activity given the officer_past_activity_window
+    
+    Inputs:
+    -------
+    start_date: start date for selecting officers in features table
+    end_date: end date for selecting officers in features table
+    prediction_window: months, used for selecting labels proceding the as_of_date in features_table
+    officer_past_activity_window: months, to select officers with activity preceding the as_of_date in features_table
+    features_list: list of features to use
+    label_list: outcome name to use 
+    features_table: name of the features table
+    labels_table: name of the labels table 
+    '''
+    features_list = [ feature.lower() for feature in features_list]
+    features_list_string = ", ".join(['"{}"'.format(feature) for feature in features_list])
+    label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
+    # convert features to string for querying while replacing NULL values with ceros in sql
+    features_coalesce = ", ".join(['coalesce("{0}",0) as {0}'.format(feature) for feature in features_list])
+
+    
+    # First part of the query that joins the features table with labels table
+    #NOTE: The lateral join with LIMIT 1 constraint is used for speed optimization 
+    # as we assign a positive label to the officers as soon as there is one designated event in the prediction windows
+    query_labels = (""" WITH features_labels as ( """
+                    """     SELECT officer_id, {0}, """
+                    """             as_of_date, """ 
+                    """             coalesce(outcome,0) as outcome """
+                    """     FROM features.{2} f """
+                    """     LEFT JOIN LATERAL ( """
+                    """           SELECT 1 as outcome """
+                    """           FROM features.{3} l """
+                    """           WHERE f.officer_id = l.officer_id """
+                    """                AND l.outcome_timestamp - INTERVAL '{4}months' <= f.as_of_date """
+                    """                AND l.outcome_timestamp > f.as_of_date """
+                    """                AND outcome in ({1}) LIMIT 1"""
+                    """                 ) AS l ON TRUE """
+                    """     WHERE f.as_of_date >= '{5}'::date AND f.as_of_date < '{6}' ) """
+                      .format(features_coalesce,
+                              label_list_string,
+                              features_table,
+                              labels_table,
+                              prediction_window,
+                              start_date,
+                              end_date))
+
+    # We only want to train and test on officers that have been active (any logged activity in events_hub)
+    # NOTE: it uses the feature_labels created in query_labels 
+    query_active =  (""" SELECT officer_id, {0}, outcome """
+                    """ FROM features_labels as f, """
+                    """        LATERAL """
+                    """          (SELECT 1 """
+                    """           FROM staging.events_hub e """
+                    """           WHERE f.officer_id = e.officer_id """
+                    """           AND e.event_datetime + INTERVAL '{1}months' > f.as_of_date """
+                    """           AND e.event_datetime <= f.as_of_date """
+                    """            LIMIT 1 ) sub; """
+                    .format(features_coalesce,
+                            officer_past_activity_window))
+    
+    # join both queries together and load data
+    query = (query_labels + query_active)
+    all_data = pd.read_sql(query, con=db_conn)
+
+    # remove rows with only zero values
+    all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
+    all_data = all_data.set_index('officer_id')
+    return all_data[features_list], all_data.outcome
+
 def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):
     """
     Function that defines the dataset.
