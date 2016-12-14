@@ -367,3 +367,31 @@ lookup_field_interview_types:
         - [0, 'fi', 'Field Interviews']
         - [1, 'terry', 'Terry Stop Type']
         - [2, 'home', 'Home Interview']
+
+lookup_days_of_week:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'sun', 'Sunday']
+        - [1, 'mon', 'Monday']
+        - [2, 'tue', 'Tuesday']
+        - [3, 'wed', 'Wednesday']
+        - [4, 'thu', 'Thursday']
+        - [5, 'fri', 'Friday']
+        - [6, 'sat', 'Saturday']
+        - [7, 'sun', 'Sunday'] 
+
+lookup_search_justifications:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'consent', 'Consent']
+        - [1, 'prob_cause', 'Probable Cause']
+        - [2, 'frisk', 'Frisk']
+        - [3, 'arrest', 'Arrest']
+        - [4, 'warrent', 'Warrent']
+
+lookup_field_interview_outcomes:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'arrests', 'Arrests']
+        - [3, 'ban', 'Ban']
+        - [4, 'none', 'None']
