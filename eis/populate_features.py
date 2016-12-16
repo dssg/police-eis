@@ -221,6 +221,30 @@ def populate_dispatch_features_table(config, table_name):
 
         engine.execute(update_query)
         
+def join_feature_table(engine, list_prefixes, features_table_name):
+     """
+     This function joins the block tables into the features_table_name 
+     using the prefix of the aggregated tables specified in each class
+
+     :param engine: engine to connect to db
+     :param list list_prefixes: list of prefixes specified in each block class
+     :param str features_table_name: name of the table to create in the features schema
+     """
+     table_names = [ '{}_aggregation'.format(prefix) for prefix in list_prefixes]
+     
+     if len(table_names) > 0:
+         query = "select * from {}".format(table_names[0])
+         for table_name in table_names:
+             if table_name != table_names[0]:
+                 query += " full outer join {}  using (officer_id, date)".format(table_name)       
+ 
+         drop_table_query = "DROP TABLE IF EXISTS features.{};".format(features_table_name)
+         engine.execute(drop_table_query)
+
+         create_table_query = "CREATE TABLE features.{0} as ({1});".format(features_table_name,
+                                                                            query)
+         engine.execute(create_table_query)
+
 
 def populate_officer_features_table(config, table_name):
     """Calculate all the feature values and store them in the features table in the database"""
@@ -231,10 +255,9 @@ def populate_officer_features_table(config, table_name):
     as_of_dates = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates]
     log.debug(as_of_dates)
 
+    list_prefixes = []
     # get a list of all features that are set to true.
-    active_features = []
     for block_name in config["officer_features"]:
-        #active_features += [key for key in config['feature_blocks'][block_name] if config['feature_blocks'][block_name][key] == True]
         log.debug('block_name: {}'.format(block_name))
         block = config['feature_blocks'][block_name]
         feature_list = [key for key in block if block[key] == True]    
@@ -243,9 +266,13 @@ def populate_officer_features_table(config, table_name):
         block_class = class_map.lookup_block( block_name,
                                               module = officers_collate,
                                               lookback_durations=config['timegated_feature_lookback_duration'])
-        # Build collate tables 
+        
+        # Build collate tables and returns table name
         block_class.build_collate(engine, as_of_dates,  feature_list)
+        list_prefixes.append(block_class.prefix)
 
+    # Join all tables into one
+    log.debug(list_prefixes)
+    join_feature_table(engine, list_prefixes, table_name)
 
-    # TODO: join all tables into one
-    ### change the way we read the names in the feature table
+    ### TODO change the way we read the names in the feature table

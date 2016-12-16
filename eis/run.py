@@ -46,7 +46,6 @@ def main(config_file_name, args):
         log.info("Re-building features...")
 
         # Create the features and labels table.
-        populate_features.create_features_table(config, table_name)
         populate_labels.create_labels_table(config, config['officer_label_table_name'])
 
         # Populate the featuress  and labels table

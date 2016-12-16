@@ -80,7 +80,10 @@ class FeaturesBlock():
                       dates = as_of_dates,
                       date_column = self.date_column,
                       prefix = self.prefix)
-        log.debug('Inserting {}'.format(self.prefix))
+        #for group_by, sels in st.get_selects().items():
+        #    for sel in sels:
+        #        log.debug('Query : {}'.format(sel))
+        #log.debug('Inserting {}'.format(self.prefix))
         st.execute(engine.connect())
 
 #--------------------------
@@ -341,7 +344,7 @@ class UseOfForce(FeaturesBlock):
         self.unit_id = 'officer_id'
         self.from_obj = 'staging.use_of_force as u left join staging.incidents as i using (event_id, event_datetime, officer_id)'
         self.date_column = 'event_datetime'
-        self.prefix = 'use_of_force'
+        self.prefix = 'uof'
 
     def _feature_aggregations(self, engine):
         return {
@@ -373,7 +376,7 @@ class Dispatches(FeaturesBlock):
     def __init__(self, **kwargs):
         FeaturesBlock.__init__(self, **kwargs)
         self.unit_id = 'officer_id'
-        self.from_obj = 'staging.dispatch'
+        self.from_obj = 'staging.dispatches'
         self.date_column = 'event_datetime'
         self.prefix = 'dispatch'
 
@@ -417,5 +420,59 @@ class EISAlerts(FeaturesBlock):
                                                       prefix = 'EISFlagsOfType'), ['sum', 'avg']),
                }
 
+
+# --------------------------------------------------------
+# BLOCK: OFFICER CHARACTERISTICS
+# --------------------------------------------------------
+class OfficerCharacteristics(FeaturesBlock):
+    def __init__(self, **kwargs):
+        FeaturesBlock.__init__(self, **kwargs)
+        self.unit_id = 'officer_id'
+        self.from_obj = ex.text( 'staging.officers_hub '
+                                 'left outer join staging.officer_characteristics '
+                                 '   using (officer_id) '
+                                 'left outer join staging.officer_trainings '
+                                 '   using (officer_id) '
+                                 'left outer join staging.officer_roles '
+                                 '   using (officer_id) ')
+        self.lookback_durations = []
+        self.prefix = 'oc'
+
+    def _feature_aggregations(self, engine):
+         return {
+         'DummyOfficerGender': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name = 'gender_code',
+                                                       lookup_table = 'lookup_genders',
+                                                       prefix = 'DummyOfficerGender'), ['max']),
+
+         'DummyOfficerRace': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name = 'race_code',
+                                                       lookup_table = 'lookup_races',
+                                                       prefix = 'DummyOfficerRace'), ['max']),
+
+         'DummyOfficerEthnicity': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name = 'ethnicity_code',
+                                                       lookup_table = 'lookup_ethnicities',
+                                                       prefix = 'DummyOfficerEthnicity'), ['max']),
+
+         'OfficerAge': collate.Aggregate(
+                {"OfficerAge": "extract(day from '{date}'::timestamp - date_of_birth)/365"}, ['max']),
+
+         'DummyOfficerEducation': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name = 'education_level_code',
+                                                       lookup_table = 'lookup_education_levels',
+                                                       prefix = 'DummyOfficerEducation'), ['max']),
+
+         'DummyOfficerMilitary': collate.Aggregate(
+                {"DummyOfficerMilitary": 'military_service_flag::int'}, ['max']),
+
+         'AcademyScore': collate.Aggregate( 
+                {"AcademyScore": 'score'},['max']),
+
+         'DummyOfficerRank': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name = 'rank_code',
+                                                       lookup_table = 'lookup_ranks',
+                                                       prefix = 'DummyOfficerRank'), ['max'])
+                }
 
 

@@ -7,7 +7,7 @@
 department_unit: ''
 
 # Set the officer table name.
-officer_feature_table_name: "example_officer_feature_table"
+officer_feature_table_name: "features_collate_test"
 officer_label_table_name: "example_officer_labels_table"
 
 # determine whether model objects gets stored in a pickle in root_path/department_unit/directory
@@ -28,7 +28,7 @@ unit: 'officer'  # other options: 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-start_date: '2013-04-01' # The first day of the data
+start_date: '2015-04-01' # The first day of the data
 end_date: '2016-04-01' # The last day of the data
 prediction_window: [12] # prediction, months, used for officer-level prediction
 update_window: [12] # update, months, used for updating the model
@@ -61,7 +61,7 @@ officer_labels:                     # note: the labels below are combined with a
 # Feature selection    #
 ########################
 
-officer_features: ['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews']
+officer_features: ['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'UseOfForce', 'Dispatches', 'EISAlerts']
 feature_blocks:
     IncidentsReported:
         SuspensionsOfType: True # time-gated
@@ -83,7 +83,7 @@ feature_blocks:
 
     OfficerShifts:
         ShiftsOfType: True # Number of time-gated shifts by categorical type.
-        MeanHoursPerShift: True # Average number of hours per shift.
+        HoursPerShift: True # Average number of hours per shift.
     
     OfficerArrests:
         ArrestMonthlyVariance: False # month-by-month variance of arrest counts. ##TODO
@@ -120,45 +120,44 @@ feature_blocks:
         InterviewsType: True
     
     UseOfForce:
-        NumOfUsesOfForceOfType: True # The number of uses of force by type of force over time-gated periods.
-        NumOfUnjustifiedUsesOfForceOfType: True # The number of unjustified uses of force by time over time-gated periods.
+        UsesOfForceOfType: True # The number of uses of force by type of force over time-gated periods.
+        UnjustifiedUsesOfForceOfType: True # The number of unjustified uses of force by time over time-gated periods.
         UnjustUOFInterventionsOfType: True #Number of interventions of type X following an unjustified force, time gated.
-        CountUOFwithSuspectInjury: True #Number of uses of force by whether the suspect was injured, time gated
-        CountUOFwithResistingArrest: True #Number of uses of force by whether the suspect resisted arrest, time gated
-        SuspectInjuryToUOFRatio: True #Ratio of suspect injuries to uses of force that an officer has, time gated.
-        NumOfUnjustifiedUsesOfForce: True #Number of unjustified use of force, time gated
+        UOFwithSuspectInjury: False #Number of uses of force by whether the suspect was injured, time gated ##TODO
+        SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.##TODO
     
+    Dispatches:
+        DispatchType: True #Number of dispatches of different type aggregated over time
+        DispatchInitiatiationType: True
+
+    EISAlerts:
+        EISInterventionsOfType: True
+        FractionEISFlagsWithIntervention: False ## TODO
+        EISFlagsOfType: True
+
+    OfficerCharacteristics:
+        Divorce: False # Number of total divorces in this officer's past. ##TODO
+        DummyOfficerGender: True # Officer gender code.
+        DummyOfficerRace: True # Officer race code.
+        DummyOfficerEthnicity: True # Officer ethnicity code.
+        OfficerAge: False # Age of officer in years. ##TODO
+        DummyOfficerEducation: True # Officer education level.
+        MilesFromPost: False # Number of miles to post. ## TODO
+        DummyOfficerMilitary: True # Whether or not the officer has had military experience
+        AcademyScore: True # Performance score at the police academy.
+        DummyOfficerRank: True # Officer rank.
+
+
+
     Other:
+        CountUOFwithResistingArrest: True #Number of uses of force by whether the suspect resisted arrest, time gated
         ResistingArrestToUOFRatio: False #Ratio of resisting arrest to uses of force that an officer has, time gated.
         ComplaintToArrestRatio: False # The ratio of complaints per arrest.
         ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
         UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
         ComplimentsToComplaintsRatio: False #Ratio of internal compliments to complaints and officer has
-
-    Officer_Characteristics:
-        DivorceCount: True # Number of total divorces in this officer's past.
-        DummyOfficerGender: True # Officer gender code.
-        DummyOfficerRace: True # Officer race code.
-        DummyOfficerEthnicity: True # Officer ethnicity code.
-        OfficerAge: True # Age of officer in years.
-        DummyOfficerEducation: True # Officer education level.
-        MilesFromPost: True # Number of miles to post.
-        DummyOfficerMilitary: True # Whether or not the officer has had military experience
-        AcademyScore: True # Performance score at the police academy.
-        DummyOfficerRank: True # Officer rank.
-
         TotalOutsideEmploymentHours: False #Extra duty feature
 
-    Dispatch:
-        DispatchTypeCount: True #Number of dispatches of different type aggregated over time
-        NumberOfDispatchInitiatiationType: True
-    
- 
-    EIS:
-        TotalEISInterventionsOfType: True
-        FractionEISFlagsWithIntervention: True
-        TotalEISFlagsOfType: True
-        FractionEISFlagsOfType: True
 
     Demographic_Features:
         OfficerAvgArrestDemographics_1: False
