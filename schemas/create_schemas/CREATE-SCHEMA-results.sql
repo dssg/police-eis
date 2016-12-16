@@ -1,14 +1,15 @@
 DROP SCHEMA IF EXISTS results CASCADE;
 CREATE SCHEMA results;
 
--- model group table for uniquely identifying similar models run at different time periods 
+-- model group table for uniquely identifying similar models run at different time periods
 CREATE TABLE results.model_groups
 (
   model_group_id    SERIAL PRIMARY KEY,
   model_type        TEXT,
   model_parameters  JSONB,
   prediction_window TEXT,
-  feature_list      TEXT []
+  feature_list      TEXT [],
+  CONSTRAINT model_groups_constraint UNIQUE (model_type,model_parameters,prediction_window,feature_list)
 );
 
 -- model table containing each of the models run.
