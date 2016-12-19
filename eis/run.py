@@ -80,18 +80,19 @@ def main(config_file_name, args):
         model_time_in_seconds = "%.3f" % (end-start)
 
         if config['unit'] == 'officer':
+            
             to_save = {"test_labels": my_exp.exp_data["test_y"],
+                       "train_x": my_exp.exp_data["train_x"],
+                       "train_y": my_exp.exp_data["train_y"],
+                       "test_x": my_exp.exp_data["test_x"],
+                       "test_y": my_exp.exp_data["test_y"], 
                        "test_predictions": result_y,
-                       "test_predictions_binary" : result_y_binary,
                        "config": my_exp.config,
                        "officer_id_train": my_exp.exp_data["train_x_index"],
                        "officer_id_test": my_exp.exp_data["test_x_index"],
                        "features": my_exp.exp_data["names"],
                        "timestamp": timestamp,
                        "parameters": my_exp.config["parameters"],
-                       "train_end_date": my_exp.exp_data["train_end_date"],
-                       "officer_past_activity_window": my_exp.exp_data["officer_past_activity_window"],
-                       "test_end_date": my_exp.exp_data["test_end_date"],
                        "feature_importances": importances,
                        "feature_importances_names": my_exp.exp_data["features"],
                        "aggregation": groupscores,

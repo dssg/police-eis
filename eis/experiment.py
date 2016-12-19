@@ -3,9 +3,7 @@ import copy
 from itertools import product
 import datetime
 import logging
-from IPython.core.debugger import Tracer
 from dateutil.relativedelta import relativedelta
-from . import officer, dispatch, explore
 
 log = logging.getLogger(__name__)
 
