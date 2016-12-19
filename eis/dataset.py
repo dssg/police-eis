@@ -654,8 +654,8 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     features_table: name of the features table
     labels_table: name of the labels table 
     '''
-    features_list = [ feature.lower() for feature in features_list]
-    features_list_string = ", ".join(['"{}"'.format(feature) for feature in features_list])
+
+    features_list_string = ", ".join(['{}'.format(feature) for feature in features_list])
     label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
     # convert features to string for querying while replacing NULL values with ceros in sql
     features_coalesce = ", ".join(['coalesce("{0}",0) as {0}'.format(feature) for feature in features_list])
@@ -697,7 +697,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                     """           AND e.event_datetime + INTERVAL '{1}months' > f.as_of_date """
                     """           AND e.event_datetime <= f.as_of_date """
                     """            LIMIT 1 ) sub; """
-                    .format(features_coalesce,
+                    .format(features_list_string,
                             officer_past_activity_window))
     
     # join both queries together and load data
@@ -705,6 +705,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     all_data = pd.read_sql(query, con=db_conn)
 
     # remove rows with only zero values
+    features_list = [ feature.lower() for feature in features_list]
     all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
     all_data = all_data.set_index('officer_id')
     return all_data[features_list], all_data.outcome
