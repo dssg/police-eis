@@ -236,7 +236,7 @@ def join_feature_table(engine, list_prefixes, features_table_name):
          query = "select * from {}".format(table_names[0])
          for table_name in table_names:
              if table_name != table_names[0]:
-                 query += " full outer join {}  using (officer_id, date)".format(table_name)       
+                 query += " full outer join {}  using (officer_id, as_of_date)".format(table_name)
  
          drop_table_query = "DROP TABLE IF EXISTS features.{};".format(features_table_name)
          engine.execute(drop_table_query)

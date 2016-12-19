@@ -12,7 +12,7 @@ from .. import setup_environment
 from . import abstract
 
 #from collate import collate
-from .collate.collate import collate
+from collate.collate import collate
 
 log = logging.getLogger(__name__)
 try:
@@ -79,7 +79,8 @@ class FeaturesBlock():
                       group_intervals = {self.unit_id: self.lookback_durations},
                       dates = as_of_dates,
                       date_column = self.date_column,
-                      prefix = self.prefix)
+                      prefix = self.prefix,
+                      output_date_column="as_of_date")
         #for group_by, sels in st.get_selects().items():
         #    for sel in sels:
         #        log.debug('Query : {}'.format(sel))
@@ -97,7 +98,7 @@ class IncidentsReported(FeaturesBlock):
         self.from_obj = ex.text('staging.incidents')
         self.date_column = "report_date"
         self.lookback_durations = kwargs["lookback_durations"]
-        self.prefix = 'incidents_reported'
+        self.prefix = 'IR'
 
     def _feature_aggregations(self, engine):
         return {
@@ -156,7 +157,7 @@ class IncidentsCompleted(FeaturesBlock):
         self.from_obj = ex.text('staging.incidents')
         self.date_column = 'date_of_judgment'
         self.lookback_durations = kwargs["lookback_durations"]
-        self.prefix = 'incidents_completed'
+        self.prefix = 'IC'
 
     def _feature_aggregations(self, engine):
         return {
@@ -248,7 +249,7 @@ class TrafficStops(FeaturesBlock):
         self.unit_id = 'officer_id'
         self.from_obj = 'staging.traffic_stops'
         self.date_column = 'event_datetime'
-        self.prefix = 'traffic_stops'
+        self.prefix = 'TS'
 
     def _feature_aggregations(self, engine):
         return {
