@@ -135,8 +135,8 @@ def main(config_file_name, args):
         # store the pickle data to disk .
         log.debug("storing model information and data")
         if config["store_model_object"]:
-            pickle_results(model_filename, to_save)
-            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_file=model_filename)
+            dataset.store_matrices(to_save)
+            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, filename=model_filename)
         else: 
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config)
 

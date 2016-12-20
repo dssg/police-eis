@@ -12,7 +12,7 @@ from .. import setup_environment
 from . import abstract
 
 #from collate import collate
-from collate.collate import collate
+from .collate.collate import collate
 
 log = logging.getLogger(__name__)
 try:
@@ -201,7 +201,7 @@ class OfficerShifts(FeaturesBlock):
                                                          prefix = 'ShiftsOfType'),['sum']),
         
         'HoursPerShift': collate.Aggregate(
-                  {'MeanHoursPerShift': '(EXTRACT( EPOCH from shift_length)/3600)'}, ['avg'])
+                  {'HoursPerShift': '(EXTRACT( EPOCH from shift_length)/3600)'}, ['avg'])
             }
 
 # --------------------------------------------------------

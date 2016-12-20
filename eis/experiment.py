@@ -4,6 +4,7 @@ from itertools import product
 import datetime
 import logging
 from dateutil.relativedelta import relativedelta
+from . import officer
 
 log = logging.getLogger(__name__)
 
