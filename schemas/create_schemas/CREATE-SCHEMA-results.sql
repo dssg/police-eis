@@ -8,8 +8,7 @@ CREATE TABLE results.model_groups
   model_type        TEXT,
   model_parameters  JSONB,
   prediction_window TEXT,
-  feature_list      TEXT [],
-  CONSTRAINT model_groups_constraint UNIQUE (model_type,model_parameters,prediction_window,feature_list)
+  feature_list      TEXT []
 );
 
 -- model table containing each of the models run.
