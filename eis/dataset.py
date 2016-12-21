@@ -7,6 +7,8 @@ import psycopg2
 import datetime
 import json
 import pdb
+import uuid
+import metta
 
 from . import setup_environment
 from .features import class_map
@@ -35,9 +37,54 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
-def store_matrices(to_save):
-    log.debug(to_save)
-    return none
+def generate_uuid(config):
+    """
+    Function that generates a unique identifier given a start_date, end_date, prediction_window,
+    labelname and feature_names and officer_id in the config file
+    """
+    config_string = "{0}_{1}_{2}_{3}_{4}_{5}".format( config['start_date'],
+                                             config['end_date'],
+                                             config['prediction_window'],
+                                             config['label_name'],
+                                             config['feature_names'],
+                                             config['officer_ids'])
+    name_uuid = str(uuid.uuid3(uuid.NAMESPACE_DNS, config_string))
+    return  name_uuid
+
+def store_matrices(to_save, directory):
+    
+    label_name = "_".join(sorted(to_save["label_name"])
+    train_df = pd.DataFrame(to_save["train_x"])
+    train_df[label_name] = to_save["train_y"]
+    train_df.index = to_save["officer_id_train"]
+    train_config = {'start_date': to_save["config"]["train_start_date"],
+                    'end_date': to_save["config"]["train_end_date"],
+                    'prediction_window': to_save["config"]["prediction_window"],
+                    'label_name': label_name),
+                    'labeltype': 'binary',
+                    'feature_names': to_save["features"],
+                    'officer_ids': to_save["officer_id_train"]}
+    train_title = generate_uuid(train_config)
+
+    test_df = pd.DataFrame(to_save["test_x"]
+    test_df[label_name] = to_save["test_y"]
+    test_df.index = to_save["officer_id_test"]
+    test_config = {'start_date': to_save["config"]["test_start_date"],
+                   'end_date': to_save["config"]["test_end_date"],
+                   'prediction_window': to_save["config"]["prediction_window"],
+                   'label_name': label_name,
+                   'labeltype': 'binary',
+                   'feature_names': to_save["features"],
+                   'officer_ids': to_save["officer_id_test"]}
+    test_title = generate_uuid(test_config)
+    
+    
+    metta.metta_io.archive_train_test(train_config, train_df, train_title,
+                             test_config, test_df, test_title,
+                             directory = directory,  format = 'hdf5')
+    
+    return {'train_path': directory + train_title,
+            'test_path': directory + test_title}
 
 def store_model_info( timestamp, batch_comment, batch_timestamp, config, filename="" ):
     """ Write model configuration into the results.model table

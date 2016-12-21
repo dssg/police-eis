@@ -81,7 +81,7 @@ def main(config_file_name, args):
 
         if config['unit'] == 'officer':
             
-            to_save = {"test_labels": my_exp.exp_data["test_y"],
+            to_save = {
                        "train_x": my_exp.exp_data["train_x"],
                        "train_y": my_exp.exp_data["train_y"],
                        "test_x": my_exp.exp_data["test_x"],
@@ -135,7 +135,8 @@ def main(config_file_name, args):
         # store the pickle data to disk .
         log.debug("storing model information and data")
         if config["store_model_object"]:
-            dataset.store_matrices(to_save)
+            paths = dataset.store_matrices(to_save, model_filename)
+            log.debug(paths)
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, filename=model_filename)
         else: 
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config)
