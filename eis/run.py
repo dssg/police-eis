@@ -99,7 +99,7 @@ def main(config_file_name, args):
                        "eis_baseline": confusion_matrices,
                        "modelobj": modelobj,
                        "individual_importances": individual_imps,
-                       "time_for_model_in_seconds": model_time_in_seconds }
+                       "time_for_model_in_seconds": model_time_in_seconds}
 
         elif config['unit'] == 'dispatch':
             to_save = {"test_labels": my_exp.exp_data["test_y"],
@@ -128,16 +128,12 @@ def main(config_file_name, args):
         else:
             user_batch_model_comment = ""
 
-        # pickle all the model data (everything in the to_save dict)
-        model_path = os.path.join(config["root_path"], config["department_unit"], config["directory"], config["pkl_prefix"])
-        model_filename = "{}_{}.pkl".format(model_path, timestamp)
-
         # store the pickle data to disk .
         log.debug("storing model information and data")
         if config["store_model_object"]:
-            paths = dataset.store_matrices(to_save, model_filename)
+            paths = dataset.store_matrices(to_save, config)
             log.debug(paths)
-            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, filename=model_filename)
+            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, paths)
         else: 
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config)
 
