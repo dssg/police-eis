@@ -49,7 +49,7 @@ def main(config_file_name, args):
         populate_labels.create_labels_table(config, config['officer_label_table_name'])
 
         # Populate the featuress  and labels table
-        populate_features.populate_features_table(config, table_name)
+        populate_features.populate_features_table(config, table_name, config["schema_feature_blocks"])
         populate_labels.populate_labels_table(config, config['officer_label_table_name'])
 
         log.info('Done creating features table')
