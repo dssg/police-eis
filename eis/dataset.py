@@ -7,6 +7,8 @@ import psycopg2
 import datetime
 import json
 import pdb
+import uuid
+import metta
 
 from . import setup_environment
 from .features import class_map
@@ -28,7 +30,6 @@ def change_schema(schema):
     log.debug('Changed the schema to {}'.format(schema))
     return None
 
-
 def enter_into_db(timestamp, config, auc):
     query = ("INSERT INTO models.full (id_timestamp, config, auc) "
              "VALUES ('{}', '{}', {}) ".format(timestamp, json.dumps(config), auc))
@@ -36,47 +37,65 @@ def enter_into_db(timestamp, config, auc):
     db_conn.commit()
     return None
 
-def store_model_info( timestamp, batch_comment, batch_timestamp, config, pickle_obj="", pickle_file="" ):
+def generate_matrix_id(config):
+    blocks = '-'.join(config["officer_features"])
+    time_aggregations = '-'.join(config["timegated_feature_lookback_duration"])
+    
+    return blocks + ' ' + time_aggregations
+
+def store_matrices(to_save, config):
+    date_fmt = "%Y-%m-%d"
+    label_name = "_".join(sorted(to_save["config"]["officer_labels"]))
+    train_df = pd.DataFrame(to_save["train_x"], columns=to_save["features"], index=to_save["officer_id_train"])
+    train_df[label_name] = to_save["train_y"]
+    train_config = {'start_time': datetime.datetime.strptime(to_save["config"]["train_start_date"], date_fmt),
+                    'end_time': datetime.datetime.strptime(to_save["config"]["train_end_date"], date_fmt),
+                    'prediction_window': to_save["config"]["prediction_window"],
+                    'label_name': label_name,
+                    'feature_names': sorted(to_save["features"].tolist()),
+                    'unit_id': to_save["officer_id_train"].tolist(),
+                    'matrix_id': generate_matrix_id(config) }
+
+    test_df = pd.DataFrame(to_save["test_x"], columns=to_save["features"], index=to_save["officer_id_test"])
+    test_df[label_name] = to_save["test_y"]
+    test_config = {'start_time': datetime.datetime.strptime(to_save["config"]["test_start_date"], date_fmt),
+                   'end_time': datetime.datetime.strptime(to_save["config"]["test_end_date"], date_fmt),
+                   'prediction_window': to_save["config"]["prediction_window"],
+                   'label_name': label_name,
+                   'feature_names': sorted(to_save["features"].tolist()),
+                   'unit_id': to_save["officer_id_test"].tolist(),
+                   'matrix_id': generate_matrix_id(config)}
+    pdb.set_trace()
+    metta.archive_train_test(train_config, train_df,
+                             test_config, test_df,
+                             directory = config["directory"],  format = 'hdf5')
+    
+    return None
+
+def store_model_info( timestamp, batch_comment, batch_timestamp, config, paths={}):
     """ Write model configuration into the results.model table
 
     :param str timestamp: the timestamp at which this model was run.
     :param str batch_comment: the user-defined comment string.
     :param str batch_timestamp: the timestamp that this batch of models was run.
     :param dict config: the configuration dictionary that contains all model parameters.
-    :param str pickle_obj: the serialized pickle object string for this model run.
-    :param str pickle_file: the path and name of the pickle file.
+    :param str filename: the path and name of the pickle file.
     """
 
     # set some parameters model comment.
     model_comment = "" # TODO: feature not implemented, should read from config.
     # insert into the models table.
-    query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config, pickle_file_path_name ) "
-                 " VALUES(  %s, %s, %s, %s, %s, %s, %s, %s )" )
+    query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config) "
+                 " VALUES(  %s, %s, %s, %s, %s, %s, %s )" )
     db_conn.cursor().execute(query, (   timestamp,
                                         batch_timestamp,
                                         config["model"],
                                         json.dumps(config["parameters"]),
                                         model_comment,
                                         batch_comment,
-                                        json.dumps(config),
-                                        pickle_file ) )
+                                        json.dumps(config)
+                                        ) )
     db_conn.commit()
-
-    # if a pickle object was passed in, insert into the data table.
-
-    if pickle_obj:
-
-        # get the model primary key corresponding to this entry, based on timestamp.
-        query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
-        cur = db_conn.cursor()
-        cur.execute(query)
-        this_model_id = cur.fetchone()
-        this_model_id = this_model_id[0]
-
-        # insert into the data table.
-        query = ( "INSERT INTO results.data( model_id, pickle_blob ) VALUES( %s, %s )" )
-        db_conn.cursor().execute(query, ( this_model_id, psycopg2.Binary(pickle_obj) ) )
-        db_conn.commit()
 
     return None
 
@@ -708,6 +727,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     features_list = [ feature.lower() for feature in features_list]
     all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
     all_data = all_data.set_index('officer_id')
+    log.debug('length of data_set: {}'.format(len(all_data)))
     return all_data[features_list], all_data.outcome
 
 def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):

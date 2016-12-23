@@ -4,15 +4,15 @@
 ################################################
 
 # Name of the department:
-department_unit: ''
+department_unit: 'department_unit'
 
 # Set the officer table name.
 officer_feature_table_name: "features_collate_test"
 officer_label_table_name: "example_officer_labels_table"
 
 # determine whether model objects gets stored in a pickle in root_path/department_unit/directory
-store_model_object: False
-
+store_model_object: True
+directory: ''
 ########################
 # Comment fields       #
 ########################
@@ -28,7 +28,7 @@ unit: 'officer'  # other options: 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-start_date: '2015-04-01' # The first day of the data
+start_date: '2010-04-01' # The first day of the data
 end_date: '2016-04-01' # The last day of the data
 prediction_window: [12] # prediction, months, used for officer-level prediction
 update_window: [12] # update, months, used for updating the model
@@ -264,14 +264,6 @@ parameters:
 # Parallelization      #
 ########################
 n_cpus: 4
-
-########################
-# Output file details  #
-########################
-## It will store your pkl results in   root_path/department_unit/directory
-root_path: '/mnt/data/police/' 
-directory: 'results/' 
-pkl_prefix: 'police_eis_results'
 
 ########################
 # Auditing hooks       #
