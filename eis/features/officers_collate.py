@@ -7,6 +7,7 @@ import datetime
 import sqlalchemy
 from enum import Enum
 import sqlalchemy.sql.expression as ex
+from sqlalchemy.sql import Select
 
 from .. import setup_environment
 from . import abstract
@@ -43,6 +44,7 @@ class FeaturesBlock():
         self.date_column = ""
         self.prefix = ""
         self.suffix = ""
+        self.sub_query = False
 
     def _lookup_values_conditions(self, engine, column_code_name, lookup_table, fix_condition ='', prefix=''):
         query = """select code, value from staging.{0}""".format(lookup_table)
@@ -72,6 +74,9 @@ class FeaturesBlock():
     def _feature_aggregations(self, engine):
         return {}
 
+    def _sub_query(self,space_time_aggregation):
+        return {}
+
     def build_collate(self, engine, as_of_dates,  feature_list):
         feature_aggregations_list = self.feature_aggregations_to_use(feature_list, engine)
         st = collate.SpacetimeAggregation(feature_aggregations_list,
@@ -81,10 +86,16 @@ class FeaturesBlock():
                       date_column = self.date_column,
                       prefix = self.prefix,
                       output_date_column="as_of_date")
-        #for group_by, sels in st.get_selects().items():
-        #    for sel in sels:
-        #        log.debug('Query : {}'.format(sel))
-        #log.debug('Inserting {}'.format(self.prefix))
+
+        #modifiy the aggregation to include a sub query
+        if self.sub_query:
+            st = self._sub_query(st)
+
+
+        for group_by, sels in st.get_selects().items():
+            for sel in sels:
+                log.debug('Query : {}'.format(sel))
+        log.debug('Inserting {}'.format(self.prefix))
         st.execute(engine.connect())
 
 #--------------------------
@@ -140,11 +151,11 @@ class IncidentsReported(FeaturesBlock):
 
         'Complaints': collate.Aggregate(
                    {"Complaints": "(origination_type_code is not null)::int"}, ['sum']),
-       
+
         'DaysSinceLastAllegation': collate.Aggregate(
                    {"DaysSinceLastAllegation": "{date} - report_date"}, ['min'])
-                        
-        } 
+
+        }
 
 # --------------------------------------------------------
 # BLOCK: COMPLETED INCIDENTS
@@ -165,19 +176,19 @@ class IncidentsCompleted(FeaturesBlock):
                   self._lookup_values_conditions(engine, column_code_name = 'final_ruling_code',
                                                          lookup_table = 'lookup_final_rulings',
                                                          prefix = 'IncidentsByOutcome'),['sum']),
-        
+
        'MajorIncidentsByOutcome': collate.Aggregate(
                   self._lookup_values_conditions(engine, column_code_name = 'final_ruling_code',
                                                          lookup_table = 'lookup_final_rulings',
                                                          fix_condition = AllegationSeverity['major'].value,
                                                          prefix = 'MajorIncidentsByOutcome'),['sum']),
-        
+
         'MinorIncidentsByOutcome': collate.Aggregate(
                   self._lookup_values_conditions(engine, column_code_name = 'final_ruling_code',
                                                          lookup_table = 'lookup_final_rulings',
                                                          fix_condition = AllegationSeverity['minor'].value,
                                                          prefix = 'MinorIncidentsByOutcome'), ['sum']),
- 
+
         'DaysSinceLastSustainedAllegation': collate.Aggregate(
                   {"DaysSinceLastSustainedAllegation": "{} - date_of_judgment"}, ['min'])
             }
@@ -199,7 +210,7 @@ class OfficerShifts(FeaturesBlock):
                   self._lookup_values_conditions(engine, column_code_name = 'shift_type_code',
                                                          lookup_table = 'lookup_shift_types',
                                                          prefix = 'ShiftsOfType'),['sum']),
-        
+
         'HoursPerShift': collate.Aggregate(
                   {'HoursPerShift': '(EXTRACT( EPOCH from shift_length)/3600)'}, ['avg'])
             }
@@ -239,6 +250,70 @@ class OfficerArrests(FeaturesBlock):
                                                          lookup_table = 'lookup_ethnicities',
                                                          prefix = 'SuspectsArrestedOfEthnicity'), ['sum'])
          }
+
+
+# --------------------------------------------------------
+# BLOCK: ARRESTS
+# --------------------------------------------------------
+class OfficerArrestsStats(FeaturesBlock):
+    def __init__(self, **kwargs):
+        FeaturesBlock.__init__(self, **kwargs)
+        self.unit_id = 'officer_id'
+        self.from_obj = ""\
+                        "(SELECT"\
+                            "officer_id,"\
+                            "count(officer_id)                   AS count_officer"\
+                            "date_trunc('month', event_datetime) AS event_datetime"\
+                         "FROM staging.arrests" \
+                         "WHERE {collate_date} " \
+                        "GROUP BY officer_id, date_trunc('month', event_datetime)) AS sub_query"
+        self.date_column = 'event_datetime'
+        self.prefix = 'arstat'
+        self.sub_query = True
+
+    def _feature_aggregations(self, engine):
+        return {
+            'ArrestMonthlyVariance': collate.Aggregate(
+                {"ArrestMonthlyVariance": 'count_officer'}, ['variance']),
+
+        }
+
+    # add a sub query to perform the pre aggregation step
+    def _sub_query(self, space_time_aggregation):
+        x = 1
+
+        select_sub = collate.make_sql_clause(""
+                                             "officer_id,"
+                                             "count(officer_id)  AS count_officer,"
+                                             "date_trunc('month', event_datetime) as event_datetime",ex.text)
+        from_sub = collate.make_sql_clause('staging.arrests', ex.text)
+        group_by_sub = collate.make_sql_clause(self.unit_id, ex.literal_column)
+
+        for group_by, sels in space_time_aggregation.get_selects().items():
+            for sel in sels:
+                # dynamically add the where clause for the sub_query for speed optimization
+                where = sel._whereclause # type: Select
+                sub_query = ex.select(columns=[select_sub], from_obj=from_sub) \
+                    .where(where) \
+                    .group_by(group_by_sub).alias('sub_queryX')
+
+                sel.correlate_except(sub_query)
+                log.debug('Query : {}'.format(sel))
+                y=1
+
+
+
+        # st = collate.SpacetimeAggregation(feature_aggregations_list,
+        #                                   from_obj=self.from_obj,
+        #                                   group_intervals={self.unit_id: self.lookback_durations},
+        #                                   dates=as_of_dates,
+        #                                   date_column=self.date_column,
+        #                                   prefix=self.prefix,
+        #                                   output_date_column="as_of_date")
+
+        x = 1
+
+        pass
 
 # --------------------------------------------------------
 # BLOCK: TRAFFIC STOPS
@@ -467,7 +542,7 @@ class OfficerCharacteristics(FeaturesBlock):
          'DummyOfficerMilitary': collate.Aggregate(
                 {"DummyOfficerMilitary": 'military_service_flag::int'}, ['max']),
 
-         'AcademyScore': collate.Aggregate( 
+         'AcademyScore': collate.Aggregate(
                 {"AcademyScore": 'score'},['max']),
 
          'DummyOfficerRank': collate.Aggregate(
