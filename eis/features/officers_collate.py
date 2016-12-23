@@ -46,7 +46,7 @@ class FeaturesBlock():
         self.from_obj = ""
         self.date_column = ""
         self.prefix = ""
-        self.sub_query = False
+        self.join_table = None
 
     def _lookup_values_conditions(self, engine, column_code_name, lookup_table, fix_condition='', prefix=''):
         query = """select code, value from staging.{0}""".format(lookup_table)
@@ -76,7 +76,7 @@ class FeaturesBlock():
     def _feature_aggregations(self, engine):
         return {}
 
-    def _sub_query(self, space_time_aggregation):
+    def _sub_query(self):
         return {}
 
     def build_space_time_aggregation(self, engine, as_of_dates, feature_list, schema):
@@ -91,6 +91,23 @@ class FeaturesBlock():
                                           output_date_column="as_of_date",
                                           schema=schema)
         st.execute(engine.connect())
+
+    def build_space_time_sub_query_aggregation(self, engine, as_of_dates, feature_list, schema):
+        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, engine)
+        st = collate.SpacetimeSubQueryAggregation(feature_aggregations_list,
+                                          from_obj=self.from_obj,
+                                          groups={'off': self.unit_id},
+                                          intervals=self.lookback_durations,
+                                          dates=as_of_dates,
+                                          date_column=self.date_column,
+                                          prefix=self.prefix,
+                                          output_date_column="as_of_date",
+                                          schema=schema,
+                                          sub_query=self._sub_query(),
+                                          join_table=self.join_table)
+
+        st.execute(engine.connect())
+
 
     def build_aggregation(self, engine, feature_list, schema):
         feature_aggregations_list = self.feature_aggregations_to_use(feature_list, engine)
@@ -176,7 +193,7 @@ class IncidentsCompleted(FeaturesBlock):
         self.from_obj = ex.text('staging.incidents')
         self.date_column = 'date_of_judgment'
         self.lookback_durations = kwargs["lookback_durations"]
-        self.prefix = 'IC'
+        self.prefix = 'ic'
 
     def _feature_aggregations(self, engine):
         return {
@@ -278,59 +295,36 @@ class OfficerArrestsStats(FeaturesBlock):
     def __init__(self, **kwargs):
         FeaturesBlock.__init__(self, **kwargs)
         self.unit_id = 'officer_id'
-        self.from_obj = "" \
-                        "(SELECT" \
-                        "officer_id," \
-                        "count(officer_id)                   AS count_officer" \
-                        "date_trunc('month', event_datetime) AS event_datetime" \
-                        "FROM staging.arrests" \
-                        "WHERE {collate_date} " \
-                        "GROUP BY officer_id, date_trunc('month', event_datetime)) AS sub_query"
+        self.from_obj = "sub_query"
         self.date_column = 'event_datetime'
         self.prefix = 'arstat'
-        self.sub_query = True
+        self.join_table = 'staging.arrests'
 
     def _feature_aggregations(self, engine):
         return {
             'ArrestMonthlyVariance': collate.Aggregate(
                 {"ArrestMonthlyVariance": 'count_officer'}, ['variance']),
 
+            'ArrestMonthlyCV': collate.Aggregate( #TODO
+                {"ArrestMonthlyCOV": 'count_officer'}, ['cv'])
         }
 
     # add a sub query to perform the pre aggregation step
-    def _sub_query(self, space_time_aggregation):
-        x = 1
-
+    def _sub_query(self):
         select_sub = collate.make_sql_clause(""
                                              "officer_id,"
                                              "count(officer_id)  AS count_officer,"
                                              "date_trunc('month', event_datetime) as event_datetime", ex.text)
         from_sub = collate.make_sql_clause('staging.arrests', ex.text)
-        group_by_sub = collate.make_sql_clause(self.unit_id, ex.literal_column)
+        group_by_sub = collate.make_sql_clause("officer_id, date_trunc('month', event_datetime) ", ex.text)
 
-        for group_by, sels in space_time_aggregation.get_selects().items():
-            for sel in sels:
-                # dynamically add the where clause for the sub_query for speed optimization
-                where = sel._whereclause  # type: Select
-                sub_query = ex.select(columns=[select_sub], from_obj=from_sub) \
-                    .where(where) \
-                    .group_by(group_by_sub).alias('sub_queryX')
+        sub_query = ex.select(columns=[select_sub], from_obj=from_sub) \
+            .group_by(group_by_sub)
 
-                sel.correlate_except(sub_query)
-                log.debug('Query : {}'.format(sel))
-                y = 1
+        return sub_query
 
-        # st = collate.SpacetimeAggregation(feature_aggregations_list,
-        #                                   from_obj=self.from_obj,
-        #                                   group_intervals={self.unit_id: self.lookback_durations},
-        #                                   dates=as_of_dates,
-        #                                   date_column=self.date_column,
-        #                                   prefix=self.prefix,
-        #                                   output_date_column="as_of_date")
-
-        x = 1
-
-        pass
+    def build_collate(self, engine, as_of_dates, feature_list, schema):
+        self.build_space_time_sub_query_aggregation(engine, as_of_dates, feature_list, schema)
 
 
 # --------------------------------------------------------
@@ -342,7 +336,7 @@ class TrafficStops(FeaturesBlock):
         self.unit_id = 'officer_id'
         self.from_obj = 'staging.traffic_stops'
         self.date_column = 'event_datetime'
-        self.prefix = 'TS'
+        self.prefix = 'ts'
 
     def _feature_aggregations(self, engine):
         return {
