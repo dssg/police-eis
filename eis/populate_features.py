@@ -236,12 +236,16 @@ def join_feature_table(engine, list_prefixes, schema, features_table_name):
          query = " select * from {}.{} ".format(schema, table_names[0])
          for table_name in table_names:
              if table_name != table_names[0]:
-                 query += " full outer join {}  using (officer_id, as_of_date)".format(table_name)
+                 ## TODO: change this!
+                 if table_name != 'oc_aggregation':
+                     query += """ full outer join {}."{}"  using (officer_id, as_of_date)""".format(schema, table_name)
+                 else:
+                     query += """ full outer join {}."{}"  using (officer_id)""".format(schema, table_name)
  
-         drop_table_query = "DROP TABLE IF EXISTS features.{};".format(features_table_name)
+         drop_table_query = """DROP TABLE IF EXISTS features."{}";""".format(features_table_name)
          engine.execute(drop_table_query)
 
-         create_table_query = "CREATE TABLE features.{0} as ({1});".format(features_table_name,
+         create_table_query = """CREATE TABLE features."{0}" as ({1});""".format(features_table_name,
                                                                             query)
          engine.execute(create_table_query)
 
