@@ -75,7 +75,7 @@ class FeaturesBlock():
         feature_aggregations_list = self.feature_aggregations_to_use(feature_list, engine)
         st = collate.SpacetimeAggregation(feature_aggregations_list,
                       from_obj = self.from_obj,
-                      groups = {'off': self.unit_id},
+                      groups = {'id': self.unit_id},
                       intervals = self.lookback_durations,
                       dates = as_of_dates,
                       date_column = self.date_column,
@@ -88,7 +88,7 @@ class FeaturesBlock():
         feature_aggregations_list = self.feature_aggregations_to_use(feature_list, engine)
         st = collate.Aggregation(feature_aggregations_list,
                                  from_obj = self.from_obj,
-                                 groups =  {'off': self.groups},
+                                 groups =  {'id': self.groups},
                                  prefix = self.prefix,  
                                  schema = schema)
         st.execute(engine.connect())
@@ -111,7 +111,7 @@ class IncidentsReported(FeaturesBlock):
         'InterventionsOfType': collate.Aggregate(
                    self._lookup_values_conditions(engine, column_code_name = 'intervention_type_code',
                                                           lookup_table = 'lookup_intervention_types',
-                                                          prefix = 'InterventionsOfType'), ['sum','avg']),
+                                                          prefix = 'InterventionsOfType'), ['sum']),
 
         'IncidentsOfType': collate.Aggregate(
                    self._lookup_values_conditions(engine, column_code_name = 'grouped_incident_type_code',
@@ -136,7 +136,7 @@ class IncidentsReported(FeaturesBlock):
 
         'IncidentsOfSeverity': collate.Aggregate(
                    { "IncidentsOfSeverity_major": "({})::int".format(AllegationSeverity['major'].value),
-                     "IncidentsOfSeverity_minor": "({})::int".format(AllegationSeverity['minor'].value) },['sum','avg']),
+                     "IncidentsOfSeverity_minor": "({})::int".format(AllegationSeverity['minor'].value) },['sum']),
 
         'IncidentsSeverityUnknown': collate.Aggregate(
                    { "IncidentsSeverityUnknown_major": "({0} and {1})::int".format(

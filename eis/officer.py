@@ -123,10 +123,10 @@ def get_officer_features_table_columns(config):
           /* seperate the full name into parts, e.g IR_officer_id_1d_IncidentsSeverityUnknown_major_sum ->
            * 1d,IncidentsSeverityUnknown */
             SELECT
-              regexp_matches(column_name, $$_officer_id_(\d+\w)_([A-Z][A-Za-z]+)_$$) AS array_col,
+              regexp_matches(column_name, $$_id_(\d+\w)_([A-Z][A-Za-z]+)_$$) AS array_col,
               column_name
             FROM full_list
-            WHERE column_name LIKE $$%%_officer_id_%%$$
+            WHERE column_name LIKE $$%%_id_%%$$
         ), db_avaliable_features AS (
           /* convert to string for matching: e.g 1d_IncidentsSeverityUnknown  */
             SELECT
@@ -168,7 +168,6 @@ def get_officer_features_table_columns(config):
     #returns 2 dicts, 'col_avaliable' and 'col_missing'
     resultset = [dict(row) for row in result]
     result_dict=resultset[0]
-
     log.error('These features are missing: {}'.format(result_dict['col_missing']))
 
     return result_dict['col_avaliable']
