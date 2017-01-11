@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.internal_affairs_investigations; 
-CREATE UNLOGGED TABLE staging.internal_affairs_investigations (
+CREATE  TABLE staging.internal_affairs_investigations (
 	event_id                                                              int references staging.events_hub(event_id) on delete cascade,                --event id
 	incident_type_code                                                    int,                --the kind of incident that took place e.g. DUI, UOF, injury to officer. Includes the severity of the injury if one occurred
 	rule_violated_code                                                    int,                --the specific department rule that was violated

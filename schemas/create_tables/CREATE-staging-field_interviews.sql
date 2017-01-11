@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.field_interviews;
-CREATE UNLOGGED TABLE staging.field_interviews (
+CREATE  TABLE staging.field_interviews (
   event_id                                  INT REFERENCES staging.events_hub (event_id), --not a primary key, multiple people could be involved in one interview
   department_defined_field_interview_id     VARCHAR, --the department's internal id for the interview
   field_interview_type_code                 INT, --type of field interview

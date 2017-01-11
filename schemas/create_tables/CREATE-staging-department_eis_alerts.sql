@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.department_eis_alerts; 
-CREATE UNLOGGED TABLE staging.department_eis_alerts (
+CREATE  TABLE staging.department_eis_alerts (
 	eis_alert_id                            serial primary key,     -- unique id for the eis alert
     officer_id                              int,                    -- unique id for the officer flagged by the (old) EIS system
     date_created                            timestamp,              -- date when the EIS alert was generated

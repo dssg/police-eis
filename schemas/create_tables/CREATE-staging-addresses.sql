@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.addresses;
-CREATE UNLOGGED TABLE staging.addresses (
+CREATE TABLE staging.addresses (
   address_id                      SERIAL PRIMARY KEY, --
   department_defined_reference_id VARCHAR UNIQUE,
   street_address                  TEXT, --street address

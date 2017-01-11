@@ -58,7 +58,7 @@ def create_officer_features_table(config, table_name="officer_features"):
 
     # Create and execute a query to create a table with a column for each of the features.
     log.info("Creating new officer feature table: {}...".format(table_name))
-    create_query = (    "CREATE UNLOGGED TABLE features.{} ( "
+    create_query = (    "CREATE TABLE features.{} ( "
                         "   {}              int, "
                         "   created_on      timestamp, "
                         "   as_of_date      timestamp, "

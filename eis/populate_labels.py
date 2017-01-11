@@ -53,7 +53,7 @@ def create_officer_labels_table(config, table_name="officer_labels"):
 
     # Create and execute a query to create a table with a column for each of the labels.
     log.info("Creating new officer feature table: {}...".format(table_name))
-    create_query = (    "CREATE UNLOGGED TABLE features.{} ( "
+    create_query = (    "CREATE TABLE features.{} ( "
                         "   {}              int, "
                         "   outcome_timestamp      timestamp, "
                         "   outcome       text); "
