@@ -673,7 +673,6 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     features_table: name of the features table
     labels_table: name of the labels table 
     '''
-    log.debug(features_list)
     features_list_string = ", ".join(['{}'.format(feature) for feature in features_list])
     label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
     # convert features to string for querying while replacing NULL values with ceros in sql
