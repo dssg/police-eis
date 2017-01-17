@@ -97,6 +97,27 @@ def store_model_info( timestamp, batch_comment, batch_timestamp, config, paths={
                                         ) )
     db_conn.commit()
 
+    ## add model group_id
+    add_model_group_id( timestamp )
+
+    return None
+
+def add_model_group_id(timestamp):
+    """ 
+    Set model group id in results.models for the model given the same model type, model parameters, prediction window and list of features
+    Using the store procedure: get_model_group_id
+    
+    :param str timestamp: the timestamp at which the model was run 
+    """
+
+    query = (" UPDATE results.models 
+                 SET model_group_id = get_model_group_id(model_type, model_parameters, (config -> 'prediction_window') :: TEXT,
+                                            ARRAY(SELECT jsonb_array_elements_text(config -> 'officer_features')
+                                             ORDER BY 1) :: TEXT []) 
+               WHERE run_time = '{}'::timestamp ".format(timestamp)) 
+    db_cpmm-cursor().execute(query)
+    db_conn.commit()
+
     return None
 
 def store_feature_importances( timestamp, to_save):
@@ -673,7 +694,6 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     features_table: name of the features table
     labels_table: name of the labels table 
     '''
-    log.debug(features_list)
     features_list_string = ", ".join(['{}'.format(feature) for feature in features_list])
     label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
     # convert features to string for querying while replacing NULL values with ceros in sql
