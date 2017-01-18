@@ -119,28 +119,45 @@ def get_officer_features_table_columns(config):
             FROM information_schema.columns
             WHERE table_schema = '{schema}'
                   AND table_name = '{feature_table}'
-        ), list_cut AS (
-          /* seperate the full name into parts, e.g IR_officer_id_1d_IncidentsSeverityUnknown_major_sum ->
+         ), list_cut AS (
+           /* seperate the full name into parts, e.g IR_officer_id_1d_IncidentsSeverityUnknown_major_sum ->
            * 1d,IncidentsSeverityUnknown */
             SELECT
-              regexp_matches(column_name, $$_id_(\d+\w)_([A-Z][A-Za-z]+)_$$) AS array_col,
+              regexp_matches(column_name, $$_id_(\d+\w)?[_]?([A-Z][A-Za-z]+)_$$) AS array_col,
               column_name
             FROM full_list
             WHERE column_name LIKE $$%%_id_%%$$
-        ), db_avaliable_features AS (
+         )
+        , db_avaliable_features AS (
           /* convert to string for matching: e.g 1d_IncidentsSeverityUnknown  */
             SELECT
-              array_col [1] :: TEXT || '_' || array_col [2] :: TEXT AS db_created_features,
-              column_name
+              case when array_col [1] NOTNULL  then array_col [1] :: TEXT || '_' || array_col [2] :: TEXT else array_col [2]::TEXT end  AS db_created_features,
+              column_name,
+              array_col
             FROM list_cut
         ), selected_columns AS (
             SELECT unnest(
                 ARRAY{requested_features}) --insert of the requested features
         ), selected_timewindow AS (
             SELECT unnest(ARRAY{requested_time_window}) --insert of the requested time window
+        ), non_timewindow_colums as ( -- get all possible features without time-windows in the database table
+            SELECT
+              db_created_features
+            FROM db_avaliable_features WHERE array_col [1] ISNULL
+            GROUP BY db_created_features
         ), requested_features AS (
             SELECT unnest(t) || '_' || unnest(f) AS r_columns
             FROM selected_timewindow t CROSS JOIN selected_columns f
+            EXCEPT -- exclude all features from the cross product that do not have a time-window
+            SELECT unnest(t) || '_' || f.db_created_features AS r_columns
+            FROM selected_timewindow t CROSS JOIN non_timewindow_colums f
+            UNION ( -- add all the single features that are requested which  did not have a time-window in the database
+              SELECT db_created_features as r_columns
+              FROM  non_timewindow_colums
+              INTERSECT
+              SELECT   unnest(f) AS r_columns
+              FROM selected_columns f
+            )
         ), final_avaliable_colums AS (
             SELECT
               array_agg(column_name::TEXT ORDER BY 1) as col_avaliable
@@ -169,5 +186,5 @@ def get_officer_features_table_columns(config):
     resultset = [dict(row) for row in result]
     result_dict=resultset[0]
     log.error('These features are missing: {}'.format(result_dict['col_missing']))
-
+    pdb.set_trace()
     return result_dict['col_avaliable']
