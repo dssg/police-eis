@@ -39,7 +39,7 @@ def generate_as_of_dates(config):
                     as_of_dates.append(as_of_date)
                     as_of_date -= relativedelta(months=prediction_window)
                     log.debug(as_of_date)
-            end_date -= relativedelta(months=update_window) 
+            end_date -= relativedelta(days=update_window) 
 
     return as_of_dates
 
@@ -78,7 +78,7 @@ def generate_time_sets(config):
             log.debug("test_end_date:'{}', test_start_date:'{}', train_end_date:'{}', train_start_date:'{}',"
                        "update_window: '{}', 'prediction_window: '{}' '".format(test_end_date, test_start_date,
                        train_end_date, train_start_date, update_window, prediction_window))
-            test_end_date -= relativedelta(months=update_window)
+            test_end_date -= relativedelta(days=update_window)
     return temporal_info
 
 def generate_models_to_run(config, query_db=True):

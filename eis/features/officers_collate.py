@@ -13,7 +13,7 @@ from .. import setup_environment
 from . import abstract
 
 # from collate import collate
-from collate.collate import collate
+from .collate.collate import collate
 
 log = logging.getLogger(__name__)
 try:
@@ -174,9 +174,7 @@ class IncidentsReported(FeaturesBlock):
                    {"Complaints": "(origination_type_code is not null)::int"}, ['sum']),
        
         'DaysSinceLastAllegation': collate.Aggregate(
-                   {"DaysSinceLastAllegation": "extract(day from '{collate_date}' - report_date)"}, ['min'])
-                        
-        } 
+                   {"DaysSinceLastAllegation": "extract(day from '{collate_date}' - report_date)"}, ['min']) ,
 
             'DaysSinceLastAllegation': collate.Aggregate(
                 {"DaysSinceLastAllegation": "{date} - report_date"}, ['min'])
@@ -220,8 +218,8 @@ class IncidentsCompleted(FeaturesBlock):
                                                          prefix = 'MinorIncidentsByOutcome'), ['sum']),
  
         'DaysSinceLastSustainedAllegation': collate.Aggregate(
-                  {"DaysSinceLastSustainedAllegation": "extract(day from '{collae_date}' - date_of_judgment"}, ['min'])
-            }
+                  {"DaysSinceLastSustainedAllegation": "extract(day from '{collae_date}' - date_of_judgment"}, ['min']),
+            
 
             'MajorIncidentsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
