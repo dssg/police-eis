@@ -110,12 +110,12 @@ def add_model_group_id(timestamp):
     :param str timestamp: the timestamp at which the model was run 
     """
 
-    query = (" UPDATE results.models 
-                 SET model_group_id = get_model_group_id(model_type, model_parameters, (config -> 'prediction_window') :: TEXT,
-                                            ARRAY(SELECT jsonb_array_elements_text(config -> 'officer_features')
-                                             ORDER BY 1) :: TEXT []) 
-               WHERE run_time = '{}'::timestamp ".format(timestamp)) 
-    db_cpmm-cursor().execute(query)
+    query = (" UPDATE results.models " 
+             "    SET model_group_id = get_model_group_id(model_type, model_parameters, (config -> 'prediction_window') :: TEXT, "
+             "                               ARRAY(SELECT jsonb_array_elements_text(config -> 'officer_features') "
+             "                                ORDER BY 1) :: TEXT []) "
+             "  WHERE run_time = '{}'::timestamp ".format(timestamp)) 
+    db_conn.cursor().execute(query)
     db_conn.commit()
 
     return None
