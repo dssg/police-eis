@@ -170,7 +170,7 @@ def store_individual_feature_importances(timestamp, to_save):
 
     df_risks.to_sql( "individual_importances", engine, if_exists="append", schema="results", index=False )
 
-def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, my_exp.config ):
+def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, my_exp_config ):
     """ Write the model predictions (officer or dispatch risk scores) to the results schema.
 
     :param str timestamp: the timestamp at which this model was run.
@@ -178,7 +178,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     :param list unit_id_test: list of unit id's used in the test set.
     :param list unit_predictions: list of risk scores.
     :param list unit_labels: list of true labels.
-    :param dict my_exp.config: configuration of the experiment
+    :param dict my_exp_config: configuration of the experiment
     """
 
     # get the model primary key corresponding to this timestamp.
@@ -196,9 +196,14 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     # append data into predictions table. there is probably a faster way to do this than put it into a
     # dataframe and then use .to_sql but this works for now.
     dataframe_for_insert = pd.DataFrame( {  "model_id": this_model_id,
+                                            "as_of_date": my_exp.config['test_end_date'],
                                             "unit_id": unit_id_test,
                                             "unit_score": unit_predictions,
                                             "label_value": unit_labels } )
+    
+    # Add rank columns
+    dataframe_for_insert['rank_abs'] = dataframe_for_insert['unit_score'].rank(method='dense', ascending=False)
+    dataframe_for_insert['rank_pct'] = dataframe_for_insert['unit_score'].rank(method='dense', ascending=False, pct=True)
 
     dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False )
 
