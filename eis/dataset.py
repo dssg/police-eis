@@ -170,7 +170,7 @@ def store_individual_feature_importances(timestamp, to_save):
 
     df_risks.to_sql( "individual_importances", engine, if_exists="append", schema="results", index=False )
 
-def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, store_as_csv=False ):
+def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, my_exp.config ):
     """ Write the model predictions (officer or dispatch risk scores) to the results schema.
 
     :param str timestamp: the timestamp at which this model was run.
@@ -178,7 +178,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     :param list unit_id_test: list of unit id's used in the test set.
     :param list unit_predictions: list of risk scores.
     :param list unit_labels: list of true labels.
-    :param bool store_as_csv: if True, skip insert into predictions table, and store as a csv file instead.
+    :param dict my_exp.config: configuration of the experiment
     """
 
     # get the model primary key corresponding to this timestamp.
@@ -200,13 +200,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
                                             "unit_score": unit_predictions,
                                             "label_value": unit_labels } )
 
-    if store_as_csv:
-        # hack-y: much faster to write to csv, then read csv with psql than to write straight to database from python
-        csv_filepath = "{}/{}_{}.csv".format('results', 'dispatch_results', timestamp)
-        dataframe_for_insert.to_csv(csv_filepath, index=False)
-        # TODO: write code to actually load the csv into postgres with psql
-    else:
-        dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False )
+    dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False )
 
     return None
 

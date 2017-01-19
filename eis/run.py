@@ -137,17 +137,13 @@ def main(config_file_name, args):
         else: 
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config)
 
-        # To store in results.data:
-        #    model_data_pickle_object = pickle.dumps( to_save )
-        #    dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_obj=model_data_pickle_object)
-
         # Store information about this experiment into the results schema.
         log.debug("storing predictions information")
         if config["unit"] == "dispatch":
            store_as_csv = True
         else:
             store_as_csv = False
-        dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, store_as_csv )
+        dataset.store_prediction_info(timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, my_exp.config)
 
         #Insert Evaluation Metrics Into Table
         log.debug("storing evaluation metric information")

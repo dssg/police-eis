@@ -163,16 +163,6 @@ feature_blocks:
         OfficerAvgStopsDemographics_1: False
         OfficerAvgStopsDemographics_2: False
 
-    Threshold_EIS:
-        DummyThresholdAccidentFlag: True # Flag if there have been more than 2 accidents in the past 180 days
-        DummyThresholdUOFFlag: True # Flag if there have been more than 3 UOF incidents in the past 90 days
-        DummyThresholdSickLeaveFlag: True # Flag if there have been more than 3 sick/medical/family leave days taken in the last 90 days
-        DummyThresholdComplaintFlag: True # Flag if there have been 3 or more (civilian) complaints in the past 180 days
-        # for MNPD, the injuries data is not loaded in such a way that it is available for the ThresholdInjuryFlag
-        DummyThresholdInjuryFlag: True # Flag if there have been 2 or more injuries in the past 180 days
-        DummyThresholdPursuitsFlag: True # Flag if there have been 2 or more pursuits in the past 180 days
-        DummyThresholdCombinedFlag: True # Flag if there have been 5 or more incidents or sickdays in the past 180 days
-
 
 ########################
 # Model selection      #

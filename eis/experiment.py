@@ -8,22 +8,19 @@ from . import officer
 
 log = logging.getLogger(__name__)
 
-class EISExperiment(object):
-   """The EISExperiment class defines each individual experiment
-
-   Attributes:
-       config: dict containing configuration
-       exp_data: dict containing data   
-       pilot_data: dict containing data for pilot if defined
-   """
-
-   def __init__(self, config):
-       self.config = config.copy()
-       self.exp_data = None
-       self.pilot_data = None
-
 
 def generate_as_of_dates(config):
+    """
+    Given the start_date, end_date and update_window from the config
+    it generates a list of as_of_dates that will be used for feature generation
+
+    Args:
+       config: Python dict read in from YAML config file containing
+                user-supplied details of the experiments to be run
+
+    Returns:
+       as_of_dates: 
+    """
     end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
     start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
     as_of_dates = set()
@@ -101,6 +98,7 @@ def generate_models_to_run(config, query_db=True):
 
     # generate a list of {fake_today, training_window, prediction_window} dictionaries
     all_temporal_info = generate_time_sets(config)
+    all_as_of_dates = generate_as_of_dates(config)
 
     for temporal_info in all_temporal_info:
 
