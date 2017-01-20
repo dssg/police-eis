@@ -209,7 +209,6 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
 
     return None
 
-#def store_evaluation_metrics( timestamp, evaluation_metrics ):
 def store_evaluation_metrics( timestamp, evaluation, metric, parameter=None, comment=None):
     """ Write the model evaluation metrics into the results schema
 
@@ -448,233 +447,10 @@ class FeatureLoader():
         self.table_name = table_name
 
 
-    def officer_labeller(self, officer_labels, ids_to_label=None):
-        """
-        Load the IDs for a set of officers who are 'active' during the supplied time window
-        and generate 0 / 1 labels for them. The definition of 'active' is determined by the
-        options passed in the 'labelling' dictionary.
-
-        Inputs:
-        officer_labels: dict of bools representing which event types are considered adverse for
-                        the purposes of prediction, and also what mask to apply to officers
-                        with respect to whether or not they are active.
-        ids_to_label: (Optional) a list of officer_ids to return labels for. Note that if a
-                      given officer_id is not included in [start_date, end_date] it will
-                      not be in the returned dataframe.
-
-        Returns:
-        outcomes: pandas dataframe with two columns: officer_id and adverse_by_ourdef
-        """
-
-        log.info("Loading labels...")
-
-        # select all officer ids which we will use for labelling
-        query_all_officers = (          "SELECT DISTINCT officer_id "
-                                        "FROM staging.events_hub AS events_hub "
-                                        "LEFT JOIN staging.internal_affairs_investigations AS ia_table "
-                                        "   ON events_hub.event_id = ia_table.event_id "
-                                        "WHERE events_hub.event_datetime > '{}'::date "
-                                        "AND events_hub.event_datetime <= '{}'::date "
-                                        .format(
-                                            self.start_date,
-                                            self.end_date))
-
-        if officer_labels['include_all_active'] == True:
-
-            # add the officer_ids of officers who show up in the arrests, traffic, and pedestrian stops tables
-            # see lookup_event_types for the explanation of (1, 2, 3)
-            query_all_officers += (         "UNION "
-                                        "SELECT DISTINCT officer_id FROM staging.events_hub "
-                                        "WHERE event_type_code in (1, 2, 3, 6) "
-                                        "AND event_datetime > '{}' "
-                                        "AND event_datetime <= '{}' "
-                                        .format(
-                                          self.start_date,
-                                          self.end_date))
-
-        # create the query to find all officer ID's associated with an adverse incident.
-        query_base = (  "SELECT incidents.officer_id "
-                        "FROM staging.events_hub "
-                        "JOIN staging.incidents "
-                        "ON staging.events_hub.event_id = staging.incidents.event_id " )
-
-        # create the query to mask in time.
-        query_time =  (  "WHERE events_hub.event_datetime > '{}'::date "
-                         "AND events_hub.event_datetime <= '{}'::date "
-                         .format(    self.end_date,
-                                    self.end_label_date ) )
-
-        # set the individual queries for each type of label.
-        query_sustained = "final_ruling_code in ( 1, 4, 5 ) "
-        query_sustained_and_unknown_outcome = "final_ruling_code in (0, 1, 4, 5 ) "
-        query_all       = "number_of_allegations > 0 "
-        query_major     = "grouped_incident_type_code in ( 0, 2, 3, 4, 8, 9, 10, 11, 17, 20 ) "
-        query_minor     = "grouped_incident_type_code in ( 1, 6, 16, 18, 12, 7, 14 ) "
-        query_force     = "grouped_incident_type_code = 20 "
-        query_unknown   = "grouped_incident_type_code = 19 "
-
-        # construct the query to get officer ID's with adverse incidents as defined by the user.
-        queries_for_adverse = []
-        if officer_labels["ForceAllegations"]:
-            queries_for_adverse.append( query_force  )
-
-        if officer_labels["SustainedForceAllegations"]:
-            queries_for_adverse.append( query_force + " AND " +  query_sustained )
-
-        if officer_labels["SustainedandUnknownForceAllegations"]:
-            queries_for_adverse.append( query_force + " AND " +  query_sustained_and_unknown_outcome )
-
-        if officer_labels["AllAllegations"]:
-            queries_for_adverse.append( query_all )
-
-        if officer_labels["SustainedAllegations"]:
-            queries_for_adverse.append( query_sustained )
-
-        if officer_labels["SustainedandUnknownOutcomeAllegations"]:
-            queries_for_adverse.append( query_sustained_and_unknown_outcome )
-
-        if officer_labels["MajorAllegations"]:
-            queries_for_adverse.append( query_major )
-
-        if officer_labels["SustainedMajorAllegations"]:
-            queries_for_adverse.append( query_major + " AND " + query_sustained )
-
-        if officer_labels["SustainedUnknownMajorAllegations"]:
-            queries_for_adverse.append( query_major + " AND " + query_sustained_and_unknown_outcome )
-
-        if officer_labels["MinorAllegations"]:
-            queries_for_adverse.append( query_minor )
-
-        if officer_labels["SustainedMinorAllegations"]:
-            queries_for_adverse.append( query_minor + " AND " + query_sustained )
-
-        if officer_labels["SustainedUnkownMinorAllegations"]:
-            queries_for_adverse.append( query_minor + " AND " + query_sustained_and_unknown_outcome )
-
-        if officer_labels["UnknownAllegations"]:
-            queries_for_adverse.append( query_unknown )
-
-        if officer_labels["SustainedUnknownAllegations"]:
-            queries_for_adverse.append( query_unknown + " AND " + query_sustained )
-
-        if officer_labels["SustainedUnknownUnknownAllegations"]:
-            queries_for_adverse.append( query_unknown + " AND " + query_sustained_and_unknown_outcome )
-
-        # join together the adverse queries into a single mask.
-        if len(queries_for_adverse) > 0:
-            query_adverse = " ( " + " ) \n OR ( ".join(queries_for_adverse) + " ) "
-        else:
-            query_adverse = ""
-
-        # setup the full query for getting the labels.
-        if query_adverse:
-            query_labels = query_base + query_time + " AND ( " + query_adverse + " ) "
-        else:
-            query_labels = query_base + query_time
-
-        # pull in all the officer_ids to use for labelling
-        all_officers = pd.read_sql(query_all_officers, con=db_conn).drop_duplicates()
-
-        # pull in the officer_ids of officers who had adverse incidents
-        adverse_officers = pd.read_sql(query_labels, con=db_conn).drop_duplicates()
-        adverse_officers["adverse_by_ourdef"] = 1
-
-        # merge the labelled and adverse officer_ids and fill in the non-adverse rows with 0s
-        outcomes = adverse_officers.merge(all_officers, how='outer', on='officer_id')
-        outcomes = outcomes.fillna(0)
-
-        log.debug('... number of officers in set : {}'.format(len(all_officers)))
-        log.debug('... number of officers with adverse incidents : {}'.format(len(adverse_officers)))
-
-        # if given a list of officer ids to label, exclude officer_ids not in that list
-        if ids_to_label is not None:
-            outcomes = outcomes.loc[outcomes.officer_id.isin(ids_to_label)]
-
-        return outcomes
-
-    def load_all_features(self, features_to_load, ids_to_use=None, feature_type='officer'):
-        """Get the feature values from the database
-
-        Args:
-            features_to_load(list): names of all features to be loaded, names must be in classmap
-            ids_to_use(list): the subset of ids to return feature values for
-            feature_type(str): the type of feature being loaded, one of ['officer', 'dispatch']
-
-        Returns:
-            returns(pd.DataFrame): dataframe of the feature values indexed by officer_id or dispatch_id
-            """
-
-
-        feature_name_list = ', '.join(features_to_load)
-
-        # select the appropriate id column and feature table name for this feature type
-        if feature_type == 'officer':
-            id_column = 'officer_id'
-        if feature_type == 'dispatch':
-            id_column = 'dispatch_id'
-
-        # Create the query for this feature list
-        query = (   "SELECT {}, {} "
-                    "FROM features.{} "
-                    "WHERE as_of_date > '{}' AND as_of_date <= '{}'"
-                    .format(
-                        id_column,
-                        feature_name_list,
-                        self.table_name,
-                        self.start_date,
-                        self.end_date))
-
-        # Execute the query.
-        results = self.__read_feature_table(query, id_column)
-
-        # filter dispatch-level features for officer-initiated dispatches.
-        if feature_type == "dispatch":
-            results = self.__filter_dispatch_features( results )
-
-        # filter out the rows which aren't in ids_to_use
-        if ids_to_use is not None:
-            results = results.ix[ids_to_use]
-
-        return results
-
-    def __read_feature_table(self, query, id_column, drop_duplicates=True, drop_OI=True, has_geolocation=True):
-        """Return a dataframe with data from the features table, indexed by the relevant id (officer or dispatch)"""
-
-        log.debug("Loading features for events from {} to {}".format(
-                        self.start_date, self.end_date))
-
-        # Load this feature from the feature table.
-        results = pd.read_sql(query, con=db_conn)
-
-        if drop_duplicates:
-            results = results.drop_duplicates(subset=[id_column])
-
-        # index by the relevant id
-        results = results.set_index(id_column)
-
-        # -1 in feature count is b/c 'label' is also a column, but not a feature
-        log.debug("... {} rows, {} features".format(len(results),
-                                                    len(results.columns)))
-        return results
-
-
-    def __filter_dispatch_features(self, results, drop_OI=True, has_geolocation=True):
-        """ Filter dispatch features for officer-initiated dispatches """
-
-        # Remove dispatches that are officer initiated
-        if drop_OI:
-            results = results.loc[results.dispatchcategory != "OI"]
-
-        # Remove dispatches that do not have geolocation (percentage black in census tract is 
-        # a proxy as it will be assigned to all with a geolocation)
-        if has_geolocation:
-            results = results[~results.percentageblackinct.isnull()]
-
-        return results
 
 
 def get_dataset(start_date, end_date, prediction_window, officer_past_activity_window, features_list,
-                label_list, features_table, labels_table):
+                label_list, features_table, labels_table, as_of_dates_to_use):
     '''
     This function returns dataset and labels to use for training / testing
     It is splitted in two queries:
@@ -695,6 +471,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     '''
     features_list_string = ", ".join(['{}'.format(feature) for feature in features_list])
     label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
+    as_of_dates_string = ", ".join(["'{}'".format(as_of_date) for as_of_date in as_of_dates_to_use])
     # convert features to string for querying while replacing NULL values with ceros in sql
     features_coalesce = ", ".join(['coalesce("{0}",0) as {0}'.format(feature) for feature in features_list])
 
@@ -715,14 +492,16 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                     """                AND l.outcome_timestamp > f.as_of_date """
                     """                AND outcome in ({1}) LIMIT 1"""
                     """                 ) AS l ON TRUE """
-                    """     WHERE f.as_of_date >= '{5}'::date AND f.as_of_date < '{6}' ) """
+                    """     WHERE f.as_of_date >= '{5}'::date AND f.as_of_date < '{6}' """
+                    """           AND f.as_of_date in ({7}) )"""
                       .format(features_coalesce,
                               label_list_string,
                               features_table,
                               labels_table,
                               prediction_window,
                               start_date,
-                              end_date))
+                              end_date,
+                              as_of_dates_string))
 
     # We only want to train and test on officers that have been active (any logged activity in events_hub)
     # NOTE: it uses the feature_labels created in query_labels 
@@ -741,7 +520,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     # join both queries together and load data
     query = (query_labels + query_active)
     all_data = pd.read_sql(query, con=db_conn)
-
+    pdb.set_trace()
     # remove rows with only zero values
     features_list = [ feature.lower() for feature in features_list]
     all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]

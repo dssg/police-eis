@@ -11,8 +11,8 @@ from . import setup_environment
 log = logging.getLogger(__name__)
 
 
-def run_traintest(config):
-    result = setup(config)
+def run_traintest(config, as_of_dates_to_use):
+    result = setup(config, as_of_dates_to_use)
     return result
 
 
@@ -21,13 +21,13 @@ def run_pilot(config):
     return result
 
 
-def setup(config):
+def setup(config, as_of_dates_to_use):
     """
     Sets up officer-level experiment
 
     Args:
     config: dict with config file
-    today: string containing the date to split on for temporal cross-validation
+    as_of_dates_to_use: list of as_of_dates given the update window
     """
 
     train_start_date = datetime.datetime.strptime(config['train_start_date'], "%Y-%m-%d")
@@ -50,7 +50,8 @@ def setup(config):
         config["officer_features"],
         config['officer_labels'],
         config['officer_feature_table_name'],
-        config['officer_label_table_name'])
+        config['officer_label_table_name'],
+        as_of_dates_to_use)
 
     log.info("Loading officers and features to use as testing...")
     test_x, test_y = dataset.get_dataset(
@@ -61,7 +62,8 @@ def setup(config):
         config["officer_features"],
         config['officer_labels'],
         config['officer_feature_table_name'],
-        config['officer_label_table_name'])
+        config['officer_label_table_name'],
+        [test_end_date])
 
     # Testing data should include ALL officers, ignoring "noinvest" keyword
     testing_labelling_config = config["officer_labels"].copy()

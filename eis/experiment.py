@@ -21,7 +21,44 @@ class EISExperiment(object):
        self.exp_data = None
        self.pilot_data = None
 
-def generate_as_of_dates(config):
+
+def generate_as_of_dates_features(config):
+    """
+    Given the start_date, end_date and update_window from the config
+    it generates a list of as_of_dates that will be used for feature generation
+
+    Args:
+       config: Python dict read in from YAML config file containing
+                user-supplied details of the experiments to be run
+
+    Returns:
+       as_of_dates:
+    """
+    end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
+    start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
+    as_of_dates = set()
+
+
+    as_of_dates = []
+    for update_window in config['update_window']:
+        while end_date > start_date:
+            log.debug('end_date: {}'.format(end_date))
+            for prediction_window in config['prediction_window']:
+                as_of_date = end_date
+                while as_of_date > start_date:
+                as_of_dates.append(as_of_date)
+                as_of_date -= relativedelta(months=prediction_window)
+                log.debug(as_of_date)
+            end_date -= relativedelta(days=update_window)
+
+    time_format = "%Y-%m-%d %X"
+    as_of_dates_uniques = set(as_of_dates)
+    as_of_dates_uniques = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates_uniques]
+
+    return as_of_dates_uniques
+
+
+def generate_as_of_dates_update_window(config):
     """
     Given the start_date, end_date and update_window from the config
     it generates a list of as_of_dates that will be used for feature generation
@@ -42,15 +79,16 @@ def generate_as_of_dates(config):
     for update_window in config['update_window']:
         while end_date > start_date:
             log.debug('end_date: {}'.format(end_date))
-            for prediction_window in config['prediction_window']:
-                as_of_date = end_date
-                while as_of_date > start_date:
-                    as_of_dates.append(as_of_date)
-                    as_of_date -= relativedelta(months=prediction_window)
-                    log.debug(as_of_date)
+            as_of_date = end_date
+            as_of_dates.append(as_of_date)
+            log.debug(as_of_date)
             end_date -= relativedelta(days=update_window) 
 
-    return as_of_dates
+    time_format = "%Y-%m-%d %X"
+    as_of_dates_uniques = set(as_of_dates)
+    as_of_dates_uniques = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates_uniques]
+
+    return as_of_dates_uniques
 
 def generate_time_sets(config):
     """Takes a config file and generates a list of dicts, each of which
@@ -110,7 +148,9 @@ def generate_models_to_run(config, query_db=True):
 
     # generate a list of {fake_today, training_window, prediction_window} dictionaries
     all_temporal_info = generate_time_sets(config)
-    all_as_of_dates = generate_as_of_dates(config)
+    as_of_dates_to_use = generate_as_of_dates_update_window(config)
+
+    log.debug('unique as_of_dates to use: {}'.format(as_of_dates_to_use))
 
     for temporal_info in all_temporal_info:
 
@@ -131,7 +171,7 @@ def generate_models_to_run(config, query_db=True):
         if config["unit"] == "officer":
             # get officer-level features to use
             this_config["officer_features"] = officer.get_officer_features_table_columns( config )
-            exp_data = officer.run_traintest(this_config)
+            exp_data = officer.run_traintest(this_config, as_of_dates_to_use)
 
         elif config["unit"] == "dispatch":
             exp_data = dispatch.run_traintest(this_config)

@@ -138,9 +138,7 @@ def populate_officer_features_table(config, table_name, schema):
      """
 
     # get the list of fake todays specified by the config file
-    time_format = "%Y-%m-%d %X"
-    as_of_dates = set(experiment.generate_as_of_dates(config))
-    as_of_dates = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates]
+    as_of_dates = experiment.generate_as_of_dates_features(config)
     log.debug(as_of_dates)
 
     list_prefixes = []
