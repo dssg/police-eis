@@ -13,7 +13,7 @@ from .. import setup_environment
 from . import abstract
 
 # from collate import collate
-from .collate.collate import collate
+from collate.collate import collate
 
 log = logging.getLogger(__name__)
 try:
@@ -45,7 +45,10 @@ class FeaturesBlock():
         self.unit_id = ""
         self.from_obj = ""
         self.date_column = ""
-        self.prefix = ""
+        self.prefix_space_time = ""
+        self.prefix_agg = ""
+        self.prefix_sub = ""
+        self.prefix = []
         self.join_table = None
 
     def _lookup_values_conditions(self, engine, column_code_name, lookup_table, fix_condition='', prefix=''):
@@ -61,8 +64,7 @@ class FeaturesBlock():
                 dict_temp[prefix + '_' + value] = "({0} = {1})::int".format(column_code_name, code)
         return dict_temp
 
-    def feature_aggregations_to_use(self, feature_list, engine):
-        feature_aggregations = self._feature_aggregations(engine)
+    def feature_aggregations_to_use(self, feature_list, feature_aggregations):
         feature_aggregations_to_use = []
         log.debug(feature_list)
         for feature in feature_list:
@@ -76,46 +78,52 @@ class FeaturesBlock():
     def _feature_aggregations(self, engine):
         return {}
 
+    def _feature_aggregations_space_time_lookback(self, engine):
+        return {}
+
+    def _feature_aggregations_sub(self, engine):
+        return {}
+
     def _sub_query(self):
         return {}
 
-    def build_space_time_aggregation(self, engine, as_of_dates, feature_list, schema):
-        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, engine)
-        st = collate.SpacetimeAggregation(feature_aggregations_list,
-                      from_obj = self.from_obj,
-                      groups = {'id': self.unit_id},
-                      intervals = self.lookback_durations,
-                      dates = as_of_dates,
-                      date_column = self.date_column,
-                      prefix = self.prefix,
-                      output_date_column="as_of_date",
-                      schema = schema)
-        st.execute(engine.connect())
 
-    def build_space_time_sub_query_aggregation(self, engine, as_of_dates, feature_list, schema):
-        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, engine)
-        st = collate.SpacetimeSubQueryAggregation(feature_aggregations_list,
+    def build_space_time_aggregation_lookback(self, engine, as_of_dates, feature_list, schema):
+        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, self._feature_aggregations_space_time_lookback(engine))
+        st = collate.SpacetimeAggregation(feature_aggregations_list,
                                           from_obj=self.from_obj,
                                           groups={'id': self.unit_id},
                                           intervals=self.lookback_durations,
                                           dates=as_of_dates,
                                           date_column=self.date_column,
-                                          prefix=self.prefix,
+                                          prefix=self.prefix_space_time,
                                           output_date_column="as_of_date",
-                                          schema=schema,
-                                          sub_query=self._sub_query(),
-                                          join_table=self.join_table)
+                                          schema=schema)
+        st.execute(engine.connect())
+
+    def build_space_time_sub_query_aggregation(self, engine, as_of_dates, feature_list, schema):
+        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, self._feature_aggregations_sub(engine))
+        st = collate.SpacetimeSubQueryAggregation(feature_aggregations_list,
+                                                  from_obj=self.from_obj,
+                                                  groups={'id': self.unit_id},
+                                                  intervals=self.lookback_durations,
+                                                  dates=as_of_dates,
+                                                  date_column=self.date_column,
+                                                  prefix=self.prefix_sub,
+                                                  output_date_column="as_of_date",
+                                                  schema=schema,
+                                                  sub_query=self._sub_query(),
+                                                  join_table=self.join_table)
 
         st.execute(engine.connect())
 
-
     def build_aggregation(self, engine, feature_list, schema):
-        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, engine)
+        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, self._feature_aggregations(engine))
         st = collate.Aggregation(feature_aggregations_list,
-                                 from_obj = self.from_obj,
-                                 groups =  {'id': self.groups},
-                                 prefix = self.prefix,  
-                                 schema = schema)
+                                 from_obj=self.from_obj,
+                                 groups={'id': self.unit_id},
+                                 prefix=self.prefix_agg,
+                                 schema=schema)
         st.execute(engine.connect())
 
 
@@ -130,9 +138,10 @@ class IncidentsReported(FeaturesBlock):
         self.from_obj = ex.text('staging.incidents')
         self.date_column = "report_date"
         self.lookback_durations = kwargs["lookback_durations"]
-        self.prefix = 'ir'
+        self.prefix_space_time = ['ir']
+        self.prefix_agg = ['irND']
 
-    def _feature_aggregations(self, engine):
+    def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'InterventionsOfType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='intervention_type_code',
@@ -144,10 +153,10 @@ class IncidentsReported(FeaturesBlock):
                                                lookup_table='lookup_incident_types',
                                                prefix='IncidentsOfType'), ['sum']),
 
-        'ComplaintsTypeSource': collate.Aggregate(
-                   self._lookup_values_conditions(engine, column_code_name = 'origination_type_code',
-                                                          lookup_table = 'lookup_complaint_origins',
-                                                          prefix = 'ComplaintsTypeSource'), ['sum', 'avg']),
+            'ComplaintsTypeSource': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='origination_type_code',
+                                               lookup_table='lookup_complaint_origins',
+                                               prefix='ComplaintsTypeSource'), ['sum', 'avg']),
 
             'SuspensionsOfType': collate.Aggregate(
                 {"SuspensionsOfType_active": "(hours_active_suspension > 0)::int",
@@ -164,25 +173,45 @@ class IncidentsReported(FeaturesBlock):
                 {"IncidentsOfSeverity_major": "({})::int".format(AllegationSeverity['major'].value),
                  "IncidentsOfSeverity_minor": "({})::int".format(AllegationSeverity['minor'].value)}, ['sum']),
 
-        'IncidentsSeverityUnknown': collate.Aggregate(
-                   { "IncidentsSeverityUnknown_major": "({0} and {1})::int".format(
-                         AllegationSeverity['major'].value,  AllegationOutcome['unknown'].value),
-                     "IncidentsSeverityUnknown_minor": "({} and {})::int".format(
-                         AllegationSeverity['minor'].value, AllegationOutcome['unknown'].value)},['sum', 'avg']),
+            'IncidentsSeverityUnknown': collate.Aggregate(
+                {"IncidentsSeverityUnknown_major": "({0} and {1})::int".format(
+                    AllegationSeverity['major'].value, AllegationOutcome['unknown'].value),
+                    "IncidentsSeverityUnknown_minor": "({} and {})::int".format(
+                        AllegationSeverity['minor'].value, AllegationOutcome['unknown'].value)}, ['sum', 'avg']),
 
-        'Complaints': collate.Aggregate(
-                   {"Complaints": "(origination_type_code is not null)::int"}, ['sum']),
-       
-        'DaysSinceLastAllegation': collate.Aggregate(
-                   {"DaysSinceLastAllegation": "extract(day from '{collate_date}' - report_date)"}, ['min']) ,
+            'Complaints': collate.Aggregate(
+                {"Complaints": "(origination_type_code is not null)::int"}, ['sum']),
+
+        }
+
+    def _feature_aggregations(self, engine):
+        return {
 
             'DaysSinceLastAllegation': collate.Aggregate(
-                {"DaysSinceLastAllegation": "{date} - report_date"}, ['min'])
+                {"DaysSinceLastAllegation": "'{collate_date}' - report_date"}, ['min'])
 
         }
 
     def build_collate(self, engine, as_of_dates, feature_list, schema):
-        self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
+        #check if a space-time feature was selected
+        list_space_time_lookback = [x for x in feature_list if x in set(self._feature_aggregations_space_time_lookback(engine).keys())]
+        if list_space_time_lookback is not None:
+            self.build_space_time_aggregation_lookback(engine, as_of_dates, list_space_time_lookback, schema)
+            self.prefix.append(self.prefix_space_time)
+
+        # check if an  aggregate feature was selected
+        list_agg = [x for x in feature_list if x in set(self._feature_aggregations(engine).keys())]
+        if list_agg is not None:
+            self.build_aggregation(engine, list_agg, schema)
+            self.prefix.append(self.prefix_agg)
+
+        if self.prefix is None:
+            log.info("WARNING: no feature aggregation for features: {}".format(feature_list))
+            sys.exit(1)
+
+
+
+
 
 
 # --------------------------------------------------------
@@ -200,26 +229,25 @@ class IncidentsCompleted(FeaturesBlock):
 
     def _feature_aggregations(self, engine):
         return {
-        'IncidentsByOutcome': collate.Aggregate(
-                  self._lookup_values_conditions(engine, column_code_name = 'final_ruling_code',
-                                                         lookup_table = 'lookup_final_rulings',
-                                                         prefix = 'IncidentsByOutcome'),['sum']),
-        
-       'MajorIncidentsByOutcome': collate.Aggregate(
-                  self._lookup_values_conditions(engine, column_code_name = 'final_ruling_code',
-                                                         lookup_table = 'lookup_final_rulings',
-                                                         fix_condition = AllegationSeverity['major'].value,
-                                                         prefix = 'MajorIncidentsByOutcome'),['sum']),
-        
-        'MinorIncidentsByOutcome': collate.Aggregate(
-                  self._lookup_values_conditions(engine, column_code_name = 'final_ruling_code',
-                                                         lookup_table = 'lookup_final_rulings',
-                                                         fix_condition = AllegationSeverity['minor'].value,
-                                                         prefix = 'MinorIncidentsByOutcome'), ['sum']),
- 
-        'DaysSinceLastSustainedAllegation': collate.Aggregate(
-                  {"DaysSinceLastSustainedAllegation": "extract(day from '{collae_date}' - date_of_judgment"}, ['min']),
-            
+            'IncidentsByOutcome': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
+                                               lookup_table='lookup_final_rulings',
+                                               prefix='IncidentsByOutcome'), ['sum']),
+
+            'MajorIncidentsByOutcome': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
+                                               lookup_table='lookup_final_rulings',
+                                               fix_condition=AllegationSeverity['major'].value,
+                                               prefix='MajorIncidentsByOutcome'), ['sum']),
+
+            'MinorIncidentsByOutcome': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
+                                               lookup_table='lookup_final_rulings',
+                                               fix_condition=AllegationSeverity['minor'].value,
+                                               prefix='MinorIncidentsByOutcome'), ['sum']),
+
+            'DaysSinceLastSustainedAllegation': collate.Aggregate(
+                {"DaysSinceLastSustainedAllegation": "extract(day from '{collae_date}' - date_of_judgment"}, ['min']),
 
             'MajorIncidentsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
@@ -293,15 +321,15 @@ class OfficerArrests(FeaturesBlock):
                                                lookup_table='lookup_days_of_week',
                                                prefix='ArrestsON'), ['sum']),
 
-        'SuspectsArrestedOfRace': collate.Aggregate(
-                  self._lookup_values_conditions(engine, column_code_name = 'suspect_race_code',
-                                                         lookup_table = 'lookup_races',
-                                                         prefix = 'SuspectsArrestedOfRace'), ['sum', 'avg']),
-        'SuspectsArrestedOfEthnicity': collate.Aggregate(
-                  self._lookup_values_conditions(engine, column_code_name = 'suspect_ethnicity_code',
-                                                         lookup_table = 'lookup_ethnicities',
-                                                         prefix = 'SuspectsArrestedOfEthnicity'), ['sum', 'avg'])
-         }
+            'SuspectsArrestedOfRace': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='suspect_race_code',
+                                               lookup_table='lookup_races',
+                                               prefix='SuspectsArrestedOfRace'), ['sum', 'avg']),
+            'SuspectsArrestedOfEthnicity': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='suspect_ethnicity_code',
+                                               lookup_table='lookup_ethnicities',
+                                               prefix='SuspectsArrestedOfEthnicity'), ['sum', 'avg'])
+        }
 
     def build_collate(self, engine, as_of_dates, feature_list, schema):
         self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
@@ -324,7 +352,7 @@ class OfficerArrestsStats(FeaturesBlock):
             'ArrestMonthlyVariance': collate.Aggregate(
                 {"ArrestMonthlyVariance": 'count_officer'}, ['variance']),
 
-            'ArrestMonthlyCV': collate.Aggregate( #TODO
+            'ArrestMonthlyCV': collate.Aggregate(  # TODO
                 {"ArrestMonthlyCOV": 'count_officer'}, ['cv'])
         }
 
@@ -359,31 +387,31 @@ class TrafficStops(FeaturesBlock):
 
     def _feature_aggregations(self, engine):
         return {
-        'TrafficStopsWithSearch': collate.Aggregate(
-                 {"TrafficStopsWithSearch": '(searched_flag = true)::int'}, ['sum', 'avg']),
+            'TrafficStopsWithSearch': collate.Aggregate(
+                {"TrafficStopsWithSearch": '(searched_flag = true)::int'}, ['sum', 'avg']),
 
-        'TrafficStopsWithUseOfForce': collate.Aggregate(
-                 {"TrafficStopsWithUseOfForce": '(use_of_force_flag = true)::int'}, ['sum', 'avg']),
+            'TrafficStopsWithUseOfForce': collate.Aggregate(
+                {"TrafficStopsWithUseOfForce": '(use_of_force_flag = true)::int'}, ['sum', 'avg']),
 
             'TrafficStops': collate.Aggregate(
                 {"TrafficStops": 'event_id'}, ['count']),
 
-        'TrafficStopsWithArrest': collate.Aggregate(
-                 {"TrafficStopsWithArrest": '(arrest_flag = true)::int'}, ['sum', 'avg']),
+            'TrafficStopsWithArrest': collate.Aggregate(
+                {"TrafficStopsWithArrest": '(arrest_flag = true)::int'}, ['sum', 'avg']),
 
-        'TrafficStopsWithInjury': collate.Aggregate(
-                 {"TrafficStopsWithInjury": '(injuries_flag = true)::int'}, ['sum', 'avg']),
+            'TrafficStopsWithInjury': collate.Aggregate(
+                {"TrafficStopsWithInjury": '(injuries_flag = true)::int'}, ['sum', 'avg']),
 
-        'TrafficStopsWithOfficerInjury': collate.Aggregate(
-                 {"TrafficStopsWithOfficerInjury": '(officer_injury_flag=true)::int'}, ['sum', 'avg']),
+            'TrafficStopsWithOfficerInjury': collate.Aggregate(
+                {"TrafficStopsWithOfficerInjury": '(officer_injury_flag=true)::int'}, ['sum', 'avg']),
 
             'TrafficStopsWithSearchRequest': collate.Aggregate(
                 {"TrafficStopsWithSearchRequest": 'search_consent_request_flag::int'}, ['sum', 'avg']),
 
-        'TrafficStopsByRace': collate.Aggregate(
-                 self._lookup_values_conditions(engine, column_code_name = 'stopped_person_race_code',
-                                                        lookup_table = 'lookup_races',
-                                                        prefix = 'TrafficStopsByRace'), ['sum', 'avg']),
+            'TrafficStopsByRace': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='stopped_person_race_code',
+                                               lookup_table='lookup_races',
+                                               prefix='TrafficStopsByRace'), ['sum', 'avg']),
 
             'TrafficStopsByStopType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='stop_type_code',
@@ -429,24 +457,24 @@ class FieldInterviews(FeaturesBlock):
                                                lookup_table='lookup_races',
                                                prefix='FieldInterviewsByRace'), ['sum', 'avg']),
 
-        'FieldInterviewsByOutcome': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name = 'field_interview_outcome_code',
-                                                      lookup_table = 'lookup_field_interview_outcomes',
-                                                      prefix = 'FieldInterviewsByOutcome'), ['sum']),
+            'FieldInterviewsByOutcome': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='field_interview_outcome_code',
+                                               lookup_table='lookup_field_interview_outcomes',
+                                               prefix='FieldInterviewsByOutcome'), ['sum']),
 
             'FieldInterviewsWithFlag': collate.Aggregate(
                 {"FieldInterviewsWithFlag_searched": 'searched_flag::int',
                  "FieldInterviewsWithFlag_drugs": 'drugs_found_flag::int',
                  "FieldInterviewsWithFlag_weapons": 'weapons_found_flag::int'}, ['sum', 'avg']),
 
-        'InterviewsType': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name = 'field_interview_type_code',
-                                                      lookup_table = 'lookup_field_interview_types',
-                                                      prefix = 'InterviewsType'), ['sum']),
+            'InterviewsType': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='field_interview_type_code',
+                                               lookup_table='lookup_field_interview_types',
+                                               prefix='InterviewsType'), ['sum']),
 
-         'ModeHourOfFieldInterviews': collate.Aggregate(
-                { "ModeHourOfFieldInterviews": ""}, 'mode', "date_part('hour',event_datetime)-12")
-               }
+            'ModeHourOfFieldInterviews': collate.Aggregate(
+                {"ModeHourOfFieldInterviews": ""}, 'mode', "date_part('hour',event_datetime)-12")
+        }
 
     def build_collate(self, engine, as_of_dates, feature_list, schema):
         self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
@@ -482,9 +510,9 @@ class UseOfForce(FeaturesBlock):
                                                fix_condition='number_of_unjustified_allegations >0',
                                                prefix='UnjustUOFInterventionsOfType'), ['sum']),
 
-          'OFwithSuspectInjury': collate.Aggregate(
-                { "OFwithSuspectInjury": '(suspect_injury)::int'},['sum'])
-                }
+            'OFwithSuspectInjury': collate.Aggregate(
+                {"OFwithSuspectInjury": '(suspect_injury)::int'}, ['sum'])
+        }
 
     def build_collate(self, engine, as_of_dates, feature_list, schema):
         self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
@@ -508,11 +536,11 @@ class Dispatches(FeaturesBlock):
                                                lookup_table='lookup_dispatch_types',
                                                prefix='DispatchType'), ['sum']),
 
-        'DispatchInitiatiationType': collate.Aggregate(
-               {"DispatchInitiatiationType_ci": "(dispatch_category = 'CI')::int",
-                "DispatchInitiatiationType_oi": "(dispatch_category = 'OI')::int",
-                "DispatchInitiatiationType_oi": "(dispatch_category = 'AL')::int"},['sum', 'avg'])
-                }
+            'DispatchInitiatiationType': collate.Aggregate(
+                {"DispatchInitiatiationType_ci": "(dispatch_category = 'CI')::int",
+                 "DispatchInitiatiationType_oi": "(dispatch_category = 'OI')::int",
+                 "DispatchInitiatiationType_oi": "(dispatch_category = 'AL')::int"}, ['sum', 'avg'])
+        }
 
     def build_collate(self, engine, as_of_dates, feature_list, schema):
         self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
@@ -536,11 +564,11 @@ class EISAlerts(FeaturesBlock):
                                                lookup_table='lookup_intervention_types',
                                                prefix='EISInterventionsOfType'), ['sum']),
 
-        'EISFlagsOfType': collate.Aggregate(
-               self._lookup_values_conditions(engine, column_code_name = 'event_type',
-                                                      lookup_table = 'lookup_eis_flag_types',
-                                                      prefix = 'EISFlagsOfType'), ['sum']),
-               }
+            'EISFlagsOfType': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='event_type',
+                                               lookup_table='lookup_eis_flag_types',
+                                               prefix='EISFlagsOfType'), ['sum']),
+        }
 
     def build_collate(self, engine, as_of_dates, feature_list, schema):
         self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
@@ -552,7 +580,7 @@ class EISAlerts(FeaturesBlock):
 class OfficerCharacteristics(FeaturesBlock):
     def __init__(self, **kwargs):
         FeaturesBlock.__init__(self, **kwargs)
-        self.groups = 'officer_id'
+        self.unit_id = 'officer_id'
         self.from_obj = ex.text('staging.officers_hub '
                                 'left outer join staging.officer_characteristics '
                                 '   using (officer_id) '
@@ -579,8 +607,8 @@ class OfficerCharacteristics(FeaturesBlock):
                                                lookup_table='lookup_ethnicities',
                                                prefix='DummyOfficerEthnicity'), ['max']),
 
-            #'OfficerAge': collate.Aggregate(
-            #{"OfficerAge": "extract(day from '{date}'::timestamp - date_of_birth)/365"}, ['max']),
+            # 'OfficerAge': collate.Aggregate(
+            # {"OfficerAge": "extract(day from '{date}'::timestamp - date_of_birth)/365"}, ['max']),
             #
             'DummyOfficerEducation': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='education_level_code',
