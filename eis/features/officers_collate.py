@@ -102,7 +102,7 @@ class FeaturesBlock():
                                           intervals=self.lookback_durations,
                                           dates=as_of_dates,
                                           date_column=self.date_column,
-                                          prefix=self.prefix_space_time,
+                                          prefix=self.prefix_space_time_lookback,
                                           output_date_column="as_of_date",
                                           schema=schema)
         st.execute(engine.connect())
@@ -151,6 +151,31 @@ class FeaturesBlock():
                                  schema=schema)
         st.execute(engine.connect())
 
+    def build_collate(self, engine, as_of_dates, feature_list, schema):
+        # check if a space-time feature was selected with lookback
+        list_space_time_lookback = [x for x in feature_list if
+                                    x in set(self._feature_aggregations_space_time_lookback(engine).keys())]
+        if list_space_time_lookback:
+            self.build_space_time_aggregation_lookback(engine, as_of_dates, list_space_time_lookback, schema)
+            self.prefix.append(self.prefix_space_time_lookback)
+
+        # check if an  aggregate feature was selected
+        list_agg = [x for x in feature_list if x in set(self._feature_aggregations(engine).keys())]
+        if list_agg:
+            self.build_aggregation(engine, list_agg, schema)
+            self.prefix.append(self.prefix_agg)
+
+        # check if a space-time feature was selected
+        list_space_time = [x for x in feature_list if
+                           x in set(self._feature_aggregations_space_time(engine).keys())]
+        if list_space_time:
+            self.build_space_time_aggregation(engine, as_of_dates, list_space_time, schema)
+            self.prefix.append(self.prefix_space_time)
+
+        if not self.prefix:
+            log.info("WARNING: no feature aggregation for features: {}".format(feature_list))
+            sys.exit(1)
+
 
 # --------------------------
 # REPORTED INCIDENTS: 
@@ -165,7 +190,6 @@ class IncidentsReported(FeaturesBlock):
         self.lookback_durations = kwargs["lookback_durations"]
         self.prefix_space_time_lookback = 'ir'
         self.prefix_space_time = 'irAG'
-        self.prefix_agg = 'irND'
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -214,36 +238,9 @@ class IncidentsReported(FeaturesBlock):
         return {
 
             'DaysSinceLastAllegation': collate.Aggregate(
-                {"DaysSinceLastAllegation": "EXTRACT( DAY from ('{collate_date}' - report_date))"}, ['min'])
+                {"DaysSinceLastAllegation": "EXTRACT( DAY FROM ('{collate_date}' - report_date))"}, ['min'])
 
         }
-
-    def build_collate(self, engine, as_of_dates, feature_list, schema):
-        # check if a space-time feature was selected with lookback
-        list_space_time_lookback = [x for x in feature_list if
-                                    x in set(self._feature_aggregations_space_time_lookback(engine).keys())]
-        if list_space_time_lookback:
-            self.build_space_time_aggregation_lookback(engine, as_of_dates, list_space_time_lookback, schema)
-            self.prefix.append(self.prefix_space_time_lookback)
-
-
-
-        # check if an  aggregate feature was selected
-        list_agg = [x for x in feature_list if x in set(self._feature_aggregations(engine).keys())]
-        if list_agg:
-            self.build_aggregation(engine, list_agg, schema)
-            self.prefix.append(self.prefix_agg)
-
-        # check if a space-time feature was selected
-        list_space_time = [x for x in feature_list if
-                                    x in set(self._feature_aggregations_space_time(engine).keys())]
-        if list_space_time:
-            self.build_space_time_aggregation(engine, as_of_dates, list_space_time, schema)
-            self.prefix.append(self.prefix_space_time)
-
-        if not self.prefix:
-            log.info("WARNING: no feature aggregation for features: {}".format(feature_list))
-            sys.exit(1)
 
 
 # --------------------------------------------------------
@@ -257,9 +254,10 @@ class IncidentsCompleted(FeaturesBlock):
         self.from_obj = ex.text('staging.incidents')
         self.date_column = 'date_of_judgment'
         self.lookback_durations = kwargs["lookback_durations"]
-        self.prefix = 'ic'
+        self.prefix_space_time_lookback = 'ic'
+        self.prefix_space_time = 'icAG'
 
-    def _feature_aggregations(self, engine):
+    def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'IncidentsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
@@ -278,27 +276,16 @@ class IncidentsCompleted(FeaturesBlock):
                                                fix_condition=AllegationSeverity['minor'].value,
                                                prefix='MinorIncidentsByOutcome'), ['sum']),
 
-            'DaysSinceLastSustainedAllegation': collate.Aggregate(
-                {"DaysSinceLastSustainedAllegation": "extract(day from '{collae_date}' - date_of_judgment"}, ['min']),
-
-            'MajorIncidentsByOutcome': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
-                                               lookup_table='lookup_final_rulings',
-                                               fix_condition=AllegationSeverity['major'].value,
-                                               prefix='MajorIncidentsByOutcome'), ['sum']),
-
-            'MinorIncidentsByOutcome': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
-                                               lookup_table='lookup_final_rulings',
-                                               fix_condition=AllegationSeverity['minor'].value,
-                                               prefix='MinorIncidentsByOutcome'), ['sum']),
-
-            'DaysSinceLastSustainedAllegation': collate.Aggregate(
-                {"DaysSinceLastSustainedAllegation": "{} - date_of_judgment"}, ['min'])
         }
 
-    def build_collate(self, engine, as_of_dates, feature_list, schema):
-        self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
+    def _feature_aggregations_space_time(self, engine):
+        return {
+
+            'DaysSinceLastSustainedAllegation': collate.Aggregate(
+                {"DaysSinceLastSustainedAllegation": "EXTRACT(DAY FROM ('{collate_date}' - date_of_judgment))"},
+                ['min']),
+
+        }
 
 
 # --------------------------------------------------------
@@ -310,9 +297,11 @@ class OfficerShifts(FeaturesBlock):
         self.unit_id = 'officer_id'
         self.from_obj = 'staging.officer_shifts'
         self.date_column = 'stop_datetime'
-        self.prefix = 'shifts'
+        self.prefix_space_time_lookback = 'shifts'
+        self.lookback_durations = kwargs["lookback_durations"]
 
-    def _feature_aggregations(self, engine):
+
+    def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'ShiftsOfType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='shift_type_code',
@@ -322,9 +311,6 @@ class OfficerShifts(FeaturesBlock):
             'HoursPerShift': collate.Aggregate(
                 {'HoursPerShift': '(EXTRACT( EPOCH from shift_length)/3600)'}, ['avg'])
         }
-
-    def build_collate(self, engine, as_of_dates, feature_list, schema):
-        self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
 
 
 # --------------------------------------------------------
@@ -336,9 +322,11 @@ class OfficerArrests(FeaturesBlock):
         self.unit_id = 'officer_id'
         self.from_obj = 'staging.arrests'
         self.date_column = 'event_datetime'
-        self.prefix = 'arrests'
+        self.prefix_space_time_lookback = 'arrests'
+        self.lookback_durations = kwargs["lookback_durations"]
 
-    def _feature_aggregations(self, engine):
+
+    def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'Arrests': collate.Aggregate(
                 {"Arrests": 'event_id'}, ['count']),
@@ -363,8 +351,6 @@ class OfficerArrests(FeaturesBlock):
                                                prefix='SuspectsArrestedOfEthnicity'), ['sum', 'avg'])
         }
 
-    def build_collate(self, engine, as_of_dates, feature_list, schema):
-        self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
 
 
 # --------------------------------------------------------
@@ -378,6 +364,7 @@ class OfficerArrestsStats(FeaturesBlock):
         self.date_column = 'event_datetime'
         self.prefix = 'arstat'
         self.join_table = 'staging.arrests'
+
 
     def _feature_aggregations(self, engine):
         return {
@@ -415,9 +402,11 @@ class TrafficStops(FeaturesBlock):
         self.unit_id = 'officer_id'
         self.from_obj = 'staging.traffic_stops'
         self.date_column = 'event_datetime'
-        self.prefix = 'ts'
+        self.prefix_space_time_lookback = 'ts'
+        self.lookback_durations = kwargs["lookback_durations"]
 
-    def _feature_aggregations(self, engine):
+
+    def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'TrafficStopsWithSearch': collate.Aggregate(
                 {"TrafficStopsWithSearch": '(searched_flag = true)::int'}, ['sum', 'avg']),
@@ -461,9 +450,6 @@ class TrafficStops(FeaturesBlock):
                                                prefix='TrafficStopsBySearchReason'), ['sum'])
         }
 
-    def build_collate(self, engine, as_of_dates, feature_list, schema):
-        self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
-
 
 # --------------------------------------------------------
 # BLOCK: FIELD INTERVIEWS
@@ -474,9 +460,11 @@ class FieldInterviews(FeaturesBlock):
         self.unit_id = 'officer_id'
         self.from_obj = 'staging.field_interviews'
         self.date_column = 'event_datetime'
-        self.prefix = 'fi'
+        self.prefix_space_time_lookback = 'fi'
+        self.lookback_durations = kwargs["lookback_durations"]
 
-    def _feature_aggregations(self, engine):
+
+    def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'FieldInterviews': collate.Aggregate(
                 {"FieldInterviews": 'event_id'}, ['sum']),
@@ -508,8 +496,6 @@ class FieldInterviews(FeaturesBlock):
                 {"ModeHourOfFieldInterviews": ""}, 'mode', "date_part('hour',event_datetime)-12")
         }
 
-    def build_collate(self, engine, as_of_dates, feature_list, schema):
-        self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
 
 
 # --------------------------------------------------------
@@ -559,9 +545,11 @@ class Dispatches(FeaturesBlock):
         self.unit_id = 'officer_id'
         self.from_obj = 'staging.dispatches'
         self.date_column = 'event_datetime'
-        self.prefix = 'dispatch'
+        self.prefix_space_time_lookback = 'dispatch'
+        self.lookback_durations = kwargs["lookback_durations"]
 
-    def _feature_aggregations(self, engine):
+
+    def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'DispatchType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='dispatch_type_code',
@@ -571,11 +559,9 @@ class Dispatches(FeaturesBlock):
             'DispatchInitiatiationType': collate.Aggregate(
                 {"DispatchInitiatiationType_ci": "(dispatch_category = 'CI')::int",
                  "DispatchInitiatiationType_oi": "(dispatch_category = 'OI')::int",
-                 "DispatchInitiatiationType_oi": "(dispatch_category = 'AL')::int"}, ['sum', 'avg'])
+                 "DispatchInitiatiationType_al": "(dispatch_category = 'AL')::int"}, ['sum', 'avg'])
         }
 
-    def build_collate(self, engine, as_of_dates, feature_list, schema):
-        self.build_space_time_aggregation(engine, as_of_dates, feature_list, schema)
 
 
 # --------------------------------------------------------
@@ -620,7 +606,7 @@ class OfficerCharacteristics(FeaturesBlock):
                                 '   using (officer_id) '
                                 'left outer join staging.officer_roles '
                                 '   using (officer_id) ')
-        self.prefix = 'oc'
+        self.prefix_agg = 'oc'
 
     def _feature_aggregations(self, engine):
         return {
@@ -659,5 +645,3 @@ class OfficerCharacteristics(FeaturesBlock):
                                                prefix='DummyOfficerRank'), ['max'])
         }
 
-    def build_collate(self, engine, as_of_dates, feature_list, schema):
-        self.build_aggregation(engine, feature_list, schema)
