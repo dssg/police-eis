@@ -300,7 +300,6 @@ class OfficerShifts(FeaturesBlock):
         self.prefix_space_time_lookback = 'shifts'
         self.lookback_durations = kwargs["lookback_durations"]
 
-
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'ShiftsOfType': collate.Aggregate(
@@ -324,7 +323,6 @@ class OfficerArrests(FeaturesBlock):
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'arrests'
         self.lookback_durations = kwargs["lookback_durations"]
-
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -352,7 +350,6 @@ class OfficerArrests(FeaturesBlock):
         }
 
 
-
 # --------------------------------------------------------
 # BLOCK: ARRESTS
 # --------------------------------------------------------
@@ -364,7 +361,6 @@ class OfficerArrestsStats(FeaturesBlock):
         self.date_column = 'event_datetime'
         self.prefix = 'arstat'
         self.join_table = 'staging.arrests'
-
 
     def _feature_aggregations(self, engine):
         return {
@@ -404,7 +400,6 @@ class TrafficStops(FeaturesBlock):
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'ts'
         self.lookback_durations = kwargs["lookback_durations"]
-
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -463,7 +458,6 @@ class FieldInterviews(FeaturesBlock):
         self.prefix_space_time_lookback = 'fi'
         self.lookback_durations = kwargs["lookback_durations"]
 
-
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'FieldInterviews': collate.Aggregate(
@@ -495,7 +489,6 @@ class FieldInterviews(FeaturesBlock):
             'ModeHourOfFieldInterviews': collate.Aggregate(
                 {"ModeHourOfFieldInterviews": ""}, 'mode', "date_part('hour',event_datetime)-12")
         }
-
 
 
 # --------------------------------------------------------
@@ -548,7 +541,6 @@ class Dispatches(FeaturesBlock):
         self.prefix_space_time_lookback = 'dispatch'
         self.lookback_durations = kwargs["lookback_durations"]
 
-
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'DispatchType': collate.Aggregate(
@@ -561,7 +553,6 @@ class Dispatches(FeaturesBlock):
                  "DispatchInitiatiationType_oi": "(dispatch_category = 'OI')::int",
                  "DispatchInitiatiationType_al": "(dispatch_category = 'AL')::int"}, ['sum', 'avg'])
         }
-
 
 
 # --------------------------------------------------------
@@ -606,7 +597,7 @@ class OfficerCharacteristics(FeaturesBlock):
                                 '   using (officer_id) '
                                 'left outer join staging.officer_roles '
                                 '   using (officer_id) ')
-        self.prefix_agg = 'oc'
+        self.prefix_agg = 'ocND'
 
     def _feature_aggregations(self, engine):
         return {
@@ -645,3 +636,26 @@ class OfficerCharacteristics(FeaturesBlock):
                                                prefix='DummyOfficerRank'), ['max'])
         }
 
+
+# --------------------------------------------------------
+# BLOCK: DEMOGRAPHICS BY ARRESTS
+# --------------------------------------------------------
+
+class DemographicArrests(FeaturesBlock):
+    def __init__(self, **kwargs):
+        FeaturesBlock.__init__(self, **kwargs)
+        self.unit_id = 'officer_id'
+        self.from_obj = ex.text('staging.arrests_geo_time_officer_npa a '
+                                'LEFT OUTER JOIN staging.demographics_npa_imputed d ON a.npa = d.npa and a.year = d.year+1')
+        self.date_column = 'event_datetime'
+        self.prefix_space_time_lookback = 'demarrests'
+        self.lookback_durations = kwargs["lookback_durations"]
+
+    def _feature_aggregations_space_time_lookback(self, engine):
+        return {
+            'Arrests311Call': collate.Aggregate(
+                {"Arrests311Call": 'imp_311_calls'}, ['avg']),
+            'Arrests311Requests': collate.Aggregate(
+                {"Arrests311Requests": 'imp_311_requests'}, ['avg'])
+
+        }
