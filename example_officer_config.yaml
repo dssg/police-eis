@@ -118,7 +118,7 @@ feature_blocks:
         NumOfTrafficStopsByStopResult: True # time gated categorical
         NumOfTrafficStopsBySearchReason: True
         FractionOfTrafficStopsBySearchReason: True
-        NumOfTrafficStopsByInterestingSearcht: True
+        NumOfTrafficStopsByInterestingSearch: True
         FractionOfTrafficStopsByInterestingSearch: True
 
     Use_of_Force:
