@@ -8,6 +8,18 @@ from . import officer
 
 log = logging.getLogger(__name__)
 
+class EISExperiment(object):
+   """The EISExperiment class defines each individual experiment
+   Attributes:
+       config: dict containing configuration
+       exp_data: dict containing data   
+       pilot_data: dict containing data for pilot if defined
+   """
+
+   def __init__(self, config):
+       self.config = config.copy()
+       self.exp_data = None
+       self.pilot_data = None
 
 def generate_as_of_dates(config):
     """

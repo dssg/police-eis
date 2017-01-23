@@ -186,5 +186,5 @@ def get_officer_features_table_columns(config):
     resultset = [dict(row) for row in result]
     result_dict=resultset[0]
     log.error('These features are missing: {}'.format(result_dict['col_missing']))
-    pdb.set_trace()
+
     return result_dict['col_avaliable']

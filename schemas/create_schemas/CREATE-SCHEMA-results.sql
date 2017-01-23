@@ -28,11 +28,12 @@ CREATE TABLE results.models (
 -- predictions corresponding to each model.
 CREATE TABLE results.predictions (
   model_id    INT REFERENCES results.models (model_id),
-  as_of_date  DATE,
+  as_of_date  TIMESTAMP,
   unit_id     BIGINT,
   unit_score  NUMERIC,
   label_value INT,
-  ranking     INT
+  rank_abs    INT,
+  rank_pct    REAL
 );
 
 -- evaluation table containing metrics for each of the models run.
