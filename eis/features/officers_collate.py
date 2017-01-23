@@ -46,6 +46,7 @@ class FeaturesBlock():
         self.from_obj = ""
         self.date_column = ""
         self.prefix_space_time = ""
+        self.prefix_space_time_lookback = ""
         self.prefix_agg = ""
         self.prefix_sub = ""
         self.prefix = []
@@ -81,15 +82,20 @@ class FeaturesBlock():
     def _feature_aggregations_space_time_lookback(self, engine):
         return {}
 
+    def _feature_aggregations_space_time(self, engine):
+        return {}
+
     def _feature_aggregations_sub(self, engine):
         return {}
 
     def _sub_query(self):
         return {}
 
-
+    # time based aggregation with time intervals
     def build_space_time_aggregation_lookback(self, engine, as_of_dates, feature_list, schema):
-        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, self._feature_aggregations_space_time_lookback(engine))
+        feature_aggregations_list = self.feature_aggregations_to_use(feature_list,
+                                                                     self._feature_aggregations_space_time_lookback(
+                                                                         engine))
         st = collate.SpacetimeAggregation(feature_aggregations_list,
                                           from_obj=self.from_obj,
                                           groups={'id': self.unit_id},
@@ -101,8 +107,26 @@ class FeaturesBlock():
                                           schema=schema)
         st.execute(engine.connect())
 
+    # time based aggregation without time intervals
+    def build_space_time_aggregation(self, engine, as_of_dates, feature_list, schema):
+        feature_aggregations_list = self.feature_aggregations_to_use(feature_list,
+                                                                     self._feature_aggregations_space_time(
+                                                                         engine))
+        st = collate.SpacetimeAggregation(feature_aggregations_list,
+                                          from_obj=self.from_obj,
+                                          groups={'id': self.unit_id},
+                                          intervals={'id': ["all"]},
+                                          dates=as_of_dates,
+                                          date_column=self.date_column,
+                                          prefix=self.prefix_space_time,
+                                          output_date_column="as_of_date",
+                                          schema=schema)
+        st.execute(engine.connect())
+
+    # time based aggregation with time intervals and a sub query
     def build_space_time_sub_query_aggregation(self, engine, as_of_dates, feature_list, schema):
-        feature_aggregations_list = self.feature_aggregations_to_use(feature_list, self._feature_aggregations_sub(engine))
+        feature_aggregations_list = self.feature_aggregations_to_use(feature_list,
+                                                                     self._feature_aggregations_sub(engine))
         st = collate.SpacetimeSubQueryAggregation(feature_aggregations_list,
                                                   from_obj=self.from_obj,
                                                   groups={'id': self.unit_id},
@@ -117,6 +141,7 @@ class FeaturesBlock():
 
         st.execute(engine.connect())
 
+    # time based aggregation with time intervals and a sub query
     def build_aggregation(self, engine, feature_list, schema):
         feature_aggregations_list = self.feature_aggregations_to_use(feature_list, self._feature_aggregations(engine))
         st = collate.Aggregation(feature_aggregations_list,
@@ -138,8 +163,9 @@ class IncidentsReported(FeaturesBlock):
         self.from_obj = ex.text('staging.incidents')
         self.date_column = "report_date"
         self.lookback_durations = kwargs["lookback_durations"]
-        self.prefix_space_time = ['ir']
-        self.prefix_agg = ['irND']
+        self.prefix_space_time_lookback = 'ir'
+        self.prefix_space_time = 'irAG'
+        self.prefix_agg = 'irND'
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -184,34 +210,40 @@ class IncidentsReported(FeaturesBlock):
 
         }
 
-    def _feature_aggregations(self, engine):
+    def _feature_aggregations_space_time(self, engine):
         return {
 
             'DaysSinceLastAllegation': collate.Aggregate(
-                {"DaysSinceLastAllegation": "'{collate_date}' - report_date"}, ['min'])
+                {"DaysSinceLastAllegation": "EXTRACT( DAY from ('{collate_date}' - report_date))"}, ['min'])
 
         }
 
     def build_collate(self, engine, as_of_dates, feature_list, schema):
-        #check if a space-time feature was selected
-        list_space_time_lookback = [x for x in feature_list if x in set(self._feature_aggregations_space_time_lookback(engine).keys())]
-        if list_space_time_lookback is not None:
+        # check if a space-time feature was selected with lookback
+        list_space_time_lookback = [x for x in feature_list if
+                                    x in set(self._feature_aggregations_space_time_lookback(engine).keys())]
+        if list_space_time_lookback:
             self.build_space_time_aggregation_lookback(engine, as_of_dates, list_space_time_lookback, schema)
-            self.prefix.append(self.prefix_space_time)
+            self.prefix.append(self.prefix_space_time_lookback)
+
+
 
         # check if an  aggregate feature was selected
         list_agg = [x for x in feature_list if x in set(self._feature_aggregations(engine).keys())]
-        if list_agg is not None:
+        if list_agg:
             self.build_aggregation(engine, list_agg, schema)
             self.prefix.append(self.prefix_agg)
 
-        if self.prefix is None:
+        # check if a space-time feature was selected
+        list_space_time = [x for x in feature_list if
+                                    x in set(self._feature_aggregations_space_time(engine).keys())]
+        if list_space_time:
+            self.build_space_time_aggregation(engine, as_of_dates, list_space_time, schema)
+            self.prefix.append(self.prefix_space_time)
+
+        if not self.prefix:
             log.info("WARNING: no feature aggregation for features: {}".format(feature_list))
             sys.exit(1)
-
-
-
-
 
 
 # --------------------------------------------------------

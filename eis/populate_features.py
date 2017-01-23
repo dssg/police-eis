@@ -158,7 +158,7 @@ def populate_officer_features_table(config, table_name, schema):
         
         # Build collate tables and returns table name
         block_class.build_collate(engine, as_of_dates,  feature_list, schema)
-        list_prefixes.append(block_class.prefix)
+        list_prefixes.extend(block_class.prefix)
 
     # Join all tables into one
     log.debug(list_prefixes)
