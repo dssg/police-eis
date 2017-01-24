@@ -22,7 +22,8 @@ CREATE TABLE results.models (
   model_comment         TEXT,
   batch_comment         TEXT,
   config                JSONB,
-  pickle_file_path_name TEXT
+  pickle_file_path_name TEXT,
+  test                  BOOL
 );
 
 -- predictions corresponding to each model.
