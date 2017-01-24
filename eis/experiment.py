@@ -22,6 +22,13 @@ class EISExperiment(object):
        self.pilot_data = None
 
 
+def relative_deltas_conditions(times):
+    dict_abbreviations = {'d':'days', 'm':'months', 'y':'years', 'w':'weeks'}
+    time_agrguments = {}
+    time_arguments = {x :{ dict_abbreviations[re.findall(r'\d+(\w)', x )[0]]: int(re.findall(r'\d+', x)[0])}
+                        for x in times}
+    return time_arguments
+
 def generate_as_of_dates_features(config):
     """
     Given the start_date, end_date and update_window from the config
@@ -36,8 +43,9 @@ def generate_as_of_dates_features(config):
     """
     end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
     start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
-    as_of_dates = set()
 
+    update_window_deltas = relative_deltas_conditions(config['update_window'])
+    prediction_window_deltas = relative_deltas_conditions(config['prediction_window'])
 
     as_of_dates = []
     for update_window in config['update_window']:
@@ -46,17 +54,16 @@ def generate_as_of_dates_features(config):
             for prediction_window in config['prediction_window']:
                 as_of_date = end_date
                 while as_of_date > start_date:
-                as_of_dates.append(as_of_date)
-                as_of_date -= relativedelta(months=prediction_window)
-                log.debug(as_of_date)
-            end_date -= relativedelta(days=update_window)
+                    as_of_dates.append(as_of_date)
+                    as_of_date -= relativedelta(**prediction_window_deltas[prediction_window])
+                    log.debug(as_of_date)
+                end_date -= relativedelta(**update_window_deltas[update_window])
 
     time_format = "%Y-%m-%d %X"
     as_of_dates_uniques = set(as_of_dates)
     as_of_dates_uniques = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates_uniques]
 
     return as_of_dates_uniques
-
 
 def generate_as_of_dates_update_window(config):
     """
@@ -68,12 +75,12 @@ def generate_as_of_dates_update_window(config):
                 user-supplied details of the experiments to be run
 
     Returns:
-       as_of_dates: 
+       as_of_dates:
     """
     end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
     start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
-    as_of_dates = set()
-    
+
+    update_window_deltas = relative_deltas_conditions(config['update_window'])
 
     as_of_dates = []
     for update_window in config['update_window']:
@@ -82,7 +89,7 @@ def generate_as_of_dates_update_window(config):
             as_of_date = end_date
             as_of_dates.append(as_of_date)
             log.debug(as_of_date)
-            end_date -= relativedelta(days=update_window) 
+            end_date -= relativedelta(**update_window_deltas[update_window])
 
     time_format = "%Y-%m-%d %X"
     as_of_dates_uniques = set(as_of_dates)
@@ -106,16 +113,21 @@ def generate_time_sets(config):
     end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
     start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
 
+    update_window_deltas = relative_deltas_conditions(config['update_window'])
+    prediction_window_deltas = relative_deltas_conditions(config['prediction_window'])
+    training_window_deltas = relative_deltas_conditions( config['training_window'] )
+
+
     for prediction_window, update_window, officer_past_activity, training_window in product(
-                           config['prediction_window'], config['update_window'], 
-                           config['officer_past_activity_window'], config['training_window']):
+                         config['prediction_window'], config['update_window'],
+                          config['officer_past_activity_window'], config['training_window']):
 
         test_end_date = end_date
         # loop moving giving an update_window
-        while start_date < test_end_date - relativedelta(months=prediction_window*2):
-            test_start_date = test_end_date - relativedelta(months=prediction_window)
+        while start_date < test_end_date - 2*relativedelta(**prediction_window_deltas[prediction_window]):
+            test_start_date = test_end_date - relativedelta(**prediction_window_deltas[prediction_window])
             train_end_date = test_start_date
-            train_start_date = train_end_date - relativedelta(months=training_window)
+            train_start_date = train_end_date - relativedelta(**training_window_deltas[training_window])
             temporal_info.append({ 'test_end_date': test_end_date,
                                    'test_start_date': test_start_date,
                                    'train_end_date': train_end_date,
@@ -125,7 +137,7 @@ def generate_time_sets(config):
             log.debug("test_end_date:'{}', test_start_date:'{}', train_end_date:'{}', train_start_date:'{}',"
                        "update_window: '{}', 'prediction_window: '{}' '".format(test_end_date, test_start_date,
                        train_end_date, train_start_date, update_window, prediction_window))
-            test_end_date -= relativedelta(days=update_window)
+            test_end_date -= relativedelta(**update_window_deltas[update_window])
     return temporal_info
 
 def generate_models_to_run(config, query_db=True):
@@ -163,6 +175,7 @@ def generate_models_to_run(config, query_db=True):
         this_config["test_end_date"] = temporal_info["test_end_date"].strftime("%Y-%m-%d")
         this_config["prediction_window"] = temporal_info["prediction_window"]
         this_config["officer_past_activity_window"] = temporal_info["officer_past_activity_window"]
+      
 
         # pass only the labels names selected in the config as True
         this_config["officer_labels"] = [ key for key in config["officer_labels"] if config["officer_labels"][key] == True ]
