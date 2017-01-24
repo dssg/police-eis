@@ -82,18 +82,21 @@ def store_model_info( timestamp, batch_comment, batch_timestamp, config, paths={
     :param str filename: the path and name of the pickle file.
     """
 
-    # set some parameters model comment.
-    model_comment = "" # TODO: feature not implemented, should read from config.
+    # set some parameters model comment
+    model_comment = config['model_comment'] # TODO: feature not implemented, should read from config.
+
     # insert into the models table.
-    query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config) "
-                 " VALUES(  %s, %s, %s, %s, %s, %s, %s )" )
+    query = (    " INSERT INTO results.models( run_time, batch_run_time, model_type, model_parameters, model_comment, batch_comment, config, test) "
+                 " VALUES(  %s, %s, %s, %s, %s, %s, %s, %s )" )
+
     db_conn.cursor().execute(query, (   timestamp,
                                         batch_timestamp,
                                         config["model"],
                                         json.dumps(config["parameters"]),
                                         model_comment,
                                         batch_comment,
-                                        json.dumps(config)
+                                        json.dumps(config),
+                                        config["test_flag"]
                                         ) )
     db_conn.commit()
 
@@ -192,7 +195,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     unit_id_train = [int(unit_id) for unit_id in unit_id_train]
     unit_id_test  = [int(unit_id) for unit_id in unit_id_test]
     unit_labels   = [int(unit_id) for unit_id in unit_labels]
-    pdb.set_trace()
+
     # append data into predictions table. there is probably a faster way to do this than put it into a
     # dataframe and then use .to_sql but this works for now.
     dataframe_for_insert = pd.DataFrame( {  "model_id": this_model_id,

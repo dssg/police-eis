@@ -111,11 +111,12 @@ def join_feature_table(engine, list_prefixes, schema, features_table_name):
          for table_name in table_names:
              if table_name != table_names[0]:
                  ## TODO: change this!
-                 if table_name != 'oc_aggregation':
-                     query += """ full outer join {}."{}"  using (officer_id, as_of_date)""".format(schema, table_name)
-                 else:
+                 if 'ND' in table_name:
                      query += """ full outer join {}."{}"  using (officer_id)""".format(schema, table_name)
- 
+                 else:
+                     query += """ full outer join {}."{}"  using (officer_id, as_of_date)""".format(schema, table_name)
+
+
          drop_table_query = """DROP TABLE IF EXISTS features."{}";""".format(features_table_name)
          engine.execute(drop_table_query)
 
@@ -155,7 +156,7 @@ def populate_officer_features_table(config, table_name, schema):
         
         # Build collate tables and returns table name
         block_class.build_collate(engine, as_of_dates,  feature_list, schema)
-        list_prefixes.append(block_class.prefix)
+        list_prefixes.extend(block_class.prefix)
 
     # Join all tables into one
     log.debug(list_prefixes)

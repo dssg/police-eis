@@ -95,7 +95,6 @@ def generate_as_of_dates_update_window(config):
     as_of_dates_uniques = set(as_of_dates)
     as_of_dates_uniques = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates_uniques]
 
-    return as_of_dates_uniques
 
 def generate_time_sets(config):
     """Takes a config file and generates a list of dicts, each of which
