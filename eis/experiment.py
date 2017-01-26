@@ -2,6 +2,7 @@ import pdb
 import copy
 from itertools import product
 import datetime
+import re
 import logging
 from dateutil.relativedelta import relativedelta
 from . import officer
@@ -94,6 +95,7 @@ def generate_as_of_dates_update_window(config):
     time_format = "%Y-%m-%d %X"
     as_of_dates_uniques = set(as_of_dates)
     as_of_dates_uniques = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates_uniques]
+    return as_of_dates_uniques
 
 
 def generate_time_sets(config):
@@ -160,7 +162,6 @@ def generate_models_to_run(config, query_db=True):
     # generate a list of {fake_today, training_window, prediction_window} dictionaries
     all_temporal_info = generate_time_sets(config)
     as_of_dates_to_use = generate_as_of_dates_update_window(config)
-
     log.debug('unique as_of_dates to use: {}'.format(as_of_dates_to_use))
 
     for temporal_info in all_temporal_info:

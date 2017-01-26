@@ -13,7 +13,7 @@ from .. import setup_environment
 from . import abstract
 
 # from collate import collate
-from collate.collate import collate
+from collate import collate
 
 log = logging.getLogger(__name__)
 try:

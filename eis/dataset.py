@@ -491,11 +491,11 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                     """           SELECT 1 as outcome """
                     """           FROM features.{3} l """
                     """           WHERE f.officer_id = l.officer_id """
-                    """                AND l.outcome_timestamp - INTERVAL '{4}months' <= f.as_of_date """
+                    """                AND l.outcome_timestamp - INTERVAL '{4}' <= f.as_of_date """
                     """                AND l.outcome_timestamp > f.as_of_date """
                     """                AND outcome in ({1}) LIMIT 1"""
                     """                 ) AS l ON TRUE """
-                    """     WHERE f.as_of_date >= '{5}'::date AND f.as_of_date < '{6}' """
+                    """     WHERE f.as_of_date > '{5}'::date AND f.as_of_date <= '{6}' """
                     """           AND f.as_of_date in ({7}) )"""
                       .format(features_coalesce,
                               label_list_string,
@@ -514,19 +514,35 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                     """          (SELECT 1 """
                     """           FROM staging.events_hub e """
                     """           WHERE f.officer_id = e.officer_id """
-                    """           AND e.event_datetime + INTERVAL '{1}months' > f.as_of_date """
+                    """           AND e.event_datetime + INTERVAL '{1}' > f.as_of_date """
                     """           AND e.event_datetime <= f.as_of_date """
                     """            LIMIT 1 ) sub; """
                     .format(features_list_string,
                             officer_past_activity_window))
-    
+     
     # join both queries together and load data
     query = (query_labels + query_active)
     all_data = pd.read_sql(query, con=db_conn)
-    pdb.set_trace()
+
+    
+    query_dates = (""" SELECT distinct as_of_date as as_of_date"""
+                  """  FROM features.{0} """
+                  """  WHERE as_of_date > '{1}'::date AND as_of_date <= '{2}' """
+                  """  AND as_of_date in ({3}) """
+                  .format(features_table,
+                          start_date,
+                          end_date,
+                          as_of_dates_string))
+
+    as_of_dates_used = pd.read_sql(query_dates, con=db_conn)
+    log.debug('as_of_dates_used: {}'.format(as_of_dates_used['as_of_date'].tolist()))
+   
     # remove rows with only zero values
     features_list = [ feature.lower() for feature in features_list]
-    all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
+
+    ## TODO: remove all zero value columns
+    #all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
+
     all_data = all_data.set_index('officer_id')
     log.debug('length of data_set: {}'.format(len(all_data)))
     return all_data[features_list], all_data.outcome
