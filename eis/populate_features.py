@@ -19,7 +19,7 @@ try:
     engine = setup_environment.get_database()
 except:
     log.error('Could not connect to the database')
-    
+
 
 def populate_features_table(config, table_name, schema):
     """Calculate values for all features which are set to True (in the config file) 
@@ -30,6 +30,7 @@ def populate_features_table(config, table_name, schema):
         populate_officer_features_table(config, table_name, schema)
     if config['unit'] == 'dispatch':
         populate_dispatch_features_table(config, table_name)
+
 
 def populate_dispatch_features_table(config, table_name):
     """Calculate all the feature values and store them in the features table in the database"""
@@ -51,12 +52,12 @@ def populate_dispatch_features_table(config, table_name):
         for feature_name in feature_sublist:
             log.debug('... building feature {}'.format(feature_name))
 
-            feature_obj = class_map.lookup(feature_name, 
-					                    unit = 'dispatch',
-                                        from_date = config['raw_data_from_date'],
-                                        to_date = config['raw_data_to_date'],
-                                        fake_today = datetime.datetime.today(),
-                                        table_name = table_name)
+            feature_obj = class_map.lookup(feature_name,
+                                           unit='dispatch',
+                                           from_date=config['raw_data_from_date'],
+                                           to_date=config['raw_data_to_date'],
+                                           fake_today=datetime.datetime.today(),
+                                           table_name=table_name)
             feature_obj.build_and_insert(db_conn)
 
         db_conn.close()
@@ -69,7 +70,6 @@ def populate_dispatch_features_table(config, table_name):
     # build each feature and store it in its own table in features_prejoin
     # start a new thread for each set of 5 features
     for feature_sublist in chunks(feature_list, 5):
-
         t = threading.Thread(target=run_thread, args=(feature_sublist, engine,))
         feature_threads.append(t)
         t.start()
@@ -77,12 +77,11 @@ def populate_dispatch_features_table(config, table_name):
     # join each thread and wait for it to be done to make sure we're done building them all
     # before we move on to joining them
     for i, thread in enumerate(feature_threads):
-        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features/5)))
+        log.debug('Waiting for feature thread: {}/{})'.format(i, (num_features / 5)))
         thread.join()
 
     # join each single-feature to the main table one at a time
     for i, feature_name in enumerate(feature_list):
-        
         log.debug("Adding feature {}/{} ({})".format(i, len(feature_list), feature_name))
 
         update_query = ("UPDATE features.{table_name} AS feature_table "
@@ -93,36 +92,46 @@ def populate_dispatch_features_table(config, table_name):
                                 feature=feature_name))
 
         engine.execute(update_query)
-        
+
+
 def join_feature_table(engine, list_prefixes, schema, features_table_name):
-     """
-     This function joins the block tables into the features_table_name 
-     using the prefix of the aggregated tables specified in each class
+    """
+    This function joins the block tables into the features_table_name
+    using the prefix of the aggregated tables specified in each class
 
-     :param engine: engine to connect to db
-     :param list list_prefixes: list of prefixes specified in each block class
-     :param str schema: name of schema where collate table are stored
-     :param str features_table_name: name of the table to create in the features schema
-     """
-     table_names = [ '{}_aggregation'.format(prefix) for prefix in list_prefixes]
-     
-     if len(table_names) > 0:
-         query = " select * from {}.{} ".format(schema, table_names[0])
-         for table_name in table_names:
-             if table_name != table_names[0]:
-                 ## TODO: change this!
-                 if 'ND' in table_name:
-                     query += """ full outer join {}."{}"  using (officer_id)""".format(schema, table_name)
-                 else:
-                     query += """ full outer join {}."{}"  using (officer_id, as_of_date)""".format(schema, table_name)
+    :param engine: engine to connect to db
+    :param list list_prefixes: list of prefixes specified in each block class
+    :param str schema: name of schema where collate table are stored
+    :param str features_table_name: name of the table to create in the features schema
+    """
+    table_names = ['{}_aggregation'.format(prefix) for prefix in list_prefixes]
 
+    # seperate the tables by block that have a date column or not
+    table_names_no_date = [x for x in table_names if 'ND' in x]
+    table_names_with_date = [x for x in table_names if x not in set(table_names_no_date)]
 
-         drop_table_query = """DROP TABLE IF EXISTS features."{}";""".format(features_table_name)
-         engine.execute(drop_table_query)
+    query = ""
+    if len(table_names) > 0:
+        if table_names_with_date:
+            query = """ select * from {}."{}" """.format(schema, table_names_with_date[0])
+            table_names_with_date = table_names_with_date[1:]
+        for table_name in table_names_with_date:
+            query += """ full outer join {}."{}"  using (officer_id, as_of_date)""".format(schema, table_name)
 
-         create_table_query = """CREATE TABLE features."{0}" as ({1});""".format(features_table_name,
-                                                                            query)
-         engine.execute(create_table_query)
+        # check if in the first loop above a table was added
+        if len(query) == 0:
+            query = """ select * from {}."{}" """.format(schema, table_names_no_date[0])
+            table_names_no_date = table_names_no_date[1:]
+
+        for table_name in table_names_no_date:
+                query += """ full outer join {}."{}"  using (officer_id)""".format(schema, table_name)
+
+        drop_table_query = """DROP TABLE IF EXISTS features."{}";""".format(features_table_name)
+        engine.execute(drop_table_query)
+
+        create_table_query = """CREATE TABLE features."{0}" as ({1});""".format(features_table_name,
+                                                                                query)
+        engine.execute(create_table_query)
 
 
 def populate_officer_features_table(config, table_name, schema):
@@ -147,15 +156,15 @@ def populate_officer_features_table(config, table_name, schema):
     for block_name in config["officer_features"]:
         log.debug('block_name: {}'.format(block_name))
         block = config['feature_blocks'][block_name]
-        feature_list = [key for key in block if block[key] == True]    
+        feature_list = [key for key in block if block[key] == True]
 
         ## Need to find a way of calling the class given the block_name
-        block_class = class_map.lookup_block( block_name,
-                                              module = officers_collate,
-                                              lookback_durations=config['timegated_feature_lookback_duration'])
-        
+        block_class = class_map.lookup_block(block_name,
+                                             module=officers_collate,
+                                             lookback_durations=config['timegated_feature_lookback_duration'])
+
         # Build collate tables and returns table name
-        block_class.build_collate(engine, as_of_dates,  feature_list, schema)
+        block_class.build_collate(engine, as_of_dates, feature_list, schema)
         list_prefixes.extend(block_class.prefix)
 
     # Join all tables into one

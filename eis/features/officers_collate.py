@@ -13,7 +13,7 @@ from .. import setup_environment
 from . import abstract
 
 # from collate import collate
-from collate import collate
+from collate.collate import collate
 
 log = logging.getLogger(__name__)
 try:
@@ -298,7 +298,6 @@ class OfficerShifts(FeaturesBlock):
         self.from_obj = 'staging.officer_shifts'
         self.date_column = 'stop_datetime'
         self.prefix_space_time_lookback = 'shifts'
-        self.lookback_durations = kwargs["lookback_durations"]
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -322,7 +321,6 @@ class OfficerArrests(FeaturesBlock):
         self.from_obj = 'staging.arrests'
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'arrests'
-        self.lookback_durations = kwargs["lookback_durations"]
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -399,7 +397,6 @@ class TrafficStops(FeaturesBlock):
         self.from_obj = 'staging.traffic_stops'
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'ts'
-        self.lookback_durations = kwargs["lookback_durations"]
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -456,7 +453,6 @@ class FieldInterviews(FeaturesBlock):
         self.from_obj = 'staging.field_interviews'
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'fi'
-        self.lookback_durations = kwargs["lookback_durations"]
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -539,7 +535,6 @@ class Dispatches(FeaturesBlock):
         self.from_obj = 'staging.dispatches'
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'dispatch'
-        self.lookback_durations = kwargs["lookback_durations"]
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -641,21 +636,50 @@ class OfficerCharacteristics(FeaturesBlock):
 # BLOCK: DEMOGRAPHICS BY ARRESTS
 # --------------------------------------------------------
 
-class DemographicArrests(FeaturesBlock):
+class DemographicNpaArrests(FeaturesBlock):
     def __init__(self, **kwargs):
         FeaturesBlock.__init__(self, **kwargs)
         self.unit_id = 'officer_id'
         self.from_obj = ex.text('staging.arrests_geo_time_officer_npa a '
-                                'LEFT OUTER JOIN staging.demographics_npa_imputed d ON a.npa = d.npa and a.year = d.year+1')
+                                ' JOIN staging.demographics_npa d ON a.npa = d.npa and a.year = d.year+1')
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'demarrests'
-        self.lookback_durations = kwargs["lookback_durations"]
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'Arrests311Call': collate.Aggregate(
-                {"Arrests311Call": 'imp_311_calls'}, ['avg']),
+                {"Arrests311Call": '"311_calls"'}, ['avg']),
             'Arrests311Requests': collate.Aggregate(
-                {"Arrests311Requests": 'imp_311_requests'}, ['avg'])
+                {"Arrests311Requests": '"311_requests"'}, ['avg']),
+            'PopulationDensity': collate.Aggregate(
+                {"PopulationDensity": 'population_density'}, ['avg']),
+            'AgeOfResidents': collate.Aggregate(
+                {"AgeOfResidents": 'age_of_residents'}, ['avg']),
+            'BlackPopulation': collate.Aggregate(
+                {"BlackPopulation": 'black_population'}, ['avg']),
+            'HouseholdIncome': collate.Aggregate(
+                {"HouseholdIncome": 'household_income'}, ['avg']),
+            'EmploymentRate': collate.Aggregate(
+                {"EmploymentRate": 'employment_rate'}, ['avg']),
+            'VacantLandArea': collate.Aggregate(
+                {"VacantLandArea": 'vacant_land_area'}, ['avg']),
+            'VoterParticipation': collate.Aggregate(
+                {"VoterParticipation": 'voter_participation'}, ['avg']),
+            'AgeOfDeath': collate.Aggregate(
+                {"AgeOfDeath": 'age_of_death'}, ['avg']),
+            'HousingDensity': collate.Aggregate(
+                {"HousingDensity": 'housing_density'}, ['avg']),
+            'NuisanceViolations': collate.Aggregate(
+                {"NuisanceViolations": 'nuisance_violations'}, ['avg']),
+            'ViolentCrimeRate': collate.Aggregate(
+                {"ViolentCrimeRate": 'violent_crime_rate'}, ['avg']),
+            'PropertyCrimeRate': collate.Aggregate(
+                {"PropertyCrimeRate": 'property_crime_rate'}, ['avg']),
+            'SidewalkAvailability': collate.Aggregate(
+                {"SidewalkAvailability": 'sidewalk_availability'}, ['avg']),
+            'Foreclosures': collate.Aggregate(
+                {"Foreclosures": 'foreclosures'}, ['avg']),
+            'DisorderCallRate': collate.Aggregate(
+                {"DisorderCallRate": 'disorder_call_rate'}, ['avg']),
 
         }
