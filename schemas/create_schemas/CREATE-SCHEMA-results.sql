@@ -30,8 +30,8 @@ CREATE TABLE results.models (
 CREATE TABLE results.predictions (
   model_id    INT REFERENCES results.models (model_id),
   as_of_date  TIMESTAMP,
-  unit_id     BIGINT,
-  unit_score  NUMERIC,
+  entity_id   BIGINT,
+  score       NUMERIC,
   label_value INT,
   rank_abs    INT,
   rank_pct    REAL
