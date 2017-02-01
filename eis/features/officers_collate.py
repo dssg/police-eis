@@ -546,6 +546,29 @@ class Dispatches(FeaturesBlock):
 
 
 # --------------------------------------------------------
+# BLOCK: OFFICER EMPLOYMENT
+# --------------------------------------------------------
+class OfficerEmployment(FeaturesBlock):
+    def __init__(self, **kwargs):
+        FeaturesBlock.__init__(self, **kwargs)
+        self.unit_id = 'officer_id'
+        self.from_obj = 'staging.officer_outside_employment'
+        self.date_column = 'date_time'
+        self.prefix_space_time_lookback = 'outemp'
+
+    def _feature_aggregations_space_time_lookback(self, engine):
+        return {
+            'DispatchType': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='dispatch_type_code',
+                                               lookup_table='lookup_dispatch_types',
+                                               prefix='DispatchType'), ['sum']),
+
+            'OutsideEmploymentHours': collate.Aggregate(
+                {"OutsideEmploymentHours": "hours_on_shift"}, ['sum', 'avg'])
+        }
+
+
+# --------------------------------------------------------
 # BLOCK: EIS ALERTS
 # --------------------------------------------------------
 class EISAlerts(FeaturesBlock):
@@ -591,6 +614,8 @@ class OfficerCharacteristics(FeaturesBlock):
                                 '   using (officer_id) '
                                 )
         self.prefix_agg = 'ocND'
+        self.prefix_space_time = 'ocAG'
+        self.date_column = 'date_of_birth'
 
     def _feature_aggregations(self, engine):
         return {
@@ -632,6 +657,14 @@ class OfficerCharacteristics(FeaturesBlock):
                 self._lookup_values_conditions(engine, column_code_name='rank_code',
                                                lookup_table='lookup_ranks',
                                                prefix='DummyOfficerRank'), ['max'])
+        }
+
+    def _feature_aggregations_space_time(self, engine):
+        return {
+
+            'OfficerAge': collate.Aggregate(
+                {"OfficerAge": "EXTRACT( DAY FROM ('{collate_date}' - date_of_birth)/365)"}, ['max'])
+
         }
 
 
