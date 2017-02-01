@@ -36,7 +36,7 @@ prediction_window: ['1y'] # prediction window  used for officer-level prediction
 update_window: ['1y'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
 training_window: ['1y'] # months, used for training the model
 officer_past_activity_window: ['1y'] # Include officers that have activity in the x months preceding start time of test/train
-timegated_feature_lookback_duration: ["1w","1m","1y"] # Aggregation time for features eg: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] 
+timegated_feature_lookback_duration: ["1w","1m","1y","5y"] # Aggregation time for features eg: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] 
 
 ########################
 # Labelling Details    #
