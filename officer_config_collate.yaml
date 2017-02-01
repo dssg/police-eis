@@ -195,14 +195,15 @@ feature_blocks:
 #        'AdaBoost', 'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier', 'SGDClassifier', 'KNeighborsClassifier']
 
-model: ['RandomForest', 'ExtraTrees', 'LogisticRegression', 'AdaBoost']
+#model: ['RandomForest', 'ExtraTrees', 'LogisticRegression']
+model: ['RandomForest']
 parameters:
   RandomForest:
     n_estimators: [10000] #[50,100, 1000, 10000, 50000]
     max_depth: [5] #[100, 5, 10, 50] 
     max_features: ['log2'] # ['log2', 2, 4, 8, 16, "auto"]
     criterion: ['gini'] # ['entropy']
-    min_samples_split: [5] #[2, 5, 10]
+    min_samples_split: [2] #[2, 5, 10]
     random_state: [2193]
   RandomForestBagging:
     n_estimators: [10] # [25, 50, 100, 1000, 10000]
@@ -228,10 +229,10 @@ parameters:
     random_state: [2193]
   ExtraTrees:
     n_estimators: [10000] #[ 25, 50, 100, 1000, 10000, 50000, 100000]
-    max_depth: [5] #[5, 10, 50, 100 ]
+    max_depth: [5,10,15,20] #[5, 10, 50, 100 ]
     max_features: ['log2'] # [4, 8, 16, "auto"]
     criterion: ['gini'] #, 'entropy']
-    min_samples_split: [5] #[2, 5, 10] #, 5, 10]
+    min_samples_split: [2,5] #[2, 5, 10] #, 5, 10]
     random_state: [2193]
   AdaBoost:
     algorithm: ['SAMME', 'SAMME.R']
