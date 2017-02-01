@@ -164,7 +164,7 @@ def main(config_file_name, args):
             except:
                 comment = None
 
-            dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
+            dataset.store_evaluation_metrics( timestamp, evaluation, metric, my_exp.config['test_end_date'], metric_parameter, comment )
 
         #Insert Feature Importaces
         log.debug("Storing feature importances")

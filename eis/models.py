@@ -110,6 +110,7 @@ def define_model(model, parameters, n_cores):
             criterion=parameters['criterion'],
             max_depth=parameters['max_depth'],
             min_samples_split=parameters['min_samples_split'],
+            random_state=parameters['random_state'],
             n_jobs=n_cores)
 
     elif model == "RandomForestBagging":
@@ -121,6 +122,7 @@ def define_model(model, parameters, n_cores):
                         criterion=parameters['criterion'],
                         max_depth=parameters['max_depth'],
                         min_samples_split=parameters['min_samples_split'],
+                        random_state=parameters['random_state'],
                         n_jobs=n_cores),
                     #Bagging parameters
                     n_estimators=parameters['n_estimators_bag'],
@@ -140,6 +142,8 @@ def define_model(model, parameters, n_cores):
                 criterion=parameters['criterion'],
                 max_depth=parameters['max_depth'],
                 min_samples_split=parameters['min_samples_split'],
+                random_state=parameters['random_state'],
+                random_state=parameters['random_state'],
                 n_jobs=n_cores),
             #Boosting parameters
             learning_rate=parameters['learning_rate'],
@@ -151,18 +155,21 @@ def define_model(model, parameters, n_cores):
     elif model == 'SVM':
         return svm.SVC(C=parameters['C_reg'],
                        kernel=parameters['kernel'],
-                       probability=True)
+                       probability=True,
+                       random_state=parameters['random_state'])
 
     elif model == 'LogisticRegression':
         return linear_model.LogisticRegression(
             C=parameters['C_reg'],
-            penalty=parameters['penalty'])
+            penalty=parameters['penalty'],
+            random_state=parameters['random_state'])
 
     elif model == 'AdaBoost':
         return ensemble.AdaBoostClassifier(
             learning_rate=parameters['learning_rate'],
             algorithm=parameters['algorithm'],
-            n_estimators=parameters['n_estimators'])
+            n_estimators=parameters['n_estimators'],
+            random_state=parameters['random_state'])
 
     elif model == 'ExtraTrees':
         return ensemble.ExtraTreesClassifier(
@@ -171,6 +178,7 @@ def define_model(model, parameters, n_cores):
             criterion=parameters['criterion'],
             max_depth=parameters['max_depth'],
             min_samples_split=parameters['min_samples_split'],
+            random_state=parameters['random_state'],
             n_jobs=n_cores)
 
     elif model == 'GradientBoostingClassifier':
@@ -178,7 +186,8 @@ def define_model(model, parameters, n_cores):
             n_estimators=parameters['n_estimators'],
             learning_rate=parameters['learning_rate'],
             subsample=parameters['subsample'],
-            max_depth=parameters['max_depth'])
+            max_depth=parameters['max_depth'],
+            random_state=parameters['random_state'])
 
     elif model == 'GaussianNB':
         return naive_bayes.GaussianNB()
@@ -188,12 +197,14 @@ def define_model(model, parameters, n_cores):
             max_features=parameters['max_features'],
             criterion=parameters['criterion'],
             max_depth=parameters['max_depth'],
-            min_samples_split=parameters['min_samples_split'])
+            min_samples_split=parameters['min_samples_split'],
+            random_state=parameters['random_state'])
 
     elif model == 'SGDClassifier':
         return linear_model.SGDClassifier(
             loss=parameters['loss'],
             penalty=parameters['penalty'],
+            random_state=parameters['random_state'],
             n_jobs=n_cores)
 
     elif model == 'KNeighborsClassifier':

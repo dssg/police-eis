@@ -212,7 +212,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
 
     return None
 
-def store_evaluation_metrics( timestamp, evaluation, metric, parameter=None, comment=None):
+def store_evaluation_metrics( timestamp, evaluation, metric, as_of_date,  parameter=None, comment=None):
     """ Write the model evaluation metrics into the results schema
 
     :param str timestamp: the timestamp at which this model was run.
@@ -230,41 +230,45 @@ def store_evaluation_metrics( timestamp, evaluation, metric, parameter=None, com
     if parameter is None and comment is None:
         comment = 'Null'
         parameter = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
-                    "   VALUES( '{}', '{}', {}, '{}', {}) ".format( this_model_id,
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
+                    "   VALUES( '{}', '{}', {}, '{}', {}, '{}'::timestamp) ".format( this_model_id,
                                                                     metric,
                                                                     parameter,
                                                                     evaluation,
-                                                                    comment ) )
+                                                                    comment,
+                                                                    as_of_date ) )
 
     #No parameter and a comment
     elif parameter is None and comment is not None:
         parameter = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
-                    "   VALUES( '{}', '{}', {}, '{}', '{}') ".format( this_model_id,
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
+                    "   VALUES( '{}', '{}', {}, '{}', '{}', '{}'::timestamp) ".format( this_model_id,
                                                                     metric,
                                                                     parameter,
                                                                     evaluation,
-                                                                    comment ) )
+                                                                    comment,
+                                                                    as_of_date ) )
 
     #No comment and a parameter
     elif parameter is not None and comment is None:
         comment = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
-                    "   VALUES( '{}', '{}', '{}', '{}', {}) ".format( this_model_id,
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
+                    "   VALUES( '{}', '{}', '{}', '{}', {}, '{}'::timestamp) ".format( this_model_id,
                                                                     metric,
                                                                     parameter,
                                                                     evaluation,
-                                                                    comment ) )
+                                                                    comment,
+                                                                    as_of_date ) )
 
     #A comment and a parameter
     elif parameter is not None and comment is not None:
         query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
-                    "   VALUES( '{}', '{}', '{}', '{}', '{}') ".format( this_model_id,
+                    "   VALUES( '{}', '{}', '{}', '{}', '{}', '{}'::timestamp) ".format( this_model_id,
                                                                     metric,
                                                                     parameter,
                                                                     evaluation,
-                                                                    comment ) )
+                                                                    comment,
+                                                                    as_of_date ) )
     else:
         pass
 
