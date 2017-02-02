@@ -272,7 +272,7 @@ parameters:
 ########################
 # Parallelization      #
 ########################
-n_cpus: 4
+n_cpus: 1
 
 ########################
 # Auditing hooks       #

@@ -88,7 +88,7 @@ class CreateAllStagingTables(luigi.WrapperTask):
             name = name.split('.sql')
             table_name = name[0]
             yield CreateTable(script=os.path.join(self.create_tables_directory, f), table=table_name, schema=self.schema)
-
+          
 class PopulateLookupTables(pg_tools.PostgresTask):
     table_file = luigi.Parameter()
     schema = luigi.Parameter(default="")
@@ -106,7 +106,7 @@ class PopulateLookupTables(pg_tools.PostgresTask):
         return(table_dict)
 
     def requires(self):
-        return [CreateAllStagingTables(schema=self.schema),PopulateStoredProcedures(schema=self.schema)]
+        return CreateAllStagingTables(schema=self.schema)
 
     def run(self):
         table_dict = self.read_table_file(self.table_file)

@@ -143,7 +143,6 @@ def define_model(model, parameters, n_cores):
                 max_depth=parameters['max_depth'],
                 min_samples_split=parameters['min_samples_split'],
                 random_state=parameters['random_state'],
-                random_state=parameters['random_state'],
                 n_jobs=n_cores),
             #Boosting parameters
             learning_rate=parameters['learning_rate'],
