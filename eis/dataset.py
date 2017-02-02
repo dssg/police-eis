@@ -212,59 +212,57 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
 
     return None
 
-def store_evaluation_metrics( timestamp, evaluation, metric, parameter=None, comment=None):
+def store_evaluation_metrics( model_id, evaluation, metric, test_date, parameter=None, comment=None):
     """ Write the model evaluation metrics into the results schema
 
-    :param str timestamp: the timestamp at which this model was run.
+    :param int model_id: the model_id of the model.
     :param dict evaluation_metrics: dictionary whose keys correspond to metric names in the features.evaluations columns.
+    :param test_date: date in string 'Y-m-d' for which the test was made
     """
-
-    # get the model primary key corresponding to this timestamp.
-    query = ( " SELECT model_id FROM results.models WHERE models.run_time = '{}'::timestamp ".format( timestamp ) )
-    cur = db_conn.cursor()
-    cur.execute(query)
-    this_model_id = cur.fetchone()
-    this_model_id = this_model_id[0]
 
     #No parameter and no comment
     if parameter is None and comment is None:
         comment = 'Null'
         parameter = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
-                    "   VALUES( '{}', '{}', {}, '{}', {}) ".format( this_model_id,
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
+                    "   VALUES( '{}', '{}', {}, '{}', {}, '{}'::timestamp) ".format( model_id,
                                                                     metric,
                                                                     parameter,
                                                                     evaluation,
-                                                                    comment ) )
+                                                                    comment,
+                                                                    test_date ) )
 
     #No parameter and a comment
     elif parameter is None and comment is not None:
         parameter = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
-                    "   VALUES( '{}', '{}', {}, '{}', '{}') ".format( this_model_id,
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
+                    "   VALUES( '{}', '{}', {}, '{}', '{}', '{}'::timestamp) ".format( model_id,
                                                                     metric,
                                                                     parameter,
                                                                     evaluation,
-                                                                    comment ) )
+                                                                    comment,
+                                                                    test_date ) )
 
     #No comment and a parameter
     elif parameter is not None and comment is None:
         comment = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
-                    "   VALUES( '{}', '{}', '{}', '{}', {}) ".format( this_model_id,
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
+                    "   VALUES( '{}', '{}', '{}', '{}', {}, '{}'::timestamp) ".format( model_id,
                                                                     metric,
                                                                     parameter,
                                                                     evaluation,
-                                                                    comment ) )
+                                                                    comment,
+                                                                    test_date ) )
 
     #A comment and a parameter
     elif parameter is not None and comment is not None:
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment)"
-                    "   VALUES( '{}', '{}', '{}', '{}', '{}') ".format( this_model_id,
+        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
+                    "   VALUES( '{}', '{}', '{}', '{}', '{}', '{}'::timestamp) ".format( model_id,
                                                                     metric,
                                                                     parameter,
                                                                     evaluation,
-                                                                    comment ) )
+                                                                    comment,
+                                                                    test_date ) )
     else:
         pass
 
@@ -452,8 +450,8 @@ class FeatureLoader():
 
 
 
-def get_dataset(start_date, end_date, prediction_window, officer_past_activity_window, features_list,
-                label_list, features_table, labels_table, as_of_dates_to_use):
+def get_dataset( prediction_window, officer_past_activity_window, features_list,
+                 label_list, features_table, labels_table, as_of_dates):
     '''
     This function returns dataset and labels to use for training / testing
     It is splitted in two queries:
@@ -463,21 +461,19 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     
     Inputs:
     -------
-    start_date: start date for selecting officers in features table
-    end_date: end date for selecting officers in features table
     prediction_window: months, used for selecting labels proceding the as_of_date in features_table
     officer_past_activity_window: months, to select officers with activity preceding the as_of_date in features_table
     features_list: list of features to use
     label_list: outcome name to use 
     features_table: name of the features table
     labels_table: name of the labels table 
+    as_of_dates: list of as_of_dates to use
     '''
     features_list_string = ", ".join(['{}'.format(feature) for feature in features_list])
     label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
-    as_of_dates_string = ", ".join(["'{}'".format(as_of_date) for as_of_date in as_of_dates_to_use])
+    as_of_dates_string = ", ".join(["'{}'".format(as_of_date) for as_of_date in as_of_dates])
     # convert features to string for querying while replacing NULL values with ceros in sql
     features_coalesce = ", ".join(['coalesce("{0}",0) as {0}'.format(feature) for feature in features_list])
-
     
     # First part of the query that joins the features table with labels table
     #NOTE: The lateral join with LIMIT 1 constraint is used for speed optimization 
@@ -495,15 +491,12 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                     """                AND l.outcome_timestamp > f.as_of_date """
                     """                AND outcome in ({1}) LIMIT 1"""
                     """                 ) AS l ON TRUE """
-                    """     WHERE f.as_of_date > '{5}'::date AND f.as_of_date <= '{6}' """
-                    """           AND f.as_of_date in ({7}) )"""
+                    """     WHERE  f.as_of_date in ({5}) )"""
                       .format(features_coalesce,
                               label_list_string,
                               features_table,
                               labels_table,
                               prediction_window,
-                              start_date,
-                              end_date,
                               as_of_dates_string))
 
     # We only want to train and test on officers that have been active (any logged activity in events_hub)
@@ -524,19 +517,6 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     query = (query_labels + query_active)
     all_data = pd.read_sql(query, con=db_conn)
 
-    
-    query_dates = (""" SELECT distinct as_of_date as as_of_date"""
-                  """  FROM features.{0} """
-                  """  WHERE as_of_date > '{1}'::date AND as_of_date <= '{2}' """
-                  """  AND as_of_date in ({3}) """
-                  .format(features_table,
-                          start_date,
-                          end_date,
-                          as_of_dates_string))
-
-    as_of_dates_used = pd.read_sql(query_dates, con=db_conn)
-    log.debug('as_of_dates_used: {}'.format(as_of_dates_used['as_of_date'].tolist()))
-   
     # remove rows with only zero values
     features_list = [ feature.lower() for feature in features_list]
 
@@ -546,51 +526,6 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
     all_data = all_data.set_index('officer_id')
     log.debug('length of data_set: {}'.format(len(all_data)))
     return all_data[features_list], all_data.outcome
-
-def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):
-    """
-    Function that defines the dataset.
-
-    Inputs:
-    -------
-    features: list containing which features to use
-    start_date: start date for selecting officers
-    end_date: end date for selecting officers
-    end_label_date: build features with respect to this date
-    labelling: dict containing options to label officers
-    by IA should be labelled, if False then only those investigated will
-    be labelled
-    """
-
-    start_date = start_date.strftime('%Y-%m-%d')
-    end_date = end_date.strftime('%Y-%m-%d')
-    log.debug("Calling FeatureLoader with: {},{},{},{}".format(start_date, end_date, end_label_date, table_name))
-    data = FeatureLoader(start_date, end_date, end_label_date, table_name)
-
-    # get the officer labels and make them the key in the dataframe.
-    officers = data.officer_labeller(labelling)
-    officers.officer_id = officers.officer_id.astype(int)
-
-    # select all the features which are set to True in the config file
-    features_data = data.load_all_features( features, feature_type="officer" )
-
-    # join the data to the officer labels.
-    dataset = officers
-    dataset = dataset.join( features_data, how='left', on="officer_id" )
-    dataset.set_index(["officer_id"], inplace=True )
-    dataset = dataset.fillna(0)
-
-    labels = dataset["adverse_by_ourdef"].values
-    feats = dataset.drop(["adverse_by_ourdef"], axis=1)
-    ids = dataset.index.values
-
-    # make sure we return a non-zero number of labelled officers
-    assert sum(labels) > 0, 'Labelled officer selection returned no officers'
-
-    log.debug("Dataset has {} rows and {} features".format(
-       len(labels), len(feats.columns)))
-
-    return feats, labels, ids, features
 
 
 def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):

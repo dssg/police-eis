@@ -116,7 +116,7 @@ def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
 
 
 
-def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary, time_for_model_in_seconds ):
+def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary, time_for_model_in_seconds=None ):
     """ Calculate several evaluation metrics using sklearn for a set of
         labels and predictions.
     :param list test_labels: list of true labels for the test data.
@@ -141,7 +141,7 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics["fbeta@|1.25 beta"] = metrics.fbeta_score( test_label, test_predictions_binary, 1.25)
     all_metrics["precision@|default"] = metrics.precision_score( test_label, test_predictions_binary )
     all_metrics["recall@|default"] = metrics.recall_score( test_label, test_predictions_binary )
-    all_metrics["time|seconds"] = time_for_model_in_seconds
+    #all_metrics["time|seconds"] = time_for_model_in_seconds
 
 
     # Threshold Metrics by Percentage

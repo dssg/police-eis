@@ -23,7 +23,8 @@ CREATE TABLE results.models (
   batch_comment         TEXT,
   config                JSONB,
   pickle_file_path_name TEXT,
-  test                  BOOL
+  test                  BOOL,
+  model_hash            TEXT
 );
 
 -- predictions corresponding to each model.
@@ -39,11 +40,12 @@ CREATE TABLE results.predictions (
 
 -- evaluation table containing metrics for each of the models run.
 CREATE TABLE results.evaluations (
-  model_id  INT REFERENCES results.models (model_id),
-  metric    TEXT,
-  parameter TEXT,
-  value     NUMERIC,
-  comment   TEXT
+  model_id     INT REFERENCES results.models (model_id),
+  metric       TEXT,
+  parameter    TEXT,
+  value        NUMERIC,
+  comment      TEXT,
+  as_of_date   TIMESTAMP
 );
 
 -- data table for storing pickle blobs.
@@ -56,7 +58,9 @@ CREATE TABLE results.data (
 CREATE TABLE results.feature_importances (
   model_id           INT REFERENCES results.models (model_id),
   feature            TEXT,
-  feature_importance NUMERIC
+  feature_importance NUMERIC,
+  rank_abs           INT,
+  rank_pct           REAL
 );
 
 -- individual feature importance

@@ -110,7 +110,7 @@ def get_officer_features_table_columns(config):
     for block in feature_names:
         active_features += [key for key in feature_blocks[block] if feature_blocks[block][key] == True]
 
-    selected_time_window = config["timegated_feature_lookback_duration"]
+    selected_time_window = config["temporal_info"]["timegated_feature_lookback_duration"]
 
     # connect to the database and get the feature list (TODO: switch to factory pattern for db connection)
     engine = setup_environment.get_database()
