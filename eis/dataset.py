@@ -242,7 +242,6 @@ def store_evaluation_metrics( model_id, evaluation, metric, test_date, parameter
                                                                     evaluation,
                                                                     comment,
                                                                     test_date ) )
-                                                                    as_of_date ) )
 
     #No comment and a parameter
     elif parameter is not None and comment is None:
