@@ -7,9 +7,9 @@
 department_unit: 'charlotte_pd'
 
 # Set the officer table name.
-officer_feature_table_name: "features_justice_review"
-officer_label_table_name: "officer_labels_justice_table"
-schema_feature_blocks: "schema_block_justics"
+officer_feature_table_name: "features_test_merge"
+officer_label_table_name: "officer_test_merge"
+schema_feature_blocks: "schema_block_test"
 
 # determine whether model objects gets stored in a pickle in root_path/department_unit/directory
 store_model_object: False
@@ -17,8 +17,8 @@ directory: ''
 ########################
 # Comment fields       #
 ########################
-model_comment: ""
-batch_comment: "justice paper"
+model_comment: "testing merge_all"
+batch_comment: "testing merge_all"
 
 test_flag: True
 ########################
@@ -36,7 +36,7 @@ prediction_window: ['1y'] # prediction window  used for officer-level prediction
 update_window: ['1y'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
 training_window: ['1y'] # months, used for training the model
 officer_past_activity_window: ['1y'] # Include officers that have activity in the x months preceding start time of test/train
-timegated_feature_lookback_duration: ["1w", "1m", "1y", "5y"] # Aggregation time for features eg: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] 
+timegated_feature_lookback_duration: ["1w","1m","1y","5y"] # Aggregation time for features eg: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] 
 
 ########################
 # Labelling Details    #
@@ -63,8 +63,8 @@ officer_labels:                     # note: the labels below are combined with a
 # Feature selection    #
 ########################
 
-#officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics']
-officer_features: ['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicArrests']
+#officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment']
+officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment']
 
 feature_blocks:
     IncidentsReported:
@@ -90,8 +90,8 @@ feature_blocks:
         HoursPerShift: True # time-gated, The Average number of hours per shift
     
     OfficerArrests:
-        ArrestMonthlyVariance: False # time-gated, month-by-month variance of arrest counts. ##TODO
-        ArrestMonthlyCOV: False # time-gated, month-by-month coefficient of variation in arrest counts. ##TODO
+        ArrestMonthlyVariance: True # time-gated, month-by-month variance of arrest counts. 
+        ArrestMonthlyCOV: False # time-gated, month-by-month coefficient of variation in arrest counts. ##TODO: in a collate branch
         Arrests: True # time-gated, Number of arrests made by an officer
         ArrestsOfType: True # Number of time-gated arrests by categorical type.
         ArrestsON: True # Number of time-gated arrests by day of week.
@@ -110,15 +110,15 @@ feature_blocks:
         TrafficStopsByStopType: True # time gated categorical
         TrafficStopsByStopResult: True # time gated categorical
         TrafficStopsBySearchReason: True
-        TrafficStopsByInterestingSearch: False #### TODO
+        TrafficStopsByInterestingSearch: False #### TODO: create text features
 
     FieldInterviews:
         FieldInterviews: True
         HourOfFieldInterviews: True
-        ModeHourOfFieldInterviews: False ##TODO
+        ModeHourOfFieldInterviews: True 
         FieldInterviewsByRace: True
         FieldInterviewsByOutcome: True
-        FieldInterviewsWithFlag: True
+        FieldInterviewsWithFlag: True 
         InterviewsType: True
     
     UseOfForce: ##TODO
@@ -138,16 +138,19 @@ feature_blocks:
         EISFlagsOfType: True
 
     OfficerCharacteristics:
-        Divorce: False # Number of total divorces in this officer's past. ##TODO
+        DummyOfficerMarital: False # The marital status of the officer. The problem here is that it comes without a date, eg traning in the past as if an officer was always married or divorced. 
         DummyOfficerGender: True # Officer gender code.
         DummyOfficerRace: True # Officer race code.
         DummyOfficerEthnicity: True # Officer ethnicity code.
-        OfficerAge: False # Age of officer in years. ##TODO
+        OfficerAge: True # Age of officer in years. 
         DummyOfficerEducation: True # Officer education level.
-        MilesFromPost: False # Number of miles to post. ## TODO
+        MilesFromPost: False # Number of miles to post. ## TODO 
         DummyOfficerMilitary: True # Whether or not the officer has had military experience
         AcademyScore: True # Performance score at the police academy.
         DummyOfficerRank: True # Officer rank.
+
+    OfficerEmployment:
+        OutsideEmploymentHours: True #Extra duty
 
     Other:
         CountUOFwithResistingArrest: True #Number of uses of force by whether the suspect resisted arrest, time gated
@@ -156,10 +159,6 @@ feature_blocks:
         ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
         UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
         ComplimentsToComplaintsRatio: False #Ratio of internal compliments to complaints and officer has
-        TotalOutsideEmploymentHours: False #Extra duty feature
-
-
-
 
     Demographic_Features:
         OfficerAvgArrestDemographics_1: False
@@ -169,9 +168,24 @@ feature_blocks:
         OfficerAvgStopsDemographics_1: False
         OfficerAvgStopsDemographics_2: False
 
-    DemographicArrests:
+    DemographicNpaArrests:
         Arrests311Call: True
         Arrests311Requests: True
+        PopulationDensity: True
+        AgeOfResidents: True
+        BlackPopulation: True
+        HouseholdIncome: True
+        EmploymentRate: True
+        VacantLandArea: True
+        VoterParticipation: True
+        AgeOfDeath: True
+        HousingDensity: True
+        NuisanceViolations: True
+        ViolentCrimeRate: True
+        PropertyCrimeRate: True
+        SidewalkAvailability: True
+        Foreclosures: True
+        DisorderCallRate: True
 
 ########################
 # Model selection      #
@@ -181,14 +195,15 @@ feature_blocks:
 #        'AdaBoost', 'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier', 'SGDClassifier', 'KNeighborsClassifier']
 
-model: ['RandomForest', 'ExtraTrees', 'LogisticRegression', 'AdaBoost']
+#model: ['RandomForest', 'ExtraTrees', 'LogisticRegression']
+model: ['RandomForest']
 parameters:
   RandomForest:
     n_estimators: [10000] #[50,100, 1000, 10000, 50000]
     max_depth: [5] #[100, 5, 10, 50] 
     max_features: ['log2'] # ['log2', 2, 4, 8, 16, "auto"]
     criterion: ['gini'] # ['entropy']
-    min_samples_split: [5] #[2, 5, 10]
+    min_samples_split: [2] #[2, 5, 10]
     random_state: [2193]
   RandomForestBagging:
     n_estimators: [10] # [25, 50, 100, 1000, 10000]
@@ -214,10 +229,10 @@ parameters:
     random_state: [2193]
   ExtraTrees:
     n_estimators: [10000] #[ 25, 50, 100, 1000, 10000, 50000, 100000]
-    max_depth: [5] #[5, 10, 50, 100 ]
+    max_depth: [5,10,15,20] #[5, 10, 50, 100 ]
     max_features: ['log2'] # [4, 8, 16, "auto"]
     criterion: ['gini'] #, 'entropy']
-    min_samples_split: [5] #[2, 5, 10] #, 5, 10]
+    min_samples_split: [2,5] #[2, 5, 10] #, 5, 10]
     random_state: [2193]
   AdaBoost:
     algorithm: ['SAMME', 'SAMME.R']
@@ -257,7 +272,7 @@ parameters:
 ########################
 # Parallelization      #
 ########################
-n_cpus: 4
+n_cpus: 1
 
 ########################
 # Auditing hooks       #

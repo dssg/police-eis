@@ -38,11 +38,11 @@ BEGIN
   FROM results.model_groups
   WHERE
     model_type = in_model_type AND model_parameters = in_model_parameters AND prediction_window = in_prediction_window
-    AND feature_list = in_feature_list;
+    AND feature_list = ARRAY(Select unnest(in_feature_list) ORDER BY 1);
   IF NOT FOUND
   THEN
     INSERT INTO results.model_groups (model_group_id, model_type, model_parameters, prediction_window, feature_list)
-    VALUES (DEFAULT, in_model_type, in_model_parameters, in_prediction_window, in_feature_list)
+    VALUES (DEFAULT, in_model_type, in_model_parameters, in_prediction_window, ARRAY(Select unnest(in_feature_list) ORDER BY 1))
     RETURNING model_group_id
       INTO model_group_return_id;
   END IF;
