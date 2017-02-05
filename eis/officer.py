@@ -105,7 +105,6 @@ def get_officer_features_table_columns(config):
     feature_blocks = config["feature_blocks"]
     officer_feature_table = config["officer_feature_table_name"]
 
-
     active_features = []
     for block in feature_names:
         active_features += [key for key in feature_blocks[block] if feature_blocks[block][key] == True]
@@ -115,67 +114,89 @@ def get_officer_features_table_columns(config):
     # connect to the database and get the feature list (TODO: switch to factory pattern for db connection)
     engine = setup_environment.get_database()
     query = """
-        WITH full_list AS (
-          /* get all columns from the specified feature table*/
-            SELECT column_name AS column_name
-            FROM information_schema.columns
+            WITH full_list AS (
+              /* get all columns from the specified feature table*/
+                SELECT column_name AS column_name
+                FROM information_schema.columns
             WHERE table_schema = '{schema}'
                   AND table_name = '{feature_table}'
-         ), list_cut AS (
-           /* seperate the full name into parts, e.g IR_officer_id_1d_IncidentsSeverityUnknown_major_sum ->
-           * 1d,IncidentsSeverityUnknown */
-            SELECT
-              regexp_matches(column_name, $$_id_(\d+\w)?[_]?([A-Z][A-Za-z]+)_$$) AS array_col,
-              column_name
-            FROM full_list
-            WHERE column_name LIKE $$%%_id_%%$$
-         )
-        , db_avaliable_features AS (
-          /* convert to string for matching: e.g 1d_IncidentsSeverityUnknown  */
-            SELECT
-              case when array_col [1] NOTNULL  then array_col [1] :: TEXT || '_' || array_col [2] :: TEXT else array_col [2]::TEXT end  AS db_created_features,
-              column_name,
-              array_col
-            FROM list_cut
-        ), selected_columns AS (
-            SELECT unnest(
-                ARRAY{requested_features}) --insert of the requested features
-        ), selected_timewindow AS (
-            SELECT unnest(ARRAY{requested_time_window}) --insert of the requested time window
-        ), non_timewindow_colums as ( -- get all possible features without time-windows in the database table
-            SELECT
-              db_created_features
-            FROM db_avaliable_features WHERE array_col [1] ISNULL
-            GROUP BY db_created_features
-        ), requested_features AS (
-            SELECT unnest(t) || '_' || unnest(f) AS r_columns
-            FROM selected_timewindow t CROSS JOIN selected_columns f
-            EXCEPT -- exclude all features from the cross product that do not have a time-window
-            SELECT unnest(t) || '_' || f.db_created_features AS r_columns
-            FROM selected_timewindow t CROSS JOIN non_timewindow_colums f
-            UNION ( -- add all the single features that are requested which  did not have a time-window in the database
-              SELECT db_created_features as r_columns
-              FROM  non_timewindow_colums
-              INTERSECT
-              SELECT   unnest(f) AS r_columns
-              FROM selected_columns f
+            ), list_cut AS (
+              /* seperate the full name into parts, e.g IR_officer_id_1d_IncidentsSeverityUnknown_major_sum ->
+              * 1d,IncidentsSeverityUnknown */
+                SELECT
+                  regexp_matches(column_name, $$_id_(\d+\w|all)?[_]?([A-Z][A-Za-z0-9]+)_$$) AS array_col,
+                  column_name
+                FROM full_list
+                WHERE column_name LIKE $$%%_id_%%$$
             )
-        ), final_avaliable_colums AS (
+              , db_avaliable_features AS (
+              /* convert to string for matching: e.g 1d_IncidentsSeverityUnknown  */
+                SELECT
+                  CASE WHEN array_col [1] NOTNULL
+                    THEN array_col [1] :: TEXT || '_' || array_col [2] :: TEXT
+                  ELSE array_col [2] :: TEXT END AS db_created_features,
+                  column_name,
+                  array_col
+                FROM list_cut
+            ), selected_columns AS (
+                SELECT unnest(
+                    ARRAY{requested_features}) --insert of the requested features
+            ), selected_timewindow AS (
+                SELECT unnest(ARRAY{requested_time_window}) --insert of the requested time window
+            ), non_timewindow_colums AS ( -- get all possible features without time-windows in the database table
+                SELECT db_created_features
+                FROM db_avaliable_features
+                WHERE array_col [1] ISNULL
+                GROUP BY db_created_features
+            ), all_colums AS ( -- get all possible features with time span all in the name in the database table
+                SELECT replace(db_created_features, 'all_', '') AS db_created_features
+                FROM db_avaliable_features
+                WHERE array_col [1] = 'all'
+                GROUP BY db_created_features
+            ), requested_features AS (
+              SELECT unnest(t) || '_' || unnest(f) AS r_columns
+              FROM selected_timewindow t CROSS JOIN selected_columns f
+              EXCEPT -- exclude all features from the cross product that do not have a time-window
+              SELECT unnest(t) || '_' || f.db_created_features AS r_columns
+              FROM selected_timewindow t CROSS JOIN non_timewindow_colums f
+              EXCEPT -- exclude all features from the cross product that do have the window all
+              SELECT unnest(t) || '_' || f.db_created_features AS r_columns
+              FROM selected_timewindow t CROSS JOIN all_colums f
+              UNION (-- add all the single features that are requested which  did not have a time-window in the database
+                SELECT db_created_features AS r_columns
+                FROM non_timewindow_colums
+                INTERSECT
+                SELECT unnest(f) AS r_columns
+                FROM selected_columns f
+              )
+              UNION (-- add all the single features that are requested which  have all as timewindow in the database
+                SELECT ('all_' || r_columns) AS r_columns
+                FROM (
+                       SELECT db_created_features AS r_columns
+                       FROM all_colums
+                       INTERSECT
+                       SELECT unnest(f) AS r_columns
+                       FROM selected_columns f
+                     ) s
+              )
+            ), final_avaliable_colums AS (
+                SELECT array_agg(column_name :: TEXT
+                       ORDER BY 1) AS col_avaliable
+                FROM requested_features r
+                  JOIN db_avaliable_features a ON r.r_columns = a.db_created_features
+            ), final_missing_columns AS (
+                SELECT array_agg(r_columns
+                       ORDER BY 1) AS col_missing
+                FROM requested_features r
+                  LEFT JOIN db_avaliable_features a ON r.r_columns = a.db_created_features
+                WHERE a.column_name ISNULL
+            )
             SELECT
-              array_agg(column_name::TEXT ORDER BY 1) as col_avaliable
-            FROM requested_features r
-              JOIN db_avaliable_features a ON r.r_columns = a.db_created_features
-        ), final_missing_columns as (
-            SELECT
-              array_agg(r_columns ORDER BY 1) as col_missing
-            FROM requested_features r
-              LEFT JOIN db_avaliable_features a ON r.r_columns = a.db_created_features
-            WHERE a.column_name ISNULL
-        )
-        SELECT
-          (SELECT * from final_avaliable_colums),
-          (SELECT * from final_missing_columns);
-        """.format(
+              (SELECT *
+               FROM final_avaliable_colums),
+              (SELECT *
+               FROM final_missing_columns);
+            """.format(
         schema='features',
         feature_table=officer_feature_table,
         requested_features=active_features,
@@ -184,9 +205,9 @@ def get_officer_features_table_columns(config):
 
     result = engine.connect().execute(query)
 
-    #returns 2 dicts, 'col_avaliable' and 'col_missing'
+    # returns 2 dicts, 'col_avaliable' and 'col_missing'
     resultset = [dict(row) for row in result]
-    result_dict=resultset[0]
+    result_dict = resultset[0]
     log.error('These features are missing: {}'.format(result_dict['col_missing']))
 
     return result_dict['col_avaliable']
