@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.reports; 
-CREATE UNLOGGED TABLE staging.reports (
+CREATE  TABLE staging.reports (
 	event_id                                                              int references staging.events_hub(event_id),                --Primary key
 	department_defined_report_id                                          varchar,            --
 	report_type_code                                                      int,                --

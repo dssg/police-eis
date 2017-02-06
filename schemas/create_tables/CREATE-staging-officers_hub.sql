@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.officers_hub CASCADE; 
-CREATE UNLOGGED TABLE staging.officers_hub (
+CREATE  TABLE staging.officers_hub (
 	officer_id                                                            serial primary key, --officer id
 	department_defined_officer_id                                         text,               --the department's internal officer identifier
 	department_defined_officer_id_code									  text,				  --the department's internal officer ID code

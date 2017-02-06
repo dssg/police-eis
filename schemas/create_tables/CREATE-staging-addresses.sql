@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.addresses;
-CREATE UNLOGGED TABLE staging.addresses (
+CREATE TABLE staging.addresses (
   address_id                      SERIAL PRIMARY KEY, --
   department_defined_reference_id VARCHAR UNIQUE,
   street_address                  TEXT, --street address
@@ -10,5 +10,7 @@ CREATE UNLOGGED TABLE staging.addresses (
   latitude                        NUMERIC, --
   longitude                       NUMERIC, --
   hundreds_block                  TEXT, --
-  geom                            GEOMETRY(POINT, 4326)
+  geom                            GEOMETRY(POINT, 4326),
+  last_modified                   TIMESTAMP --timestamp for when the table was last updated
+
 );

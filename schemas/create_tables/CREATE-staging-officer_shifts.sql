@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.officer_shifts;
-CREATE UNLOGGED TABLE staging.officer_shifts (
+CREATE  TABLE staging.officer_shifts (
   shift_id              SERIAL, --unique shift id
   officer_id            INT REFERENCES staging.officers_hub (officer_id) ON DELETE CASCADE, --officer id
   start_datetime        TIMESTAMP, --datetime when the shift started

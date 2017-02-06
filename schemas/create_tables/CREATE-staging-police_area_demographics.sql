@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.police_area_demographics; 
-CREATE UNLOGGED TABLE staging.police_area_demographics (
+CREATE  TABLE staging.police_area_demographics (
 	police_area_id                                                        int,                --id for this particular shapefile: FK
 	valid_start_date                                                      date,               --the date from which the demographic data is correct
 	valid_end_date                                                        date,               --

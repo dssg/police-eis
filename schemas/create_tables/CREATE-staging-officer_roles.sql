@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.officer_roles; 
-CREATE UNLOGGED TABLE staging.officer_roles (
+CREATE  TABLE staging.officer_roles (
 	officer_id                                                            int references staging.officers_hub(officer_id) on delete cascade,                --officer id
 	last_modified                                                         timestamp,          --date and time the role was given
 	rank_code                                                             int,                --rank associated with the role

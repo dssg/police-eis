@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.taser_used; 
-CREATE UNLOGGED TABLE staging.taser_used (
+CREATE  TABLE staging.taser_used (
 	event_id                                                              int references staging.events_hub(event_id),                --
 	department_defined_taser_id                                           varchar,                --Native key
 	department_defined_internal_affairs_id                                int,                --Internal affairs allegation id
