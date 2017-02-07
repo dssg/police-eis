@@ -33,41 +33,52 @@ def read_config(config_file_name):
     return config
 
 
-def generate_temporal_sets(config ):
+def generate_temporal_info(config):
     """
-    This function generates a sets of temporal infos 
     """
-    temporal_sets = []
+    time_format = "%Y-%m-%d"
+    end_date = datetime.datetime.strptime(config['end_date'], "%Y-%m-%d")
+    start_date = datetime.datetime.strptime(config['start_date'], "%Y-%m-%d")
 
-    train_start_date = '2013-01-01'
-    train_end_date = '2014-01-01'
-    features_window = '1m'
-    test_start_date = '2014-01-01'
-    test_end_date = '2015-01-01'
-    test_window = '1m'
-    prediction_window = '1y'
-    officer_past_activity_window = '1y'
-    # Get as_of_dates for training and testing
-    training_as_of_dates = as_of_dates_in_window( train_start_date,
-                                                  train_end_date,
-                                                  features_window )
-    testing_as_of_dates = as_of_dates_in_window( test_start_date,
-                                                 test_end_date,
-                                                 test_window )
+    # convert windows to deltas
+    prediction_window_deltas = relative_deltas_conditions(config['prediction_window'])
+    update_window_deltas = relative_deltas_conditions(config['update_window'])
+    train_size_deltas = relative_deltas_conditions(config['train_size'])
+    features_frequency_deltas = relative_deltas_conditions(config['features_frequency'])
+    test_frecuency_deltas = relative_deltas_conditions(config['test_frecuency'])
+   
+    temporal_info = [] 
+    for prediction_window, update_window, officer_past_activity, \
+        train_size, features_frequency, test_frequency in product(    
+               config['prediction_window'], config['update_window'],
+               config['officer_past_activity_window'], config['train_size'],
+               config['features_frequency'], config['test_frecuency']):
 
-    temporal_sets.append({ 'train_start_date': train_start_date,
-                      'train_end_date': train_end_date,
-                      'features_window': features_window,
-                      'test_start_date': test_start_date,
-                      'test_end_date': test_end_date,
-                      'test_window': test_window,
-                      'prediction_window': prediction_window,
-                      'officer_past_activity_window': officer_past_activity_window,
-                      'training_as_of_dates': training_as_of_dates,
-                      'testing_as_of_dates': ['2015-01-02', '2015-02-01']})
+        test_end_date = end_date
+        # loop moving giving an update_window
+        while start_date <= test_end_date - 2*relativedelta(**prediction_window_deltas[prediction_window]):
+            test_start_date = test_end_date - relativedelta(**prediction_window_deltas[prediction_window])
+            test_as_of_dates = as_of_dates_in_window(test_start_date,
+                                                     test_end_date,
+                                                     test_frequency)
+            train_end_date = test_start_date
+            train_start_date = train_end_date - relativedelta(**train_size_deltas[train_size])
+            train_as_of_dates = as_of_dates_in_window(train_start_date,
+                                                      train_end_date,
+                                                      features_frequency)
+            tmp_info = {'test_end_date': test_end_date.strftime(time_format),
+                        'test_start_date': test_start_date.strftime(time_format),
+                        'test_as_of_dates': test_as_of_dates,
+                        'train_end_date': train_end_date.strftime(time_format),
+                        'train_start_date': train_start_date.strftime(time_format),
+                        'train_as_of_dates': train_as_of_dates,
+                        'prediction_window':prediction_window,
+                        'officer_past_activity_window': officer_past_activity}
+            print(tmp_info)
+            temporal_info.append(tmp_info)
+            test_end_date -= relativedelta(**update_window_deltas[update_window])
 
-    return temporal_sets
-
+    return temporal_info
 
 def relative_deltas_conditions( times ):
 
@@ -83,8 +94,8 @@ def as_of_dates_in_window( start_date, end_date,  window ):
     Generate a list of as_of_dates between start_date and end_date 
     moving through window
     """
-    end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-    start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
+    #end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
+    #start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
     # Generate condition for relative delta
     window_delta = relative_deltas_conditions([ window] )
     as_of_dates = []
@@ -93,10 +104,10 @@ def as_of_dates_in_window( start_date, end_date,  window ):
         end_date -= relativedelta(**window_delta[window])
         as_of_dates.append(as_of_date)
    
-    time_format = "%Y-%m-%d %X"
+    time_format = "%Y-%m-%d"
     as_of_dates_uniques = set(as_of_dates)
     as_of_dates_uniques = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates_uniques]
-    return as_of_dates_uniques
+    return sorted(as_of_dates_uniques)
 
 
 def generate_model_config( config ):
@@ -123,6 +134,6 @@ if __name__ == '__main__':
     config_file_name = 'config_test_difftest.yaml'
     config_file = read_config(config_file_name)
     # exp = generate_experiments(config_file)
-    temporal_sets = generate_temporal_sets(config_file)
-    models = generate_model_config(config_file) 
+    temporal_sets = generate_temporal_info(config_file['temporal_info'])
     pdb.set_trace()
+    models = generate_model_config(config_file) 

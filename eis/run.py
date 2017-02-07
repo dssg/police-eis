@@ -10,10 +10,16 @@ import datetime
 import time
 import os
 import pdb
+from joblib import Parallel, delayed
+from multiprocessing.util import register_after_fork
 
-from . import setup_environment, models, scoring
-from . import dataset, experiment
+from . import setup_environment 
 from . import populate_features, populate_labels
+from . import utils
+from . import officer
+from .run_models import RunModels
+
+log = logging.getLogger(__name__)
 
 def main(config_file_name, args):
 
@@ -24,6 +30,8 @@ def main(config_file_name, args):
                         handlers=[logging.FileHandler(log_filename), logging.StreamHandler()])
     log = logging.getLogger('eis')
 
+
+    # Read config
     try:
         with open(config_file_name, 'r') as f:
             config = yaml.load(f)
@@ -32,13 +40,10 @@ def main(config_file_name, args):
         log.exception("Failed to get experiment configuration file!")
         raise
 
-    # read table name from config file
-    if config["unit"] == "dispatch":
-        table_name = config["dispatch_feature_table_name"]
     else:
         table_name = config["officer_feature_table_name"]
 
-    log.debug("feature table name: {}".format(table_name))
+    log.debug("feature table name: {}".format(config["officer_feature_table_name"]))
 
     # If asked to generate features, then do that and stop.
     if args.buildfeatures:
@@ -55,139 +60,64 @@ def main(config_file_name, args):
         log.info('Done creating features table')
         sys.exit()
 
-    all_experiments = experiment.generate_models_to_run(config)
+    # features to use
+    features = officer.get_officer_features_table_columns(config)
+    log.info('features: {}'.format(features))
+    # Labels
+    labels =  [ key for key in config["officer_labels"] if config["officer_labels"][key] == True ]
+
+    # modify models_config
+    grid_config = utils.generate_model_config(config)
+
+    # Generate temporal_sets
+    temporal_sets = utils.generate_temporal_info(config['temporal_info'])
+
+    # Add more arguments
+    misc_db_parameters = {'config': config,
+            'test': config['test_flag'],
+            'model_comment': config['model_comment'],
+            'batch_comment': config['batch_comment']
+            }
 
     log.info("Running models on dataset...")
-    batch_timestamp = datetime.datetime.now().isoformat()
-    for my_exp in all_experiments:
-        start = time.time()
-        timestamp = datetime.datetime.now().isoformat()
+    models_args = {'labels': labels,
+                   'features': features,
+                   'features_table_name':config['officer_feature_table_name'],
+                   'labels_table_name': config['officer_label_table_name'],
+                   'grid_config':grid_config,
+                   'project_path':config['project_path'],
+                   'misc_db_parameters': misc_db_parameters}
 
-        result_y, result_y_binary, importances, modelobj, individual_imps = models.run(
-            my_exp.exp_data["train_x"],
-            my_exp.exp_data["train_y"],
-            my_exp.exp_data["test_x"],
-            my_exp.config["model"],
-            my_exp.config["parameters"],
-            my_exp.config["n_cpus"])
-
-        # required for to_save dict below, (legacy code)
-        groupscores = []
-        confusion_matrices = []
-
-        # TODO: make this more robust for officer vs dispatch level predictions
-        end = time.time()
-        model_time_in_seconds = "%.3f" % (end-start)
-
-        if config['unit'] == 'officer':
-            
-            to_save = {
-                       "train_x": my_exp.exp_data["train_x"],
-                       "train_y": my_exp.exp_data["train_y"],
-                       "test_x": my_exp.exp_data["test_x"],
-                       "test_y": my_exp.exp_data["test_y"], 
-                       "test_predictions": result_y,
-                       "config": my_exp.config,
-                       "officer_id_train": my_exp.exp_data["train_x_index"],
-                       "officer_id_test": my_exp.exp_data["test_x_index"],
-                       "features": my_exp.exp_data["names"],
-                       "timestamp": timestamp,
-                       "parameters": my_exp.config["parameters"],
-                       "feature_importances": importances,
-                       "feature_importances_names": my_exp.exp_data["features"],
-                       "aggregation": groupscores,
-                       "eis_baseline": confusion_matrices,
-                       "modelobj": modelobj,
-                       "individual_importances": individual_imps,
-                       "time_for_model_in_seconds": model_time_in_seconds}
-
-        elif config['unit'] == 'dispatch':
-            to_save = {"test_labels": my_exp.exp_data["test_y"],
-                       "test_predictions": result_y,
-                       "test_predictions_binary": result_y_binary,
-                       "config": my_exp.config,
-                       "timestamp": timestamp,
-                       "parameters": my_exp.config["parameters"],
-                       "feature_importances": None,
-                       "feature_importances_names": my_exp.exp_data["features"],
-                       "modelobj": modelobj,
-                       "time_for_model_in_seconds": model_time_in_seconds }
-
-        # get all model metrics.
-        all_metrics = scoring.calculate_all_evaluation_metrics( list( my_exp.exp_data["test_y"]), list(result_y), list(result_y_binary), model_time_in_seconds )
-
-        # package data for storing into results schema.
-        unit_id_train    = list( my_exp.exp_data["train_x_index"] )
-        unit_id_test     = list( my_exp.exp_data["test_x_index"] )
-        unit_predictions = list( result_y )
-        unit_labels      = list( my_exp.exp_data["test_y"] )
-
-        # get user comments for this batch.
-        if "batch_comment" in config:
-            user_batch_model_comment = config["batch_comment"]
-        else:
-            user_batch_model_comment = ""
-
-        # store the pickle data to disk .
-        log.debug("storing model information and data")
-        if config["store_model_object"]:
-            paths = dataset.store_matrices(to_save, config)
-            log.debug(paths)
-            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, paths)
-        else: 
-            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config)
-
-        # Store information about this experiment into the results schema.
-        log.debug("storing predictions information")
-        if config["unit"] == "dispatch":
-           store_as_csv = True
-        else:
-            store_as_csv = False
-        dataset.store_prediction_info(timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, my_exp.config)
-
-        #Insert Evaluation Metrics Into Table
-        log.debug("storing evaluation metric information")
-        for key in all_metrics:
-            evaluation = all_metrics[key]
-            metric = key.split('|')[0]
-            try:
-                metric_parameter = key.split('|')[1]
-                if metric_parameter=='':
-                    metric_parameter.replace('', None)
-                else:
-                    pass
-            except:
-                metric_parameter = None
-
-            try:
-                comment = str(key.split('|')[2])
-            except:
-                comment = None
-
-            dataset.store_evaluation_metrics( timestamp, evaluation, metric, my_exp.config['test_end_date'], metric_parameter, comment )
-
-        #Insert Feature Importaces
-        log.debug("Storing feature importances")
-        dataset.store_feature_importances( timestamp, to_save)
-        try:
-            if to_save['individual_importances'].size:
-                dataset.store_individual_feature_importances(timestamp, to_save)
-                log.debug("Storing individual importances")
-        except AttributeError:
-            log.debug("No individual importances to store")
+    # Parallelization
+    n_cups = config['n_cpus']
+    Parallel(n_jobs=n_cups, verbose=5)(delayed(apply_train_test)(temporal_split, **models_args)
+                                                 for temporal_split in temporal_sets)
 
     log.info("Done!")
     return None
 
-
-def pickle_results(pkl_file, to_save):
-    """
-    Save contents of experiment to pickle file for later use
-    """
-
-    with open(pkl_file, 'wb') as f:
-        pickle.dump(to_save, f, protocol=pickle.HIGHEST_PROTOCOL)
-
+def apply_train_test(temporal_set, **kwargs):
+    # Connect to db
+    try:
+        db_engine = setup_environment.get_database()
+    except:
+        log.warning('Could not connect to the database')
+        raise
+    
+    run_model = RunModels(labels=kwargs['labels'],
+                      features=kwargs['features'],
+                      features_table_name=kwargs['features_table_name'],
+                      labels_table_name=kwargs['labels_table_name'],
+                      temporal_split=temporal_set,
+                      grid_config=kwargs['grid_config'],
+                      project_path=kwargs['project_path'],
+                      misc_db_parameters=kwargs['misc_db_parameters'],
+                      db_engine=db_engine)
+    log.info('Run models for temporal set: {}'.format(temporal_set))
+    train_uuid, model_ids = run_model.train_models()
+    log.info('Run tests')
+    run_model.test_models(train_uuid, model_ids)
+    db_engine.dispose() 
     return None
 
 

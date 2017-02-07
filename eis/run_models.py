@@ -1,16 +1,23 @@
 import pandas as pd
 import pickle
 import pdb
+import datetime
+import logging
+from joblib import Parallel, delayed
 
-from .triage.triage.model_trainers import ModelTrainer
-from .triage.triage.predictors import Predictor
-from .triage.triage.storage import FSModelStorageEngine, InMemoryMatrixStore
+from triage.model_trainers import ModelTrainer
+from triage.predictors import Predictor
+from triage.storage import FSModelStorageEngine, InMemoryMatrixStore
+
+import metta.metta_io
 
 from . import dataset
 from . import utils
 from . import setup_environment
 from . import officer
 from . import scoring
+
+log = logging.getLogger(__name__)
 
 class RunModels():
 
@@ -36,6 +43,7 @@ class RunModels():
         self.project_path = project_path
         self.misc_db_parameters = misc_db_parameters
         self.db_engine = db_engine
+        self.matrices_path = self.project_path + '/matrices/'
 
     def load_matrix(self, as_of_dates):
         """
@@ -45,67 +53,89 @@ class RunModels():
         Returns:
            matrix: dataframe with the features and the last column as the label (called: outcome)
         """
-        df_X, df_y = dataset.get_dataset(   self.temporal_split['prediction_window'],
-                                        self.temporal_split['officer_past_activity_window'],
-                                        self.features,
-                                        self.labels,
-                                        self.features_table_name,
-                                        self.labels_table_name,
-                                        as_of_dates)
-        return df_X, df_y
+        db_conn = self.db_engine.raw_connection()
+        df = dataset.get_dataset(self.temporal_split['prediction_window'],
+                                         self.temporal_split['officer_past_activity_window'],
+                                         self.features,
+                                         self.labels,
+                                         self.features_table_name,
+                                         self.labels_table_name,
+                                         as_of_dates,
+                                         db_conn)
+        db_conn.close()
+        return df
 
     def train_models(self):
         # Metadata
         train_metadata = {'start_time': self.temporal_split['train_start_date'],
                           'end_time': self.temporal_split['train_end_date'],
                           'prediction_window': self.temporal_split['prediction_window'], 
-                          'label_name': "_".join(sorted(self.labels)),
+                          'label_name': 'outcome', #"_".join(sorted(self.labels)),
                           'feature_names': self.features,
                           'matrix_id': 'TRAIN_{}_{}'.format(self.temporal_split['train_start_date'][:4], 
                                                             self.temporal_split['train_end_date'][:4]),
-                          'as_of_dates': self.temporal_split['training_as_of_dates']}
+                          'as_of_dates': self.temporal_split['train_as_of_dates']}
         
         # Inlcude metadata in config for db
         self.misc_db_parameters['config']['train_metadata'] = train_metadata
 
         # Load train matrix
-        train_X, train_y = self.load_matrix(self.temporal_split['training_as_of_dates'])
-        train_matrix_store = InMemoryMatrixStore(train_X, train_metadata, train_y)
-
+        log.info('Load train matrix using as of dates: {}'.format(self.temporal_split['train_as_of_dates']))
+        train_df = self.load_matrix(self.temporal_split['train_as_of_dates'])
+        # Store in metta
+        log.info('Store in metta')
+        train_uuid = metta.metta_io.archive_matrix(train_metadata,
+                                                   train_df, 
+                                                   self.matrices_path, 
+                                                   format='hd5')
+        # add to parameters to store in db
+        self.misc_db_parameters['train_matrix_uuid'] = train_uuid
+        train_matrix_store = InMemoryMatrixStore(train_df.iloc[:,:-1], train_metadata, train_df.iloc[:,-1])
+        
         trainer = ModelTrainer( project_path=self.project_path,
                                model_storage_engine=FSModelStorageEngine(self.project_path),
                                matrix_store=train_matrix_store,
                                db_engine=self.db_engine
                               )
-
+        log.info('Train Models')
         model_ids = trainer.train_models(grid_config=self.grid_config, misc_db_parameters=self.misc_db_parameters)
 
-        return model_ids
+        return train_uuid, model_ids
 
-    def test_models(self, model_ids):
+    def test_models(self, train_uuid, model_ids):
 
         predictor = Predictor(project_path = self.project_path,
                               model_storage_engine = FSModelStorageEngine(self.project_path),
                               db_engine=self.db_engine)
 
         # Loop over testing as of dates
-        for test_date in self.temporal_split['testing_as_of_dates']:
+        for test_date in self.temporal_split['test_as_of_dates']:
             # Load matrixes
-            test_X, test_y = self.load_matrix([test_date])
-            test_metadata_dict = {'start_time':test_date,
+            log.info('Load test matrix for as of date: {}'.format(test_date))
+            test_df = self.load_matrix([test_date])
+            test_metadata_dict = {'start_time': test_date,
                                   'end_time': test_date,
                                   'prediction_window': self.temporal_split['prediction_window'],
-                                  'label_name': "_".join(sorted(self.labels)),
+                                  'label_name': 'outcome', #"_".join(sorted(self.labels)),
                                   'feature_names': self.features,
                                   'matrix_id': 'TEST_{}'.format(test_date)}
+            # Store in metta
+            test_uuid = metta.metta_io.archive_matrix(test_metadata_dict,
+                                                      test_df,
+                                                      self.matrices_path,
+                                                      format='hd5',
+                                                      train_uuid=train_uuid)
+            misc_db_parameters = {'matrix_uuid': test_uuid}
             # Store matrix
-            test_matrix_store = InMemoryMatrixStore(test_X, test_metadata_dict, test_y)
+            test_matrix_store = InMemoryMatrixStore(test_df.iloc[:,:-1], test_metadata_dict, test_df.iloc[:,-1])
         
             for model_id in model_ids:
                 ## Prediction
-                predictions_binary, predictions_proba = predictor.predict(model_id, test_matrix_store)
+                log.info('Predict for model_id: {}'.format(model_id))
+                predictions_binary, predictions_proba = predictor.predict(model_id, test_matrix_store, misc_db_parameters)
                 ## Evaluation
-                self.evaluations( predictions_proba, predictions_binary, test_y,  model_id, test_date )
+                log.info('Generate Evaluations for model_id: {}'.format(model_id))
+                self.evaluations( predictions_proba, predictions_binary, test_df.iloc[:,-1],  model_id, test_date )
 
         return None
 
@@ -113,6 +143,7 @@ class RunModels():
         all_metrics = scoring.calculate_all_evaluation_metrics( test_y.tolist(),
                                                                 predictions_proba.tolist(),
                                                                 predictions_binary.tolist() )
+        db_conn = self.db_engine.raw_connection()
         for key in all_metrics:
             evaluation = all_metrics[key]
             metric = key.split('|')[0]
@@ -124,31 +155,39 @@ class RunModels():
                     pass
             except:
                 metric_parameter = None
-
+    
             try:
                 comment = str(key.split('|')[2])
             except:
                 comment = None
-
-            dataset.store_evaluation_metrics( model_id, evaluation, metric, test_date, metric_parameter, comment )
+             
+            dataset.store_evaluation_metrics(model_id, evaluation, metric, test_date, db_conn, metric_parameter, comment)
+        db_conn.close()
         return None
 
 
-
 def main_test(config_file_name, db_engine):
+    now = datetime.datetime.now().strftime('%d-%m-%y_%H:%M:S')
+    log_filename = 'logs/{}.log'.format(now)
+    logging.basicConfig(format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+                        level=logging.DEBUG,
+                        handlers=[logging.FileHandler(log_filename), logging.StreamHandler()])
+    log = logging.getLogger('eis')
+
     # Read config file
     config = utils.read_config(config_file_name)
-    to_save = config.copy()
 
     # features
     features = officer.get_officer_features_table_columns( config )
+    log.info('features: {}'.format(features))
     #labels
     labels =  [ key for key in config["officer_labels"] if config["officer_labels"][key] == True ]
 
     # modify models_config
     grid_config = utils.generate_model_config(config)
     # Generate temporal_sets
-    temporal_sets = utils.generate_temporal_sets(config)
+    log.info('Generate temporal splits')
+    temporal_sets = utils.generate_temporal_info(config['temporal_info'])
 
     # Add more arguments
     misc_db_parameters = {'config': config,
@@ -156,22 +195,20 @@ def main_test(config_file_name, db_engine):
             'model_comment': config['model_comment'],
             'batch_comment': config['batch_comment']
             }
-    # model_group_id
-    ## feature important ranks
+    models_args = {'labels': labels,
+                   'features': features,
+                   'features_table_name':config['officer_feature_table_name'],
+                   'labels_table_name': config['officer_label_table_name'],
+                   'grid_config':grid_config,
+                   'project_path':config['project_path'],
+                   'misc_db_parameters': misc_db_parameters}
  
     for temporal_split in temporal_sets:
-        run_model = RunModels(labels=labels,
-                              features=features,
-                              features_table_name=config['officer_feature_table_name'],
-                              labels_table_name=config['officer_label_table_name'],
-                              temporal_split=temporal_split,
-                              grid_config=grid_config,
-                              project_path=config['project_path'],
-                              misc_db_parameters=misc_db_parameters,
-                              db_engine=db_engine)
-        train_X, train_y = run_model.load_matrix(run_model.temporal_split['training_as_of_dates'])
-        model_ids = run_model.train_models()
-        run_model.test_models(model_ids)        
+        log.info('Run models for temporal split: {}'.format(temporal_split))
+    #Parallel(n_jobs=-1, verbose=5)(delayed(apply_train_test)(temporal_split, db_engine, **models_args) 
+    #                                             for temporal_split in temporal_sets)
+
+    log.info('Done!')
 
 if __name__ == '__main__':
 #        project_path,

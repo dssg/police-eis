@@ -13,17 +13,13 @@ from .features import officers
 
 log = logging.getLogger(__name__)
 
-try:
-    log.info("Connecting to database...")
-    engine = setup_environment.get_database()
-except:
-    log.error('Could not connect to the database')
 
 def create_labels_table(config, table_name):
     """Build the features table for the type of model (officer/dispatch) specified in the config file"""
 
+    engine = setup_environment.get_database()
     if config['unit'] == 'officer':
-        create_officer_labels_table(config, table_name)
+        create_officer_labels_table(config, table_name, engine)
     # TODO:
     #if config['unit'] == 'dispatch':
     #    create_dispatch_labels_table(config, table_name)
@@ -33,14 +29,14 @@ def populate_labels_table(config, table_name):
     """Calculate values for all features which are set to True (in the config file)
     for the appropriate run type (officer/dispatch)
     """
-
+    engine = setup_environment.get_database()
     if config['unit'] == 'officer':
-        populate_officer_labels_table(config, table_name)
+        populate_officer_labels_table(config, table_name, engine)
     # TODO:
     #if config['unit'] == 'dispatch':
     #    populate_dispatch_labels_table(config, table_name)
 
-def create_officer_labels_table(config, table_name="officer_labels"):
+def create_officer_labels_table(config, table_name, engine):
     """ Creates a features.table_name table within the features schema """
 
 
@@ -65,7 +61,7 @@ def create_officer_labels_table(config, table_name="officer_labels"):
     query_index = ("CREATE INDEX ON features.{} (outcome_timestamp, officer_id)".format(table_name))
     engine.execute(query_index)
 
-def populate_officer_labels_table(config, table_name):
+def populate_officer_labels_table(config, table_name, engine):
     """ Populates officer labels table in the database using staging.incidents.
         The table consists on four columns:
            - officer_id

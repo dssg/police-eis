@@ -14,25 +14,25 @@ from .features import officers_collate
 
 log = logging.getLogger(__name__)
 
-try:
-    log.info("Connecting to database...")
-    engine = setup_environment.get_database()
-except:
-    log.error('Could not connect to the database')
-
+#try:
+#    log.info("Connecting to database...")
+#    engine = setup_environment.get_database()
+#except:
+#    log.error('Could not connect to the database')
+#
 
 def populate_features_table(config, table_name, schema):
     """Calculate values for all features which are set to True (in the config file) 
     for the appropriate run type (officer/dispatch)
     """
-
+    engine = setup_environment.get_database()
     if config['unit'] == 'officer':
-        populate_officer_features_table(config, table_name, schema)
+        populate_officer_features_table(config, table_name, schema, engine)
     if config['unit'] == 'dispatch':
-        populate_dispatch_features_table(config, table_name)
+        populate_dispatch_features_table(config, table_name, engine)
 
 
-def populate_dispatch_features_table(config, table_name):
+def populate_dispatch_features_table(config, table_name, engine):
     """Calculate all the feature values and store them in the features table in the database"""
 
     # Get a list of all the features that are set to true.
@@ -134,7 +134,7 @@ def join_feature_table(engine, list_prefixes, schema, features_table_name):
         engine.execute(create_table_query)
 
 
-def populate_officer_features_table(config, table_name, schema):
+def populate_officer_features_table(config, table_name, schema, engine):
     """
      Calculate all the feature values and store them in the features table in the database
      using collate method that creates a table of feature for each block and stores them in a 

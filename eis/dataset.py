@@ -16,13 +16,13 @@ from .features import class_map
 # inherit format from root level logger (specified in eis/run.py)
 log = logging.getLogger(__name__)
 
-try:
-    engine = setup_environment.get_database()
-    db_conn = engine.raw_connection()
-    log.debug('Connected to the database')
-except:
-    log.warning('Could not connect to the database')
-    raise
+#try:
+#    engine = setup_environment.get_database()
+#    db_conn = engine.raw_connection()
+#    log.debug('Connected to the database')
+#except:
+#    log.warning('Could not connect to the database')
+#    raise
 
 
 def change_schema(schema):
@@ -212,7 +212,7 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
 
     return None
 
-def store_evaluation_metrics( model_id, evaluation, metric, test_date, parameter=None, comment=None):
+def store_evaluation_metrics( model_id, evaluation, metric, test_date, db_conn, parameter=None, comment=None):
     """ Write the model evaluation metrics into the results schema
 
     :param int model_id: the model_id of the model.
@@ -451,7 +451,7 @@ class FeatureLoader():
 
 
 def get_dataset( prediction_window, officer_past_activity_window, features_list,
-                 label_list, features_table, labels_table, as_of_dates):
+                 label_list, features_table, labels_table, as_of_dates, db_conn):
     '''
     This function returns dataset and labels to use for training / testing
     It is splitted in two queries:
@@ -525,7 +525,7 @@ def get_dataset( prediction_window, officer_past_activity_window, features_list,
 
     all_data = all_data.set_index('officer_id')
     log.debug('length of data_set: {}'.format(len(all_data)))
-    return all_data[features_list], all_data.outcome
+    return all_data #all_data[features_list], all_data.outcome
 
 
 def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):

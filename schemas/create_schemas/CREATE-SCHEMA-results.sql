@@ -22,20 +22,21 @@ CREATE TABLE results.models (
   model_comment         TEXT,
   batch_comment         TEXT,
   config                JSONB,
-  pickle_file_path_name TEXT,
   test                  BOOL,
-  model_hash            TEXT
+  model_hash            varchar(20),
+  train_matrix_uuid     varchar(36)
 );
 
 -- predictions corresponding to each model.
 CREATE TABLE results.predictions (
-  model_id    INT REFERENCES results.models (model_id),
-  as_of_date  TIMESTAMP,
-  entity_id   BIGINT,
-  score       NUMERIC,
-  label_value INT,
-  rank_abs    INT,
-  rank_pct    REAL
+  model_id     INT REFERENCES results.models (model_id),
+  as_of_date   TIMESTAMP,
+  entity_id    BIGINT,
+  score        NUMERIC,
+  label_value  INT,
+  rank_abs     INT,
+  rank_pct     REAL,
+  matrix_uuid  varchar(36)
 );
 
 -- evaluation table containing metrics for each of the models run.
