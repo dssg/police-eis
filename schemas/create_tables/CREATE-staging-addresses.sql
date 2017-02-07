@@ -10,5 +10,7 @@ CREATE TABLE staging.addresses (
   latitude                        NUMERIC, --
   longitude                       NUMERIC, --
   hundreds_block                  TEXT, --
-  geom                            GEOMETRY(POINT, 4326)
+  geom                            GEOMETRY(POINT, 4326),
+  last_modified                   TIMESTAMP --timestamp for when the table was last updated
+
 );
