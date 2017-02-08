@@ -16,10 +16,6 @@ from collate import collate
 #from collate.collate import collate
 
 log = logging.getLogger(__name__)
-try:
-    _, tables = setup_environment.get_database()
-except:
-    pass
 
 time_format = "%Y-%m-%d %X"
 
@@ -52,6 +48,7 @@ class FeaturesBlock():
         self.prefix = []
         self.join_table = None
         self.from_obj_sub = ""
+        self.n_jobs = kwargs['n_cpus']
 
     def _lookup_values_conditions(self, engine, column_code_name, lookup_table, fix_condition='', prefix=''):
         query = """select code, value from staging.{0}""".format(lookup_table)
@@ -106,7 +103,9 @@ class FeaturesBlock():
                                           prefix=self.prefix_space_time_lookback,
                                           output_date_column="as_of_date",
                                           schema=schema)
-        st.execute(engine.connect())
+
+
+        st.execute_par(setup_environment.get_database,self.n_jobs)
 
     # time based aggregation without time intervals
     def build_space_time_aggregation(self, engine, as_of_dates, feature_list, schema):
@@ -122,7 +121,7 @@ class FeaturesBlock():
                                           prefix=self.prefix_space_time,
                                           output_date_column="as_of_date",
                                           schema=schema)
-        st.execute(engine.connect())
+        st.execute_par(setup_environment.get_database,self.n_jobs)
 
     # time based aggregation with time intervals and a sub query
     def build_space_time_sub_query_aggregation(self, engine, as_of_dates, feature_list, schema):
@@ -140,7 +139,7 @@ class FeaturesBlock():
                                                   sub_query=self._sub_query(),
                                                   join_table=self.join_table)
 
-        st.execute(engine.connect())
+        st.execute_par(setup_environment.get_database,self.n_jobs)
 
     # time based aggregation with time intervals and a sub query
     def build_aggregation(self, engine, feature_list, schema):
@@ -150,7 +149,7 @@ class FeaturesBlock():
                                  groups={'id': self.unit_id},
                                  prefix=self.prefix_agg,
                                  schema=schema)
-        st.execute(engine.connect())
+        st.execute_par(setup_environment.get_database,self.n_jobs)
 
     def build_collate(self, engine, as_of_dates, feature_list, schema):
         # check if a space-time feature was selected with lookback

@@ -161,7 +161,8 @@ def populate_officer_features_table(config, table_name, schema, engine):
         ## Need to find a way of calling the class given the block_name
         block_class = class_map.lookup_block(block_name,
                                              module=officers_collate,
-                                             lookback_durations=temporal_info['timegated_feature_lookback_duration'])
+                                             lookback_durations=temporal_info['timegated_feature_lookback_duration'],
+                                             n_cpus=config['n_cpus'])
 
         # Build collate tables and returns table name
         block_class.build_collate(engine, as_of_dates, feature_list, schema)
