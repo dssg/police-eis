@@ -146,9 +146,9 @@ def populate_officer_features_table(config, table_name, schema, engine):
         table_name: table name for storing all the features in the features schema
         schema: schama name for storing collate tables
      """
-
+    temporal_info = config['temporal_info'].copy()
     # get the list of fake todays specified by the config file
-    as_of_dates = experiment.generate_as_of_dates_features(config)
+    as_of_dates = experiment.generate_as_of_dates_features(temporal_info)
     log.debug(as_of_dates)
 
     list_prefixes = []
@@ -161,7 +161,7 @@ def populate_officer_features_table(config, table_name, schema, engine):
         ## Need to find a way of calling the class given the block_name
         block_class = class_map.lookup_block(block_name,
                                              module=officers_collate,
-                                             lookback_durations=config['timegated_feature_lookback_duration'])
+                                             lookback_durations=temporal_info['timegated_feature_lookback_duration'])
 
         # Build collate tables and returns table name
         block_class.build_collate(engine, as_of_dates, feature_list, schema)

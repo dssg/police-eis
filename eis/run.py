@@ -90,8 +90,8 @@ def main(config_file_name, args):
 
     # Parallelization
     n_cups = config['n_cpus']
-    Parallel(n_jobs=n_cups, verbose=5)(delayed(apply_train_test)(temporal_split, **models_args)
-                                                 for temporal_split in temporal_sets)
+    Parallel(n_jobs=n_cups, verbose=5)(delayed(apply_train_test)(temporal_set, **models_args)
+                                                 for temporal_set in temporal_sets)
 
     log.info("Done!")
     return None
