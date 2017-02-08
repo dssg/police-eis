@@ -26,53 +26,16 @@ def compute_avg_true_positive_rate(test_labels, test_predictions):
     return statistics.mean(tpr)
 
 
-def compute_result_at_x_proportion(test_labels, test_predictions, metric, x_proportion=0.01):
-    """
-    Returns the raw number of a given metric:
-        'TP' = true positives,
-        'TN' = true negatives,
-        'FP' = false positives,
-        'FN' = false negatives
-
-    for a threshold of the results stated as a proportion:
-        x_proportion
-        where x_proportion = 0.01 represents 1.0%
-
-    """
-
-    # sort officers label list by risk score.
-    sorted_officer_labels = [x for (y, x) in sorted(zip(test_predictions, test_labels), reverse=True)]
-
-    # get index of officers to intervene on.
-    intervene_on = int(len(test_predictions) * x_proportion)
-    is_intervened = [0] * len(sorted_officer_labels)
-    is_intervened[:intervene_on] = [1] * (intervene_on)
-
-    # compute true and false positives and negatives.
-    true_positive = [1 if x == 1 and y == 1 else 0 for (x, y) in zip(is_intervened, sorted_officer_labels)]
-    false_positive = [1 if x == 1 and y == 0 else 0 for (x, y) in zip(is_intervened, sorted_officer_labels)]
-    true_negative = [1 if x == 0 and y == 0 else 0 for (x, y) in zip(is_intervened, sorted_officer_labels)]
-    false_negative = [1 if x == 0 and y == 1 else 0 for (x, y) in zip(is_intervened, sorted_officer_labels)]
-
-    TP = np.sum(true_positive)
-    TN = np.sum(true_negative)
-    FP = np.sum(false_positive)
-    FN = np.sum(false_negative)
-
-    # return Requested Metric
-    if metric == 'TP':
-        return TP
-    elif metric == 'TN':
-        return TN
-    elif metric == 'FP':
-        return FP
-    elif metric == 'FN':
-        return FN
+def generate_binary_at_x(test_predictions, x_value, unit='abs'):
+    if unit == 'pct':
+        cutoff_index = int(len(test_predictions) * (x_value/ 100.00))
     else:
-        pass
+        cutoff_index = x_value
+    test_predictions_binary = [1 if x < cutoff_index else 0 for x in range(len(test_predictions))]
+    return test_predictions_binary
 
 
-def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01, return_cutoff=False):
+def precision_at_x(test_labels, test_prediction_binary_at_x):
     """Return the precision at a specified percent cutoff
 
     Args:
@@ -80,41 +43,43 @@ def precision_at_x_proportion(test_labels, test_predictions, x_proportion=0.01, 
         test_predictions: prediction labels
         x_proportion: the percent of the prediction population to label. Must be between 0 and 1.
     """
-
-    # sort lists based on prediction scores
-    test_predictions, test_labels = zip(*sorted(zip(test_predictions, test_labels), reverse=True))
-    cutoff_index = int(len(test_predictions) * x_proportion)
-
-    test_predictions_binary = [1 if x < cutoff_index else 0 for x in range(len(test_predictions))]
-    cutoff_probability = test_predictions[cutoff_index-1]
-
     precision, _, _, _ = metrics.precision_recall_fscore_support(
-        test_labels, test_predictions_binary)
+        test_labels, test_prediction_binary_at_x)
     precision = precision[1]  # only interested in precision for label 1
 
-    if return_cutoff:
-        return precision, cutoff_probability
-    else:
-        return precision
+    return precision
 
 
-def recall_at_x_proportion(test_labels, test_predictions, x_proportion=0.01,
-                           return_cutoff=False):
-    # sort lists based on prediction scores
-    test_predictions, test_labels = zip(*sorted(zip(test_predictions, test_labels), reverse=True))
-    cutoff_index = int(len(test_predictions) * x_proportion)
-
-    test_predictions_binary = [1 if x < cutoff_index else 0 for x in range(len(test_predictions))]
-    cutoff_probability = test_predictions[cutoff_index-1]
-
+def recall_at_x(test_labels, test_prediction_binary_at_x):
     _, recall, _, _ = metrics.precision_recall_fscore_support(
-        test_labels, test_predictions_binary)
+        test_labels,test_prediction_binary_at_x)
     recall = recall[1]  # only interested in precision for label 1
 
-    if return_cutoff:
-        return recall, cutoff_probability
-    else:
-        return recall
+    return recall
+
+
+def confusion_matrix_at_x(test_labels, test_prediction_binary_at_x):
+    """
+    Returns the raw number of a given metric:
+        'TP' = true positives,
+        'TN' = true negatives,
+        'FP' = false positives,
+        'FN' = false negatives
+
+    """
+
+    # compute true and false positives and negatives.
+    true_positive = [1 if x == 1 and y == 1 else 0 for (x, y) in zip(test_prediction_binary_at_x, test_labels)]
+    false_positive = [1 if x == 1 and y == 0 else 0 for (x, y) in zip(test_prediction_binary_at_x, test_labels)]
+    true_negative = [1 if x == 0 and y == 0 else 0 for (x, y) in zip(test_prediction_binary_at_x, test_labels)]
+    false_negative = [1 if x == 0 and y == 1 else 0 for (x, y) in zip(test_prediction_binary_at_x, test_labels)]
+
+    TP = np.sum(true_positive)
+    TN = np.sum(true_negative)
+    FP = np.sum(false_positive)
+    FN = np.sum(false_negative)
+
+    return TP, TN, FP, FN
 
 
 def calculate_all_evaluation_metrics( test_label, test_predictions, test_predictions_binary, time_for_model_in_seconds=None ):
@@ -129,8 +94,8 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics = dict()
 
     # FORMAT FOR DICTIONARY KEY
-    # all_metrics["metric|parameter|comment"] OR
-    # all_metrics["metric|parameter"] OR
+    # all_metrics["metric|parameter|unit|comment"] OR
+    # all_metrics["metric|parameter|unit"] OR
     # all_metrics["metric||comment"] OR
     # all_metrics["metric"]
 
@@ -145,32 +110,26 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics["recall@|default"] = metrics.recall_score(test_label, test_predictions_binary)
     # all_metrics["time|seconds"] = time_for_model_in_seconds
 
+    # Sort
+    test_predictions_sorted, test_label_sorted = zip(*sorted(zip(test_predictions, test_label), reverse=True))
+    
     # Threshold Metrics by Percentage
-    percents = [0.01, 0.10, 0.25, 0.50, 1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0]
-    for percent in percents:
-
-        # Precision
-        all_metrics["precision@|{}".format(str(percent))] = precision_at_x_proportion(test_label, test_predictions,
-                                                                                      x_proportion=percent / 100.00)
-
-        # Recall
-        all_metrics["recall@|{}".format(str(percent))] = recall_at_x_proportion(test_label, test_predictions,
-                                                                                x_proportion=percent / 100.00)
-
-        # Raw counts of officers we are flagging correctly and incorrectly at various fractions of the test set.
-        all_metrics["false positives@|{}".format(str(percent))] = compute_result_at_x_proportion(test_label,
-                                                                                                 test_predictions, 'FP',
-                                                                                                 x_proportion=percent / 100.0)
-        all_metrics["false negatives@|{}".format(str(percent))] = compute_result_at_x_proportion(test_label,
-                                                                                                 test_predictions, 'FN',
-                                                                                                 x_proportion=percent / 100.0)
-        all_metrics["true positives@|{}".format(str(percent))] = compute_result_at_x_proportion(test_label,
-                                                                                                test_predictions, 'TP',
-                                                                                                x_proportion=percent / 100.0)
-        all_metrics["true negatives@|{}".format(str(percent))] = compute_result_at_x_proportion(test_label,
-                                                                                                test_predictions, 'TN',
-                                                                                                x_proportion=percent / 100.0)
-
+    parameters = {'pct': [0.01, 0.10, 0.25, 0.50, 1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0],
+               'abs': [10, 50, 100, 200, 500, 1000]}
+    for x_type, x_values in parameters.items():
+        for x_value in x_values:
+            test_predictions_binary_at_x = generate_binary_at_x(test_predictions_sorted, x_value, unit= x_type)
+            # Precision
+            all_metrics["precision@|{}_{}".format(str(x_value), x_type)] = precision_at_x(test_label_sorted, test_predictions_binary_at_x)
+            # Recall
+            all_metrics["recall@|{}_{}".format(str(x_value), x_type)] = recall_at_x(test_label_sorted, test_predictions_binary_at_x)
+            # Raw counts of officers we are flagging correctly and incorrectly at various fractions of the test set.
+            TP, TN, FP, FN = confusion_matrix_at_x(test_label_sorted,  test_predictions_binary_at_x)
+            all_metrics["true positives@|{}_{}".format(str(x_value), x_type)] = TP
+            all_metrics["true negatives@|{}_{}".format(str(x_value), x_type)] = TN
+            all_metrics["false positives@|{}_{}".format(str(x_value), x_type)] = FP
+            all_metrics["false negatives@|{}_{}".format(str(x_value), x_type)] = FN
+            
     return all_metrics
 
 # Comment: Not used right now needs to be checked as it contains cut-off errors
