@@ -4,6 +4,8 @@ import pdb
 import datetime
 import logging
 from joblib import Parallel, delayed
+from bson import json_util
+import json
 
 from triage.model_trainers import ModelTrainer
 from triage.predictors import Predictor
@@ -67,8 +69,8 @@ class RunModels():
 
     def train_models(self):
         # Metadata
-        train_metadata = {'start_time': self.temporal_split['train_start_date'],
-                          'end_time': self.temporal_split['train_end_date'],
+        train_metadata = {'start_time': datetime.datetime.strptime(self.temporal_split['train_start_date'], "%Y-%m-%d"),
+                          'end_time': datetime.datetime.strptime(self.temporal_split['train_end_date'], "%Y-%m-%d"),
                           'prediction_window': self.temporal_split['prediction_window'], 
                           'label_name': 'outcome', #"_".join(sorted(self.labels)),
                           'feature_names': self.features,
@@ -77,7 +79,14 @@ class RunModels():
                           'as_of_dates': self.temporal_split['train_as_of_dates']}
         
         # Inlcude metadata in config for db
-        self.misc_db_parameters['config']['train_metadata'] = train_metadata
+        self.misc_db_parameters['config']['train_metadata'] = {'start_time': self.temporal_split['train_start_date'],
+                                                               'end_time': self.temporal_split['train_end_date'],
+                                                               'prediction_window': self.temporal_split['prediction_window'],
+                                                               'label_name': 'outcome', #"_".join(sorted(self.labels)),
+                                                               'feature_names': self.features,
+                                                               'matrix_id': 'TRAIN_{}_{}'.format(self.temporal_split['train_start_date'][:4],
+                                                                                                 self.temporal_split['train_end_date'][:4]),
+                                                               'as_of_dates': self.temporal_split['train_as_of_dates']}
 
         # Load train matrix
         log.info('Load train matrix using as of dates: {}'.format(self.temporal_split['train_as_of_dates']))
@@ -113,8 +122,8 @@ class RunModels():
             # Load matrixes
             log.info('Load test matrix for as of date: {}'.format(test_date))
             test_df = self.load_matrix([test_date])
-            test_metadata_dict = {'start_time': test_date,
-                                  'end_time': test_date,
+            test_metadata_dict = {'start_time': datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                                  'end_time': datetime.datetime.strptime(test_date, "%Y-%m-%d"),
                                   'prediction_window': self.temporal_split['prediction_window'],
                                   'label_name': 'outcome', #"_".join(sorted(self.labels)),
                                   'feature_names': self.features,
