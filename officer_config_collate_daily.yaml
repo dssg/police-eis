@@ -245,11 +245,11 @@ parameters:
     learning_rate: [0.01, 0.1, 1, 10, 100]
     random_state: [2193]
   LogisticRegression:
-    C_reg: [ 0.001, 0.01, 1]  # [1, 10]
+    C: [ 0.001, 0.01, 1]  # [1, 10]
     penalty: ['l1', 'l2']
     random_state: [2193]
   SVM:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1]  # [1, 10]
+    C: [0.00001, 0.0001, 0.001, 0.01, 0.1]  # [1, 10]
     kernel: ['linear']
     random_state: [2193]
   GradientBoostingClassifier:
