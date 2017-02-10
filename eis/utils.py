@@ -49,10 +49,12 @@ def generate_temporal_info(config):
    
     temporal_info = [] 
     for prediction_window, update_window, officer_past_activity, \
-        train_size, features_frequency, test_frequency in product(    
+        train_size, features_frequency, test_frequency, test_time_ahead \
+             in product(    
                config['prediction_window'], config['update_window'],
                config['officer_past_activity_window'], config['train_size'],
-               config['features_frequency'], config['test_frecuency']):
+               config['features_frequency'], config['test_frecuency'],
+               config['test_time_ahead']):
 
         test_end_date = end_date
         # loop moving giving an update_window
@@ -60,12 +62,14 @@ def generate_temporal_info(config):
             test_start_date = test_end_date - relativedelta(**prediction_window_deltas[prediction_window])
             test_as_of_dates = as_of_dates_in_window(test_start_date,
                                                      test_end_date,
-                                                     test_frequency)
+                                                     test_frequency,
+                                                     test_time_ahead)
             train_end_date = test_start_date
             train_start_date = train_end_date - relativedelta(**train_size_deltas[train_size])
             train_as_of_dates = as_of_dates_in_window(train_start_date,
                                                       train_end_date,
-                                                      features_frequency)
+                                                      features_frequency,
+                                                       train_size)
             tmp_info = {'test_end_date': test_end_date.strftime(time_format),
                         'test_start_date': test_start_date.strftime(time_format),
                         'test_as_of_dates': test_as_of_dates,
@@ -89,7 +93,7 @@ def relative_deltas_conditions( times ):
     return time_arguments
 
 
-def as_of_dates_in_window( start_date, end_date,  window ):
+def as_of_dates_in_window(start_date, end_date, window, time_ahead='1y'):
     """
     Generate a list of as_of_dates between start_date and end_date 
     moving through window
@@ -97,12 +101,15 @@ def as_of_dates_in_window( start_date, end_date,  window ):
     #end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
     #start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
     # Generate condition for relative delta
-    window_delta = relative_deltas_conditions([ window] )
+    window_delta = relative_deltas_conditions([window])
+    time_ahead_delta = relative_deltas_conditions([time_ahead])
+
     as_of_dates = []
     while end_date > start_date:
         as_of_date = end_date
         end_date -= relativedelta(**window_delta[window])
-        as_of_dates.append(as_of_date)
+        if as_of_date <= start_date + relativedelta(**time_ahead_delta[time_ahead]):
+            as_of_dates.append(as_of_date)
    
     time_format = "%Y-%m-%d"
     as_of_dates_uniques = set(as_of_dates)
@@ -131,7 +138,7 @@ def generate_model_config( config ):
 
 
 if __name__ == '__main__':
-    config_file_name = 'config_test_difftest.yaml'
+    config_file_name = 'officer_config_collate_daily.yaml'
     config_file = read_config(config_file_name)
     # exp = generate_experiments(config_file)
     temporal_sets = generate_temporal_info(config_file['temporal_info'])
