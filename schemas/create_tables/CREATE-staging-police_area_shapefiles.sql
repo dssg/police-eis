@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.police_area_shapefiles; 
-CREATE UNLOGGED TABLE staging.police_area_shapefiles (
+CREATE  TABLE staging.police_area_shapefiles (
 	police_area_id                                                        serial,                --primary key for this area - unique for department_defined_id, area_level and valid_from_date combination
 	police_area_department_defined_id                                     varchar,            --id for the area as defined by the particular department
 	police_area_level_code                                                int,                --1 for coarsest shapefile level ... x for most granular level: PK formed by area_id and area_level together

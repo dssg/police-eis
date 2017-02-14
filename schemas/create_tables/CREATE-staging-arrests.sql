@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.arrests;
-CREATE UNLOGGED TABLE staging.arrests (
+CREATE TABLE staging.arrests (
   event_id                         INT PRIMARY KEY REFERENCES staging.events_hub (event_id) ON DELETE CASCADE, --Primary key
   department_defined_arrest_id     VARCHAR, --Native key
   department_defined_arrest_number INT, --Department internal arrest number

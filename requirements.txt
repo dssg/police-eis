@@ -11,3 +11,5 @@ SQLAlchemy==1.0.14
 scipy==0.14.1
 scikit-learn==0.17.1
 gunicorn==19.6.0
+collate==0.1.0
+imblearn==0.1.6

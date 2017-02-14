@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.use_of_force;
-CREATE UNLOGGED TABLE staging.use_of_force (
+CREATE  TABLE staging.use_of_force (
   event_id                                        INT REFERENCES staging.events_hub (event_id), --
   department_defined_use_of_force_id              VARCHAR, --Native key
   department_defined_internal_affairs_id          VARCHAR, --Internal affairs allegation id

@@ -1,57 +1,71 @@
 DROP SCHEMA IF EXISTS results CASCADE;
 CREATE SCHEMA results;
 
+-- model group table for uniquely identifying similar models run at different time periods
+CREATE TABLE results.model_groups
+(
+  model_group_id    SERIAL PRIMARY KEY,
+  model_type        TEXT,
+  model_parameters  JSONB,
+  prediction_window TEXT,
+  feature_list      TEXT []
+);
+
 -- model table containing each of the models run.
-CREATE TABLE results.models(
-    model_id                    									serial primary key,
-    run_time                    									timestamp,
-    batch_run_time              									timestamp,
-    model_type                                                      text,
-    model_parameters                                                jsonb,
-    model_comment                                                   text,
-    batch_comment                                                   text,
-    config 				        		                            jsonb,
-    pickle_file_path_name                                           text
+CREATE TABLE results.models (
+  model_id              SERIAL PRIMARY KEY,
+  model_group_id        INT REFERENCES results.model_groups (model_group_id),
+  run_time              TIMESTAMP,
+  batch_run_time        TIMESTAMP,
+  model_type            TEXT,
+  model_parameters      JSONB,
+  model_comment         TEXT,
+  batch_comment         TEXT,
+  config                JSONB,
+  pickle_file_path_name TEXT,
+  test                  BOOL
 );
 
 -- predictions corresponding to each model.
-CREATE TABLE results.predictions(
-    model_id                    								int references results.models(model_id),
-    unit_id                     								bigint,
-    unit_score                  								numeric,
-    label_value                 								int
+CREATE TABLE results.predictions (
+  model_id    INT REFERENCES results.models (model_id),
+  as_of_date  TIMESTAMP,
+  entity_id   BIGINT,
+  score       NUMERIC,
+  label_value INT,
+  rank_abs    INT,
+  rank_pct    REAL
 );
 
 -- evaluation table containing metrics for each of the models run.
-CREATE TABLE results.evaluations(
-    model_id                   	            int references results.models(model_id),
-    metric				                    text,
-    parameter	           		            text,
-    value                                   numeric,
-    comment						            text
+CREATE TABLE results.evaluations (
+  model_id  INT REFERENCES results.models (model_id),
+  metric    TEXT,
+  parameter TEXT,
+  value     NUMERIC,
+  comment   TEXT
 );
 
 -- data table for storing pickle blobs.
-CREATE TABLE results.data(
-    model_id                    									int references results.models(model_id),
-    pickle_blob                 									bytea
+CREATE TABLE results.data (
+  model_id    INT REFERENCES results.models (model_id),
+  pickle_blob BYTEA
 );
 
-
 -- feature_importance table for storing a json with feature importances
-CREATE TABLE results.feature_importances(
-    model_id                                                                                            int references results.models(model_id),
-    feature                                                                                             text,
-    feature_importance                                                                                  numeric
+CREATE TABLE results.feature_importances (
+  model_id           INT REFERENCES results.models (model_id),
+  feature            TEXT,
+  feature_importance NUMERIC
 );
 
 -- individual feature importance
-CREATE TABLE results.individual_importances(
-    model_id                                                                                            int references results.models(model_id),
-    unit_id                                                                                             bigint,
-    risk_1                                                                                              text,
-    risk_2                                                                                              text,
-    risk_3                                                                                              text,
-    risk_4                                                                                              text,
-    risk_5                                                                                              text
+CREATE TABLE results.individual_importances (
+  model_id INT REFERENCES results.models (model_id),
+  unit_id  BIGINT,
+  risk_1   TEXT,
+  risk_2   TEXT,
+  risk_3   TEXT,
+  risk_4   TEXT,
+  risk_5   TEXT
 );

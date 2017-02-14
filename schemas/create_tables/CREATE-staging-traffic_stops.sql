@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.traffic_stops;
-CREATE UNLOGGED TABLE staging.traffic_stops (
+CREATE  TABLE staging.traffic_stops (
   event_id                       INT PRIMARY KEY REFERENCES staging.events_hub (event_id), --Primary key
   department_defined_stop_id     VARCHAR, --stop id from the department
   stop_type_code                 INT, --type of stop
