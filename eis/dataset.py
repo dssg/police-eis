@@ -205,8 +205,8 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
                                             "label_value": unit_labels } )
     
     # Add rank columns
-    dataframe_for_insert['rank_abs'] = dataframe_for_insert['unit_score'].rank(method='dense', ascending=False)
-    dataframe_for_insert['rank_pct'] = dataframe_for_insert['unit_score'].rank(method='dense', ascending=False, pct=True)
+    dataframe_for_insert['rank_abs'] = dataframe_for_insert['score'].rank(method='dense', ascending=False)
+    dataframe_for_insert['rank_pct'] = dataframe_for_insert['score'].rank(method='dense', ascending=False, pct=True)
 
     dataframe_for_insert.to_sql( "predictions", engine, if_exists="append", schema="results", index=False )
 
