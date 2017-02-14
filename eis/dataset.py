@@ -199,9 +199,9 @@ def store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predicti
     # append data into predictions table. there is probably a faster way to do this than put it into a
     # dataframe and then use .to_sql but this works for now.
     dataframe_for_insert = pd.DataFrame( {  "model_id": this_model_id,
+                                            "entity_id": unit_id_test,
+                                            "score": unit_predictions,
                                             "as_of_date": my_exp_config['test_end_date'],
-                                            "unit_id": unit_id_test,
-                                            "unit_score": unit_predictions,
                                             "label_value": unit_labels } )
     
     # Add rank columns
