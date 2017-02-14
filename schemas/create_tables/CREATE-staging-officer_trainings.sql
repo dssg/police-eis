@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.officer_trainings; 
-CREATE UNLOGGED TABLE staging.officer_trainings (
+CREATE  TABLE staging.officer_trainings (
 	training_id                                                           int,                --auto generated id for the specific instance of training
 	officer_id                                                            int references staging.officers_hub(officer_id) on delete cascade,                --officer id
 	training_type_code                                                    int,                --code corresponding to type of training

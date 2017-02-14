@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.officer_characteristics; 
-CREATE UNLOGGED TABLE staging.officer_characteristics (
+CREATE  TABLE staging.officer_characteristics (
 	officer_id                                                            int references staging.officers_hub(officer_id) on delete cascade,                --officer id
 	weight_pounds                                                         float,              --weight in pounds
 	height_inches                                                         float,              --height in inches

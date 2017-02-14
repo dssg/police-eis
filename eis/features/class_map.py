@@ -6,8 +6,8 @@ import logging
 import sys
 import datetime
 
-from . import officers
-from . import dispatches
+#from . import officers
+#from . import dispatches
 
 log = logging.getLogger(__name__)
 
@@ -39,6 +39,18 @@ def find_categorical_features(feature_list):
 
     return categorical_features
 
+
+def lookup_block(block_name, module, **kwargs):
+
+    # Read in the block class
+    try:
+        block_class = getattr(module, block_name)
+    except NameError:
+        log.info("Unexpected block: {}".format(block_name))
+     
+    # Instantiate the block class
+    block = block_class(**kwargs)
+    return block
 
 def lookup(feature_name, unit, **kwargs):
     

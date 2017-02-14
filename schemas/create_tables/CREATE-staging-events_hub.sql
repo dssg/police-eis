@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.events_hub CASCADE;
-CREATE UNLOGGED TABLE staging.events_hub (
+CREATE  TABLE staging.events_hub (
   event_id                    SERIAL PRIMARY KEY, -- unique id for the event
   event_chain_id              INT, -- id for the set of events that are linked together
   source_event_id             INT, -- unique id in the source table of this event.

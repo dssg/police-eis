@@ -46,11 +46,10 @@ def main(config_file_name, args):
         log.info("Re-building features...")
 
         # Create the features and labels table.
-        populate_features.create_features_table(config, table_name)
         populate_labels.create_labels_table(config, config['officer_label_table_name'])
 
         # Populate the featuress  and labels table
-        populate_features.populate_features_table(config, table_name)
+        populate_features.populate_features_table(config, table_name, config["schema_feature_blocks"])
         populate_labels.populate_labels_table(config, config['officer_label_table_name'])
 
         log.info('Done creating features table')
@@ -81,25 +80,26 @@ def main(config_file_name, args):
         model_time_in_seconds = "%.3f" % (end-start)
 
         if config['unit'] == 'officer':
-            to_save = {"test_labels": my_exp.exp_data["test_y"],
+            
+            to_save = {
+                       "train_x": my_exp.exp_data["train_x"],
+                       "train_y": my_exp.exp_data["train_y"],
+                       "test_x": my_exp.exp_data["test_x"],
+                       "test_y": my_exp.exp_data["test_y"], 
                        "test_predictions": result_y,
-                       "test_predictions_binary" : result_y_binary,
                        "config": my_exp.config,
                        "officer_id_train": my_exp.exp_data["train_x_index"],
                        "officer_id_test": my_exp.exp_data["test_x_index"],
                        "features": my_exp.exp_data["names"],
                        "timestamp": timestamp,
                        "parameters": my_exp.config["parameters"],
-                       "train_end_date": my_exp.exp_data["train_end_date"],
-                       "officer_past_activity_window": my_exp.exp_data["officer_past_activity_window"],
-                       "test_end_date": my_exp.exp_data["test_end_date"],
                        "feature_importances": importances,
                        "feature_importances_names": my_exp.exp_data["features"],
                        "aggregation": groupscores,
                        "eis_baseline": confusion_matrices,
                        "modelobj": modelobj,
                        "individual_importances": individual_imps,
-                       "time_for_model_in_seconds": model_time_in_seconds }
+                       "time_for_model_in_seconds": model_time_in_seconds}
 
         elif config['unit'] == 'dispatch':
             to_save = {"test_labels": my_exp.exp_data["test_y"],
@@ -128,21 +128,14 @@ def main(config_file_name, args):
         else:
             user_batch_model_comment = ""
 
-        # pickle all the model data (everything in the to_save dict)
-        model_path = os.path.join(config["root_path"], config["department_unit"], config["directory"], config["pkl_prefix"])
-        model_filename = "{}_{}.pkl".format(model_path, timestamp)
-
         # store the pickle data to disk .
         log.debug("storing model information and data")
         if config["store_model_object"]:
-            pickle_results(model_filename, to_save)
-            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_file=model_filename)
+            paths = dataset.store_matrices(to_save, config)
+            log.debug(paths)
+            dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, paths)
         else: 
             dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config)
-
-        # To store in results.data:
-        #    model_data_pickle_object = pickle.dumps( to_save )
-        #    dataset.store_model_info( timestamp, user_batch_model_comment, batch_timestamp, my_exp.config, pickle_obj=model_data_pickle_object)
 
         # Store information about this experiment into the results schema.
         log.debug("storing predictions information")
@@ -150,7 +143,7 @@ def main(config_file_name, args):
            store_as_csv = True
         else:
             store_as_csv = False
-        dataset.store_prediction_info( timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, store_as_csv )
+        dataset.store_prediction_info(timestamp, unit_id_train, unit_id_test, unit_predictions, unit_labels, my_exp.config)
 
         #Insert Evaluation Metrics Into Table
         log.debug("storing evaluation metric information")
@@ -171,7 +164,7 @@ def main(config_file_name, args):
             except:
                 comment = None
 
-            dataset.store_evaluation_metrics( timestamp, evaluation, metric, metric_parameter, comment )
+            dataset.store_evaluation_metrics( timestamp, evaluation, metric, my_exp.config['test_end_date'], metric_parameter, comment )
 
         #Insert Feature Importaces
         log.debug("Storing feature importances")

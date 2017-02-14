@@ -88,7 +88,7 @@ class CreateAllStagingTables(luigi.WrapperTask):
             name = name.split('.sql')
             table_name = name[0]
             yield CreateTable(script=os.path.join(self.create_tables_directory, f), table=table_name, schema=self.schema)
-
+          
 class PopulateLookupTables(pg_tools.PostgresTask):
     table_file = luigi.Parameter()
     schema = luigi.Parameter(default="")
@@ -122,6 +122,30 @@ class PopulateLookupTables(pg_tools.PostgresTask):
 
             table_df.to_sql(table_name, self.pgw.engine, index=False, schema=self.schema, if_exists='append')
             print('done with {}'.format(table_name))
+
+
+class PopulateStoredProcedures(pg_tools.PostgresTask):
+    script = luigi.Parameter(default="./create_stored_procedures/load_common_stored_procedures.sql")
+    schema = luigi.Parameter(default="")
+
+    def curr_schema_name(self):
+        """
+        Returns the current schema name to use
+        """
+        if self.schema != "":
+            return (self.schema)
+        else:
+            return (schema_in_file)
+
+
+    def run(self):
+        # a bit of a hack with sed to replace schema names, but if the file is
+        # read into python, there is escape character terribleness that breaks
+        # everything.
+        shell_output = self.pgw.shell(
+            "sed 's/{}\./{}\./g' {} | psql".format(schema_in_file, self.curr_schema_name(), self.script))
+        print(shell_output)
+
 
 
 if __name__ == '__main__':

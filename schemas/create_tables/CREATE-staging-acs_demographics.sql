@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.acs_demographics; 
-CREATE UNLOGGED TABLE staging.acs_demographics (
+CREATE TABLE staging.acs_demographics (
 	acs_area_id                                                           varchar,                --id for this particular shapefile: FK
 	valid_start_date                                                      date,               --the date from which the demographic data is correct
 	valid_end_date                                                        date,               --

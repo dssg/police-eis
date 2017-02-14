@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.officer_outside_employment; 
-CREATE UNLOGGED TABLE staging.officer_outside_employment (
+CREATE  TABLE staging.officer_outside_employment (
 	officer_id                                                            int references staging.officers_hub(officer_id) on delete cascade,                --officer id
 	external_job_code                                                     int,                --job that the officer had outside of the police force. e.g. security guard
 	date_time                                                             timestamp,          --datetime that the job started

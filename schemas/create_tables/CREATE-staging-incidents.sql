@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.incidents;
-CREATE UNLOGGED TABLE staging.incidents (
+CREATE  TABLE staging.incidents (
   event_id                                   INT PRIMARY KEY REFERENCES staging.events_hub (event_id) ON DELETE CASCADE, --links to event_hub
   investigation_id                           INT, --auto generated id for the investigation
   department_defined_investigation_id        TEXT, -- the investigation number from the department
