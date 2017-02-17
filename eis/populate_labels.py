@@ -54,15 +54,16 @@ def create_officer_labels_table(config, table_name="officer_labels"):
     # Create and execute a query to create a table with a column for each of the labels.
     log.info("Creating new officer feature table: {}...".format(table_name))
     create_query = (    "CREATE TABLE features.{} ( "
-                        "   {}              int, "
-                        "   outcome_timestamp      timestamp, "
-                        "   outcome       text); "
+                        "   {}                   int, "
+                        "   event_datetime       timestamp, "
+                        "   outcome_datetime     timestamp, "
+                        "   outcome              text); "
                         .format(
                             table_name,
                             id_column))
 
     engine.execute(create_query)
-    query_index = ("CREATE INDEX ON features.{} (outcome_timestamp, officer_id)".format(table_name))
+    query_index = ("CREATE INDEX ON features.{} (outcome_datetime, officer_id)".format(table_name))
     engine.execute(query_index)
 
 def populate_officer_labels_table(config, table_name):
@@ -82,31 +83,27 @@ def populate_officer_labels_table(config, table_name):
     query_unknown   = "grouped_incident_type_code = 19 "
 
     labels_rules = {
-         "ForceAllegations": {"query": query_force, "timestamp": 'report_date'},
-         "SustainedForceAllegations": {"query": query_force + " AND " + query_sustained, "timestamp": 'date_of_judgment'},
-         #"SustainedandUnknownForceAllegations": {"query": query_force + " AND " + query_sustained_and_unknown_outcome, "timestamp": 'date_completed'},
+         "ForceAllegations": {"query": query_force, "datetime": 'report_date'},
+         "SustainedForceAllegations": {"query": query_force + " AND " + query_sustained, "datetime": 'date_of_judgment'},
          #"all_allegations": query_all,
-         "SustainedAllegations": {"query": query_sustained, "timestamp": 'date_of_judgment'},
-         #"SustainedandUnknownOutcomeAllegations": {"query": query_sustained_and_unknown_outcome, "timestamp": 'date_completed'},
-         "MajorAllegations": {"query": query_major, "timestamp": 'report_date'},
-         "SustainedMajorAllegations": {"query": query_major + " AND " + query_sustained, "timestamp": 'date_of_judgment'},
-         #"SustainedUnknownMajorAllegations": {"query": query_major + " AND " + query_sustained_and_unknown_outcome, "timestamp": 'date_completed'},
-         "MinorAllegations": {"query": query_minor, "timestamp": 'report_date'},
-         "SustainedMinorAllegations": {"query": query_minor + " AND " + query_sustained, "timestamp": 'date_of_judgment'},
-         #"SustainedUnkownMinorAllegations": query_minor + " AND " + query_sustained_and_unknown_outcome,
-         "UnknownAllegations": {"query": query_unknown, "timestamp": 'report_date'},
-         "SustainedUnknownAllegation": {"query": query_unknown + " AND " + query_sustained, "timestamp": 'date_of_judgment'},
-         #"SustainedUnknownUnknownAllegations": query_unknown + " AND " + query_sustained_and_unknown_outcome
+         "SustainedAllegations": {"query": query_sustained, "datetime": 'date_of_judgment'},
+         "MajorAllegations": {"query": query_major, "datetime": 'report_date'},
+         "SustainedMajorAllegations": {"query": query_major + " AND " + query_sustained, "datetime": 'date_of_judgment'},
+         "MinorAllegations": {"query": query_minor, "datetime": 'report_date'},
+         "SustainedMinorAllegations": {"query": query_minor + " AND " + query_sustained, "datetime": 'date_of_judgment'},
+         "UnknownAllegations": {"query": query_unknown, "datetime": 'report_date'},
+         "SustainedUnknownAllegation": {"query": query_unknown + " AND " + query_sustained, "datetime": 'date_of_judgment'},
                  }
  
 
     query_list = []
     for label, label_rule in labels_rules.items():
         query_list.append("SELECT officer_id, "
-                        "        {0} as outcome_timestamp, "
+                        "        {0} as outcome_datetime, "
+                        "        event_datetime, "
                         "       '{1}' as outcome "
                         "FROM staging.incidents "
-                        "WHERE {2} ".format(label_rule['timestamp'],
+                        "WHERE {2} ".format(label_rule['datetime'],
                                             label, 
                                             label_rule['query']))
 
@@ -114,7 +111,8 @@ def populate_officer_labels_table(config, table_name):
  
     insert_query = ( "INSERT INTO features.{0}  "
               "         ( officer_id, "
-              "           outcome_timestamp, "
+              "           event_datetime, "
+              "           outcome_datetime, "
               "           outcome ) "
               "         {1}  "
               .format(table_name, query_join))
