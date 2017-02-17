@@ -495,8 +495,9 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
                     """           SELECT 1 as outcome """
                     """           FROM features.{3} l """
                     """           WHERE f.officer_id = l.officer_id """
-                    """                AND l.outcome_timestamp - INTERVAL '{4}' <= f.as_of_date """
-                    """                AND l.outcome_timestamp > f.as_of_date """
+                    """                AND l.outcome_datetime - INTERVAL '{4}' <= f.as_of_date """
+                    """                AND l.outcome_datetime > f.as_of_date """
+                    """                AND l.event_datetime > f.as_of_date """
                     """                AND outcome in ({1}) LIMIT 1"""
                     """                 ) AS l ON TRUE """
                     """     WHERE f.as_of_date > '{5}'::date AND f.as_of_date <= '{6}' """
@@ -549,6 +550,7 @@ def get_dataset(start_date, end_date, prediction_window, officer_past_activity_w
 
     all_data = all_data.set_index('officer_id')
     log.debug('length of data_set: {}'.format(len(all_data)))
+    log.debug('number of officers with adverse incident: {}'.format( all_data['outcome'].sum() ))
     return all_data[features_list], all_data.outcome
 
 def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):
