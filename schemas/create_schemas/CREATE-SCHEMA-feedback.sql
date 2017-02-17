@@ -25,9 +25,7 @@ CREATE TABLE feedback.alert_results (
     model_id                                                                                            int references results.models(model_id), --should be a foreign key to results.models table
     entity_id												BIGINT,
     as_of_date												TIMESTAMP,
-    "EISAutoNo"												INT,
-    "EISAdminNo"											INT,
-    "InterventionNo"											INT,						
+    intervention_id                                                                                     int, -- unique identifier for the intervention provided 
     supervisor_id                                                                                       int, -- id of the supervisor/person in charge of giving a result
     result_time                                                                                         timestamp, -- timestamp when the result of the alter was assigned
     intervention                                                                                        bool, -- if an intervention was assigned or not
@@ -35,4 +33,4 @@ CREATE TABLE feedback.alert_results (
     reason_no_intervention                                                                              text -- reasons for not assigning an intervention
 );
 
-ALTER TABLE feedback.alert_results ADD CONSTRAINT alert_results_eis_unique UNIQUE ("EISAutoNo","EISAdminNo","InterventionNo");
+ALTER TABLE feedback.alert_results ADD CONSTRAINT alert_results_eis_unique UNIQUE (intervention_id);
