@@ -3,7 +3,7 @@ CREATE  TABLE staging.complaints (
   event_id                          INT  REFERENCES staging.events_hub (event_id), -- This is not a primary key: event that the complaint maps to in the events hub. It is possible that an officer violated multiple directives at once which will results in an row by directive violated. -> TODO fix
   complaint_id                      INT, --the unique id of the complaint. If there are multiple officers for the same complaint, they will share the same id. The pk of this table is the combination of complaint_id and accused_officer_id
   accusing_officer_id               INT, --the officer who is doing the complaining, if internal
-  grouped_incident_type_code        INT, --the type of incident being complained about e.g. uniform, profanity
+  complaint_type                    TEXT, --the type of incident being complained about e.g. uniform, profanity
   complaint_narrative               TEXT, --raw text describing the complaint
   datetime                          DATE, --the datetime the complaint was filed
   department_defined_complaint_id   VARCHAR, --mapping to the original complaint id
