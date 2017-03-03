@@ -374,6 +374,10 @@ lookup_field_interview_types:
         - [0, 'fi', 'Field Interviews']
         - [1, 'terry', 'Terry Stop Type']
         - [2, 'home', 'Home Interview']
+        - [3, 'raid', 'Raid and Search']
+        - [4, 'k9', 'k9 report']
+        - [5, 'bomb', 'Bomb Squad Report']
+
 
 lookup_days_of_week:
     columns: ['code', 'value', 'description']
