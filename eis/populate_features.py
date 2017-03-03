@@ -133,6 +133,12 @@ def join_feature_table(engine, list_prefixes, schema, features_table_name):
                                                                                 query)
         engine.execute(create_table_query)
 
+        create_as_of_date_index = """CREATE INDEX on features."{0}" (as_of_date);  """.format(features_table_name)
+        engine.execute(create_as_of_date_index)
+
+        create_officer_date_index = """CREATE INDEX on features."{0}" (as_of_date, officer_id);  """.format(features_table_name)
+        engine.execute(create_officer_date_index)
+
 
 def populate_officer_features_table(config, table_name, schema, engine):
     """

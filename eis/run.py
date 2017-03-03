@@ -21,7 +21,7 @@ from .run_models import RunModels
 
 log = logging.getLogger(__name__)
 
-def main(config_file_name, args):
+def main(config_file_name, labels_config_file, args):
 
     now = datetime.datetime.now().strftime('%d-%m-%y_%H:%M:S')
     log_filename = 'logs/{}.log'.format(now)
@@ -30,20 +30,11 @@ def main(config_file_name, args):
                         handlers=[logging.FileHandler(log_filename), logging.StreamHandler()])
     log = logging.getLogger('eis')
 
+    # read config files
+    config = read_yaml(config_file_name)
+    labels_config = read_yaml(labels_config_file)
 
-    # Read config
-    try:
-        with open(config_file_name, 'r') as f:
-            config = yaml.load(f)
-        log.info("Loaded experiment file: {}".format(config_file_name))
-    except:
-        log.exception("Failed to get experiment configuration file!")
-        raise
-
-    else:
-        table_name = config["officer_feature_table_name"]
-
-    log.debug("feature table name: {}".format(config["officer_feature_table_name"]))
+    log.debug("feature table name: {}".format(config['officer_feature_table_name']))
 
     # If asked to generate features, then do that and stop.
     if args.buildfeatures:
@@ -54,17 +45,14 @@ def main(config_file_name, args):
         populate_labels.create_labels_table(config, config['officer_label_table_name'])
 
         # Populate the featuress  and labels table
-        populate_features.populate_features_table(config, table_name, config["schema_feature_blocks"])
-        populate_labels.populate_labels_table(config, config['officer_label_table_name'])
+        populate_features.populate_features_table(config, config['officer_feature_table_name'], config["schema_feature_blocks"])
+        populate_labels.populate_labels_table(config, labels_config, config['officer_label_table_name'])
 
         log.info('Done creating features table')
         sys.exit()
 
-    # features to use
-    features = officer.get_officer_features_table_columns(config)
-    log.info('features: {}'.format(features))
-    # Labels
-    labels =  [ key for key in config["officer_labels"] if config["officer_labels"][key] == True ]
+    ## TODO check from here on
+    all_experiments = experiment.generate_models_to_run(config, labels_config)
 
     # modify models_config
     grid_config = utils.generate_model_config(config)
@@ -120,10 +108,20 @@ def apply_train_test(temporal_set, **kwargs):
     db_engine.dispose() 
     return None
 
+def read_yaml(yaml_file):
+    try:
+        with open(yaml_file, 'r') as f:
+            config = yaml.load(f)
+            #log.info("Loaded experiment file: {}".format(config_file_name))
+        return config
+    except:
+        #log.exception("Failed to get experiment configuration file!")
+        raise
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", type=str, help="pass your config", default="default.yaml")
-    parser.add_argument( "-b", "--buildfeatures", help="build the features and stop", action='store_true' )
+    parser.add_argument("--config", type=str, help="pass your config", default="default.yaml")
+    parser.add_argument("--labels", type=str, help="pass your labels config", default="labels.yaml")
+    parser.add_argument("-b", "--buildfeatures", help="build the features and stop", action='store_true' )
     args = parser.parse_args()
-    main(args.config, args)
+    main(args.config, args.labels, args)
