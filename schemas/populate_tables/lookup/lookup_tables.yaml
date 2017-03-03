@@ -361,7 +361,7 @@ lookup_dispatch_types:
         - [21, 'suicide', 'Suicidal Person / Report']
         - [22, 'suspicious', 'Suspicious person']
         - [23, 'theft', 'Theft / burlary / robbery / holdup']
-        - [24, 'traffic', 'Traffic'
+        - [24, 'traffic', 'Traffic' ]
         - [25, 'want_officer', 'Want officer']
         - [26, 'prisioner_escapee', 'Prisioner Escapee']
         - [27, 'gang_activity', 'Gang activity']
