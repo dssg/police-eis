@@ -20,13 +20,6 @@ log = logging.getLogger(__name__)
 time_format = "%Y-%m-%d %X"
 
 
-# magic loops for generating certain conditions
-class AllegationSeverity(Enum):
-    major = "grouped_incident_type_code in ( 0, 2, 3, 4, 8, 9, 10, 11, 17, 20 )"
-    minor = "grouped_incident_type_code in ( 1, 6, 16, 18, 12, 7, 14 )"
-    unknown = ""
-
-
 class AllegationOutcome(Enum):
     sustained = "final_ruling_code in (1, 4, 5 )"
     unsustained = ""
@@ -206,9 +199,16 @@ class IncidentsReported(FeaturesBlock):
                                                prefix='InterventionsOfType'), ['sum']),
 
             'IncidentsOfType': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name='grouped_incident_type_code',
-                                               lookup_table='lookup_incident_types',
-                                               prefix='IncidentsOfType'), ['sum']),
+                {"use_of_force": "department_defined_policy_type = 'Use Of Force')::int" ,
+                 "tdd": "department_defined_policy_type = 'TDD')::int",
+                 "complaint": "department_defined_policy_type = 'Complaint')::int",
+                 "pursuit": "department_defined_policy_type = 'Pursuit')::int",
+                 "dof": "department_defined_policy_type = 'DOF')::int",
+                 "raid_search": "department_defined_policy_type = 'Raid And Search')::int",
+                 "injury": "department_defined_policy_type = 'Injury')::int",
+                 "icd": "department_defined_policy_type = 'ICD')::int",
+                 "nfsi": "department_defined_policy_type = 'NFSI')::int",
+                 "accident": "department_defined_policy_type = 'Accident')::int"}, ['sum', 'avg']),
 
             'ComplaintsTypeSource': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='origination_type_code',
@@ -225,19 +225,6 @@ class IncidentsReported(FeaturesBlock):
 
             'AllAllegations': collate.Aggregate(
                 {"AllAllegations": "number_of_allegations"}, ['sum']),
-
-            'IncidentsOfSeverity': collate.Aggregate(
-                {"IncidentsOfSeverity_major": "({})::int".format(AllegationSeverity['major'].value),
-                 "IncidentsOfSeverity_minor": "({})::int".format(AllegationSeverity['minor'].value)}, ['sum']),
-
-            'IncidentsSeverityUnknown': collate.Aggregate(
-                {"IncidentsSeverityUnknown_major": "({0} and {1})::int".format(
-                    AllegationSeverity['major'].value, AllegationOutcome['unknown'].value),
-                    "IncidentsSeverityUnknown_minor": "({} and {})::int".format(
-                        AllegationSeverity['minor'].value, AllegationOutcome['unknown'].value)}, ['sum', 'avg']),
-
-            'Complaints': collate.Aggregate(
-                {"Complaints": "(origination_type_code is not null)::int"}, ['sum']),
 
         }
 
@@ -269,19 +256,7 @@ class IncidentsCompleted(FeaturesBlock):
             'IncidentsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
                                                lookup_table='lookup_final_rulings',
-                                               prefix='IncidentsByOutcome'), ['sum']),
-
-            'MajorIncidentsByOutcome': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
-                                               lookup_table='lookup_final_rulings',
-                                               fix_condition=AllegationSeverity['major'].value,
-                                               prefix='MajorIncidentsByOutcome'), ['sum']),
-
-            'MinorIncidentsByOutcome': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
-                                               lookup_table='lookup_final_rulings',
-                                               fix_condition=AllegationSeverity['minor'].value,
-                                               prefix='MinorIncidentsByOutcome'), ['sum']),
+                                               prefix='IncidentsByOutcome'), ['sum', 'avg']),
 
         }
 
@@ -533,7 +508,7 @@ class Dispatches(FeaturesBlock):
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'DispatchType': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name='dispatch_type_code',
+                self._lookup_values_conditions(engine, column_code_name='dispatch_final_type_code',
                                                lookup_table='lookup_dispatch_types',
                                                prefix='DispatchType'), ['sum']),
 

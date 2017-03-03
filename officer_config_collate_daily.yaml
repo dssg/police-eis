@@ -79,16 +79,11 @@ feature_blocks:
         InterventionsOfType: True # time-gated, The number of interventions of each type an officer has had
         AllAllegations: True # time-gated, Number of allegations made against an officer
         IncidentsOfType: True # time-gated, The number of reported incidents incidents of certain type
-        IncidentsOfSeverity: True # time-gated, The number of all reported allegations, mayor or minor
-        IncidentsSeverityUnknown: True # time-gated, The number of all reported allegations, mayor or minor with unknown outcome
         ComplaintsTypeSource: True # time-gated, Number of complaints by source an officer had
-        Complaints: True # time-gated, Number of complaints an officer had
         DaysSinceLastAllegation: True # The number of days since the last allegation was made against the officer.
 
     IncidentsCompleted:
         IncidentsByOutcome: True # time-gated, The number of incidents by type of outcome
-        MajorIncidentsByOutcome:  True # time-gated, The number of major incidents by type of outcome
-        MinorIncidentsByOutcome: True # time-gated, The number of minor incidents by type of outcome
         DaysSinceLastSustainedAllegation: True # time-gated, The number of days since the last sustained allegation was made against the officer
 
     OfficerShifts:
