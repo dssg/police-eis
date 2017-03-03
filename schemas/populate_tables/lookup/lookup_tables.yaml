@@ -400,5 +400,6 @@ lookup_field_interview_outcomes:
     columns: ['code', 'value', 'description']
     rows:
         - [0, 'arrests', 'Arrests']
-        - [3, 'ban', 'Ban']
-        - [4, 'none', 'None']
+        - [1, 'ban', 'Ban']
+        - [2, 'detained', 'Detained']
+        - [3, 'none', 'None']
