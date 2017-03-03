@@ -73,13 +73,13 @@ Change `staging_dev` to an alternate name if desired, and from the terminal run:
 
 To generate features, set the configuration of features (and labels) in a configuration file that has the same form  as `example_officer_config.yaml`. And then from the `police-eis` directory, run:
 
-`python -m eis.run [configuration file name] --buildfeatures`
+`python -m eis.run --config [configuration file name] --labels [labels configuration file name] --buildfeatures`
 
 ### Features to results
 
 Once the features have been built, you can run all of the models with:
 
-`python -m eis.run [configuration file name]`
+`python -m eis.run --config [configuration file name] --labels [labels configuration file name]`
 
 ### Model interrogation, plotting, and analysis
 

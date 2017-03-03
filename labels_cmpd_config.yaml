@@ -1,0 +1,140 @@
+Major:
+  COLUMN: department_defined_policy_type
+  DATE_COLUMN: event_datetime
+  VALUES:
+   - Accident
+   - Use of Force
+   - Complaint:
+       COLUMN: department_defined_policy_violated
+       DATE_COLUMN: event_datetime
+       VALUES:
+           - 22A1
+           - 22A2
+           - 22A3
+           - 22B
+           - 22C
+           - 22D
+           - 22E
+           - 22F
+           - 22G
+           - 23A
+           - 35A
+           - 35C2
+           - 35C3
+           - 35C4
+           - 35C5
+           - 37A
+           - 29
+           - 39
+           - 25B
+           - 41A
+           - 41B
+           - 41C
+           - 41D
+           - 31
+           - 36
+           - 14A
+           - 14B
+           - 14C
+           - 24D
+           - 23B1
+           - 23B2
+           - 23C
+           - 4A
+           - 11
+           - 17A
+           - 17B
+           - 18 A
+           - 18 B
+           - 40B
+           - 35B
+           - 35C1
+           - 38A
+           - 38B
+           - 38C
+           - 24C
+           - 6A
+           - 6B
+           - 6C
+           - 5A
+           - 5B
+           - 5C
+           - 28A
+           - 12
+           - 24A
+           - 32B
+
+Minor:
+  COLUMN: department_defined_policy_type
+  DATE_COLUMN: event_datetime
+  VALUES:
+  - Complaint:
+      COLUMN: department_defined_policy_violated
+      DATE_COLUMN: event_datetime
+      VALUES:
+         - 19A
+         - 19B
+         - 3
+         - 13
+         - 15
+         - 16
+         - 42A
+         - 42B
+         - 42C
+         - 42D
+         - 25A
+         - 25C
+         - 4B
+         - 26A
+         - 28B
+         - 40C
+         - 34B
+         - 34A
+         - 25D
+         - 24B
+         - 30A1
+         - 30A2
+         - 30B
+         - 1D
+         - 10A
+         - 10B
+         - 10C
+         - 10D
+         - 10E
+         - 10F
+         - 10G
+         - 10H
+         - 26B
+         - 8A
+         - 8C
+         - 9A1
+         - 9A2
+         - 9B
+         - 9C
+         - 27
+         - 33
+         - 32A
+         - 37B
+         - 7A
+         - 7B
+         - 8B
+         - 40A
+         - 40D
+         - 1A
+         - 1B
+         - 1C
+         - 21B
+         - 2
+         - 20
+         - 21A
+         - 21C
+         - 7C
+
+Sustained:
+  COLUMN: final_ruling_code
+  DATE_COLUMN: date_of_judgment 
+  VALUES:
+    - 5 #sustained
+    - 4 #unjustified
+    - 1 #preventable
+ 

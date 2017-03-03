@@ -15,7 +15,7 @@ from . import setup_environment, models, scoring
 from . import dataset, experiment
 from . import populate_features, populate_labels
 
-def main(config_file_name, args):
+def main(config_file_name, labels_config_file, args):
 
     now = datetime.datetime.now().strftime('%d-%m-%y_%H:%M:S')
     log_filename = 'logs/{}.log'.format(now)
@@ -24,21 +24,11 @@ def main(config_file_name, args):
                         handlers=[logging.FileHandler(log_filename), logging.StreamHandler()])
     log = logging.getLogger('eis')
 
-    try:
-        with open(config_file_name, 'r') as f:
-            config = yaml.load(f)
-        log.info("Loaded experiment file: {}".format(config_file_name))
-    except:
-        log.exception("Failed to get experiment configuration file!")
-        raise
+    # read config files
+    config = read_yaml(config_file_name)
+    labels_config = read_yaml(labels_config_file)
 
-    # read table name from config file
-    if config["unit"] == "dispatch":
-        table_name = config["dispatch_feature_table_name"]
-    else:
-        table_name = config["officer_feature_table_name"]
-
-    log.debug("feature table name: {}".format(table_name))
+    log.debug("feature table name: {}".format(config['officer_feature_table_name']))
 
     # If asked to generate features, then do that and stop.
     if args.buildfeatures:
@@ -49,13 +39,13 @@ def main(config_file_name, args):
         populate_labels.create_labels_table(config, config['officer_label_table_name'])
 
         # Populate the featuress  and labels table
-        populate_features.populate_features_table(config, table_name, config["schema_feature_blocks"])
-        populate_labels.populate_labels_table(config, config['officer_label_table_name'])
+        populate_features.populate_features_table(config, config['officer_feature_table_name'], config["schema_feature_blocks"])
+        populate_labels.populate_labels_table(config, labels_config, config['officer_label_table_name'])
 
         log.info('Done creating features table')
         sys.exit()
 
-    all_experiments = experiment.generate_models_to_run(config)
+    all_experiments = experiment.generate_models_to_run(config, labels_config)
 
     log.info("Running models on dataset...")
     batch_timestamp = datetime.datetime.now().isoformat()
@@ -190,10 +180,20 @@ def pickle_results(pkl_file, to_save):
 
     return None
 
+def read_yaml(yaml_file):
+    try:
+        with open(yaml_file, 'r') as f:
+            config = yaml.load(f)
+            #log.info("Loaded experiment file: {}".format(config_file_name))
+        return config
+    except:
+        #log.exception("Failed to get experiment configuration file!")
+        raise
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", type=str, help="pass your config", default="default.yaml")
-    parser.add_argument( "-b", "--buildfeatures", help="build the features and stop", action='store_true' )
+    parser.add_argument("--config", type=str, help="pass your config", default="default.yaml")
+    parser.add_argument("--labels", type=str, help="pass your labels config", default="labels.yaml")
+    parser.add_argument("-b", "--buildfeatures", help="build the features and stop", action='store_true' )
     args = parser.parse_args()
-    main(args.config, args)
+    main(args.config, args.labels, args)

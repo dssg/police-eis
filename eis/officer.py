@@ -3,7 +3,7 @@ import datetime
 from sklearn import preprocessing
 from dateutil.relativedelta import relativedelta
 import pdb
-from . import dataset
+from .dataset import FeatureLoader
 from .features import class_map
 
 from . import setup_environment
@@ -11,8 +11,8 @@ from . import setup_environment
 log = logging.getLogger(__name__)
 
 
-def run_traintest(config, as_of_dates_to_use):
-    result = setup(config, as_of_dates_to_use)
+def run_traintest(config, labels_config, as_of_dates_to_use):
+    result = setup(config,labels_config, as_of_dates_to_use)
     return result
 
 
@@ -21,7 +21,7 @@ def run_pilot(config):
     return result
 
 
-def setup(config, as_of_dates_to_use):
+def setup(config, labels_config, as_of_dates_to_use):
     """
     Sets up officer-level experiment
 
@@ -40,30 +40,24 @@ def setup(config, as_of_dates_to_use):
     log.info("Test start date: {}".format(test_start_date))
     log.info("Test end datet: {}".format(test_end_date))
 
+    
+    feature_loader = FeatureLoader(config["officer_features"],
+                                   config["officer_feature_table_name"],
+                                   labels_config,
+                                   config['labels'],
+                                   config['officer_label_table_name'],
+                                   config['prediction_window'],
+                                   config['officer_past_activity_window'])
+
     log.info("Loading officers and features to use as training...")
-    features_table = config["officer_feature_table_name"]
-    train_x, train_y = dataset.get_dataset(
-        train_start_date,
-        train_end_date,
-        config['prediction_window'],
-        config['officer_past_activity_window'],
-        config["officer_features"],
-        config['officer_labels'],
-        config['officer_feature_table_name'],
-        config['officer_label_table_name'],
-        as_of_dates_to_use)
+    train = feature_loader.get_dataset(as_of_dates_to_use)
+    train_x = train[config["officer_features"]]
+    test_y = train['outcome']
 
     log.info("Loading officers and features to use as testing...")
-    test_x, test_y = dataset.get_dataset(
-        test_start_date,
-        test_end_date,
-        config['prediction_window'],
-        config['officer_past_activity_window'],
-        config["officer_features"],
-        config['officer_labels'],
-        config['officer_feature_table_name'],
-        config['officer_label_table_name'],
-        [test_end_date])
+    test = feature_loader.get_dataset([test_end_date])
+    test_x = test[config["officer_features"]]
+    test_y = test['outcome']
 
     # Testing data should include ALL officers, ignoring "noinvest" keyword
     testing_labelling_config = config["officer_labels"].copy()

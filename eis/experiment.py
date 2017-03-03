@@ -141,7 +141,7 @@ def generate_time_sets(config):
             test_end_date -= relativedelta(**update_window_deltas[update_window])
     return temporal_info
 
-def generate_models_to_run(config, query_db=True):
+def generate_models_to_run(config, labels_config, query_db=True):
     """Generates a list of experiments with the various options
     that we want to test, e.g. different temporal cross-validation
     train/test splits, model types, hyperparameters, features, etc.
@@ -176,15 +176,11 @@ def generate_models_to_run(config, query_db=True):
         this_config["prediction_window"] = temporal_info["prediction_window"]
         this_config["officer_past_activity_window"] = temporal_info["officer_past_activity_window"]
       
-
-        # pass only the labels names selected in the config as True
-        this_config["officer_labels"] = [ key for key in config["officer_labels"] if config["officer_labels"][key] == True ]
-        
         # get the appropriate feature data from the database
         if config["unit"] == "officer":
             # get officer-level features to use
             this_config["officer_features"] = officer.get_officer_features_table_columns( config )
-            exp_data = officer.run_traintest(this_config, as_of_dates_to_use)
+            exp_data = officer.run_traintest(this_config, labels_config, as_of_dates_to_use)
 
         elif config["unit"] == "dispatch":
             exp_data = dispatch.run_traintest(this_config)

@@ -358,25 +358,6 @@ def get_interventions(ids, start_date, end_date):
     return df_action
 
 
-def get_labels_for_ids(ids, start_date, end_date):
-    """Get the labels for the specified officer_ids, for the specified time period
-
-    Args:
-
-    Returns:
-        outcomes(pd.DataFrame):
-    """
-
-    # required by FeatureLoader but not used in officer_labeller()
-    fake_today = datetime.date.today()
-
-    # load labelling and def_adverse from experiment config file
-    exp_config = setup_environment.get_experiment_config()
-    officer_labels = exp_config['officer_labels']
-
-    return (FeatureLoader(start_date, end_date, fake_today)
-            .officer_labeller(officer_labels, ids_to_label=ids))
-
 
 def imputation_zero(df, ids):
     fulldf = pd.DataFrame(ids, columns=["officer_id"] + [df.columns[0]])
@@ -402,255 +383,194 @@ def imputation_mean(df, featurenames):
     return newdf, newdf.columns.values
 
 
-def convert_series(df):
-    onecol = df.columns[0]
-    numcols = len(df[onecol].iloc[0])
-    newcols = [onecol + '_' + str(i) for i in range(numcols)]
-
-    newdf = pd.DataFrame(columns=newcols, index=df.index)
-    for i in range(len(df)):
-        newdf.iloc[i] = df[onecol].iloc[i]
-
-    return newdf.astype(int), newcols
-
-
-def convert_categorical(feature_df, feature_columns):
-    """
-    Convert a dataframe with columns containing categorical variables to
-    a dataframe with dummy variables for each category.
-
-    Args:
-        feature_df(pd.DataFrame): A dataframe containing the features, some
-                                  of which may be categorical
-        feature_columns(list): A list of the feature column names
-
-    Returns:
-        feature_df_w_dummies(pd.DataFrame): The features dataframe, but with
-                        categorical features converted to dummy variables
-    """
-
-    log.info('Converting categorical features to dummy variables')
-
-    # note: feature names will be lowercased when returned from the db
-    categorical_features = [name.lower() for name in class_map.find_categorical_features(feature_columns)]
-
-    log.info('... {} categorical features'.format(len(categorical_features)))
-
-    # add dummy variables to feature dataframe
-    feature_df_w_dummies = pd.get_dummies(feature_df, columns=categorical_features, sparse=True)
-
-    log.info('... {} dummy variables added'.format(len(feature_df_w_dummies.columns)
-                                                   - len(feature_df.columns)))
-
-    return feature_df_w_dummies
 
 class FeatureLoader():
 
-    def __init__(self, start_date=None, end_date=None, end_label_date=None, table_name=None):
+    def __init__(self, features, features_table, labels_config, labels, labels_table, prediction_window, officer_past_activity_window ):
+        '''
+        Args:
+            features (list): list of features to use for the matrix
+            feature_table (str : name of the features table in the db
+            labels_config (dict): config file of the conditions for each label
+            labels (dict): labels dictionary to use from the config file
+            prediction_window (str) : prediction window to use for the label generation
+            officer_past_activity_window (str): window for conditioning which officers to use given an as_of_date
+        '''
 
-        self.start_date = start_date
-        self.end_date = end_date
-        self.end_label_date = end_label_date
-        self.table_name = table_name
+        self.features = features
+        self.features_table = features_table
+        self.labels_config = labels_config
+        self.labels = labels
+        self.labels_table = labels_table
+        self.prediction_window = prediction_window
+        self.officer_past_activity_window = officer_past_activity_window
+        self.flatten_label_keys = [item for sublist in self.labels for item in sublist]
 
+    def _tree_conditions(self, nested_dict, parent=[], conditions=[]):
+        '''
+        Function that returns a list of conditions from the labels config file 
+        looping recursively through each tree
+        Args:
+            nested_dict (dict): dictionary for each of the keys in the labels_config file
+            parent (list): use in the recursive function to append the parent to each tree
+            conditions (list): use in the recursive mode to append all the conditions
+        '''
+        if isinstance(nested_dict, dict):
+            column = nested_dict['COLUMN']
+            for value in nested_dict['VALUES']:
+                parent_temp = parent.copy()
+                if isinstance(value, dict):
+                    for key in value.keys():
+                        parent_temp.append('{col}:{val}'.format(col=column, val=key))
+                        self._tree_conditions(value[key], parent_temp, conditions)
+                else:
+                    parent_temp.append('{col}:{val}'.format(col=column, val=value))
+                    conditions.append('{{{parent_temp}}}'.format(parent_temp=",".join(parent_temp)))
+        return conditions
 
+    def _get_event_type_columns(self, nested_dict, list_events=[]):
+        if isinstance(nested_dict, dict):
+            list_events.append(nested_dict['COLUMN'])
+            for val in nested_dict['VALUES']:
+                if isinstance(val, dict):
+                    for key in val.keys():
+                        self._get_event_type_columns(val[key], list_events)
+        return list_events
 
+    def get_query_labels(self, as_of_dates_to_use):
+        '''
+        '''
 
-def get_dataset(start_date, end_date, prediction_window, officer_past_activity_window, features_list,
-                label_list, features_table, labels_table, as_of_dates_to_use):
-    '''
-    This function returns dataset and labels to use for training / testing
-    It is splitted in two queries:
-        - query_labels: which joins the features table with labels table
-        - query_active: using the first table created in query_labels, and returns it only 
-                        for officers that are have any activity given the officer_past_activity_window
+        # SUBQUERIES of arrays of conditions
+        sub_query = []
+        event_type_columns = set()
+        for key in self.flatten_label_keys:
+            condition = key.lower()
+            list_conditions = self._tree_conditions(self.labels_config[key], parent=[], conditions=[])
+            sub_query.append(" {condition}_table as "
+                            "    ( SELECT  "
+                            "          unnest(ARRAY{list_conditions}) as {condition}_condition )"
+                            .format(condition=condition,
+                                    list_conditions=list_conditions))
+            # event type
+            event_type_columns.update(self._get_event_type_columns(self.labels_config[key], []))
+
+        # JOIN subqueries
+        sub_queries = ", ".join(sub_query)
+        sub_queries = ("WITH {sub_queries}, "
+                       " all_conditions as "
+                       "    (SELECT * "
+                       "     FROM {cross_joins})"
+                       .format(sub_queries=sub_queries,
+                               cross_joins=" CROSS JOIN ".join([key.lower() + '_table' for key in self.flatten_label_keys])))
+
+        # CREATE AND AND OR CONDITIONS
+        and_conditions = []
+        for and_labels in self.labels:
+            or_conditions = []
+            for label in and_labels:
+                or_conditions.append("event_type_array::text[] @> {key}_condition::text[]".format(key=label.lower()))
+            and_conditions.append(" OR ".join(or_conditions))
+        conditions = " AND ".join('({and_condition})'.format(and_condition=and_condition) for and_condition in and_conditions) 
+
+        # QUERY OF AS OF DATES
+        query_as_of_dates = (" as_of_dates as ( "
+                            "select unnest(ARRAY{as_of_dates}::timestamp[]) as as_of_date) "
+                            .format(as_of_dates=as_of_dates_to_use))
+
+        # DATE FILTER
+        query_filter = ("group_events as ( "
+                        "SELECT officer_id,  "
+                        "       event_id, "
+                        "       array_agg(event_type::text ||':'|| value::text ORDER BY 1) as event_type_array, " 
+                        "       min(event_datetime) as min_date, "
+                        "       max(event_datetime) filter (where event_type in "
+                        "                          (SELECT unnest(ARRAY{event_types}))) as max_date "
+                        "FROM features.{labels_table}  "
+                        "GROUP BY officer_id, event_id  "
+                        "), date_filter as ( "
+                        " SELECT  officer_id, "
+                        "        as_of_date, "
+                        "        event_type_array "
+                        " FROM group_events "
+                        " JOIN  as_of_dates ON "
+                        " min_date > as_of_date and max_date <= as_of_date + INTERVAL '{prediction_window}') "
+                        .format(event_types=list(event_type_columns),
+                                labels_table=self.labels_table,
+                                prediction_window=self.prediction_window))
+
+        query_select_labels = (" labels as ( "
+                               "  SELECT officer_id, "
+                               "        as_of_date, "
+                               "        1 as outcome "
+                               " FROM date_filter "
+                               " JOIN all_conditions ON "
+                               "   {conditions} "
+                               " GROUP by as_of_date, officer_id)"
+                               .format(conditions=conditions))
+       
+        # CONCAT all parts of query
+        query_labels = ("{sub_queries}, "
+                        "{as_of_dates}, "
+                        "{query_filter}, "
+                        "{query_select}".format(sub_queries=sub_queries,
+                                                as_of_dates=query_as_of_dates,
+                                                query_filter=query_filter,
+                                                query_select=query_select_labels))
+        return query_labels
+
+    def get_dataset(self, as_of_dates_to_use):
+        '''
+        This function returns dataset and labels to use for training / testing
+        It is splitted in two queries:
+            - features_subquery: which joins the features table with labels table
+            - query_active: using the first table created in query_labels, and returns it only 
+                            for officers that are have any activity given the officer_past_activity_window
+        
+        '''
+
+        # convert features to string for querying while replacing NULL values with ceros in sql
+        features_coalesce = ", ".join(['coalesce("{0}",0) as {0}'.format(feature) for feature in self.features])
+        features_list_string = ", ".join(['{}'.format(feature) for feature in self.features])
+
+        # JOIN FEATURES AND LABELS
+        query_features_labels = ( " {labels_subquery}, "
+                              " features_labels AS ( "
+                              "    SELECT officer_id, "
+                              "           as_of_date, "
+                              "           {features_coalesce}, "
+                              "           coalesce(outcome,0) as outcome "
+                              "    FROM features.{features_table} "
+                              "    LEFT JOIN labels "
+                              "    USING (as_of_date, officer_id) "
+                              "    WHERE {features_table}.as_of_date in ( SELECT as_of_date from as_of_dates)) "
+                              .format(labels_subquery=self.get_query_labels(as_of_dates_to_use),
+                                      features_coalesce=features_coalesce,
+                                      features_table=self.features_table))
+                       
+        # We only want to train and test on officers that have been active (any logged activity in events_hub)
+        # NOTE: it uses the feature_labels created in query_labels 
+        query_active =  (""" SELECT officer_id, {features}, outcome """
+                        """ FROM features_labels as f, """
+                        """        LATERAL """
+                        """          (SELECT 1 """
+                        """           FROM staging.events_hub e """
+                        """           WHERE f.officer_id = e.officer_id """
+                        """           AND e.event_datetime + INTERVAL '{window}' > f.as_of_date """
+                        """           AND e.event_datetime <= f.as_of_date """
+                        """            LIMIT 1 ) sub; """
+                        .format(features=features_list_string,
+                                window=self.officer_past_activity_window))
+         
+        # join both queries together and load data
+        query = (query_features_labels + query_active)
+        
+        all_data = pd.read_sql(query, con=db_conn)
+        
+        ## TODO: remove all zero value columns
+        #all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
     
-    Inputs:
-    -------
-    start_date: start date for selecting officers in features table
-    end_date: end date for selecting officers in features table
-    prediction_window: months, used for selecting labels proceding the as_of_date in features_table
-    officer_past_activity_window: months, to select officers with activity preceding the as_of_date in features_table
-    features_list: list of features to use
-    label_list: outcome name to use 
-    features_table: name of the features table
-    labels_table: name of the labels table 
-    '''
-    features_list_string = ", ".join(['{}'.format(feature) for feature in features_list])
-    label_list_string = ", ".join(["'{}'".format(label) for label in label_list])
-    as_of_dates_string = ", ".join(["'{}'".format(as_of_date) for as_of_date in as_of_dates_to_use])
-    # convert features to string for querying while replacing NULL values with ceros in sql
-    features_coalesce = ", ".join(['coalesce("{0}",0) as {0}'.format(feature) for feature in features_list])
-
-    
-    # First part of the query that joins the features table with labels table
-    #NOTE: The lateral join with LIMIT 1 constraint is used for speed optimization 
-    # as we assign a positive label to the officers as soon as there is one designated event in the prediction windows
-    query_labels = (""" WITH features_labels as ( """
-                    """     SELECT officer_id, {0}, """
-                    """             as_of_date, """ 
-                    """             coalesce(outcome,0) as outcome """
-                    """     FROM features.{2} f """
-                    """     LEFT JOIN LATERAL ( """
-                    """           SELECT 1 as outcome """
-                    """           FROM features.{3} l """
-                    """           WHERE f.officer_id = l.officer_id """
-                    """                AND l.outcome_datetime - INTERVAL '{4}' <= f.as_of_date """
-                    """                AND l.outcome_datetime > f.as_of_date """
-                    """                AND l.event_datetime > f.as_of_date """
-                    """                AND outcome in ({1}) LIMIT 1"""
-                    """                 ) AS l ON TRUE """
-                    """     WHERE f.as_of_date > '{5}'::date AND f.as_of_date <= '{6}' """
-                    """           AND f.as_of_date in ({7}) )"""
-                      .format(features_coalesce,
-                              label_list_string,
-                              features_table,
-                              labels_table,
-                              prediction_window,
-                              start_date,
-                              end_date,
-                              as_of_dates_string))
-
-    # We only want to train and test on officers that have been active (any logged activity in events_hub)
-    # NOTE: it uses the feature_labels created in query_labels 
-    query_active =  (""" SELECT officer_id, {0}, outcome """
-                    """ FROM features_labels as f, """
-                    """        LATERAL """
-                    """          (SELECT 1 """
-                    """           FROM staging.events_hub e """
-                    """           WHERE f.officer_id = e.officer_id """
-                    """           AND e.event_datetime + INTERVAL '{1}' > f.as_of_date """
-                    """           AND e.event_datetime <= f.as_of_date """
-                    """            LIMIT 1 ) sub; """
-                    .format(features_list_string,
-                            officer_past_activity_window))
-     
-    # join both queries together and load data
-    query = (query_labels + query_active)
-    all_data = pd.read_sql(query, con=db_conn)
-
-    
-    query_dates = (""" SELECT distinct as_of_date as as_of_date"""
-                  """  FROM features.{0} """
-                  """  WHERE as_of_date > '{1}'::date AND as_of_date <= '{2}' """
-                  """  AND as_of_date in ({3}) """
-                  .format(features_table,
-                          start_date,
-                          end_date,
-                          as_of_dates_string))
-
-    as_of_dates_used = pd.read_sql(query_dates, con=db_conn)
-    log.debug('as_of_dates_used: {}'.format(as_of_dates_used['as_of_date'].tolist()))
-   
-    # remove rows with only zero values
-    features_list = [ feature.lower() for feature in features_list]
-
-    ## TODO: remove all zero value columns
-    #all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
-
-    all_data = all_data.set_index('officer_id')
-    log.debug('length of data_set: {}'.format(len(all_data)))
-    log.debug('number of officers with adverse incident: {}'.format( all_data['outcome'].sum() ))
-    return all_data[features_list], all_data.outcome
-
-def grab_officer_data(features, start_date, end_date, end_label_date, labelling, table_name ):
-    """
-    Function that defines the dataset.
-
-    Inputs:
-    -------
-    features: list containing which features to use
-    start_date: start date for selecting officers
-    end_date: end date for selecting officers
-    end_label_date: build features with respect to this date
-    labelling: dict containing options to label officers
-    by IA should be labelled, if False then only those investigated will
-    be labelled
-    """
-
-    start_date = start_date.strftime('%Y-%m-%d')
-    end_date = end_date.strftime('%Y-%m-%d')
-    log.debug("Calling FeatureLoader with: {},{},{},{}".format(start_date, end_date, end_label_date, table_name))
-    data = FeatureLoader(start_date, end_date, end_label_date, table_name)
-
-    # get the officer labels and make them the key in the dataframe.
-    officers = data.officer_labeller(labelling)
-    officers.officer_id = officers.officer_id.astype(int)
-
-    # select all the features which are set to True in the config file
-    features_data = data.load_all_features( features, feature_type="officer" )
-
-    # join the data to the officer labels.
-    dataset = officers
-    dataset = dataset.join( features_data, how='left', on="officer_id" )
-    dataset.set_index(["officer_id"], inplace=True )
-    dataset = dataset.fillna(0)
-
-    labels = dataset["adverse_by_ourdef"].values
-    feats = dataset.drop(["adverse_by_ourdef"], axis=1)
-    ids = dataset.index.values
-
-    # make sure we return a non-zero number of labelled officers
-    assert sum(labels) > 0, 'Labelled officer selection returned no officers'
-
-    log.debug("Dataset has {} rows and {} features".format(
-       len(labels), len(feats.columns)))
-
-    return feats, labels, ids, features
-
-
-def grab_dispatch_data(features, start_date, end_date, def_adverse, table_name):
-    """Function that returns the dataset to use in an experiment.
-
-    Args:
-        features: dict containing which features to use
-        start_date(datetime.datetime): start date for selecting dispatch
-        end_date(datetime.datetime): end date for selecting dispatch
-        def_adverse: dict containing options for adverse incident definitions
-        labelling: dict containing options to select which dispatches to use for labelling
-
-    Returns:
-        feats(pd.DataFrame): the array of features to train or test on
-        labels(pd.DataFrame): n x 1 array with 0 / 1 adverse labels
-        ids(pd.DataFrame): n x 1 array with dispatch ids
-        featnames(list): the list of feature column names
-    """
-
-    feature_loader = FeatureLoader(start_date = start_date,
-                                   end_date = end_date,
-                                   table_name = table_name)
-
-    # select all the features which are set to True in the config file
-    # NOTE: dict.items() is python 3 specific. for python 2 use dict.iteritems()
-    features_to_use = [feat for feat, is_used in features.items() if is_used]
-
-    features_df = feature_loader.load_all_features(features_to_use,
-                                                   feature_type = 'dispatch')
-    # encode categorical features with dummy variables, and fill NAN with 0s
-    dataset = convert_categorical(features_df, features_to_use)
-    dataset = dataset.fillna(0)
-
-    log.debug('... dataset dataframe is {} GB'.format(dataset.memory_usage().sum() / 1E9))
-
-    # determine which labels to use based on def_adverse
-    # note: need to lowercase the column name b/c postgres lowercases everything
-    label_columns = [col.lower() for col in class_map.find_label_features(features_to_use)]
-    def_adverse_to_label = {'accidents': 'LabelPreventable',
-                            'useofforce': 'LabelUnjustified',
-                            'complaint': 'LabelSustained'}
-    label_cols_to_use = [def_adverse_to_label[key].lower() for key, is_true in def_adverse.items() if is_true]
-
-    # select the active label columns, sum for each row, and set true when sum > 0
-    labels = dataset[label_cols_to_use].sum(axis=1).apply(lambda x: x > 0)
-
-    features = dataset.drop(label_columns, axis=1)
-    ids = dataset.index
-    feature_names = features.columns
-
-    # make sure we return a non-zero number of labelled dispatches
-    assert sum(labels.values) > 0, 'No dispatches were labelled adverse'
-
-    log.debug("Dataset has {} rows and {} features".format(
-       len(labels), len(feature_names)))
-
-    return features, labels, ids, feature_names
+        all_data = all_data.set_index('officer_id')
+        log.debug('length of data_set: {}'.format(len(all_data)))
+        log.debug('number of officers with adverse incident: {}'.format( all_data['outcome'].sum() ))
+        return all_data
