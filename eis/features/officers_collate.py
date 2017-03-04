@@ -550,7 +550,7 @@ class Dispatches(FeaturesBlock):
             'DispatchType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='dispatch_final_type_code',
                                                lookup_table='lookup_dispatch_types',
-                                               prefix='DispatchType'), ['sum','avg']),
+                                               prefix='DispatchType'), ['sum']),
 
             'DispatchInitiatiationType': collate.Aggregate(
                 {"DispatchInitiatiationType_ci": "(dispatch_category = 'CI')::int",
