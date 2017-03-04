@@ -22,7 +22,7 @@ time_format = "%Y-%m-%d %X"
 
 class AllegationOutcome(Enum):
     sustained = "final_ruling_code in (1, 4, 5 )"
-    unsustained = ""
+    unsustained = "final_ruling_code in (2, 3, 6, 7, 8)"
     unknown = "final_ruling_code = 0"
 
 
@@ -199,16 +199,16 @@ class IncidentsReported(FeaturesBlock):
                                                prefix='InterventionsOfType'), ['sum', 'avg']),
 
             'IncidentsOfType': collate.Aggregate(
-                {"use_of_force": "(department_defined_policy_type = 'Use Of Force')::int" ,
-                 "tdd": "(department_defined_policy_type = 'TDD')::int",
-                 "complaint": "(department_defined_policy_type = 'Complaint')::int",
-                 "pursuit": "(department_defined_policy_type = 'Pursuit')::int",
-                 "dof": "(department_defined_policy_type = 'DOF')::int",
-                 "raid_search": "(department_defined_policy_type = 'Raid And Search')::int",
-                 "injury": "(department_defined_policy_type = 'Injury')::int",
-                 "icd": "(department_defined_policy_type = 'ICD')::int",
-                 "nfsi": "(department_defined_policy_type = 'NFSI')::int",
-                 "accident": "(department_defined_policy_type = 'Accident')::int"}, ['sum', 'avg']),
+                {"IncidentsOfType_use_of_force": "(department_defined_policy_type = 'Use Of Force')::int" ,
+                 "IncidentsOfType_tdd": "(department_defined_policy_type = 'TDD')::int",
+                 "IncidentsOfType_complaint": "(department_defined_policy_type = 'Complaint')::int",
+                 "IncidentsOfType_pursuit": "(department_defined_policy_type = 'Pursuit')::int",
+                 "IncidentsOfType_dof": "(department_defined_policy_type = 'DOF')::int",
+                 "IncidentsOfType_raid_search": "(department_defined_policy_type = 'Raid And Search')::int",
+                 "IncidentsOfType_injury": "(department_defined_policy_type = 'Injury')::int",
+                 "IncidentsOfType_icd": "(department_defined_policy_type = 'ICD')::int",
+                 "IncidentsOfType_nfsi": "(department_defined_policy_type = 'NFSI')::int",
+                 "IncidentsOfType_accident": "(department_defined_policy_type = 'Accident')::int"}, ['sum']),
 
             'ComplaintsTypeSource': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='origination_type_code',
@@ -256,14 +256,54 @@ class IncidentsCompleted(FeaturesBlock):
             'IncidentsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
                                                lookup_table='lookup_final_rulings',
-                                               prefix='IncidentsByOutcome'), ['sum', 'avg']),
+                                               prefix='IncidentsByOutcome'), ['avg']),
+
+            'IncidentsOfTypeOutSustained': collate.Aggregate(
+                {"IncidentsOfTypeOutSustained_use_of_force": "(department_defined_policy_type = 'Use Of Force' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_tdd": "(department_defined_policy_type = 'TDD' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_complaint": "(department_defined_policy_type = 'Complaint' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_pursuit": "(department_defined_policy_type = 'Pursuit' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_dof": "(department_defined_policy_type = 'DOF' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_raid_search": "(department_defined_policy_type = 'Raid And Search' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_injury": "(department_defined_policy_type = 'Injury' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_icd": "(department_defined_policy_type = 'ICD' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_nfsi": "(department_defined_policy_type = 'NFSI' and "+AllegationOutcome.sustained.value+")::int",
+                 "IncidentsOfTypeOutSustained_accident": "(department_defined_policy_type = 'Accident' and "+AllegationOutcome.sustained.value+")::int"}, ['sum']),
+
+            'IncidentsOfTypeUnSustained': collate.Aggregate(
+                {
+                    "IncidentsOfTypeUnSustained_use_of_force": "(department_defined_policy_type = 'Use Of Force' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_tdd": "(department_defined_policy_type = 'TDD' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_complaint": "(department_defined_policy_type = 'Complaint' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_pursuit": "(department_defined_policy_type = 'Pursuit' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_dof": "(department_defined_policy_type = 'DOF' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_raid_search": "(department_defined_policy_type = 'Raid And Search' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_injury": "(department_defined_policy_type = 'Injury' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_icd": "(department_defined_policy_type = 'ICD' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_nfsi": "(department_defined_policy_type = 'NFSI' and " + AllegationOutcome.unsustained.value + ")::int",
+                    "IncidentsOfTypeUnSustained_accident": "(department_defined_policy_type = 'Accident' and " + AllegationOutcome.unsustained.value + ")::int"},
+                ['sum']),
+
+            'IncidentsOfTypeUnknown': collate.Aggregate(
+                {
+                    "IncidentsOfTypeUnknown_use_of_force": "(department_defined_policy_type = 'Use Of Force' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_tdd": "(department_defined_policy_type = 'TDD' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_complaint": "(department_defined_policy_type = 'Complaint' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_pursuit": "(department_defined_policy_type = 'Pursuit' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_dof": "(department_defined_policy_type = 'DOF' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_raid_search": "(department_defined_policy_type = 'Raid And Search' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_injury": "(department_defined_policy_type = 'Injury' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_icd": "(department_defined_policy_type = 'ICD' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_nfsi": "(department_defined_policy_type = 'NFSI' and " + AllegationOutcome.unknown.value + ")::int",
+                    "IncidentsOfTypeUnknown_accident": "(department_defined_policy_type = 'Accident' and " + AllegationOutcome.unknown.value + ")::int"},
+                ['sum']),
 
         }
 
     def _feature_aggregations_space_time(self, engine):
         return {
 
-            'DaysSinceLastSustainedAllegation': collate.Aggregate(
+            'DaysSinceLastCompletedAllegation': collate.Aggregate(
                 {"DaysSinceLastSustainedAllegation": "EXTRACT(DAY FROM ('{collate_date}' - date_of_judgment))"},
                 ['min']),
 
@@ -439,7 +479,7 @@ class FieldInterviews(FeaturesBlock):
             'FieldInterviewsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='field_interview_outcome_code',
                                                lookup_table='lookup_field_interview_outcomes',
-                                               prefix='FieldInterviewsByOutcome'), ['sum']),
+                                               prefix='FieldInterviewsByOutcome'), ['sum','avg']),
 
             'FieldInterviewsWithFlag': collate.Aggregate(
                 {"FieldInterviewsWithFlag_searched": 'searched_flag::int',
@@ -449,7 +489,7 @@ class FieldInterviews(FeaturesBlock):
             'InterviewsType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='field_interview_type_code',
                                                lookup_table='lookup_field_interview_types',
-                                               prefix='InterviewsType'), ['sum']),
+                                               prefix='InterviewsType'), ['sum','avg']),
 
             'ModeHourOfFieldInterviews': collate.Aggregate(
                 {"ModeHourOfFieldInterviews": ""}, 'mode', "date_part('hour',event_datetime)-12")
@@ -510,7 +550,7 @@ class Dispatches(FeaturesBlock):
             'DispatchType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='dispatch_final_type_code',
                                                lookup_table='lookup_dispatch_types',
-                                               prefix='DispatchType'), ['sum']),
+                                               prefix='DispatchType'), ['sum','avg']),
 
             'DispatchInitiatiationType': collate.Aggregate(
                 {"DispatchInitiatiationType_ci": "(dispatch_category = 'CI')::int",
