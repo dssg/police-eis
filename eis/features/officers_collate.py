@@ -196,19 +196,19 @@ class IncidentsReported(FeaturesBlock):
             'InterventionsOfType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='intervention_type_code',
                                                lookup_table='lookup_intervention_types',
-                                               prefix='InterventionsOfType'), ['sum']),
+                                               prefix='InterventionsOfType'), ['sum', 'avg']),
 
             'IncidentsOfType': collate.Aggregate(
-                {"use_of_force": "department_defined_policy_type = 'Use Of Force')::int" ,
-                 "tdd": "department_defined_policy_type = 'TDD')::int",
-                 "complaint": "department_defined_policy_type = 'Complaint')::int",
-                 "pursuit": "department_defined_policy_type = 'Pursuit')::int",
-                 "dof": "department_defined_policy_type = 'DOF')::int",
-                 "raid_search": "department_defined_policy_type = 'Raid And Search')::int",
-                 "injury": "department_defined_policy_type = 'Injury')::int",
-                 "icd": "department_defined_policy_type = 'ICD')::int",
-                 "nfsi": "department_defined_policy_type = 'NFSI')::int",
-                 "accident": "department_defined_policy_type = 'Accident')::int"}, ['sum', 'avg']),
+                {"use_of_force": "(department_defined_policy_type = 'Use Of Force')::int" ,
+                 "tdd": "(department_defined_policy_type = 'TDD')::int",
+                 "complaint": "(department_defined_policy_type = 'Complaint')::int",
+                 "pursuit": "(department_defined_policy_type = 'Pursuit')::int",
+                 "dof": "(department_defined_policy_type = 'DOF')::int",
+                 "raid_search": "(department_defined_policy_type = 'Raid And Search')::int",
+                 "injury": "(department_defined_policy_type = 'Injury')::int",
+                 "icd": "(department_defined_policy_type = 'ICD')::int",
+                 "nfsi": "(department_defined_policy_type = 'NFSI')::int",
+                 "accident": "(department_defined_policy_type = 'Accident')::int"}, ['sum', 'avg']),
 
             'ComplaintsTypeSource': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='origination_type_code',
