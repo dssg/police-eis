@@ -89,6 +89,8 @@ def populate_officer_labels_table(config, labels_config, table_name, engine):
                           "       {event_type}::TEXT as value "
                           "    FROM staging.incidents "
                           "    WHERE {event_type}::TEXT is not NULL "
+                          "    AND {event_datetime} is not NULL "
+                          "    AND officer_id is not NULL "
                       .format(event_datetime=date_column,
                               event_type=column))
 
@@ -103,3 +105,8 @@ def populate_officer_labels_table(config, labels_config, table_name, engine):
                      .format(table_name, query_join))
 
     engine.execute(insert_query)          
+    
+    # Create indexes
+    create_event_id_idx = (""" Create index on features.{0} (officer_id, event_id); """.format(table_name))
+    engine.execute(create_event_id_idx)
+ 

@@ -104,12 +104,12 @@ class RunModels():
              'labels_config': self.labels_config,
              'indices': ['officer_id', 'as_of_date']}
 
-          return matrix_metadata
+        return matrix_metadata
 
     def generate_matrices(self):
         train_matrix_id = '_'.join([self.temporal_split['train_as_of_dates'],
                               self.labels_config,
-                              self.temporal_split['prediction_window'])
+                              self.temporal_split['prediction_window']])
 
         
         # Train matrix
@@ -126,9 +126,9 @@ class RunModels():
         for test_date in self.temporal_split['test_as_of_dates']:
             # Load and store atrixes
             log.info('Load test matrix for as of date: {}'.format(test_date))
-            test_matrix_id = '_'.join(test_date,
+            test_matrix_id = '_'.join([test_date,
                                       self.labels_config,
-                                      self.temporal_split['prediction_window'])
+                                      self.temporal_split['prediction_window']])
 
             test_metadata = self._make_metadata(
                                        datetime.datetime.strptime(test_date, "%Y-%m-%d"),
@@ -143,7 +143,7 @@ class RunModels():
     def train_models(self):
         train_matrix_id = '_'.join([self.temporal_split['train_as_of_dates'],
                               self.labels_config,
-                              self.temporal_split['prediction_window'])
+                              self.temporal_split['prediction_window']])
 
         # Train matrix
         train_metadata = self._make_metadata(
@@ -184,9 +184,9 @@ class RunModels():
         for test_date in self.temporal_split['test_as_of_dates']:
             # Load matrixes
             log.info('Load test matrix for as of date: {}'.format(test_date))
-            test_matrix_id = '_'.join(test_date,
+            test_matrix_id = '_'.join([test_date,
                                       self.labels_config,
-                                      self.temporal_split['prediction_window'])
+                                      self.temporal_split['prediction_window']])
 
             test_metadata = self._make_metadata(
                                        datetime.datetime.strptime(test_date, "%Y-%m-%d"),
