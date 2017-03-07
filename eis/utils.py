@@ -5,10 +5,13 @@ import pdb
 import re
 import yaml
 import datetime
+import logging
 from itertools import product
 from dateutil.relativedelta import relativedelta
 
 from . import  officer
+
+log = logging.getLogger(__name__)
 
 class EISExperiment(object):
    """The EISExperiment class defines each individual experiment
@@ -24,7 +27,7 @@ class EISExperiment(object):
        self.pilot_data = None
 
 # Read config
-def read_config(config_file_name):
+def read_yaml(config_file_name):
     """
     This function reads the config file
     """
@@ -46,6 +49,7 @@ def generate_temporal_info(config):
     train_size_deltas = relative_deltas_conditions(config['train_size'])
     features_frequency_deltas = relative_deltas_conditions(config['features_frequency'])
     test_frecuency_deltas = relative_deltas_conditions(config['test_frecuency'])
+    test_time_ahead_deltas = relative_deltas_conditions(config['test_time_ahead'])
    
     temporal_info = [] 
     for prediction_window, update_window, officer_past_activity, \
@@ -59,17 +63,18 @@ def generate_temporal_info(config):
         test_end_date = end_date
         # loop moving giving an update_window
         while start_date <= test_end_date - 2*relativedelta(**prediction_window_deltas[prediction_window]):
-            test_start_date = test_end_date - relativedelta(**prediction_window_deltas[prediction_window])
+
+            test_start_date = test_end_date - relativedelta(**test_time_ahead_deltas[test_time_ahead])
             test_as_of_dates = as_of_dates_in_window(test_start_date,
                                                      test_end_date,
-                                                     test_frequency,
-                                                     test_time_ahead)
-            train_end_date = test_start_date
+                                                     test_frequency)
+
+            train_end_date = test_start_date  - relativedelta(**prediction_window_deltas[prediction_window])
             train_start_date = train_end_date - relativedelta(**train_size_deltas[train_size])
             train_as_of_dates = as_of_dates_in_window(train_start_date,
                                                       train_end_date,
-                                                      features_frequency,
-                                                       train_size)
+                                                      features_frequency)
+
             tmp_info = {'test_end_date': test_end_date.strftime(time_format),
                         'test_start_date': test_start_date.strftime(time_format),
                         'test_as_of_dates': test_as_of_dates,
@@ -78,13 +83,13 @@ def generate_temporal_info(config):
                         'train_as_of_dates': train_as_of_dates,
                         'prediction_window':prediction_window,
                         'officer_past_activity_window': officer_past_activity}
-            print(tmp_info)
+            log.info(tmp_info)
             temporal_info.append(tmp_info)
             test_end_date -= relativedelta(**update_window_deltas[update_window])
 
     return temporal_info
 
-def relative_deltas_conditions( times ):
+def relative_deltas_conditions(times):
 
     dict_abbreviations = {'d':'days', 'm':'months', 'y':'years', 'w':'weeks'}
     time_agrguments = {}
@@ -93,23 +98,19 @@ def relative_deltas_conditions( times ):
     return time_arguments
 
 
-def as_of_dates_in_window(start_date, end_date, window, time_ahead='1y'):
+def as_of_dates_in_window(start_date, end_date, window):
     """
     Generate a list of as_of_dates between start_date and end_date 
     moving through window
     """
-    #end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-    #start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
     # Generate condition for relative delta
     window_delta = relative_deltas_conditions([window])
-    time_ahead_delta = relative_deltas_conditions([time_ahead])
 
     as_of_dates = []
     while end_date > start_date:
         as_of_date = end_date
         end_date -= relativedelta(**window_delta[window])
-        if as_of_date <= start_date + relativedelta(**time_ahead_delta[time_ahead]):
-            as_of_dates.append(as_of_date)
+        as_of_dates.append(as_of_date)
    
     time_format = "%Y-%m-%d"
     as_of_dates_uniques = set(as_of_dates)

@@ -371,7 +371,7 @@ def imputation_mean(df, featurenames):
 
 class FeatureLoader():
 
-    def __init__(self, features, features_table, labels_config, labels, labels_table, prediction_window, officer_past_activity_window ):
+    def __init__(self, features, features_table, labels_config, labels, labels_table, prediction_window, officer_past_activity_window, db_engine ):
         '''
         Args:
             features (list): list of features to use for the matrix
@@ -389,6 +389,7 @@ class FeatureLoader():
         self.labels_table = labels_table
         self.prediction_window = prediction_window
         self.officer_past_activity_window = officer_past_activity_window
+        self.db_con = db_engine.connect()
         self.flatten_label_keys = [item for sublist in self.labels for item in sublist]
 
     def _tree_conditions(self, nested_dict, parent=[], conditions=[]):

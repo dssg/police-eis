@@ -13,6 +13,7 @@ from triage.storage import FSModelStorageEngine, InMemoryMatrixStore
 
 import metta.metta_io
 
+from .feature_loader import FeatureLoader
 from . import dataset
 from . import utils
 from . import setup_environment
@@ -28,6 +29,7 @@ class RunModels():
         labels,
         features,
         features_table_name,
+        labels_config,
         labels_table_name,
         temporal_split,
         grid_config,
@@ -39,6 +41,7 @@ class RunModels():
         self.labels = labels
         self.features = features
         self.features_table_name = features_table_name
+        self.labels_config = labels_config
         self.labels_table_name = labels_table_name
         self.temporal_split = temporal_split
         self.grid_config = grid_config
@@ -47,7 +50,17 @@ class RunModels():
         self.db_engine = db_engine
         self.matrices_path = self.project_path + '/matrices/'
 
-    def load_matrix(self, as_of_dates):
+        # feature loader
+        self.feature_loader = FeatureLoader(self.features,
+                                            self.features_table_name,
+                                            self.labels_config,
+                                            self.labels,
+                                            self.labels_table_name,
+                                            self.temporal_split['prediction_window'],
+                                            self.temporal_split['officer_past_activity_window']
+                                            )
+
+    def load_store_matrix(self, metadata, as_of_dates, return_matrix=True):
         """
         Calls get_dataset to return a pandas DataFrame for the as_of_dates selected
         Args:
@@ -55,48 +68,98 @@ class RunModels():
         Returns:
            matrix: dataframe with the features and the last column as the label (called: outcome)
         """
-        db_conn = self.db_engine.raw_connection()
-        df = dataset.get_dataset(self.temporal_split['prediction_window'],
-                                         self.temporal_split['officer_past_activity_window'],
-                                         self.features,
-                                         self.labels,
-                                         self.features_table_name,
-                                         self.labels_table_name,
-                                         as_of_dates,
-                                         db_conn)
-        db_conn.close()
-        return df
+        uuid = metta.metta_io.generate_uuid(metadata)
+        matrix_filename = self.matrices_path + '/' + uuid
+        if os.path.isfile(matrix_filename):
+            if return_matrix:
+                df = metta.metta_io.recover_matrix(metadata)
+                return df, uuid
+
+        else:
+            db_conn = self.db_engine.raw_connection()
+            df = self.feature_loader.get_dataset(as_of_dates, db_conn)
+            db_conn.close()
+            metta.metta_io.archive_matrix(matrix_config=metadata,
+                                          df_matrix=df,
+                                          directory=self.matrices_path,
+                                          format='hd5')
+            if return_matrix:
+                return df, uuid
+           
+
+    def _make_metadata(self, start_time, end_time, matrix_id, as_of_dates):
+
+        matrix_metadata = {
+             # temporal information
+             'start_time': start_time,
+             'end_time': end_time,
+             'prediction_window': self.temporal_split['prediction_window'],
+             'feature_as_of_dates': as_of_dates,
+
+              # Other infomation
+             'label_name': 'outcome',
+             'feature_names': self.features,
+             'matrix_id': matrix_id,
+             'labels': self.labels,
+             'labels_config': self.labels_config,
+             'indices': ['officer_id', 'as_of_date']}
+
+          return matrix_metadata
+
+    def generate_matrices(self):
+        train_matrix_id = '_'.join([self.temporal_split['train_as_of_dates'],
+                              self.labels_config,
+                              self.temporal_split['prediction_window'])
+
+        
+        # Train matrix
+        train_metadata = self._make_metadata(
+                                  datetime.datetime.strptime(self.temporal_split['train_start_date'], "%Y-%m-%d"),
+                                  datetime.datetime.strptime(self.temporal_split['train_end_date'], "%Y-%m-%d"),
+                                  train_matrix_id,
+                                  self.temporal_split['train_as_of_dates']
+                           )
+
+        self.load_store_matrix(train_metadata, self.temporal_split['train_as_of_dates'], return_matrix=False)
+
+        # Loop over testing as of dates
+        for test_date in self.temporal_split['test_as_of_dates']:
+            # Load and store atrixes
+            log.info('Load test matrix for as of date: {}'.format(test_date))
+            test_matrix_id = '_'.join(test_date,
+                                      self.labels_config,
+                                      self.temporal_split['prediction_window'])
+
+            test_metadata = self._make_metadata(
+                                       datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                                       datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                                       test_matrix_id,
+                                       [test_date] 
+                              )
+
+            self.load_store_matrix(test_metadata, [test_date], return_matrix=False)
+       
 
     def train_models(self):
-        # Metadata
-        train_metadata = {'start_time': datetime.datetime.strptime(self.temporal_split['train_start_date'], "%Y-%m-%d"),
-                          'end_time': datetime.datetime.strptime(self.temporal_split['train_end_date'], "%Y-%m-%d"),
-                          'prediction_window': self.temporal_split['prediction_window'], 
-                          'label_name': 'outcome', #"_".join(sorted(self.labels)),
-                          'feature_names': self.features,
-                          'matrix_id': 'TRAIN_{}_{}'.format(self.temporal_split['train_start_date'][:4], 
-                                                            self.temporal_split['train_end_date'][:4]),
-                          'as_of_dates': self.temporal_split['train_as_of_dates']}
-        
+        train_matrix_id = '_'.join([self.temporal_split['train_as_of_dates'],
+                              self.labels_config,
+                              self.temporal_split['prediction_window'])
+
+        # Train matrix
+        train_metadata = self._make_metadata(
+                                  datetime.datetime.strptime(self.temporal_split['train_start_date'], "%Y-%m-%d"),
+                                  datetime.datetime.strptime(self.temporal_split['train_end_date'], "%Y-%m-%d"),
+                                  train_matrix_id,
+                                  self.temporal_split['train_as_of_dates']
+                           )        
         # Inlcude metadata in config for db
-        self.misc_db_parameters['config']['train_metadata'] = {'start_time': self.temporal_split['train_start_date'],
-                                                               'end_time': self.temporal_split['train_end_date'],
-                                                               'prediction_window': self.temporal_split['prediction_window'],
-                                                               'label_name': 'outcome', #"_".join(sorted(self.labels)),
-                                                               'feature_names': self.features,
-                                                               'matrix_id': 'TRAIN_{}_{}'.format(self.temporal_split['train_start_date'][:4],
-                                                                                                 self.temporal_split['train_end_date'][:4]),
-                                                               'as_of_dates': self.temporal_split['train_as_of_dates']}
+        self.misc_db_parameters['config']['train_metadata'] = train_metadata
 
         # Load train matrix
         log.info('Load train matrix using as of dates: {}'.format(self.temporal_split['train_as_of_dates']))
-        train_df = self.load_matrix(self.temporal_split['train_as_of_dates'])
+        train_df, train_uuid = self.load_store_matrix(train_metadata, self.temporal_split['train_as_of_dates'])
         # Store in metta
         log.info('Store in metta')
-        train_uuid = metta.metta_io.archive_matrix(train_metadata,
-                                                   train_df, 
-                                                   self.matrices_path, 
-                                                   format='hd5')
         # add to parameters to store in db
         self.misc_db_parameters['train_matrix_uuid'] = train_uuid
         train_matrix_store = InMemoryMatrixStore(train_df.iloc[:,:-1], train_metadata, train_df.iloc[:,-1])
@@ -121,19 +184,18 @@ class RunModels():
         for test_date in self.temporal_split['test_as_of_dates']:
             # Load matrixes
             log.info('Load test matrix for as of date: {}'.format(test_date))
-            test_df = self.load_matrix([test_date])
-            test_metadata_dict = {'start_time': datetime.datetime.strptime(test_date, "%Y-%m-%d"),
-                                  'end_time': datetime.datetime.strptime(test_date, "%Y-%m-%d"),
-                                  'prediction_window': self.temporal_split['prediction_window'],
-                                  'label_name': 'outcome', #"_".join(sorted(self.labels)),
-                                  'feature_names': self.features,
-                                  'matrix_id': 'TEST_{}'.format(test_date)}
-            # Store in metta
-            test_uuid = metta.metta_io.archive_matrix(test_metadata_dict,
-                                                      test_df,
-                                                      self.matrices_path,
-                                                      format='hd5',
-                                                      train_uuid=train_uuid)
+            test_matrix_id = '_'.join(test_date,
+                                      self.labels_config,
+                                      self.temporal_split['prediction_window'])
+
+            test_metadata = self._make_metadata(
+                                       datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                                       datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                                       test_matrix_id,
+                                       [test_date]
+                              )
+
+            test_df, test_uuid = self.load_store_matrix(test_metadata, [test_date])
             misc_db_parameters = {'matrix_uuid': test_uuid}
             # Store matrix
             test_matrix_store = InMemoryMatrixStore(test_df.iloc[:,:-1], test_metadata_dict, test_df.iloc[:,-1])

@@ -2,7 +2,9 @@ Major:
   COLUMN: department_defined_policy_type
   DATE_COLUMN: event_datetime
   VALUES:
-   - Accident
+   - DOF
+   - ICD
+   - Pursuit
    - Use of Force
    - Complaint:
        COLUMN: department_defined_policy_violated
@@ -68,6 +70,11 @@ Minor:
   COLUMN: department_defined_policy_type
   DATE_COLUMN: event_datetime
   VALUES:
+  - Accident
+  - Injury
+  - NFSI
+  - Raid And Search
+  - TDD
   - Complaint:
       COLUMN: department_defined_policy_violated
       DATE_COLUMN: event_datetime
