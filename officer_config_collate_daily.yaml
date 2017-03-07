@@ -49,7 +49,8 @@ temporal_info:
 ########################
 labels:
   # ['Major', 'Minor'] for or conditions for and conditions list them underneath
-  - ['Adverse']
+  - ['Minor']
+  - ['Sustained']
 
 ########################
 # Feature selection    #
