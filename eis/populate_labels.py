@@ -7,8 +7,6 @@ import logging
 
 from . import officer
 from . import setup_environment
-from . import experiment
-from .features import class_map
 from .features import officers
 
 log = logging.getLogger(__name__)
