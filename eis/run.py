@@ -113,7 +113,7 @@ def generate_all_matrices(temporal_set, **kwargs):
                       project_path=kwargs['project_path'],
                       misc_db_parameters=kwargs['misc_db_parameters'],
                       db_engine=db_engine)
-    pdb.set_trace()
+
     run_model.generate_matrices()
     db_engine.dispose()
     return None

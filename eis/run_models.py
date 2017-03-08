@@ -131,11 +131,15 @@ class RunModels():
             if isinstance(o, (tuple,list)):
                 l = []
                 for e in o:
+
                     if isinstance(e, (str, int)):
                         l.append(str(e))
 
                     elif isinstance(e, (dict)):
                         l.append(self._make_hashable(e))
+
+                    else:
+                        l.append(e)
 
                 return self.__sorting_multiple_types(l)
                 

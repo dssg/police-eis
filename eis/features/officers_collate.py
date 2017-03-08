@@ -304,7 +304,7 @@ class IncidentsCompleted(FeaturesBlock):
         return {
 
             'DaysSinceLastCompletedAllegation': collate.Aggregate(
-                {"DaysSinceLastSustainedAllegation": "EXTRACT(DAY FROM ('{collate_date}' - date_of_judgment))"},
+                {"DaysSinceLastCompletedAllegation": "EXTRACT(DAY FROM ('{collate_date}' - date_of_judgment))"},
                 ['min']),
 
         }
