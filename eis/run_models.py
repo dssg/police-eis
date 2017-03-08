@@ -70,7 +70,6 @@ class RunModels():
            matrix: dataframe with the features and the last column as the label (called: outcome)
         """
         uuid = metta.metta_io.generate_uuid(metadata)
-        pdb.set_trace()
         matrix_filename = self.matrices_path + '/' + uuid
 
         with Lock(matrix_filename + '.lock'):
@@ -137,9 +136,7 @@ class RunModels():
 
                     elif isinstance(e, (dict)):
                         l.append(self._make_hashable(e))
-    
-                    else:
-                         print(type(e))
+
                 return self.__sorting_multiple_types(l)
                 
             if isinstance(o, dict):
