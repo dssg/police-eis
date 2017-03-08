@@ -32,7 +32,7 @@ CREATE TABLE results.predictions (
   model_id    INT REFERENCES results.models (model_id),
   as_of_date  TIMESTAMP,
   entity_id   BIGINT,
-  score       NUMERIC,
+  score       REAL,
   label_value INT,
   rank_abs    INT,
   rank_pct    REAL,
@@ -48,7 +48,7 @@ CREATE TABLE results.evaluations (
   model_id   INT REFERENCES results.models (model_id),
   metric     TEXT,
   parameter  TEXT,
-  value      NUMERIC,
+  value      REAL,
   comment    TEXT,
   as_of_date TIMESTAMP
 );

@@ -72,7 +72,7 @@ class RunModels():
         uuid = metta.metta_io.generate_uuid(metadata)
         matrix_filename = self.matrices_path + '/' + uuid
 
-        with Lock(matrix_filename + '.lock'):
+        with Lock(matrix_filename + '.lock',lifetime=datetime.timedelta(minutes=20)):
             if os.path.isfile(matrix_filename + '.h5'):
                 log.debug(' Matrix {} already stored'.format(uuid))
                 if return_matrix:
