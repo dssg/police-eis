@@ -81,8 +81,11 @@ def main(config_file_name, labels_config_file, args):
 
     if args.generatematrices:
         # Parallelization
-        for temporal_set in temporal_sets:
-            generate_all_matrices(temporal_set, **models_args)
+        Parallel(n_jobs=n_cups, verbose=5)(delayed(generate_all_matrices)(temporal_set, **models_args)
+                                        for temporal_set in temporal_sets)
+
+        #for temporal_set in temporal_sets:
+        #    generate_all_matrices(temporal_set, **models_args)
 
         log.info('Done creating all matrices')
         sys.exit() 
