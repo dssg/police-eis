@@ -70,10 +70,12 @@ class RunModels():
            matrix: dataframe with the features and the last column as the label (called: outcome)
         """
         uuid = metta.metta_io.generate_uuid(metadata)
+        pdb.set_trace()
         matrix_filename = self.matrices_path + '/' + uuid
 
         with Lock(matrix_filename + '.lock'):
             if os.path.isfile(matrix_filename + '.h5'):
+                log.debug(' Matrix {} already stored'.format(uuid))
                 if return_matrix:
                     df = metta.metta_io.recover_matrix(metadata)
                     return df, uuid
@@ -82,6 +84,7 @@ class RunModels():
                 db_conn = self.db_engine.raw_connection()
                 df = self.feature_loader.get_dataset(as_of_dates, db_conn)
                 db_conn.close()
+                log.debug('storing matrix {}'.format(uuid))
                 metta.metta_io.archive_matrix(matrix_config=metadata,
                                               df_matrix=df,
                                               directory=self.matrices_path,
@@ -106,22 +109,52 @@ class RunModels():
             'labels_config': self.labels_config,
             'indices': ['officer_id', 'as_of_date']}
 
-        return matrix_metadata
+        return self._make_hashable(matrix_metadata)
+
+    def __sorting_multiple_types(self, list_to_sort):
+        for i in range(0, len(list_to_sort)):
+            min = i
+            for j in range(i + 1, len(list_to_sort)):
+                if isinstance(list_to_sort[j], (tuple,dict)):
+                    if sorted(list_to_sort[j])[0] < list_to_sort[min]:
+                        min = j
+                elif isinstance(list_to_sort[min], (tuple,dict)):
+                    if list_to_sort[j] < sorted(list_to_sort[min])[0]:
+                        min = j
+                else:
+                    if list_to_sort[j] < list_to_sort[min]:
+                        min = j
+            list_to_sort[i], list_to_sort[min] = list_to_sort[min], list_to_sort[i] 
+            
+        return list_to_sort
+
+    def _make_hashable(self, o):
+            if isinstance(o, (tuple,list)):
+                l = []
+                for e in o:
+                    if isinstance(e, (str, int)):
+                        l.append(str(e))
+
+                    elif isinstance(e, (dict)):
+                        l.append(self._make_hashable(e))
+    
+                    else:
+                         print(type(e))
+                return self.__sorting_multiple_types(l)
+                
+            if isinstance(o, dict):
+                return {k:self._make_hashable(o[k]) for k in sorted(o)}
+    
+            if isinstance(o, (set, frozenset)):
+                return list(sorted(self._make_hashable(e) for e in o))
+            
+            return o
 
     def generate_matrices(self):
 
-        def dt_handler(x):
-            if isinstance(x, datetime.datetime) or isinstance(x, datetime.date):
-                return x.isoformat()
-            raise TypeError("Unknown type")
-
-        #    identifier = json.dumps(metadata, default=dt_handler, sort_keys=True)
-
-
-
-        train_matrix_id = str([self.temporal_split['train_as_of_dates'],
-                               json.dumps(self.labels_config,default=dt_handler,sort_keys=True),
-                                    self.temporal_split['prediction_window']])
+        train_matrix_id = str([sorted(self.temporal_split['train_as_of_dates']),
+                               self.labels,
+                               self.temporal_split['prediction_window']])
 
         # Train matrix
         train_metadata = self._make_metadata(
@@ -138,7 +171,7 @@ class RunModels():
             # Load and store matrixes
             log.info('Load test matrix for as of date: {}'.format(test_date))
             test_matrix_id = str([test_date,
-                              json.dumps(self.labels_config, sort_keys=True),
+                                self.labels,
                                self.temporal_split['prediction_window']])
 
             test_metadata = self._make_metadata(
@@ -151,7 +184,7 @@ class RunModels():
             self.load_store_matrix(test_metadata, [test_date], return_matrix=False)
 
     def train_models(self):
-        train_matrix_id = '_'.join([self.temporal_split['train_as_of_dates'],
+        train_matrix_id = str([sorted(self.temporal_split['train_as_of_dates']),
                                     self.labels_config,
                                     self.temporal_split['prediction_window']])
 
