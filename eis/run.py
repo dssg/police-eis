@@ -11,7 +11,6 @@ import time
 import os
 import pdb
 from joblib import Parallel, delayed
-from multiprocessing.util import register_after_fork
 
 from . import setup_environment 
 from . import populate_features, populate_labels
@@ -45,7 +44,7 @@ def main(config_file_name, labels_config_file, args):
         populate_labels.create_labels_table(config, config['officer_label_table_name'])
 
         # Populate the featuress  and labels table
-        populate_features.populate_features_table(config, config['officer_feature_table_name'], config["schema_feature_blocks"])
+        #populate_features.populate_features_table(config, config['officer_feature_table_name'], config["schema_feature_blocks"])
         populate_labels.populate_labels_table(config, labels_config, config['officer_label_table_name'])
 
         log.info('Done creating features table')
@@ -83,14 +82,17 @@ def main(config_file_name, labels_config_file, args):
         # Parallelization
         Parallel(n_jobs=n_cups, verbose=5)(delayed(generate_all_matrices)(temporal_set, **models_args)
                                         for temporal_set in temporal_sets)
-
-        #for temporal_set in temporal_sets:
-        #    generate_all_matrices(temporal_set, **models_args)
+        # tr = tracker.SummaryTracker()
+        # for temporal_set in temporal_sets:
+        #     log.info('New temporal set')
+        #     tr.print_diff()  
+        #     generate_all_matrices(temporal_set, **models_args)
 
         log.info('Done creating all matrices')
         sys.exit() 
 
     # Run models
+    
     Parallel(n_jobs=n_cups, verbose=5)(delayed(apply_train_test)(temporal_set, **models_args)
                                                  for temporal_set in temporal_sets)
 
@@ -105,7 +107,7 @@ def generate_all_matrices(temporal_set, **kwargs):
     except:
         log.warning('Could not connect to the database')
         raise
-
+    
     run_model = RunModels(labels=kwargs['labels'],
                       features=kwargs['features'],
                       features_table_name=kwargs['features_table_name'],

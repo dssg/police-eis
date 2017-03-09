@@ -140,7 +140,7 @@ class FeatureLoader():
                                                 query_select=query_select_labels))
         return query_labels
 
-    def get_dataset(self, as_of_dates_to_use, db_conn):
+    def get_dataset(self, as_of_dates_to_use, db_engine):
         '''
         This function returns dataset and labels to use for training / testing
         It is splitted in two queries:
@@ -186,14 +186,30 @@ class FeatureLoader():
         # join both queries together and load data
         query = (query_features_labels + query_active)
 
-        all_data = pd.read_sql(query, con=db_conn)
+        # Get the data
+        db_conn = db_engine.raw_connection()
+        cur = db_conn.cursor(name='cursor_for_loading_matrix')
+        cur.execute(query)
+        matrix = cur.fetchall()
+
+        # Get column names
+        col_names = []
+        for desc in cur.description:
+            col_names.append(desc[0])  
+
+        # To pandas df
+        matrix_df = pd.DataFrame(matrix)
+        matrix_df.columns = col_names
+        db_conn.close()
+
+        #all_data = pd.read_sql(query, con=db_conn)
 
         ## TODO: remove all zero value columns
         #all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
 
-        all_data = all_data.set_index('officer_id')
-        log.info('length of data_set: {}'.format(len(all_data)))
-        log.info('as of dates used: {}'.format( all_data['as_of_date'].unique()))
-        log.info('number of officers with adverse incident: {}'.format( all_data['outcome'].sum() ))
-        return all_data
+        matrix_df = matrix_df.set_index('officer_id')
+        log.info('length of data_set: {}'.format(len(matrix_df)))
+        log.info('as of dates used: {}'.format(matrix_df['as_of_date'].unique()))
+        log.info('number of officers with adverse incident: {}'.format(matrix_df['outcome'].sum() ))
+        return matrix_df
 

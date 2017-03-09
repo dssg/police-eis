@@ -80,9 +80,7 @@ class RunModels():
                     return df, uuid
 
             else:
-                db_conn = self.db_engine.raw_connection()
-                df = self.feature_loader.get_dataset(as_of_dates, db_conn)
-                db_conn.close()
+                df = self.feature_loader.get_dataset(as_of_dates, self.db_engine)
                 log.debug('storing matrix {}'.format(uuid))
                 metta.metta_io.archive_matrix(matrix_config=metadata,
                                               df_matrix=df,
@@ -166,7 +164,6 @@ class RunModels():
         )
 
         self.load_store_matrix(train_metadata, self.temporal_split['train_as_of_dates'], return_matrix=False)
-
         # Loop over testing as of dates
         for test_date in self.temporal_split['test_as_of_dates']:
             # Load and store matrixes

@@ -13,7 +13,7 @@ schema_feature_blocks: "historical_features_collate_daily"
 
 # determine whether model objects gets stored in a pickle in root_path/department_unit/directory
 store_model_object: False
-project_path: '/mnt/data/public_safety/charlotte_eis/triage'
+project_path: '/localdisk/triage' #'/mnt/data/public_safety/charlotte_eis/triage'
 
 ########################
 # Comment fields       #
@@ -33,7 +33,7 @@ unit: 'officer'  # other options: 'dispatch'
 # Temporal parameters  #
 ########################
 temporal_info:
-    start_date: '2008-01-01' # The first day of the data
+    start_date: '2010-01-01' # The first day of the data
     end_date: '2016-04-01' # The last day of the data
     train_size: ['1y', '2y', '3y']
     prediction_window: ['1y'] # prediction window  used for officer-level prediction eg: ['1d', '1w', '1m', '6m', '1y']
@@ -263,7 +263,7 @@ parameters:
 ########################
 # Parallelization      #
 ########################
-n_cpus: 2
+n_cpus: 14
 
 ########################
 # Auditing hooks       #
