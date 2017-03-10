@@ -107,7 +107,7 @@ def as_of_dates_in_window(start_date, end_date, window):
     window_delta = relative_deltas_conditions([window])
 
     as_of_dates = []
-    while end_date > start_date:
+    while end_date >= start_date:
         as_of_date = end_date
         end_date -= relativedelta(**window_delta[window])
         as_of_dates.append(as_of_date)
