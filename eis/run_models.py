@@ -104,12 +104,24 @@ class RunModels():
 
     def _make_metadata(self, start_time, end_time, matrix_id, as_of_dates):
 
+        model_config = {
+            'labels_config': self.labels_config,
+            'prediction_window': self.temporal_split['prediction_window'],
+            'train_size': self.temporal_split['train_size'],
+            'features_frequency': self.temporal_split['features_frequency']
+          }
+
         matrix_metadata = {
             # temporal information
             'start_time': start_time,
             'end_time': end_time,
+
+            # windows
             'prediction_window': self.temporal_split['prediction_window'],
+            'train_size': self.temporal_split['train_size'],
+            'features_frequency': self.temporal_split['features_frequency'],
             'feature_as_of_dates': as_of_dates,
+            'model_config': self._make_hashable(model_config),
 
             # Other infomation
             'label_name': 'outcome',

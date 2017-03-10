@@ -81,6 +81,8 @@ def generate_temporal_info(config):
                         'train_end_date': train_end_date.strftime(time_format),
                         'train_start_date': train_start_date.strftime(time_format),
                         'train_as_of_dates': train_as_of_dates,
+                        'train_size': train_size,
+                        'features_frequency': features_frequency,
                         'prediction_window':prediction_window,
                         'officer_past_activity_window': officer_past_activity}
             log.info(tmp_info)
