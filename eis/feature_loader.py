@@ -207,7 +207,6 @@ class FeatureLoader():
         ## TODO: remove all zero value columns
         #all_data = all_data.loc[~(all_data[features_list]==0).all(axis=1)]
 
-        matrix_df = matrix_df.set_index('officer_id')
         log.info('length of data_set: {}'.format(len(matrix_df)))
         log.info('as of dates used: {}'.format(matrix_df['as_of_date'].unique()))
         log.info('number of officers with adverse incident: {}'.format(matrix_df['outcome'].sum() ))

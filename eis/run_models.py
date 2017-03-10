@@ -52,11 +52,11 @@ class RunModels():
         self.matrices_path = self.project_path + '/matrices'
 
         # Save only used labels in labels_config
-        # self.labels_config = {}
-        # for l1 in self.labels:
-        #     for l2 in l1:
-        #         self.labels_config[l2] = labels_config[l2]
-        self.labels_config = labels_config
+        self.labels_config = {}
+        for l1 in self.labels:
+            for l2 in l1:
+                self.labels_config[l2] = labels_config[l2]
+        
 
         # feature loader
         self.feature_loader = FeatureLoader(self.features,
