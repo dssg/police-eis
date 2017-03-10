@@ -12,7 +12,8 @@ import os
 import pdb
 from joblib import Parallel, delayed
 
-from . import setup_environment 
+from triage.storage import InMemoryModelStorageEngine
+from . import setup_environment
 from . import populate_features, populate_labels
 from . import utils
 from . import officer
@@ -62,8 +63,7 @@ def main(config_file_name, labels_config_file, args):
     misc_db_parameters = {'config': config,
             'test': config['test_flag'],
             'model_comment': config['model_comment'],
-            'batch_comment': config['batch_comment'],
-            'labels_config': labels_config,
+            'batch_comment': config['batch_comment']
             }
 
     log.info("Running models on dataset...")
@@ -143,9 +143,11 @@ def apply_train_test(temporal_set, **kwargs):
                       db_engine=db_engine)
 
     log.info('Run models for temporal set: {}'.format(temporal_set))
-    train_uuid, model_ids = run_model.train_models()
+
+    model_storage = InMemoryModelStorageEngine('empty')
+    train_matrix_uuid, model_ids_generator = run_model.setup_train_models(model_storage)
     log.info('Run tests')
-    run_model.test_models(train_uuid, model_ids)
+    run_model.train_test_models(train_matrix_uuid, model_ids_generator, model_storage)
     db_engine.dispose() 
     return None
 

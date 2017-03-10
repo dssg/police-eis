@@ -23,7 +23,7 @@ CREATE TABLE results.models (
   batch_comment     TEXT,
   config            JSONB,
   test              BOOL,
-  model_hash        VARCHAR(20) UNIQUE,
+  model_hash        VARCHAR(36) UNIQUE,
   train_matrix_uuid VARCHAR(36)
 );
 

@@ -10,7 +10,7 @@ from flufl.lock import Lock
 
 from triage.model_trainers import ModelTrainer
 from triage.predictors import Predictor
-from triage.storage import FSModelStorageEngine, InMemoryMatrixStore
+from triage.storage import FSModelStorageEngine, InMemoryMatrixStore, InMemoryModelStorageEngine
 
 import metta.metta_io
 
@@ -61,6 +61,12 @@ class RunModels():
                                             self.temporal_split['officer_past_activity_window']
                                             )
 
+    def dt_handler(self,x):
+        if isinstance(x, datetime.datetime) or isinstance(x, datetime.date):
+            return x.isoformat()
+        raise TypeError("Unknown type")
+
+
     def load_store_matrix(self, metadata, as_of_dates, return_matrix=True):
         """
         Calls get_dataset to return a pandas DataFrame for the as_of_dates selected
@@ -76,7 +82,7 @@ class RunModels():
             if os.path.isfile(matrix_filename + '.h5'):
                 log.debug(' Matrix {} already stored'.format(uuid))
                 if return_matrix:
-                    df = metta.metta_io.recover_matrix(metadata)
+                    df = metta.metta_io.recover_matrix(metadata,self.matrices_path)
                     return df, uuid
 
             else:
@@ -181,10 +187,10 @@ class RunModels():
 
             self.load_store_matrix(test_metadata, [test_date], return_matrix=False)
 
-    def train_models(self):
+    def setup_train_models(self,model_storage):
         train_matrix_id = str([sorted(self.temporal_split['train_as_of_dates']),
-                                    self.labels_config,
-                                    self.temporal_split['prediction_window']])
+                               self.labels,
+                               self.temporal_split['prediction_window']])
 
         # Train matrix
         train_metadata = self._make_metadata(
@@ -193,62 +199,86 @@ class RunModels():
             train_matrix_id,
             self.temporal_split['train_as_of_dates']
         )
+
+
         # Inlcude metadata in config for db
-        self.misc_db_parameters['config']['train_metadata'] = train_metadata
+        self.misc_db_parameters['config']['train_metadata'] = json.dumps(train_metadata,default=self.dt_handler)
+        self.misc_db_parameters['config']['labels_config']= json.dumps(self.labels_config)
 
         # Load train matrix
         log.info('Load train matrix using as of dates: {}'.format(self.temporal_split['train_as_of_dates']))
-        train_df, train_uuid = self.load_store_matrix(train_metadata, self.temporal_split['train_as_of_dates'])
+        train_df, train_matrix_uuid = self.load_store_matrix(train_metadata, self.temporal_split['train_as_of_dates'])
+
+        # remove the index from the data-frame
+        for column in train_metadata['indices']:
+            if column in train_df.columns:
+                del train_df[column]
+
         # Store in metta
         log.info('Store in metta')
         # add to parameters to store in db
-        self.misc_db_parameters['train_matrix_uuid'] = train_uuid
+        self.misc_db_parameters['train_matrix_uuid'] = train_matrix_uuid
         train_matrix_store = InMemoryMatrixStore(train_df.iloc[:, :-1], train_metadata, train_df.iloc[:, -1])
 
+
+
+
         trainer = ModelTrainer(project_path=self.project_path,
-                               model_storage_engine=FSModelStorageEngine(self.project_path),
+                               model_storage_engine=model_storage,
                                matrix_store=train_matrix_store,
                                db_engine=self.db_engine
                                )
         log.info('Train Models')
-        model_ids = trainer.train_models(grid_config=self.grid_config, misc_db_parameters=self.misc_db_parameters)
+        model_ids_generator = trainer.generate_trained_models(grid_config=self.grid_config, misc_db_parameters=self.misc_db_parameters)
 
-        return train_uuid, model_ids
+        return train_matrix_uuid, model_ids_generator
 
-    def test_models(self, train_uuid, model_ids):
+    def train_test_models(self, train_matrix_uuid, model_ids_generator, model_storage):
+
 
         predictor = Predictor(project_path=self.project_path,
-                              model_storage_engine=FSModelStorageEngine(self.project_path),
+                              model_storage_engine=model_storage,
                               db_engine=self.db_engine)
 
-        # Loop over testing as of dates
-        for test_date in self.temporal_split['test_as_of_dates']:
-            # Load matrixes
-            log.info('Load test matrix for as of date: {}'.format(test_date))
-            test_matrix_id = '_'.join([test_date,
-                                       self.labels_config,
-                                       self.temporal_split['prediction_window']])
+        for trained_model_id in model_ids_generator:
+            ## Prediction
+            log.info('Predict for model_id: {}'.format(trained_model_id))
 
-            test_metadata = self._make_metadata(
-                datetime.datetime.strptime(test_date, "%Y-%m-%d"),
-                datetime.datetime.strptime(test_date, "%Y-%m-%d"),
-                test_matrix_id,
-                [test_date]
-            )
 
-            test_df, test_uuid = self.load_store_matrix(test_metadata, [test_date])
-            misc_db_parameters = {'matrix_uuid': test_uuid}
-            # Store matrix
-            test_matrix_store = InMemoryMatrixStore(test_df.iloc[:, :-1], test_metadata_dict, test_df.iloc[:, -1])
+            # Loop over testing as of dates
+            for test_date in self.temporal_split['test_as_of_dates']:
+                # Load matrixes
+                log.info('Load test matrix for as of date: {}'.format(test_date))
+                test_matrix_id = str([test_date,
+                                      self.labels,
+                                      self.temporal_split['prediction_window']])
 
-            for model_id in model_ids:
-                ## Prediction
-                log.info('Predict for model_id: {}'.format(model_id))
-                predictions_binary, predictions_proba = predictor.predict(model_id, test_matrix_store,
+                test_metadata = self._make_metadata(
+                    datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                    datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                    test_matrix_id,
+                    [test_date]
+                )
+
+                test_df, test_uuid = self.load_store_matrix(test_metadata, [test_date])
+                misc_db_parameters = {'matrix_uuid': test_uuid}
+
+                # remove the index from the data-frame
+                for column in test_metadata['indices']:
+                    if column in test_df.columns:
+                        del test_df[column]
+
+                # Store matrix
+                test_matrix_store = InMemoryMatrixStore(test_df.iloc[:, :-1], test_metadata, test_df.iloc[:, -1])
+
+                predictions_binary, predictions_proba = predictor.predict(trained_model_id, test_matrix_store,
                                                                           misc_db_parameters)
                 ## Evaluation
-                log.info('Generate Evaluations for model_id: {}'.format(model_id))
-                self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], model_id, test_date)
+                log.info('Generate Evaluations for model_id: {}'.format(trained_model_id))
+                self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], trained_model_id, test_date)
+
+            # remove trained model from memory
+            predictor.delete_model(trained_model_id)
 
         return None
 
