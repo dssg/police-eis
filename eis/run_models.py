@@ -294,6 +294,12 @@ class RunModels():
                                                                predictions_proba.tolist(),
                                                                predictions_binary.tolist())
         db_conn = self.db_engine.raw_connection()
+
+        # remove all existing evaluations before re-writing
+        query = "DELETE FROM results.evaluations where model_id = {} and as_of_date = '{}'::TIMESTAMP ".format(model_id,test_date)
+        db_conn.cursor().execute(query)
+        db_conn.commit()
+
         for key in all_metrics:
             evaluation = all_metrics[key]
             metric = key.split('|')[0]
