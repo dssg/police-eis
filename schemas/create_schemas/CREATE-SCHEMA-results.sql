@@ -8,7 +8,8 @@ CREATE TABLE results.model_groups
   model_type        TEXT,
   model_parameters  JSONB,
   prediction_window TEXT,
-  feature_list      TEXT []
+  feature_list      TEXT [],
+  labels_config     JSONB
 );
 
 -- model table containing each of the models run.

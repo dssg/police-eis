@@ -51,6 +51,13 @@ class RunModels():
         self.db_engine = db_engine
         self.matrices_path = self.project_path + '/matrices'
 
+        # Save only used labels in labels_config
+        # self.labels_config = {}
+        # for l1 in self.labels:
+        #     for l2 in l1:
+        #         self.labels_config[l2] = labels_config[l2]
+        self.labels_config = labels_config
+
         # feature loader
         self.feature_loader = FeatureLoader(self.features,
                                             self.features_table_name,
@@ -202,8 +209,8 @@ class RunModels():
 
 
         # Inlcude metadata in config for db
-        self.misc_db_parameters['config']['train_metadata'] = json.dumps(train_metadata,default=self.dt_handler)
-        self.misc_db_parameters['config']['labels_config']= json.dumps(self.labels_config)
+        self.misc_db_parameters['config']['train_metadata'] = json.dumps(train_metadata,default=self.dt_handler, sort_keys=True)
+        self.misc_db_parameters['config']['labels_config']= self.labels_config
 
         # Load train matrix
         log.info('Load train matrix using as of dates: {}'.format(self.temporal_split['train_as_of_dates']))
