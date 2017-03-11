@@ -211,6 +211,9 @@ def store_evaluation_metrics( model_id, evaluation, metric, test_date, db_conn, 
     :param test_date: date in string 'Y-m-d' for which the test was made
     """
 
+    # round to 10 digits to avoid underflow errors
+    evaluation = round(float(evaluation), 10)
+
     #No parameter and no comment
     if parameter is None and comment is None:
         comment = 'Null'

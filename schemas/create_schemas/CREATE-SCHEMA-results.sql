@@ -4,12 +4,11 @@ CREATE SCHEMA results;
 -- model group table for uniquely identifying similar models run at different time periods
 CREATE TABLE results.model_groups
 (
-  model_group_id    SERIAL PRIMARY KEY,
-  model_type        TEXT,
-  model_parameters  JSONB,
-  prediction_window TEXT,
-  feature_list      TEXT [],
-  labels_config     JSONB
+  model_group_id   SERIAL PRIMARY KEY,
+  model_type       TEXT,
+  model_parameters JSONB,
+  feature_list     TEXT [],
+  model_config     JSONB
 );
 
 -- model table containing each of the models run.
@@ -62,7 +61,7 @@ CREATE INDEX ON results.evaluations (model_id, as_of_date);
 CREATE TABLE results.feature_importances (
   model_id           INT REFERENCES results.models (model_id),
   feature            TEXT,
-  feature_importance NUMERIC,
+  feature_importance REAL,
   rank_abs           INT,
   rank_pct           REAL
 );
