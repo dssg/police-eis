@@ -26,7 +26,6 @@ class EISExperiment(object):
        self.exp_data = None
        self.pilot_data = None
 
-# Read config
 def read_yaml(config_file_name):
     """
     This function reads the config file
@@ -35,6 +34,33 @@ def read_yaml(config_file_name):
         config = yaml.load(f)
     return config
 
+def relative_deltas_conditions(times):
+
+    dict_abbreviations = {'d':'days', 'm':'months', 'y':'years', 'w':'weeks'}
+    time_agrguments = {}
+    time_arguments = {x :{ dict_abbreviations[re.findall(r'\d+(\w)', x )[0]]: int(re.findall(r'\d+', x)[0])}
+                        for x in times}
+    return time_arguments
+
+
+def as_of_dates_in_window(start_date, end_date, window):
+    """
+    Generate a list of as_of_dates between start_date and end_date 
+    moving through window
+    """
+    # Generate condition for relative delta
+    window_delta = relative_deltas_conditions([window])
+
+    as_of_dates = []
+    while end_date >= start_date:
+        as_of_date = end_date
+        end_date -= relativedelta(**window_delta[window])
+        as_of_dates.append(as_of_date)
+   
+    time_format = "%Y-%m-%d"
+    as_of_dates_uniques = set(as_of_dates)
+    as_of_dates_uniques = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates_uniques]
+    return sorted(as_of_dates_uniques)
 
 def generate_temporal_info(config):
     """
@@ -91,33 +117,18 @@ def generate_temporal_info(config):
 
     return temporal_info
 
-def relative_deltas_conditions(times):
-
-    dict_abbreviations = {'d':'days', 'm':'months', 'y':'years', 'w':'weeks'}
-    time_agrguments = {}
-    time_arguments = {x :{ dict_abbreviations[re.findall(r'\d+(\w)', x )[0]]: int(re.findall(r'\d+', x)[0])}
-                        for x in times}
-    return time_arguments
-
-
-def as_of_dates_in_window(start_date, end_date, window):
-    """
-    Generate a list of as_of_dates between start_date and end_date 
-    moving through window
-    """
-    # Generate condition for relative delta
-    window_delta = relative_deltas_conditions([window])
-
-    as_of_dates = []
-    while end_date >= start_date:
-        as_of_date = end_date
-        end_date -= relativedelta(**window_delta[window])
-        as_of_dates.append(as_of_date)
-   
-    time_format = "%Y-%m-%d"
-    as_of_dates_uniques = set(as_of_dates)
-    as_of_dates_uniques = [ as_of_date.strftime(time_format) for as_of_date in as_of_dates_uniques]
-    return sorted(as_of_dates_uniques)
+def generate_feature_dates(config):
+    
+    experiments_dates = generate_temporal_info(config)
+    train_dates = [e['train_as_of_dates'] for e in experiments_dates]
+    test_dates = [e['test_as_of_dates'] for e in experiments_dates]
+    
+    flatten_and_set = lambda l: set([item for sublist in l for item in sublist])
+    
+    as_of_dates = flatten_and_set(train_dates)
+    as_of_dates.update(flatten_and_set(test_dates))
+    
+    return list(as_of_dates)
 
 
 def generate_model_config( config ):

@@ -7,7 +7,7 @@ import logging
 
 from . import officer
 from . import setup_environment
-from . import experiment
+from . import utils
 from .features import class_map
 from .features import officers
 from .features import officers_collate
@@ -154,7 +154,7 @@ def populate_officer_features_table(config, table_name, schema, engine):
      """
     temporal_info = config['temporal_info'].copy()
     # get the list of fake todays specified by the config file
-    as_of_dates = experiment.generate_as_of_dates_features(temporal_info)
+    as_of_dates = utils.generate_feature_dates(temporal_info)
     log.debug(as_of_dates)
 
     list_prefixes = []
