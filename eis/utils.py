@@ -74,7 +74,7 @@ def generate_temporal_info(config):
     update_window_deltas = relative_deltas_conditions(config['update_window'])
     train_size_deltas = relative_deltas_conditions(config['train_size'])
     features_frequency_deltas = relative_deltas_conditions(config['features_frequency'])
-    test_frecuency_deltas = relative_deltas_conditions(config['test_frecuency'])
+    test_frequency_deltas = relative_deltas_conditions(config['test_frequency'])
     test_time_ahead_deltas = relative_deltas_conditions(config['test_time_ahead'])
    
     temporal_info = [] 
@@ -83,7 +83,7 @@ def generate_temporal_info(config):
              in product(    
                config['prediction_window'], config['update_window'],
                config['officer_past_activity_window'], config['train_size'],
-               config['features_frequency'], config['test_frecuency'],
+               config['features_frequency'], config['test_frequency'],
                config['test_time_ahead']):
 
         test_end_date = end_date
