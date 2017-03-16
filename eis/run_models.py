@@ -221,9 +221,10 @@ class RunModels():
 
 
         # Inlcude metadata in config for db
-        self.misc_db_parameters['config']['train_metadata'] = json.dumps(train_metadata,default=self.dt_handler, sort_keys=True)
+        self.misc_db_parameters['config']['train_metadata'] = train_metadata
         self.misc_db_parameters['config']['labels_config']= self.labels_config
-
+        self.misc_db_parameters['config'] = json.dumps(self.misc_db_parameters['config'],default=self.dt_handler, sort_keys=True)
+        
         # Load train matrix
         log.info('Load train matrix using as of dates: {}'.format(self.temporal_split['train_as_of_dates']))
         train_df, train_matrix_uuid = self.load_store_matrix(train_metadata, self.temporal_split['train_as_of_dates'])

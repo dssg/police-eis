@@ -9,17 +9,10 @@ from . import officer
 from . import setup_environment
 from . import utils
 from .features import class_map
-from .features import officers
 from .features import officers_collate
 
 log = logging.getLogger(__name__)
 
-#try:
-#    log.info("Connecting to database...")
-#    engine = setup_environment.get_database()
-#except:
-#    log.error('Could not connect to the database')
-#
 
 def populate_features_table(config, table_name, schema):
     """Calculate values for all features which are set to True (in the config file) 
