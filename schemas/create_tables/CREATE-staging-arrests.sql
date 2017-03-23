@@ -17,7 +17,8 @@ CREATE TABLE staging.arrests (
   suspect_weight_pounds            INT, --weight of suspect in pounds
   suspect_hair_color_code          INT, --hair color of suspect
   suspect_eye_color_code           INT, --eye color of suspect
-  ucr4_code                        INT, --Universal Crime Reporting Code
+  ucr4_code                        VARCHAR(4), --Universal Crime Reporting Code
+  ucr4_grouped_code                INT, -- ucr4 group categories code
   ncic_code                        INT, --National Crime Information Center Codes
   nibrs_code                       INT, --National Incident-Based Reporting System (NIBRS)
   felony_flag                      BOOL, --Arrested for a felony

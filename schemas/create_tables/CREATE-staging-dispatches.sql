@@ -9,9 +9,10 @@ CREATE  TABLE staging.dispatches (
   unit_type                       VARCHAR,
   unit_shift                      VARCHAR,
   unit_call_sign                  VARCHAR,
-  dispatch_type_code              INT, --the reason for the dispatch
+  dispatch_original_type_code     INT, --the reason for the dispatch
   dispatch_original_type          VARCHAR,
   dispatch_original_subtype       VARCHAR,
+  dispatch_final_type_code        INT,
   dispatch_final_type             VARCHAR,
   dispatch_final_subtype          VARCHAR,
   response_plan_code              INT, --result of the dispatch
