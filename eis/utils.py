@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 
 from . import  officer
 
-log = logging.getLogger__name__)
+log = logging.getLogger(__name__)
 
 class EISExperiment(object):
    """The EISExperiment class defines each individual experiment
@@ -49,7 +49,7 @@ def relative_deltas_conditions(str_times):
     """
     dict_abbreviations = {'h':'hours',
                           'd':'days',
-                          'w':'weeks',, 
+                          'w':'weeks', 
                           'm':'months', 
                           'y':'years'}
 

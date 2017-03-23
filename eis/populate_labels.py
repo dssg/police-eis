@@ -7,7 +7,6 @@ import logging
 
 from . import officer
 from . import setup_environment
-from .features import officers
 
 log = logging.getLogger(__name__)
 

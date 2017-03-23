@@ -13,7 +13,7 @@ schema_feature_blocks: "historical_features_collate_daily"
 
 # determine whether model objects gets stored in a pickle in root_path/department_unit/directory
 store_model_object: False
-project_path: '/localdisk/triage' #'/mnt/data/public_safety/charlotte_eis/triage'
+project_path: ''
 
 ########################
 # Comment fields       #
@@ -21,7 +21,7 @@ project_path: '/localdisk/triage' #'/mnt/data/public_safety/charlotte_eis/triage
 model_comment: ""
 batch_comment: ""
 
-test_flag: True
+test_flag: False
 
 ########################
 # Type of Experiment   #
@@ -33,14 +33,14 @@ unit: 'officer'  # other options: 'dispatch'
 # Temporal parameters  #
 ########################
 temporal_info:
-    start_date: '2010-01-01' # The first day of the data
+    start_date: '2008-01-01' # The first day of the data
     end_date: '2016-04-01' # The last day of the data
-    train_size: ['1y', '2y', '3y']
+    train_size: ['1y', '2y', '3y','4y','5y','6y']
     prediction_window: ['1y'] # prediction window  used for officer-level prediction eg: ['1d', '1w', '1m', '6m', '1y']
     update_window: ['1m'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
     features_frequency: ['1m'] # months, used for training the model
-    test_frequency: ['1m']
-    test_time_ahead: ['3m']
+    test_frequency: ['1d']
+    test_time_ahead: ['2m']
     officer_past_activity_window: ['1y'] # Include officers that have activity in the x months preceding start time of test/train
     timegated_feature_lookback_duration: ["1d","1w", "1m", "1y", "5y"] # Aggregation time for features eg: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] 
 
@@ -190,11 +190,11 @@ feature_blocks:
 model: ['RandomForest', 'ExtraTrees', 'LogisticRegression']
 parameters:
   RandomForest:
-    n_estimators: [10000] #[50,100, 1000, 10000, 50000]
-    max_depth: [2,5] #[100, 5, 10, 50] 
+    n_estimators: [1000,5000,10000] #[50,100, 1000, 10000, 50000]
+    max_depth: [2,5,10] #[100, 5, 10, 50] 
     max_features: ['log2'] # ['log2', 2, 4, 8, 16, "auto"]
     criterion: ['gini'] # ['entropy']
-    min_samples_split: [2,5] #[2, 5, 10]
+    min_samples_split: [2,5,10] #[2, 5, 10]
     random_state: [2193]
   RandomForestBagging:
     n_estimators: [10] # [25, 50, 100, 1000, 10000]
@@ -219,11 +219,11 @@ parameters:
     n_estimators_boost: [10] # [25, 50, 100, 1000, 10000]
     random_state: [2193]
   ExtraTrees:
-    n_estimators: [10000] #[ 25, 50, 100, 1000, 10000, 50000, 100000]
-    max_depth: [2,5] #[5, 10, 50, 100 ]
+    n_estimators: [1000,5000,10000] #[ 25, 50, 100, 1000, 10000, 50000, 100000]
+    max_depth: [2,5,10] #[5, 10, 50, 100 ]
     max_features: ['log2'] # [4, 8, 16, "auto"]
     criterion: ['gini'] #, 'entropy']
-    min_samples_split: [2,5] #[2, 5, 10] #, 5, 10]
+    min_samples_split: [2,5,10] #[2, 5, 10] #, 5, 10]
     random_state: [2193]
   AdaBoost:
     algorithm: ['SAMME', 'SAMME.R']
@@ -263,7 +263,7 @@ parameters:
 ########################
 # Parallelization      #
 ########################
-n_cpus: 14
+n_cpus: 126
 
 ########################
 # Auditing hooks       #
