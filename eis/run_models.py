@@ -28,8 +28,10 @@ class RunModels():
     def __init__(
             self,
             labels,
-            features,
-            features_table_name,
+            feature_blocks,
+            schema_name,
+            blocks,
+            feature_lookback_duration,
             labels_config,
             labels_table_name,
             temporal_split,
@@ -40,8 +42,10 @@ class RunModels():
     ):
 
         self.labels = labels
-        self.features = features
-        self.features_table_name = features_table_name
+        self.feature_blocks = feature_blocks
+        self.schema_name = schema_name
+        self.blocks = blocks
+        self.feature_lookback_duration = feature_lookback_duration
         self.labels_config = labels_config
         self.labels_table_name = labels_table_name
         self.temporal_split = temporal_split
@@ -59,14 +63,18 @@ class RunModels():
         
 
         # feature loader
-        self.feature_loader = FeatureLoader(self.features,
-                                            self.features_table_name,
+        self.feature_loader = FeatureLoader(self.feature_blocks,
+                                            self.schema_name,
+                                            self.blocks,
                                             self.labels_config,
                                             self.labels,
                                             self.labels_table_name,
                                             self.temporal_split['prediction_window'],
-                                            self.temporal_split['officer_past_activity_window']
+                                            self.temporal_split['officer_past_activity_window'],
+                                            self.feature_lookback_duration,
+                                            self.db_engine
                                             )
+        self.features_list = self.feature_loader.features_list()
 
     def dt_handler(self,x):
         if isinstance(x, datetime.datetime) or isinstance(x, datetime.date):
@@ -93,7 +101,8 @@ class RunModels():
                     return df, uuid
 
             else:
-                df = self.feature_loader.get_dataset(as_of_dates, self.db_engine)
+                
+                df = self.feature_loader.get_dataset(as_of_dates)
                 log.debug('storing matrix {}'.format(uuid))
                 metta.metta_io.archive_matrix(matrix_config=metadata,
                                               df_matrix=df,
@@ -125,7 +134,7 @@ class RunModels():
 
             # Other infomation
             'label_name': 'outcome',
-            'feature_names': self.features,
+            'feature_names': self.features_list,
             'matrix_id': matrix_id,
             'labels': self.labels,
             'labels_config': self.labels_config,
@@ -347,12 +356,6 @@ def main_test(config_file_name, db_engine):
     # Read config file
     config = utils.read_config(config_file_name)
 
-    # features
-    features = officer.get_officer_features_table_columns(config)
-    log.info('features: {}'.format(features))
-    # labels
-    labels = [key for key in config["officer_labels"] if config["officer_labels"][key] == True]
-
     # modify models_config
     grid_config = utils.generate_model_config(config)
     # Generate temporal_sets
@@ -366,8 +369,10 @@ def main_test(config_file_name, db_engine):
                           'batch_comment': config['batch_comment']
                           }
     models_args = {'labels': labels,
-                   'features': features,
-                   'features_table_name': config['officer_feature_table_name'],
+                   'feature_blocks': feature_blocks,
+                   'schema_name': schema_name,
+                   'blocks': blocks,
+                   'labels_config': labels_config,
                    'labels_table_name': config['officer_label_table_name'],
                    'grid_config': grid_config,
                    'project_path': config['project_path'],

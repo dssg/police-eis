@@ -3,10 +3,11 @@ import numpy as np
 import copy
 import pdb
 import re
+import sys
 import yaml
 from datetime import datetime
 import logging
-from itertools import product
+from itertools import product, combinations
 from dateutil.relativedelta import relativedelta
 
 from . import  officer
@@ -177,6 +178,27 @@ def generate_feature_dates(temporal_config):
     as_of_dates.update(flatten_and_set(test_dates))
     
     return list(as_of_dates)
+
+def feature_blocks_sets(blocks, leave_out=0):
+    """
+    This function returns a list of list of the blocks
+    Args:
+       blocks (list): feature blocks
+       leave_out (int): how many feature blocks to leave out
+    """
+    length_blocks = len(blocks)
+    L = len(blocks) - leave_out
+
+    block_sets = []
+    if L > 0:
+        for subset in combinations(blocks, L):
+            block_sets.append(list(subset))
+   
+        return block_sets
+
+    else:
+        log.info("WARNING: Its is just implemented for leave one out and full list")
+        sys.exit(1)
 
 
 def generate_model_config( config ):

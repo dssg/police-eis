@@ -14,16 +14,13 @@ from .features import officers_collate
 log = logging.getLogger(__name__)
 
 
-def populate_features_table(config, table_name, schema):
+def populate_features_table(config, schema):
     """Calculate values for all features which are set to True (in the config file) 
     for the appropriate run type (officer/dispatch)
     """
     engine = setup_environment.get_database()
     if config['unit'] == 'officer':
-        populate_officer_features_table(config, table_name, schema, engine)
-    if config['unit'] == 'dispatch':
-        populate_dispatch_features_table(config, table_name, engine)
-
+        populate_officer_features_table(config, schema, engine)
 
 def populate_dispatch_features_table(config, table_name, engine):
     """Calculate all the feature values and store them in the features table in the database"""
@@ -133,16 +130,15 @@ def join_feature_table(engine, list_prefixes, schema, features_table_name):
         engine.execute(create_officer_date_index)
 
 
-def populate_officer_features_table(config, table_name, schema, engine):
+def populate_officer_features_table(config, schema, engine):
     """
      Calculate all the feature values and store them in the features table in the database
      using collate method that creates a table of feature for each block and stores them in a 
-     given schema. Then joins all the tables into a new table (table_name) on the features schema
+     given schema. 
      
      Args:
         config: Python dict read in from YAML config file containing
                 user-supplied details of the experiments to be run
-        table_name: table name for storing all the features in the features schema
         schema: schama name for storing collate tables
      """
     temporal_info = config['temporal_info'].copy()
@@ -169,4 +165,4 @@ def populate_officer_features_table(config, table_name, schema, engine):
 
     # Join all tables into one
     log.debug(list_prefixes)
-    join_feature_table(engine, list_prefixes, schema, table_name)
+#    join_feature_table(engine, list_prefixes, schema, table_name)
