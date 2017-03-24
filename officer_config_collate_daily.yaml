@@ -58,7 +58,8 @@ labels:
 
 #officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment']
 
-officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment']
+officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment', 'OfficerCompliments']]
+leave_out: 0 # Iterates through all officer_features blocks leaving X out
 
 feature_blocks:
     IncidentsReported:
@@ -76,6 +77,8 @@ feature_blocks:
         IncidentsOfTypeUnSustained: False
         IncidentsOfTypeUnknown: False
         DaysSinceLastCompletedAllegation: False # time-gated, The number of days since the last sustained allegation was made against the officer
+    OfficerCompliments:
+        Compliments: True # time-gated, Number of Compliments an officer received
 
     OfficerShifts:
         ShiftsOfType: True # time-gated, The Number of time-gated shifts by categorical type
@@ -89,6 +92,7 @@ feature_blocks:
         ArrestsON: True # Number of time-gated arrests by day of week.
         SuspectsArrestedOfRace: True #Number of suspects arrested by race type, time-gated periods.
         SuspectsArrestedOfEthnicity: True #Number of suspects arrested by ethnicity type, time-gated periods.
+        ArrestsCrimeType: True # time-gated, the number of crimes by ucr4 grouped
 
     TrafficStops:
         TrafficStopsWithSearch: True # time gated

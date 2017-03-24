@@ -369,7 +369,12 @@ class OfficerArrests(FeaturesBlock):
             'SuspectsArrestedOfEthnicity': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='suspect_ethnicity_code',
                                                lookup_table='lookup_ethnicities',
-                                               prefix='SuspectsArrestedOfEthnicity'), ['sum', 'avg'])
+                                               prefix='SuspectsArrestedOfEthnicity'), ['sum', 'avg']),
+
+             'ArrestsCrimeType': collate.Aggregate(
+                self.__lookup_values_conditions(engine, column_code_name='ucr4_grouped_code',
+                                                lookup_table='lookup_ucr4_grouped_dispatch_types',
+                                                prefix='ArrestsCrimeType'), ['sum'])
         }
 
     def _feature_aggregations_sub(self, engine):
@@ -731,4 +736,18 @@ class DemographicNpaArrests(FeaturesBlock):
                 {"Foreclosures": 'foreclosures'}, ['avg']),
             'DisorderCallRate': collate.Aggregate(
                 {"DisorderCallRate": 'disorder_call_rate'}, ['avg']),
+        }
+
+class OfficerCompliments(eaturesBlock):
+    def __init__(self, **kwargs):
+        FeaturesBlock.__init__(self, **kwargs)
+        self.unit_id = 'officer_id'
+        self.from_obj = ex.text('officer_compliments')
+        self.date_column = 'event_datetime'
+        self.prefix_space_time_lookback = 'compliments'
+
+    def _feature_aggregations_space_time_lookback(self, engine):
+        return {
+            'Compliments': collate.Aggregate(
+               {"Compliments": 'compliment_id'}['count'])
         }
