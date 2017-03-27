@@ -74,7 +74,7 @@ FROM
                           ARRAY timegated_feature_lookback_duration);
 -----------
 */
-REATE OR REPLACE FUNCTION get_active_bock_features(schema_name TEXT,
+CREATE OR REPLACE FUNCTION get_active_block_features(schema_name TEXT,
                                                     table_block_name TEXT,
                                                     features text[],
                                                     timegated_feature_lookback_duration text[])

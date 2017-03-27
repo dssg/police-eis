@@ -65,7 +65,7 @@ class FeatureLoader():
             block_tables = self._block_tables_name(block)
             for block_table in block_tables:
                 if active_features:
-                    query = (""" select * FROM public.get_active_bock_features('{schema_name}',
+                    query = (""" select * FROM public.get_active_block_features('{schema_name}',
                                                                               '{block_table}',
                                                                               ARRAY{active_features},
                                                                               ARRAY{timegated_feature_lookback_duration});"""
