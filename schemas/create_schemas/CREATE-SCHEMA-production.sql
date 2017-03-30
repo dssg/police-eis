@@ -1,8 +1,13 @@
+/*
+This schema contains the tables that will be updated daily and populate scores
+for production
+*/
+
 DROP SCHEMA IF EXISTS production CASCADE;
 CREATE SCHEMA production;
 
 
--- predictions corresponding to each model.
+--  stores the predictions from model
 CREATE TABLE production.predictions (
   model_id    INT REFERENCES results.models (model_id),
   as_of_date  TIMESTAMP,
@@ -15,6 +20,7 @@ CREATE TABLE production.predictions (
 CREATE INDEX ON production.predictions (as_of_date);
 CREATE INDEX ON production.predictions (entity_id,as_of_date);
 
+-- changes in rank over time from the predictions table
 CREATE TABLE production.time_delta (
   model_id  INT REFERENCES results.models (model_id),
  entity_id   BIGINT,
@@ -28,6 +34,7 @@ CREATE TABLE production.time_delta (
 
 CREATE INDEX ON production.time_delta (as_of_date,entity_id);
 
+--  information for when predictions are  reviewed 
 CREATE TABLE production.review_audit (
   model_id    INT REFERENCES results.models (model_id),
   entity_id   BIGINT,
@@ -39,5 +46,19 @@ CREATE TABLE production.review_audit (
   date_created TIMESTAMP DEFAULT now()
 );
 
-CREATE INDEX ON production.review_audit(date_reviewed, model_id);
+CREATE INDEX ON production.review_audit (date_reviewed, model_id);
 
+
+CREATE TABLE production.individual_importances(
+  model_id    INT REFERENCES results.models (model_id),
+  as_of_date  TIMESTAMP,
+  entity_id   BIGINT,
+  risk_1      TEXT,
+  risk_2      TEXT,
+  risk_3      TEXT,
+  risk_4      TEXT,
+  risk_5      TEXT
+);  
+
+CREATE INDEX ON production.individual_importances (as_of_date);
+CREATE INDEX ON production.individual_importances (entity_id,as_of_date);

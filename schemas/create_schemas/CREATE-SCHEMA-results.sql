@@ -1,3 +1,7 @@
+/*
+This schema is used for is used for testing and evaluating models
+*/
+
 DROP SCHEMA IF EXISTS results CASCADE;
 CREATE SCHEMA results;
 
