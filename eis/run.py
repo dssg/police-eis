@@ -17,7 +17,6 @@ from triage.storage import InMemoryModelStorageEngine
 from . import setup_environment
 from . import populate_features, populate_labels
 from . import utils
-from . import officer
 from .run_models import RunModels
 
 log = logging.getLogger(__name__)
@@ -66,7 +65,7 @@ def main(config_file_name, labels_config_file, args):
             }
 
     models_args = {'labels': config['labels'],
-                   'feature_blocks': config['feature_blocks'],
+                   'features': config['feature_blocks'],
                    'schema_name': config["schema_feature_blocks"],
                    'feature_lookback_duration': config['temporal_info']['timegated_feature_lookback_duration'],
                    'labels_config': labels_config,
@@ -108,7 +107,7 @@ def generate_all_matrices(temporal_set, blocks, **kwargs):
         raise
     
     run_model = RunModels(labels=kwargs['labels'],
-                          feature_blocks=kwargs['feature_blocks'],
+                          features=kwargs['features'],
                           schema_name=kwargs['schema_name'],
                           blocks=blocks,
                           feature_lookback_duration=kwargs['feature_lookback_duration'],
@@ -135,9 +134,9 @@ def apply_train_test(temporal_set, blocks,**kwargs):
         raise
     
     run_model = RunModels(labels=kwargs['labels'],
-                          feature_blocks=blocks,
+                          features=kwargs['features'],
                           schema_name=kwargs['schema_name'],
-                          blocks=kwargs['blocks'],
+                          blocks=blocks,
                           feature_lookback_duration=kwargs['feature_lookback_duration'],
                           labels_config=kwargs['labels_config'],
                           labels_table_name=kwargs['labels_table_name'],

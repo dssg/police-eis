@@ -179,3 +179,57 @@ RETURN QUERY
 
 end; $$
 LANGUAGE 'plpgsql';
+
+
+/*
+Function that for a specific features returns the names of all columns
+by time window
+-----------
+-----------
+A call like:
+-----------
+SELECT *
+FROM
+   get_columns_by_time_window(schema_name,
+                          table_features__name,
+                          feature);
+-----------
+*/
+CREATE OR REPLACE FUNCTION get_columns_by_time_window(schema_name TEXT,
+                                                        table_features_name TEXT,
+                                                        feature text
+                                                        )
+RETURNS  TABLE (
+ time_window text,
+ column_names text[]
+ ) AS
+$$
+BEGIN
+RETURN QUERY
+     WITH full_list AS (
+               /* get all columns from the specified feature table*/
+                 SELECT column_name AS column_name
+                 FROM information_schema.columns
+                 WHERE table_schema = schema_name
+                       AND table_name = table_features_name
+             ), list_cut AS (
+               /* seperate the full name into parts, e.g IR_officer_id_1d_IncidentsSeverityUnknown_major_sum ->
+                * {1d,IncidentsSeverityUnknown}*/
+                 SELECT
+                   regexp_matches(column_name, '_id_(\d+\w)_([A-Z][A-Za-z]+)_') AS array_col,
+                   column_name
+                 FROM full_list
+                 WHERE column_name LIKE '%_id_%'
+             ), db_avaliable_features AS (
+               /* convert to string for matching: e.g 1d_IncidentsSeverityUnknown  */
+                 SELECT
+                   array_col [1] :: TEXT  t_window,
+                   column_name::TEXT
+                 FROM list_cut
+                 WHERE array_col [2] :: TEXT = feature
+             )
+             select t_window, array_agg(column_name) 
+             from db_avaliable_features
+             GROUP BY t_window;
+end; $$
+LANGUAGE 'plpgsql';

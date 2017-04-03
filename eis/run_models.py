@@ -18,7 +18,6 @@ from .feature_loader import FeatureLoader
 from . import dataset
 from . import utils
 from . import setup_environment
-from . import officer
 from . import scoring
 
 log = logging.getLogger(__name__)
@@ -28,7 +27,7 @@ class RunModels():
     def __init__(
             self,
             labels,
-            feature_blocks,
+            features,
             schema_name,
             blocks,
             feature_lookback_duration,
@@ -42,7 +41,7 @@ class RunModels():
     ):
 
         self.labels = labels
-        self.feature_blocks = feature_blocks
+        self.features = features
         self.schema_name = schema_name
         self.blocks = blocks
         self.feature_lookback_duration = feature_lookback_duration
@@ -63,7 +62,7 @@ class RunModels():
         
 
         # feature loader
-        self.feature_loader = FeatureLoader(self.feature_blocks,
+        self.feature_loader = FeatureLoader(self.features,
                                             self.schema_name,
                                             self.blocks,
                                             self.labels_config,
@@ -117,7 +116,8 @@ class RunModels():
             'labels_config': self.labels_config,
             'prediction_window': self.temporal_split['prediction_window'],
             'train_size': self.temporal_split['train_size'],
-            'features_frequency': self.temporal_split['features_frequency']
+            'features_frequency': self.temporal_split['features_frequency'],
+            'blocks': sorted(self.blocks)
           }
 
         matrix_metadata = {

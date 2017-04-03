@@ -5,7 +5,6 @@ from itertools import product
 import datetime
 import logging
 
-from . import officer
 from . import setup_environment
 
 log = logging.getLogger(__name__)

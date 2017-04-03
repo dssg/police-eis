@@ -38,6 +38,7 @@ class FeaturesBlock():
         self.prefix_space_time_lookback = ""
         self.prefix_agg = ""
         self.prefix_sub = ""
+        self.prefix_post= ""
         self.prefix = []
         self.join_table = None
         self.from_obj_sub = ""
@@ -80,6 +81,9 @@ class FeaturesBlock():
         return {}
 
     def _sub_query(self):
+        return {}
+
+    def build_post_features(self, engine, feature_list, schema):
         return {}
 
     # time based aggregation with time intervals
@@ -208,7 +212,7 @@ class IncidentsReported(FeaturesBlock):
                  "IncidentsOfType_injury": "(department_defined_policy_type = 'Injury')::int",
                  "IncidentsOfType_icd": "(department_defined_policy_type = 'ICD')::int",
                  "IncidentsOfType_nfsi": "(department_defined_policy_type = 'NFSI')::int",
-                 "IncidentsOfType_accident": "(department_defined_policy_type = 'Accident')::int"}, ['sum']),
+                 "IncidentsOfType_accident": "(department_defined_policy_type = 'Accident')::int"}, ['sum', 'avg']),
 
             'ComplaintsTypeSource': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='origination_type_code',
@@ -217,14 +221,14 @@ class IncidentsReported(FeaturesBlock):
 
             'SuspensionsOfType': collate.Aggregate(
                 {"SuspensionsOfType_active": "(hours_active_suspension > 0)::int",
-                 "SuspensionsOfType_inactive": "(hours_inactive_suspension > 0)::int"}, ['sum']),
+                 "SuspensionsOfType_inactive": "(hours_inactive_suspension > 0)::int"}, ['sum', 'avg']),
 
             'HoursSuspensionsOfType': collate.Aggregate(
                 {"HoursSuspensionsOfType_active": "hours_active_suspension",
-                 "HoursSuspensionsOfType_inactive": "hours_inactive_suspension"}, ['sum']),
+                 "HoursSuspensionsOfType_inactive": "hours_inactive_suspension"}, ['sum', 'avg']),
 
             'AllAllegations': collate.Aggregate(
-                {"AllAllegations": "number_of_allegations"}, ['sum']),
+                {"AllAllegations": "number_of_allegations"}, ['sum', 'avg']),
 
         }
 
@@ -256,7 +260,7 @@ class IncidentsCompleted(FeaturesBlock):
             'IncidentsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
                                                lookup_table='lookup_final_rulings',
-                                               prefix='IncidentsByOutcome'), ['avg']),
+                                               prefix='IncidentsByOutcome'), ['avg', 'sum']),
 
             'IncidentsOfTypeOutSustained': collate.Aggregate(
                 {"IncidentsOfTypeOutSustained_use_of_force": "(department_defined_policy_type = 'Use Of Force' and "+AllegationOutcome.sustained.value+")::int",
@@ -268,7 +272,7 @@ class IncidentsCompleted(FeaturesBlock):
                  "IncidentsOfTypeOutSustained_injury": "(department_defined_policy_type = 'Injury' and "+AllegationOutcome.sustained.value+")::int",
                  "IncidentsOfTypeOutSustained_icd": "(department_defined_policy_type = 'ICD' and "+AllegationOutcome.sustained.value+")::int",
                  "IncidentsOfTypeOutSustained_nfsi": "(department_defined_policy_type = 'NFSI' and "+AllegationOutcome.sustained.value+")::int",
-                 "IncidentsOfTypeOutSustained_accident": "(department_defined_policy_type = 'Accident' and "+AllegationOutcome.sustained.value+")::int"}, ['sum']),
+                 "IncidentsOfTypeOutSustained_accident": "(department_defined_policy_type = 'Accident' and "+AllegationOutcome.sustained.value+")::int"}, ['sum', 'avg']),
 
             'IncidentsOfTypeUnSustained': collate.Aggregate(
                 {
@@ -282,7 +286,7 @@ class IncidentsCompleted(FeaturesBlock):
                     "IncidentsOfTypeUnSustained_icd": "(department_defined_policy_type = 'ICD' and " + AllegationOutcome.unsustained.value + ")::int",
                     "IncidentsOfTypeUnSustained_nfsi": "(department_defined_policy_type = 'NFSI' and " + AllegationOutcome.unsustained.value + ")::int",
                     "IncidentsOfTypeUnSustained_accident": "(department_defined_policy_type = 'Accident' and " + AllegationOutcome.unsustained.value + ")::int"},
-                ['sum']),
+                ['sum', 'avg']),
 
             'IncidentsOfTypeUnknown': collate.Aggregate(
                 {
@@ -296,7 +300,7 @@ class IncidentsCompleted(FeaturesBlock):
                     "IncidentsOfTypeUnknown_icd": "(department_defined_policy_type = 'ICD' and " + AllegationOutcome.unknown.value + ")::int",
                     "IncidentsOfTypeUnknown_nfsi": "(department_defined_policy_type = 'NFSI' and " + AllegationOutcome.unknown.value + ")::int",
                     "IncidentsOfTypeUnknown_accident": "(department_defined_policy_type = 'Accident' and " + AllegationOutcome.unknown.value + ")::int"},
-                ['sum']),
+                ['sum', 'avg']),
 
         }
 
@@ -326,10 +330,10 @@ class OfficerShifts(FeaturesBlock):
             'ShiftsOfType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='shift_type_code',
                                                lookup_table='lookup_shift_types',
-                                               prefix='ShiftsOfType'), ['sum']),
+                                               prefix='ShiftsOfType'), ['sum', 'avg']),
 
             'HoursPerShift': collate.Aggregate(
-                {'HoursPerShift': '(EXTRACT( EPOCH from shift_length)/3600)'}, ['avg'])
+                {'HoursPerShift': '(EXTRACT( EPOCH from shift_length)/3600)'}, ['avg', 'sum'])
         }
 
 
@@ -355,12 +359,12 @@ class OfficerArrests(FeaturesBlock):
             'ArrestsOfType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='arrest_type_code',
                                                lookup_table='lookup_arrest_types',
-                                               prefix='ArrestsOfType'), ['sum']),
+                                               prefix='ArrestsOfType'), ['sum', 'avg']),
 
             'ArrestsON': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='arrest_day_of_week',
                                                lookup_table='lookup_days_of_week',
-                                               prefix='ArrestsON'), ['sum']),
+                                               prefix='ArrestsON'), ['sum', 'avg']),
 
             'SuspectsArrestedOfRace': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='suspect_race_code',
@@ -372,7 +376,7 @@ class OfficerArrests(FeaturesBlock):
                                                prefix='SuspectsArrestedOfEthnicity'), ['sum', 'avg']),
 
              'ArrestsCrimeType': collate.Aggregate(
-                self.__lookup_values_conditions(engine, column_code_name='ucr4_grouped_code',
+                self._lookup_values_conditions(engine, column_code_name='ucr4_grouped_code',
                                                 lookup_table='lookup_ucr4_grouped_dispatch_types',
                                                 prefix='ArrestsCrimeType'), ['sum'])
         }
@@ -546,9 +550,10 @@ class Dispatches(FeaturesBlock):
     def __init__(self, **kwargs):
         FeaturesBlock.__init__(self, **kwargs)
         self.unit_id = 'officer_id'
-        self.from_obj = 'staging.dispatches'
+        self.from_obj = ex.text('staging.dispatches LEFT JOIN staging.dispatch_geo_time_officer using(dispatch_id, officer_id)')
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'dispatch'
+        self.prefix_post = 'dispatchPOST'
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -560,9 +565,78 @@ class Dispatches(FeaturesBlock):
             'DispatchInitiatiationType': collate.Aggregate(
                 {"DispatchInitiatiationType_ci": "(dispatch_category = 'CI')::int",
                  "DispatchInitiatiationType_oi": "(dispatch_category = 'OI')::int",
-                 "DispatchInitiatiationType_al": "(dispatch_category = 'AL')::int"}, ['sum', 'avg'])
-        }
+                 "DispatchInitiatiationType_al": "(dispatch_category = 'AL')::int"}, ['sum', 'avg']),
 
+           'DispatchDivision': collate.Aggregate(
+                {"DispatchDivision_07": "(division_id = '07')::int",
+                 "DispatchDivision_21": "(division_id = '21')::int",
+                 "DispatchDivision_02": "(division_id = '02')::int",
+                 "DispatchDivision_06": "(division_id = '06')::int",
+                 "DispatchDivision_11": "(division_id = '11')::int",
+                 "DispatchDivision_14": "(division_id = '14')::int",
+                 "DispatchDivision_22": "(division_id = '22')::int",
+                 "DispatchDivision_28": "(division_id = '28')::int",
+                 "DispatchDivision_16": "(division_id = '16')::int",
+                 "DispatchDivision_01": "(division_id = '01')::int",
+                 "DispatchDivision_27": "(division_id = '27')::int",
+                 "DispatchDivision_17": "(division_id = '17')::int",
+                 "DispatchDivision_12": "(division_id = '12')::int",
+                 "DispatchDivision_26": "(division_id = '26')::int"}, ['sum'])
+                 }
+
+    def build_post_features(self, engine, feature_list, schema):
+        if 'DispatchMovement' in feature_list:
+            feature = 'DispatchDivision'
+            db_conn = engine.raw_connection()
+
+            # Store Procedure that returns the name of the columns that map to the feature by time window
+            window_columns_query = ("""SELECT * 
+                                    FROM public.get_columns_by_time_window('{schema}',
+                                                              '{prefix}_aggregation',
+                                                              '{feature}')""".format(schema=schema,
+                                                                                     prefix=self.prefix_space_time_lookback,
+                                                                                     feature=feature))
+            cur = db_conn.cursor()
+            cur.execute(window_columns_query)
+            columns_by_windows = cur.fetchall()
+            db_conn.close()
+    
+            # calculate dispatch movement rate (sum_all - greatest) / greatest for every time window
+            rates = {}
+            for window, column in columns_by_windows:
+                new_col = '{prefix}_id_{window}_DispatchMovement_rate'.format(prefix=self.prefix_post,
+                                                                      window=window)
+                sum_all = " + ".join('"{}"'.format(x) for x in column)
+                greatest = 'GREATEST({})::real'.format(", ".join('"{}"'.format(x) for x in column))
+                rates[new_col] = 'round((({sum_all} - {greatest}) / {greatest})::numeric, 3)  AS "{new_col}" '.format(sum_all=sum_all,
+                                                                                                                   greatest=greatest,
+                                                                                                                    new_col=new_col)        
+            # Create table {prefix_post}_aggregation
+            drop_query = ("""DROP TABLE if exists {schema}."{prefix_post}_aggregation" """.format(schema=schema,
+                                                                                        prefix_post=self.prefix_post))
+
+            query_create_rates = (""" CREATE TABLE {schema}."{prefix_post}_aggregation" AS (
+                                       SELECT {unit},
+                                              as_of_date,
+                                              {rates_func} 
+                                       FROM {schema}."{prefix}_aggregation"); """.format(schema=schema,
+                                                                                        prefix_post=self.prefix_post,
+                                                                                        unit=self.unit_id,
+                                                                                        prefix=self.prefix_space_time_lookback,
+                                                                                        rates_func=", ".join(['{rate}'.format(rate=rate)
+                                                                                                         for col, rate in rates.items()])))
+            self.prefix.append(self.prefix_post)
+            db_conn = engine.raw_connection()
+            cur = db_conn.cursor()
+            cur.execute(drop_query)
+            cur.execute(query_create_rates)
+            db_conn.commit()
+            db_conn.close()
+            log.debug('Build post {schema}.{prefix}_aggregation  features table'.format(schema=schema, prefix=self.prefix_post))
+      
+    
+        
+        
 
 # --------------------------------------------------------
 # BLOCK: OFFICER EMPLOYMENT
@@ -738,16 +812,16 @@ class DemographicNpaArrests(FeaturesBlock):
                 {"DisorderCallRate": 'disorder_call_rate'}, ['avg']),
         }
 
-class OfficerCompliments(eaturesBlock):
+class OfficerCompliments(FeaturesBlock):
     def __init__(self, **kwargs):
         FeaturesBlock.__init__(self, **kwargs)
         self.unit_id = 'officer_id'
-        self.from_obj = ex.text('officer_compliments')
+        self.from_obj = ex.text('staging.officer_compliments')
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'compliments'
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'Compliments': collate.Aggregate(
-               {"Compliments": 'compliment_id'}['count'])
+               {"Compliments": 'event_id'},['count'])
         }

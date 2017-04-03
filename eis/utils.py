@@ -10,7 +10,6 @@ import logging
 from itertools import product, combinations
 from dateutil.relativedelta import relativedelta
 
-from . import  officer
 
 log = logging.getLogger(__name__)
 

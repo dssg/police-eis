@@ -5,7 +5,6 @@ from itertools import product
 import datetime
 import logging
 
-from . import officer
 from . import setup_environment
 from . import utils
 from .features import class_map
@@ -161,6 +160,7 @@ def populate_officer_features_table(config, schema, engine):
 
         # Build collate tables and returns table name
         block_class.build_collate(engine, as_of_dates, feature_list, schema)
+        block_class.build_post_features(engine, feature_list, schema)
         list_prefixes.extend(block_class.prefix)
 
     # Join all tables into one

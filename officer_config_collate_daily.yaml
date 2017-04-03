@@ -7,9 +7,8 @@
 department_unit: 'charlotte_pd'
 
 # Set the officer table name.
-officer_feature_table_name: "charlotte_historial_daily"
 officer_label_table_name: "label_charlotte_daily"
-schema_feature_blocks: "historical_features_collate_daily"
+schema_feature_blocks: "historical_features_daily"
 
 # determine whether model objects gets stored in a pickle in root_path/department_unit/directory
 store_model_object: False
@@ -37,7 +36,7 @@ temporal_info:
     end_date: '2016-04-01' # The last day of the data
     train_size: ['1y', '2y', '3y','4y','5y','6y']
     prediction_window: ['1y'] # prediction window  used for officer-level prediction eg: ['1d', '1w', '1m', '6m', '1y']
-    update_window: ['1m'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
+    update_window: ['1d'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
     features_frequency: ['1m'] # months, used for training the model
     test_frequency: ['1d']
     test_time_ahead: ['2m']
@@ -58,7 +57,7 @@ labels:
 
 #officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment']
 
-officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment', 'OfficerCompliments']]
+officer_features: ['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment', 'OfficerCompliments']
 leave_out: 0 # Iterates through all officer_features blocks leaving X out
 
 feature_blocks:
@@ -77,6 +76,7 @@ feature_blocks:
         IncidentsOfTypeUnSustained: False
         IncidentsOfTypeUnknown: False
         DaysSinceLastCompletedAllegation: False # time-gated, The number of days since the last sustained allegation was made against the officer
+
     OfficerCompliments:
         Compliments: True # time-gated, Number of Compliments an officer received
 
@@ -127,6 +127,7 @@ feature_blocks:
     Dispatches:
         DispatchType: True #Number of dispatches of different type aggregated over time
         DispatchInitiatiationType: True
+        DispatchDivision: True
 
     EISAlerts: ##TODO
         EISInterventionsOfType: True
@@ -267,7 +268,7 @@ parameters:
 ########################
 # Parallelization      #
 ########################
-n_cpus: 126
+n_cpus: 6
 
 ########################
 # Auditing hooks       #

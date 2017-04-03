@@ -9,7 +9,7 @@ log = logging.getLogger(__name__)
 
 class FeatureLoader():
 
-    def __init__(self, feature_blocks, 
+    def __init__(self, features, 
                        schema_name, 
                        blocks, 
                        labels_config, 
@@ -30,7 +30,7 @@ class FeatureLoader():
             officer_past_activity_window (str): window for conditioning which officers to use given an as_of_date
         '''
 
-        self.feature_blocks = feature_blocks
+        self.features = features
         self.schema_name = schema_name
         self.blocks = blocks
         self.labels_config = labels_config
@@ -52,16 +52,21 @@ class FeatureLoader():
         list_prefix = [block_class.prefix_space_time_lookback,
                        block_class.prefix_sub,
                        block_class.prefix_agg,
-                       block_class.prefix_space_time]
+                       block_class.prefix_space_time, 
+                       block_class.prefix_post]
         
         return ['{prefix}_aggregation'.format(prefix=prefix) for prefix in list_prefix if prefix]       
 
+
     def features_list(self):
+        return [feature for list_features in self.features_in_blocks().values() for feature in list_features]
+
+    def features_in_blocks(self):
         
-        features_list = []
+        features_in_blocks = {}
         features_missing = [] 
         for block in self.blocks:
-            active_features = [key for key in self.feature_blocks[block] if self.feature_blocks[block][key] == True]
+            active_features = [key for key in self.features[block] if self.features[block][key] == True]
             block_tables = self._block_tables_name(block)
             for block_table in block_tables:
                 if active_features:
@@ -76,7 +81,7 @@ class FeatureLoader():
                     
                     result = self.db_engine.connect().execute(query)
                     result_dict = [dict(row) for row in result][0]
-                    features_list += result_dict['col_avaliable']
+                    features_in_blocks[block_table] = result_dict['col_avaliable']
                     # keep going through the rest of features
                     active_features = result_dict['col_missing']
                 
@@ -84,7 +89,7 @@ class FeatureLoader():
                     features_missing += result_dict['col_missing']
         log.error('These features are missing: {}'.format(features_missing))
 
-        return features_list
+        return features_in_blocks
          
     def _tree_conditions(self, nested_dict, parent=[], conditions=[]):
         '''
@@ -199,6 +204,68 @@ class FeatureLoader():
                                                 query_select=query_select_labels))
         return query_labels
 
+    def get_dataset(self, as_of_dates_to_use):
+        features_in_blocks = self.features_in_blocks()
+         
+        # Read labels master 
+        complete_df = self.get_master_labels(as_of_dates_to_use)
+
+        #loop through every table in blocks
+        for table_name, features in features_in_blocks.items():
+            log.info('Joining table {}!'.format(table_name))
+            features_coalesce = ", ".join(['coalesce("{0}",0) as {0}'.format(feature) for feature in features])
+             
+            # table with no date
+            if 'ND' in table_name:
+                query = ("""SELECT officer_id,
+                                   {features_coalesce}
+                            FROM {schema}."{table_name}"
+                             WHERE officer_id is not null; """
+                                            .format(features_coalesce=features_coalesce,
+                                                                schema=self.schema_name,
+                                                                table_name=table_name))                                    
+            else:
+                query = ("""SELECT officer_id,
+                                   as_of_date::timestamp,
+                                  {features_coalesce}
+                            FROM {schema}."{table_name}"
+                            WHERE as_of_date in (
+                                SELECT unnest(ARRAY{as_of_dates}::timestamp[]))
+                             AND officer_id is not null
+                                ;""".format(features_coalesce=features_coalesce,
+                                                 schema=self.schema_name,
+                                                 table_name=table_name,
+                                                 as_of_dates=as_of_dates_to_use))
+            # Get the data
+            db_conn = self.db_engine.raw_connection()
+            cur = db_conn.cursor(name='cursor_for_loading_matrix')
+            cur.execute(query)
+            table = cur.fetchall()
+
+            # Get column names
+            col_names = []
+            for desc in cur.description:
+                col_names.append(desc[0])  
+
+            # To pandas df
+            table = pd.DataFrame(table)
+            table.columns = col_names
+            db_conn.close()
+            
+            if 'ND' in table_name:
+                 complete_df = complete_df.merge(table, on='officer_id', how='left')
+            else:
+                 complete_df = complete_df.merge(table, on=['officer_id','as_of_date'], how='left')
+
+        # Zero imputation
+        complete_df.fillna(0, inplace=True)
+
+        # labels at last
+        cols = complete_df.columns.tolist()
+        cols.insert(len(cols), cols.pop(cols.index('outcome')))
+        complete_df = complete_df.reindex(columns=cols)        
+        return complete_df
+
     def get_query_features(self):
         table_names = [x for block in self.blocks for x in  self._block_tables_name(block)]  
 
@@ -229,7 +296,6 @@ class FeatureLoader():
             # check if in the first loop above a table was added
             if len(query) == 0:
                 query = (""" SELECT officer_id,
-                                    as_of_date,
                                     {features_coalesce}
                             FROM {schema}."{block_table}" """.format(features_coalesce=features_coalesce,
                                                                      schema=self.schema_name, 
@@ -246,8 +312,64 @@ class FeatureLoader():
 
             return subquery
         
+    def get_master_labels(self, as_of_dates_to_use):
+        '''
+        Returns master list of labels for specific as of dates
+        '''
 
-    def get_dataset(self, as_of_dates_to_use):
+        # We only want to train and test on officers that have been active (any logged activity in events_hub)
+        # NOTE: it uses the feature_labels created in query_labels         
+        active_subquery = ( " officers AS (  "
+                         "       SELECT officer_id "
+                         "       FROM staging.officers_hub "
+                         " ), active AS ( "
+                         "       SELECT officer_id, as_of_date "
+                         "       FROM as_of_dates as d "
+                         "       CROSS JOIN officers as off, "
+                         "           LATERAL "
+                         "                (SELECT 1 "
+                         "                 FROM staging.events_hub e "
+                         "                 WHERE off.officer_id = e.officer_id "
+                         "                 AND e.event_datetime + INTERVAL '{window}' > d.as_of_date "
+                         "                 AND e.event_datetime <= d.as_of_date "
+                         "                    LIMIT 1 ) sub_activity, "
+                         "            LATERAL "
+                         "                (SELECT 1 "
+                         "                 FROM staging.officer_roles r "
+                         "                 WHERE off.officer_id = r.officer_id "
+                         "                 AND r.job_start_date <= d.as_of_date "
+                         "                 AND sworn_flag = 1 "
+                         "                 LIMIT 1) sub_sworn )"
+                         .format(window=self.officer_past_activity_window))
+
+        query_master_labels = (" {labels_subquery}, "
+                               " {active_subquery} "
+                               " SELECT officer_id, "
+                               "        as_of_date, "
+                               "        coalesce(outcome,0) as outcome "
+                               " FROM active "
+                               " LEFT JOIN labels "
+                               " USING (as_of_date, officer_id) "
+                               .format(labels_subquery=self.get_query_labels(as_of_dates_to_use),
+                                       active_subquery=active_subquery))
+        
+        db_conn = self.db_engine.raw_connection()
+        cur = db_conn.cursor(name='cursor_for_loading_matrix')
+        cur.execute(query_master_labels)
+        labels = cur.fetchall()
+
+        # Get column names
+        col_names = []
+        for desc in cur.description:
+            col_names.append(desc[0])
+
+        # To pandas df
+        labels = pd.DataFrame(labels)
+        labels.columns = col_names
+        db_conn.close()
+        return labels
+
+    def get_dataset_old(self, as_of_dates_to_use):
         '''
         This function returns dataset and labels to use for training / testing
         It is splitted in two queries:
@@ -256,7 +378,8 @@ class FeatureLoader():
                             for officers that are have any activity given the officer_past_activity_window
 
         '''
-
+        labels = self.get_master_labels(as_of_dates_to_use)
+        pdb.set_trace()
         features_list_string = ", ".join(['{}'.format(feature) for feature in self.features_list()])
 
         # JOIN FEATURES AND LABELS
@@ -289,7 +412,6 @@ class FeatureLoader():
                                 window=self.officer_past_activity_window))
 
         # join both queries together and load data
-        pdb.set_trace()
         query = (query_features_labels + query_active)
 
         # Get the data
