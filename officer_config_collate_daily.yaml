@@ -57,7 +57,7 @@ labels:
 
 #officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment']
 
-officer_features: ['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment', 'OfficerCompliments']
+officer_features: ['OfficerCompliments'] #['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment', 'OfficerCompliments']
 leave_out: 0 # Iterates through all officer_features blocks leaving X out
 
 feature_blocks:
@@ -125,9 +125,10 @@ feature_blocks:
         SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.##TODO
 
     Dispatches:
-        DispatchType: True #Number of dispatches of different type aggregated over time
+        DispatchType: True # Number of dispatches of different type aggregated over time
         DispatchInitiatiationType: True
         DispatchDivision: True
+        DispatchMovement: True
 
     EISAlerts: ##TODO
         EISInterventionsOfType: True
@@ -268,7 +269,7 @@ parameters:
 ########################
 # Parallelization      #
 ########################
-n_cpus: 6
+n_cpus: 1
 
 ########################
 # Auditing hooks       #

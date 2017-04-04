@@ -823,5 +823,5 @@ class OfficerCompliments(FeaturesBlock):
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
             'Compliments': collate.Aggregate(
-               {"Compliments": 'event_id'},['count'])
+               {"Compliments": 'event_id::int'},['sum','avg'])
         }

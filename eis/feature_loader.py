@@ -71,9 +71,9 @@ class FeatureLoader():
             for block_table in block_tables:
                 if active_features:
                     query = (""" select * FROM public.get_active_block_features('{schema_name}',
-                                                                              '{block_table}',
-                                                                              ARRAY{active_features},
-                                                                              ARRAY{timegated_feature_lookback_duration});"""
+                                                                                '{block_table}',
+                                                                                 ARRAY{active_features},
+                                                                                 ARRAY{timegated_feature_lookback_duration});"""
                              .format(schema_name=self.schema_name,
                                      block_table=block_table,
                                      active_features=active_features,
@@ -85,8 +85,8 @@ class FeatureLoader():
                     # keep going through the rest of features
                     active_features = result_dict['col_missing']
                 
-                if result_dict['col_missing']:
-                    features_missing += result_dict['col_missing']
+            if result_dict['col_missing']:
+                features_missing += result_dict['col_missing']
         log.error('These features are missing: {}'.format(features_missing))
 
         return features_in_blocks
