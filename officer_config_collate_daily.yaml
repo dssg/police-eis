@@ -12,7 +12,7 @@ schema_feature_blocks: "historical_features_daily"
 
 # determine whether model objects gets stored in a pickle in root_path/department_unit/directory
 store_model_object: False
-project_path: ''
+project_path: '/localdisk/triage/'
 
 ########################
 # Comment fields       #
@@ -36,7 +36,7 @@ temporal_info:
     end_date: '2016-04-01' # The last day of the data
     train_size: ['1y', '2y', '3y','4y','5y','6y']
     prediction_window: ['1y'] # prediction window  used for officer-level prediction eg: ['1d', '1w', '1m', '6m', '1y']
-    update_window: ['1d'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
+    update_window: ['1m'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
     features_frequency: ['1m'] # months, used for training the model
     test_frequency: ['1d']
     test_time_ahead: ['2m']
@@ -57,7 +57,7 @@ labels:
 
 #officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment']
 
-officer_features: ['OfficerCompliments'] #['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment', 'OfficerCompliments']
+officer_features: ['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment', 'OfficerCompliments']
 leave_out: 0 # Iterates through all officer_features blocks leaving X out
 
 feature_blocks:
@@ -157,14 +157,6 @@ feature_blocks:
         ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
         UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
         ComplimentsToComplaintsRatio: False #Ratio of internal compliments to complaints and officer has
-
-    Demographic_Features:
-        OfficerAvgArrestDemographics_1: False
-        OfficerAvgArrestDemographics_2: False
-        OfficerAvgDispatchDemographics_1: False
-        OfficerAvgDispatchDemographics_2: False
-        OfficerAvgStopsDemographics_1: False
-        OfficerAvgStopsDemographics_2: False
 
     DemographicNpaArrests:
         Arrests311Call: True
@@ -269,7 +261,7 @@ parameters:
 ########################
 # Parallelization      #
 ########################
-n_cpus: 1
+n_cpus: 12
 
 ########################
 # Auditing hooks       #

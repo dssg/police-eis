@@ -6,7 +6,7 @@ CREATE  TABLE staging.incidents (
   department_defined_policy_type             TEXT, -- the kind of department policy that was (allegedly) violated
   department_defined_incident_type_code      INT, --if there is already an internal set of groupings for incident type within the department
   department_defined_policy_violated         TEXT, -- the policy number of the (alleged) violation, from the department
-  department_defined_policy_violated_grouped TEXT, --  the policy number from the department that has been cleaned to then be look-upable
+  department_defined_policy_violated_cleaned TEXT, --  the policy number from the department that has been cleaned to then be look-upable
   number_of_allegations                      INT, --if multiple allegations of the same incident_type_code are made for the same event (e.g. multiple uniform violations), they will be aggregated into one row. This column shows how many of these allegations there were
   number_of_justified_allegations            INT, --if incident type can be classed into justified or unjustified (e.g. UOF), this shows the number of these. If not, it is a null
   number_of_unjustified_allegations          INT, --as above, for un-justified allegations

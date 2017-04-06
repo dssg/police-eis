@@ -84,7 +84,7 @@ class FeatureLoader():
                     features_in_blocks[block_table] = result_dict['col_avaliable']
                     # keep going through the rest of features
                     active_features = result_dict['col_missing']
-                
+
             if result_dict['col_missing']:
                 features_missing += result_dict['col_missing']
         log.error('These features are missing: {}'.format(features_missing))
@@ -263,7 +263,11 @@ class FeatureLoader():
         # labels at last
         cols = complete_df.columns.tolist()
         cols.insert(len(cols), cols.pop(cols.index('outcome')))
-        complete_df = complete_df.reindex(columns=cols)        
+        complete_df = complete_df.reindex(columns=cols)  
+
+        log.info('length of data_set: {}'.format(len(complete_df)))
+        log.info('as of dates used: {}'.format(complete_df['as_of_date'].unique()))
+        log.info('number of officers with adverse incident: {}'.format(complete_df['outcome'].sum() ))
         return complete_df
 
     def get_query_features(self):
