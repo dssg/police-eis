@@ -232,4 +232,65 @@ RETURN QUERY
              from db_avaliable_features
              GROUP BY t_window;
 end; $$
-LANGUAGE 'plpgsql';
+LANGUAGE 'plpgsql'
+
+
+/*
+Function for mapping the name of the column to a feature dictionary and time aggregation
+dictionary for explaining the name
+-----------
+-----------
+A call like:
+-----------
+select * from get_feature_complete_name('column_name',
+                                        json.dumps(features_config['feature_names'])::JSON,
+                                        json.dumps(features_config['time_aggregations'])::JSON,
+                                        json.dumps(features_config['metrics'])::JSON)
+-----------
+Returns a Table with:
+column_original_name |  feature_long_name  |  of_type  |  time_aggregation  |  metric_used
+
+*/
+CREATE OR REPLACE FUNCTION get_feature_complet_description (column_name TEXT,
+                                                            feature_dict JSON,
+                                                             time_agg_dict JSON,
+                                                              metric_dict JSON)
+ RETURNS TABLE (
+column_original_name TEXT,
+metric_name TEXT,
+feature_long_name TEXT,
+of_type TEXT,
+time_aggregation TEXT
+)
+AS $$
+BEGIN
+ RETURN QUERY
+            SELECT
+                   t1.column_name as column_original_name,
+                   metrics.value::text as metric_name,
+                   features.value::text as feature_long_name,
+                   t1.of_type::text,
+                   time_aggregations.value::text as time_aggregation
+            from ( select column_name,
+                   array_col [1] as block,
+                   array_col [2] as time_window_agg,
+                   array_col [3] as feature,
+                   array_col [4] as of_type,
+                   array_col [5] as metric_used
+                   from (
+                   select regexp_matches(column_name, '(.+)_id_(\d+\w|all)?[_]?([A-Za-z0-9]+)[_]?(.+)?_(sum|avg|max|mode|rate)')
+                     AS array_col
+                   )  list_cut
+                   ) t1
+            LEFT JOIN ( SELECT *
+                           FROM json_each(feature_dict::json) )features
+            on features.key = t1.feature
+            LEFT JOIN (SELECT *
+                           FROM json_each(time_agg_dict::json)) time_aggregations
+            on time_aggregations.key = t1.time_window_agg
+            LEFT JOIN (SELECT *
+                           FROM json_each(metric_dict::json)) metrics
+            on metrics.key = t1.metric_used ;
+END; $$
+
+LANGUAGE 'plpgsql';;
