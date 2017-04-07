@@ -190,6 +190,8 @@ lookup_arrest_types:
         - [1, 'AR2', 'Order for Arrest (OFA)']
         - [2, 'AR5', 'Warrant for Arrest']
         - [3, 'AR6', 'Non-Arrest']
+        - [4, 'DOA', 'Dead on arrival']
+        - [5, 'PFA', 'Protection from abuse']
 
 
 lookup_education_levels:
