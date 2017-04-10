@@ -2,6 +2,7 @@
 import os
 import yaml
 from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
 import logging
 
 log = logging.getLogger(__name__)
@@ -74,5 +75,5 @@ def get_engine(db, user, host, port, passwd):
 
     url = 'postgresql://{user}:{passwd}@{host}:{port}/{db}'.format(
         user=user, passwd=passwd, host=host, port=port, db=db)
-    engine = create_engine(url, pool_size = 50)
+    engine = create_engine(url, poolclass=NullPool)
     return engine

@@ -5,34 +5,23 @@ from itertools import product
 import datetime
 import logging
 
-from . import officer
 from . import setup_environment
-from . import experiment
+from . import utils
 from .features import class_map
-from .features import officers
 from .features import officers_collate
 
 log = logging.getLogger(__name__)
 
-try:
-    log.info("Connecting to database...")
-    engine = setup_environment.get_database()
-except:
-    log.error('Could not connect to the database')
 
-
-def populate_features_table(config, table_name, schema):
+def populate_features_table(config, schema):
     """Calculate values for all features which are set to True (in the config file) 
     for the appropriate run type (officer/dispatch)
     """
-
+    engine = setup_environment.get_database()
     if config['unit'] == 'officer':
-        populate_officer_features_table(config, table_name, schema)
-    if config['unit'] == 'dispatch':
-        populate_dispatch_features_table(config, table_name)
+        populate_officer_features_table(config, schema, engine)
 
-
-def populate_dispatch_features_table(config, table_name):
+def populate_dispatch_features_table(config, table_name, engine):
     """Calculate all the feature values and store them in the features table in the database"""
 
     # Get a list of all the features that are set to true.
@@ -133,22 +122,27 @@ def join_feature_table(engine, list_prefixes, schema, features_table_name):
                                                                                 query)
         engine.execute(create_table_query)
 
+        create_as_of_date_index = """CREATE INDEX on features."{0}" (as_of_date);  """.format(features_table_name)
+        engine.execute(create_as_of_date_index)
 
-def populate_officer_features_table(config, table_name, schema):
+        create_officer_date_index = """CREATE INDEX on features."{0}" (as_of_date, officer_id);  """.format(features_table_name)
+        engine.execute(create_officer_date_index)
+
+
+def populate_officer_features_table(config, schema, engine):
     """
      Calculate all the feature values and store them in the features table in the database
      using collate method that creates a table of feature for each block and stores them in a 
-     given schema. Then joins all the tables into a new table (table_name) on the features schema
+     given schema. 
      
      Args:
         config: Python dict read in from YAML config file containing
                 user-supplied details of the experiments to be run
-        table_name: table name for storing all the features in the features schema
         schema: schama name for storing collate tables
      """
-
+    temporal_info = config['temporal_info'].copy()
     # get the list of fake todays specified by the config file
-    as_of_dates = experiment.generate_as_of_dates_features(config)
+    as_of_dates = utils.generate_feature_dates(temporal_info)
     log.debug(as_of_dates)
 
     list_prefixes = []
@@ -161,12 +155,14 @@ def populate_officer_features_table(config, table_name, schema):
         ## Need to find a way of calling the class given the block_name
         block_class = class_map.lookup_block(block_name,
                                              module=officers_collate,
-                                             lookback_durations=config['timegated_feature_lookback_duration'])
+                                             lookback_durations=temporal_info['timegated_feature_lookback_duration'],
+                                             n_cpus=config['n_cpus'])
 
         # Build collate tables and returns table name
         block_class.build_collate(engine, as_of_dates, feature_list, schema)
+        block_class.build_post_features(engine, feature_list, schema)
         list_prefixes.extend(block_class.prefix)
 
     # Join all tables into one
     log.debug(list_prefixes)
-    join_feature_table(engine, list_prefixes, schema, table_name)
+#    join_feature_table(engine, list_prefixes, schema, table_name)
