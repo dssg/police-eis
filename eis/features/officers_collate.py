@@ -377,7 +377,7 @@ class OfficerArrests(FeaturesBlock):
              'ArrestsCrimeType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='ucr4_grouped_code',
                                                 lookup_table='lookup_ucr4_grouped_dispatch_types',
-                                                prefix='ArrestsCrimeType'), ['sum'])
+                                                prefix='ArrestsCrimeType'), ['sum', 'avg'])
         }
 
     def _feature_aggregations_sub(self, engine):
@@ -446,17 +446,17 @@ class TrafficStops(FeaturesBlock):
             'TrafficStopsByStopType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='stop_type_code',
                                                lookup_table='lookup_traffic_stop_type',
-                                               prefix='TrafficStopsByStopType'), ['sum']),
+                                               prefix='TrafficStopsByStopType'), ['sum', 'avg']),
 
             'TrafficStopsByStopResult': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='stop_outcome_code',
                                                lookup_table='lookup_traffic_stop_outcome_type',
-                                               prefix='TrafficStopsByStopResult'), ['sum']),
+                                               prefix='TrafficStopsByStopResult'), ['sum', 'avg']),
 
             'TrafficStopsBySearchReason': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='search_justification_code',
                                                lookup_table='lookup_search_justifications',
-                                               prefix='TrafficStopsBySearchReason'), ['sum'])
+                                               prefix='TrafficStopsBySearchReason'), ['sum', 'avg'])
         }
 
 
@@ -559,7 +559,7 @@ class Dispatches(FeaturesBlock):
             'DispatchType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='dispatch_final_type_code',
                                                lookup_table='lookup_dispatch_types',
-                                               prefix='DispatchType'), ['sum']),
+                                               prefix='DispatchType'), ['sum', 'avg']),
 
             'DispatchInitiatiationType': collate.Aggregate(
                 {"DispatchInitiatiationType_ci": "(dispatch_category = 'CI')::int",
@@ -650,10 +650,6 @@ class OfficerEmployment(FeaturesBlock):
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
-            'DispatchType': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name='dispatch_type_code',
-                                               lookup_table='lookup_dispatch_types',
-                                               prefix='DispatchType'), ['sum']),
 
             'OutsideEmploymentHours': collate.Aggregate(
                 {"OutsideEmploymentHours": "hours_on_shift"}, ['sum', 'avg'])
