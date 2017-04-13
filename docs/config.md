@@ -4,9 +4,6 @@ The analysis for this research was conducted on a Ubuntu 14.04.4 LTS machine hos
 
 The specific dependencies are as follows:
 
-<hr/> 
-Start information copied from [the main pipeline documentation](repositories_dependencies_and_pipeline.md)
-<hr/> 
 
 ## Dependencies
 
@@ -18,45 +15,28 @@ For package dependencies, see [requirements.txt](../requirements.txt)
 
 ### 3. [Luigi](https://github.com/spotify/luigi)
 
-#### pg_tools
-[pg_tools](https://github.com/jonkeane/pg_tools) needs to exist in the repositories when you run any of the luigi population scripts. If you cloned the repositories with the `--recursive` flag, you should have them already. If you don't already have them, or you're getting errors that luigi cannot find pg_tools, you can try recloning pg_tools with the following commands:
+### 4. [pg_tools](https://github.com/jonkeane/pg_tools)
+This is a repository that provides modules for helping with the staging process. It needs to be installed in both repositories
+
+
 
 ```
-cd [path to police-eis repo]\schemas\pg_tools
-git submodule init
-git submodule update
+cd [path to police-eis repo]\schemas
+git clone https://github.com/jonkeane/pg_tools.git
 ```
 
 and for the `police-eis-private` repo:
 
 ```
 cd [path to police-eis repo]\police-eis-private\schemas\pg_tools
-git submodule init
-git submodule update
+git clone https://github.com/jonkeane/pg_tools.git
 ```
-Once the machine is configured, the repositories can be cloned.
 
 ## Getting the Repositories
 
 ### What are the repos?
 
 There are a number of repositories that are and have been used in the course of developing the police early intervention system. This document is designed to describe the purpose and content of each. There is [detailed documentation about each of the repositories used.](./repository_documentation.md)
-
-### How do I get them?
-
-For the `police-eis` repository, simply run:
-
-`git clone --recursive https://github.com/dssg/police-eis.git`
-
-For the `police-eis-private` repository, change your directory to be in the root level of the `police-eis` repository, and then run:
-
-`git clone --recursive https://github.com/dssg/police-eis-private.git`
-
-The `--recursive` flag is important because it will make sure to clone any submodules that are included in the repositories (currently this is only [pg_tools](https://github.com/jonkeane/pg_tools)).
-
-<hr/> 
-End information copied from [the main pipeline documentation](repositories_dependencies_and_pipeline.md)
-<hr/> 
 
 
 ####[Proceed to Database Connection](./database_connection.md).
