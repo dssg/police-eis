@@ -13,7 +13,7 @@ Start information copied from [the main pipeline documentation](repositories_dep
 ### 1. [Drake](https://github.com/Factual/drake)
 Only required for loading the Nashville data (see below).
 
-### 2. Python 3.4+
+### 2. Python 3.5+
 For package dependencies, see [requirements.txt](../requirements.txt)
 
 ### 3. [Luigi](https://github.com/spotify/luigi)
