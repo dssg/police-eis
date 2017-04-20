@@ -7,25 +7,35 @@ import yaml
 import pandas as pd
 import psycopg2
 import sqlalchemy
+import os
 
 # TODO: put schema in the yaml file
 SCHEMA_NAME = 'staging'
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--credentials", help="the credential file")
+parser.add_argument("-c", "--credentials", help="the credential file", default=None)
 parser.add_argument("-t", "--tablefile", help="the yaml table definition file")
 args = parser.parse_args()
 
 # read the credentials file
-with open(args.credentials) as infile:
-    credentials = yaml.load(infile.read())
+if args.credentials:
+    with open(args.credentials) as infile:
+        credentials = yaml.load(infile.read())
 
-# establish a connection to the database
-engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{database}'.format(
-                           host = credentials['PGHOST'],
-                           database = credentials['PGDATABASE'], 
-                           user = credentials['PGUSER'],
-                           password = credentials['PGPASSWORD']))
+    # establish a connection to the database
+    engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{database}'.format(
+                               host = credentials['PGHOST'],
+                               database = credentials['PGDATABASE'], 
+                               user = credentials['PGUSER'],
+                               password = credentials['PGPASSWORD']))
+
+# if no credentials supplied, try to read the env variables
+else:
+    engine = sqlalchemy.create_engine('postgresql://{user}:{password}@{host}/{database}'.format(
+                               host = os.environ['PGHOST'],
+                               database = os.environ['PGDATABASE'], 
+                               user = os.environ['PGUSER'],
+                               password = os.environ['PGPASSWORD']))
 db_conn = engine.connect()
 
 # read the lookup table data from the yaml file

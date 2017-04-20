@@ -141,6 +141,7 @@ lookup_final_rulings:
         - [6, 'exonerated', 'Exonerated']
         - [7, 'not_sustained', 'Not Sustained']
         - [8, 'unfounded', 'Unfounded']
+        - [9, 'withdrawn', 'Withdrawn']
 
 lookup_intervention_types:
     columns: ['code', 'value', 'description']
