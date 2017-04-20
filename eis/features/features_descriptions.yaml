@@ -1,0 +1,134 @@
+# suffix used in each block
+feature_blocks_suffixes: 
+    IncidentsReported: ['ir', 'irAG']
+    IncidentsCompleted: ['ic', 'icAG']
+    OfficerShifts: ['shifts']
+    OfficerArrests: ['arstat']
+    TrafficStops: ['ts']
+    FieldInterviews: ['fi']
+    UseOfForce: ['uof']
+    Dispatches: ['dispatch', 'dispatchPOST']
+    OfficerEmployment: ['outemp']
+    EISAlerts: ['eis']
+    OfficerCharacteristics: ['ocND', 'ocAG']
+    DemographicNpaArrests: ['demarrests']
+    OfficerCompliments: ['compliments']
+
+# names of features for each block
+feature_names:
+    #IncidentsReported:
+    SuspensionsOfType: 'Officer suspensions'
+    HoursSuspensionsOfType: 'Hours of suspension an officer has had'
+    InterventionsOfType: 'Punitive actions of each type an officer has had'
+    AllAllegations: 'Allegations made against an officer'
+    IncidentsOfType: 'IA Reported incidents'
+    ComplaintsTypeSource: 'Complaints against officer by source'
+    DaysSinceLastAllegation: 'Days since the last allegation was made against the officer'
+    
+    #IncidentsCompleted:
+    IncidentsByOutcome: 'IA Incidents of outcome'
+    IncidentsOfTypeOutSustained: 'IA Sustained incidents '
+    IncidentsOfTypeUnSustained: 'IA Unsustained incidents '
+    IncidentsOfTypeUnknown: 'IA Unknown outcome incidents '
+    DaysSinceLastSustainedAllegation: 'Days since the last sustained allegation was made against the officer'
+    
+    #OfficerCompliments:
+    Compliments: 'Officer compliments'
+
+    #OfficerShifts:
+    ShiftsOfType: 'Shifts Types'
+    HoursPerShift: 'Hours per shift'
+    
+    #OfficerArrests:
+    ArrestMonthlyVariance: 'Month-by-month variance of arrest counts'
+    ArrestMonthlyCOV: 'Month-by-month coefficient of variation in arrest counts'
+    Arrests: 'Arrests made by an officer'
+    ArrestsOfType: 'Arrests type'
+    ArrestsON: 'Arrests by day of week'
+    SuspectsArrestedOfRace: 'Suspects arrested by race'
+    SuspectsArrestedOfEthnicity: 'Suspects arrested by ethnicity'
+    ArrestsCrimeType: 'Crimes by UCR grouped type'
+    
+    #TrafficStops:
+    TrafficStopsWithSearch: 'Traffic stops with search'
+    TrafficStopsWithUseOfForce: 'Traffic stops with use of force'
+    TrafficStops: 'Traffic stops'
+    TrafficStopsWithArrest: 'Traffic stops with arrests'
+    TrafficStopsWithInjury: 'Traffic stops with injury'
+    TrafficStopsWithOfficerInjury: 'Traffic stops with officer injury'
+    TrafficStopsWithSearchRequest: 'Traffic stops with search request'
+    TrafficStopsByRace: 'Traffic stops by race'
+    TrafficStopsByStopType: 'Traffic stops by stop type'
+    TrafficStopsByStopResult: 'Traffic stops by result'
+    TrafficStopsBySearchReason: 'Traffic stops by search reason'
+    TrafficStopsByInterestingSearch: 'Traffic stop searches made by interesting words in the search justification narrative'
+    
+    #FieldInterviews:
+    FieldInterviews: 'Field interviews'
+    HourOfFieldInterviews: 'Average hour that field interviews are conducted'
+    ModeHourOfFieldInterviews: 'Most common hour when field interviews are conducted'
+    FieldInterviewsByRace: 'Field interviews by race'
+    FieldInterviewsByOutcome: 'Field interviews  of outcome'
+    FieldInterviewsWithFlag: 'Field inteviews with flag'
+    InterviewsType: 'Field interviews Types'
+    
+    #UseOfForce: 
+    UsesOfForceOfType: 'Uses of force  of force'
+    UnjustifiedUsesOfForceOfType: 'Unjustified uses of force'
+    UnjustUOFInterventionsOfType: 'Punitive action types following an unjustified force'
+    UOFwithSuspectInjury: 'Uses of force where the suspect was injured'
+    SuspectInjuryToUOFRatio: 'Ratio of suspect injuries to uses of force that an officer has'
+    
+    #Dispatches:
+    DispatchType: 'Dispatches Types'
+    DispatchInitiatiationType: 'Dispatches by type of initiation (Officer or Citizen)'
+    DispatchDivision: 'Dispatches by division'
+    DispatchMovement: 'Cross Division Dispatches'
+    
+    #OfficerCharacteristics:
+    DummyOfficerMarital: 'Officer marital status'
+    DummyOfficerGender: 'Officer gender'
+    DummyOfficerRace: 'Officer race '
+    DummyOfficerEthnicity: 'Officer ethnicity'
+    OfficerAge: 'Age of officer in years'
+    DummyOfficerEducation: 'Officer education level'
+    MilesFromPost: 'Number of miles to post'
+    DummyOfficerMilitary: 'Officer Military experience'
+    AcademyScore: 'Performance score at the police academy'
+    DummyOfficerRank: 'Officer rank'
+    
+    #OfficerEmployment:
+    OutsideEmploymentHours: 'Outside employment hours worked'
+    
+    #DemographicNpaArrests:
+    Arrests311Call: '311 calls in areas  where the officcer made arrests'
+    Arrests311Requests: '311 requests in areas where the officcer made arrests'
+    PopulationDensity: 'Population density in areas where the officcer made arrests'
+    AgeOfResidents: 'Age of Residents in areas where the officcer made arrests'
+    BlackPopulation: 'Black population in areas where the officcer made arrests'
+    HouseholdIncome: 'Household income in areas where the officcer made arrests'
+    EmploymentRate: 'Employment rate in areas where the officcer made arrests'
+    VacantLandArea: 'Vacant land area in areas where the officcer made arrests'
+    VoterParticipation: 'Voter participation in areas where the officcer made arrests'
+    AgeOfDeath: 'Age of death in areas where the officcer made arrests'
+    HousingDensity: 'Housing density in areas where the officcer made arrests'
+    NuisanceViolations: 'Nuisance violations in areas where the officcer made arrests'
+    ViolentCrimeRate: 'Violent crime rate in areas where the officcer made arrests'
+    PropertyCrimeRate: 'Property crime rate in areas where the officcer made arrests'
+    SidewalkAvailability: 'Sidewalk availability in areas where the officcer made arrests'
+    Foreclosures: 'Foreclosures in areas where the officcer made arrests'
+    DisorderCallRate: 'Disorder call rate in areas where the officcer made arrests'
+
+time_aggregations:
+    1d: 'over the past day'
+    1w: 'over the past week'
+    1m: 'over the past month'
+    1y: 'over the past year'
+    5y: 'over the past 5 years'
+
+metrics_name:
+    sum: 'Total number of'
+    avg: 'Average number of'
+    max: ''
+    mode: 'The most common value of'
+    rate: 'Rate of'

@@ -28,7 +28,9 @@ CREATE TABLE results.models (
   config            JSONB,
   test              BOOL,
   model_hash        VARCHAR(36) UNIQUE,
-  train_matrix_uuid VARCHAR(36)
+  train_matrix_uuid VARCHAR(36),
+  train_end_time    TIMESTAMP,
+  experiment_hash   TEXT REFERENCES results.experiments (experiment_hash)
 );
 
 -- predictions corresponding to each model.
@@ -85,3 +87,10 @@ CREATE TABLE results.individual_importances (
 
 CREATE INDEX ON results.individual_importances (model_id);
 
+-- experiments configurations
+CREATE TABLE results.experiments (
+   experiment_hash    TEXT,
+   config             JSONB
+);
+
+CREATE INDEX ON results.experiments (experiment_hash);

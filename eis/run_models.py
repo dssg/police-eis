@@ -37,6 +37,7 @@ class RunModels():
             grid_config,
             project_path,
             misc_db_parameters,
+            experiment_hash=None,
             db_engine=None
     ):
 
@@ -51,6 +52,7 @@ class RunModels():
         self.grid_config = grid_config
         self.project_path = project_path
         self.misc_db_parameters = misc_db_parameters
+        self.experiment_hash = experiment_hash
         self.db_engine = db_engine
         self.matrices_path = self.project_path + '/matrices'
 
@@ -253,12 +255,15 @@ class RunModels():
 
 
         trainer = ModelTrainer(project_path=self.project_path,
+                               experiment_hash=self.experiment_hash,
                                model_storage_engine=model_storage,
                                matrix_store=train_matrix_store,
                                db_engine=self.db_engine
                                )
         log.info('Train Models')
-        model_ids_generator = trainer.generate_trained_models(grid_config=self.grid_config, misc_db_parameters=self.misc_db_parameters)
+        model_ids_generator = trainer.generate_trained_models(grid_config=self.grid_config,
+                                                              misc_db_parameters=self.misc_db_parameters,
+                                                              replace=True)
 
         return train_matrix_uuid, model_ids_generator
 
@@ -318,7 +323,7 @@ class RunModels():
         db_conn = self.db_engine.raw_connection()
 
         # remove all existing evaluations before re-writing
-        query = "DELETE FROM results.evaluations where model_id = {} and as_of_date = '{}'::TIMESTAMP ".format(model_id,test_date)
+        query = "DELETE FROM results.evaluations where model_id = {} and evaluation_start_time = '{}'::TIMESTAMP ".format(model_id,test_date)
         db_conn.cursor().execute(query)
         db_conn.commit()
 

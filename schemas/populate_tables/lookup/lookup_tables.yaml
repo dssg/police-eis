@@ -411,6 +411,27 @@ lookup_field_interview_outcomes:
         - [2, 'detained', 'Detained']
         - [3, 'none', 'None']
 
+lookup_external_jobs:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [2, 'general_security', 'General Security']
+        - [3, 'traffic', 'Traffic']
+        - [4, 'on_duty_assignment', 'On Duty Assignment']
+        - [5, 'supervisor', 'Supervisor']
+        - [10, 'admin_time', 'Administrative time for coordinators']
+        - [12, 'bike_patrol', 'Bike Patrol']
+        - [22, 'escort', 'Escort']
+        - [25, 'plain_clothes', 'Plain clothes']
+        - [26, 'marked_car', 'Marked Car Approved job']
+        - [27, 'marked_car_traffic', 'Marked car approved traffic job']
+        - [28, 'dispatcher', 'Dispatcher']
+        - [29, 'major', 'Major']
+        - [30, 'volunteer_time', 'Volunteer Time']
+        - [31, 'on_duty_law', 'On Duty Law Enforcement']
+        - [33, 'traffic_security', 'Traffic and Security']
+        - [34, 'other', 'Other']
+        - [35, 'event_commander', 'Event Commander']
+
 lookup_ucr4_grouped_dispatch_types:
     columns: ['code', 'value', 'description']
     rows:

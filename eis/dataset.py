@@ -16,17 +16,6 @@ from .features import class_map
 # inherit format from root level logger (specified in eis/run.py)
 log = logging.getLogger(__name__)
 
-def change_schema(schema):
-    db_conn.cursor().execute("SET SCHEMA '{}'".format(schema))
-    log.debug('Changed the schema to {}'.format(schema))
-    return None
-
-def enter_into_db(timestamp, config, auc):
-    query = ("INSERT INTO models.full (id_timestamp, config, auc) "
-             "VALUES ('{}', '{}', {}) ".format(timestamp, json.dumps(config), auc))
-    db_conn.cursor().execute(query)
-    db_conn.commit()
-    return None
 
 def generate_matrix_id(config):
     blocks = '-'.join(config["officer_features"])
@@ -214,52 +203,27 @@ def store_evaluation_metrics( model_id, evaluation, metric, test_date, db_conn, 
     # round to 10 digits to avoid underflow errors
     evaluation = round(float(evaluation), 10)
 
-    #No parameter and no comment
-    if parameter is None and comment is None:
-        comment = 'Null'
+    if parameter is None:
         parameter = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
-                    "   VALUES( '{}', '{}', {}, '{}', {}, '{}'::timestamp) ".format( model_id,
-                                                                    metric,
-                                                                    parameter,
-                                                                    evaluation,
-                                                                    comment,
-                                                                    test_date ) )
 
-    #No parameter and a comment
-    elif parameter is None and comment is not None:
-        parameter = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
-                    "   VALUES( '{}', '{}', {}, '{}', '{}', '{}'::timestamp) ".format( model_id,
-                                                                    metric,
-                                                                    parameter,
-                                                                    evaluation,
-                                                                    comment,
-                                                                    test_date ) )
+    if comment is None:
+        comment= 'Null'
 
-    #No comment and a parameter
-    elif parameter is not None and comment is None:
-        comment = 'Null'
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
-                    "   VALUES( '{}', '{}', '{}', '{}', {}, '{}'::timestamp) ".format( model_id,
-                                                                    metric,
-                                                                    parameter,
-                                                                    evaluation,
-                                                                    comment,
-                                                                    test_date ) )
-
-    #A comment and a parameter
-    elif parameter is not None and comment is not None:
-        query = (   "   INSERT INTO results.evaluations( model_id, metric, parameter, value, comment, as_of_date)"
-                    "   VALUES( '{}', '{}', '{}', '{}', '{}', '{}'::timestamp) ".format( model_id,
-                                                                    metric,
-                                                                    parameter,
-                                                                    evaluation,
-                                                                    comment,
-                                                                    test_date ) )
-    else:
-        pass
-
+    query = (   """   INSERT INTO results.evaluations( model_id, 
+                                                     metric, 
+                                                     parameter, 
+                                                     value, 
+                                                     comment, 
+                                                     evaluation_start_time,
+                                                     evaluation_end_time)
+                   VALUES( '{0}', '{1}', '{2}', '{3}', {4}, '{5}'::timestamp, '{5}'::timestamp) """
+                   .format( model_id,
+                            metric,
+                            parameter,
+                            evaluation,
+                            comment,
+                            test_date ))
+ 
     db_conn.cursor().execute(query)
     db_conn.commit()
     return None

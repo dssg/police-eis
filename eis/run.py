@@ -18,6 +18,7 @@ from . import setup_environment
 from . import populate_features, populate_labels
 from . import utils
 from .run_models import RunModels
+from triage.utils import save_experiment_and_get_hash 
 
 log = logging.getLogger(__name__)
 
@@ -80,17 +81,15 @@ def main(config_file_name, labels_config_file, args):
         # Parallelization
         Parallel(n_jobs=n_cups, verbose=51)(delayed(generate_all_matrices)(temporal_set, blocks,  **models_args)
                                         for temporal_set, blocks in product(temporal_sets, block_sets))
-        # tr = tracker.SummaryTracker()
-        # for temporal_set in temporal_sets:
-        #     log.info('New temporal set')
-        #     tr.print_diff()  
-        #     generate_all_matrices(temporal_set, **models_args)
 
         log.info('Done creating all matrices')
         sys.exit() 
 
     # Run models
-    
+    db_engine = setup_environment.get_database()
+    experiment_hash = save_experiment_and_get_hash(config, db_engine) 
+    models_args['experiment_hash'] = experiment_hash
+
     Parallel(n_jobs=n_cups, verbose=5)(delayed(apply_train_test)(temporal_set, blocks, **models_args)
                                                  for temporal_set, blocks in product(temporal_sets, block_sets))
 
@@ -144,6 +143,7 @@ def apply_train_test(temporal_set, blocks,**kwargs):
                           grid_config=kwargs['grid_config'],
                           project_path=kwargs['project_path'],
                           misc_db_parameters=kwargs['misc_db_parameters'],
+                          experiment_hash=kwargs['experiment_hash'],
                           db_engine=db_engine)
 
     log.info('Run models for temporal set: {}'.format(temporal_set))
