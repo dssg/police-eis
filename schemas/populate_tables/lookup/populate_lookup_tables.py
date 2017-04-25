@@ -44,7 +44,7 @@ with open(args.tablefile) as infile:
 for table_name, contents in table_dict.items():
 
     # remove all rows from the table, if any are already present
-    sql_query = """DELETE FROM {}.{}""".format(args.schema, table_name)
+    sql_query = """DROP TABLE IF EXISTS {}.{}""".format(args.schema, table_name)
     db_conn.execute(sql_query)
 
     table_df = pd.DataFrame(contents['rows'], columns=contents['columns'])

@@ -182,6 +182,7 @@ lookup_event_types:
         - [11, 'raid', 'A raid and or search']
         - [12, 'accident', 'An accident']
         - [13, 'compliment', 'A compliment from the public']
+        - [14, 'weapon_discharge', 'Weapon discharge']
 
 
 lookup_arrest_types:
@@ -312,6 +313,40 @@ lookup_use_of_force_type:
         - [3, 'pepper_spray', 'Pepper spray']
         - [4, 'other', 'any type of force not listed above']
 
+lookup_weapon_type:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'handgun', 'Handgun']
+        - [1, 'shotgun', 'Shotgun']
+        - [2, 'rifle', 'Rifle']
+        - [3, 'less_lethal', 'Less lethal']
+        - [4, 'other', 'Other']
+        - [5, 'unknown', 'Unknown']
+
+lookup_lighting_condition:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'daylight', 'daylight']
+        - [1, 'dark', 'dark, no streetlights']
+        - [2, 'dark_flash_only', 'dark, only flashlight or gun-mounted light']
+        - [3, 'dark_w_arti', 'dark, but streetlights or carlights']
+        - [4, 'dim', 'dim natural light']
+        - [5, 'indoors_dark', 'dark, indoors']
+        - [6, 'indoors_bright', 'bright, indoors']
+        - [7, 'other', 'other']
+        - [8, 'unknown', 'unknown']
+
+
+lookup_discharge_targets:
+    columns: ['code','value', 'description']
+    rows:
+        - [0, 'suspect', 'suspect']
+        - [1, 'other', 'bystander']
+        - [2, 'animal', 'animal']
+        - [3, 'friendly', 'friendly fire']
+        - [4, 'unknown', 'unknown']
+
+
 lookup_traffic_stop_type:
     columns: ['code', 'value', 'description']
     rows:
@@ -326,6 +361,14 @@ lookup_traffic_stop_type:
         - [8, 'checkpoint', 'Checkpoints']
         - [9, 'other', 'Other traffic stop reason']
 
+lookup_injuries:
+    columns: ['code', 'value', 'description']
+    rows:
+        - [0, 'none', 'none']
+        - [1, 'superficial', 'superficial']
+        - [2, 'critical', 'critical']
+        - [3, 'fatal', 'fatal']
+        - [4, 'unknown', 'unknown']
 
 lookup_traffic_stop_outcome_type:
     columns: ['code', 'value', 'description']
