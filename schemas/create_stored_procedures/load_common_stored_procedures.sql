@@ -92,7 +92,7 @@ RETURN QUERY
                  AND table_name =  table_block_name
            ), list_cut AS (
                 SELECT
-                  regexp_matches(column_name, '_id_(\d+\w|all)?[_]?([A-Z][A-Za-z0-9]+)_') AS array_col,
+                  regexp_matches(column_name, '_id_(P\d+\w|all)?[_]?([A-Z][A-Za-z0-9]+)_') AS array_col,
                   column_name
                 FROM full_list
                 WHERE column_name LIKE '%%_id_%%'
@@ -195,7 +195,7 @@ FROM
                           feature);
 -----------
 */
-CREATE OR REPLACE FUNCTION get_columns_by_time_window(schema_name TEXT,
+CREATE OR REPLACE FUNCTION public.get_columns_by_time_window(schema_name TEXT,
                                                         table_features_name TEXT,
                                                         feature text
                                                         )
@@ -216,7 +216,7 @@ RETURN QUERY
                /* seperate the full name into parts, e.g IR_officer_id_1d_IncidentsSeverityUnknown_major_sum ->
                 * {1d,IncidentsSeverityUnknown}*/
                  SELECT
-                   regexp_matches(column_name, '_id_(\d+\w)_([A-Z][A-Za-z]+)_') AS array_col,
+                   regexp_matches(column_name, '_id_(P\d+\w)_([A-Z][A-Za-z]+)_') AS array_col,
                    column_name
                  FROM full_list
                  WHERE column_name LIKE '%_id_%'
@@ -232,7 +232,7 @@ RETURN QUERY
              from db_avaliable_features
              GROUP BY t_window;
 end; $$
-LANGUAGE 'plpgsql'
+LANGUAGE 'plpgsql';
 
 
 /*
@@ -278,7 +278,7 @@ BEGIN
                    array_col [4] as of_type,
                    array_col [5] as metric_used
                    from (
-                   select regexp_matches(column_name, '(.+)_id_(\d+\w|all)?[_]?([A-Za-z0-9]+)[_]?(.+)?_(sum|avg|max|mode|rate)')
+                   select regexp_matches(column_name, '(.+)_id_(P\d+\w|all)?[_]?([A-Za-z0-9]+)[_]?(.+)?_(sum|avg|max|mode|rate)')
                      AS array_col
                    )  list_cut
                    ) t1
