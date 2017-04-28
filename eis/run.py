@@ -151,6 +151,9 @@ def apply_train_test(temporal_set, blocks,**kwargs):
 
     model_storage = InMemoryModelStorageEngine('empty')
     train_matrix_uuid, model_ids_generator = run_model.setup_train_models(model_storage)
+    if train_matrix_uuid is None:
+        return None
+
     log.info('Run tests')
     run_model.train_test_models(train_matrix_uuid, model_ids_generator, model_storage)
     db_engine.dispose() 
