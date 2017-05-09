@@ -1,5 +1,5 @@
-DROP TABLE IF EXISTS staging.lookup_weapon_types; 
-CREATE  TABLE staging.lookup_weapon_types (
+DROP TABLE IF EXISTS staging.lookup_injuries; 
+CREATE  TABLE staging.lookup_injuries (
 	code                                                                  int,                --
 	value                                                                 varchar,            --
 	description                                                           varchar             --

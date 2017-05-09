@@ -10,14 +10,12 @@ lookup_races:
         - [6, 'other', 'Other']
         - [7, 'mixed', 'Mixed']
 
-
 lookup_genders:
     columns: ['code', 'value', 'description']
     rows:
         - [0, 'unknown', 'Unknown']
         - [1, 'male', 'Male']
         - [2, 'female', 'Female']
-
 
 lookup_marital_statuses:
     columns: ['code', 'value', 'description']
@@ -29,7 +27,6 @@ lookup_marital_statuses:
         - [4, 'divorced', 'Divorced']
         - [5, 'widowed', 'Widowed']
         - [6, 'single', 'Single']
-
 
 lookup_hair_colors:
     columns: ['code', 'value', 'description']
@@ -49,14 +46,12 @@ lookup_hair_colors:
         - [13, 'brown', 'Brown']
         - [14, 'bald', 'Bald']
 
-
 lookup_ethnicities:
     columns: ['code', 'value', 'description']
     rows:
         - [0, 'unknown', 'Unknown']
         - [1, 'not_hispanic', 'Not Hispanic / Latino']
         - [2, 'hispanic', 'Hispanic / Latino']
-
 
 lookup_eye_colors:
     columns: ['code', 'value', 'description']
@@ -72,7 +67,6 @@ lookup_eye_colors:
         - [8, 'multi', 'Multicolored']
         - [9, 'pink', 'Pink']
         - [10, 'maroon', 'Maroon']
-
 
 lookup_complaint_origins:
     columns: ['code', 'value', 'description']
@@ -121,13 +115,10 @@ lookup_incident_types:
         - [19, 'unknown', 'unknown']
         - [20, 'use_of_force', 'use of force']
 
-
-
 lookup_rules_violated:
     columns: ['code', 'value', 'description']
     rows:
         - [0, 'unknown', 'Unknown']
-
 
 lookup_final_rulings:
     columns: ['code', 'value', 'description']
@@ -164,7 +155,6 @@ lookup_reprimand_types:
         - [1, 'verbal', 'Verbal reprimand']
         - [2, 'written', 'Written reprimand']
 
-
 lookup_event_types:
     columns: ['code', 'value', 'description']
     rows:
@@ -184,7 +174,6 @@ lookup_event_types:
         - [13, 'compliment', 'A compliment from the public']
         - [14, 'weapon_discharge', 'Weapon discharge']
 
-
 lookup_arrest_types:
     columns: ['code', 'value', 'description']
     rows:
@@ -195,7 +184,6 @@ lookup_arrest_types:
         - [4, 'DOA', 'Dead on arrival']
         - [5, 'PFA', 'Protection from abuse']
 
-
 lookup_education_levels:
     columns: ['code', 'value', 'description']
     rows:
@@ -205,7 +193,6 @@ lookup_education_levels:
         - [3, 'two_year_degree', 'Two Year Degree or Associates Degree Education']
         - [4, 'four_year_degree', 'Four Year Degree or Bachelors Degree Education']
         - [5, 'graduate_degree', 'Graduate Degree Education']
-
 
 lookup_duty_statuses:
     columns: ['code', 'value', 'description']
@@ -222,7 +209,6 @@ lookup_duty_statuses:
         - [9, 'transferred', 'Transferred']
         - [10, 'unknown', 'Unknown']
 
-
 lookup_ranks:
     columns: ['code', 'value', 'description']
     rows:
@@ -236,7 +222,6 @@ lookup_ranks:
         - [7, 'pc', 'Police Commander']
         - [8, 'dc', 'Deputy Chief']
         - [9, 'cf', 'Chief of Police']
-
 
 lookup_shift_overtimes:
     columns: ['code', 'value', 'description']
@@ -290,7 +275,6 @@ lookup_shift_types:
         - [35, 'work_holiday', 'Worked on Holiday']
         - [99, 'other', 'Other Not in Other Shift Types']
 
-
 lookup_training_types:
     columns: ['code', 'value', 'description']
     rows:
@@ -335,7 +319,6 @@ lookup_lighting_condition:
         - [6, 'indoors_bright', 'bright, indoors']
         - [7, 'other', 'other']
         - [8, 'unknown', 'unknown']
-
 
 lookup_discharge_targets:
     columns: ['code','value', 'description']

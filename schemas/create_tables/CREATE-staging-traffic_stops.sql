@@ -5,7 +5,7 @@ CREATE  TABLE staging.traffic_stops (
   stop_type_code                 INT, --type of stop
   stop_outcome_code              INT, --outcome of the stop
   stop_day                       TEXT, --day of the week of the stop
-  stopped_person_id              INT, --person id of the person stopped
+  stopped_person_id              BIGINT, --person id of the person stopped
   stopped_person_state           VARCHAR(2), --
   stopped_person_driver_flag     BOOL, --
   stopped_person_age_at_stop     INT, --age (at the time of the stop) of the person stopped
