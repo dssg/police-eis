@@ -8,6 +8,7 @@ CREATE  TABLE staging.complaints (
   datetime                            DATE, --the datetime the complaint was filed
   department_defined_complaint_id     VARCHAR, --mapping to the original complaint id
   processed_flag                      BOOL, --whether or not the complaint has been processed yet. If the complaint_id is present in the internal_affairs_investigations.complaint_id column, then it is considered processed
+  final_ruling_code                   INT, -- the code for what the final ruling was
   complaint_origin_code               INT, --whether complaint is internal or external
   accusing_citizen_hash               INT, --may chuck this. This is a unique id for the member of the public that filed a complaint.
   accusing_citizen_race_code          INT, --
