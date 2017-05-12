@@ -1,6 +1,7 @@
 import pandas as pd
 import logging
 import pdb
+import re
 from .features import class_map
 from .features import officers_collate
 
@@ -25,7 +26,7 @@ class FeatureLoader():
             schema_name (str) : name of the schema in the db where the features blocks tables are
             blocks (list): name of the feature blocks to use
             labels_config (dict): config file of the conditions for each label
-            labels (dict): labels dictionary to use from the config file
+            labels (dict): A list of labels from the config file, or a label logic string like "$Sustained$ AND $Major$"
             prediction_window (str) : prediction window to use for the label generation
             officer_past_activity_window (str): window for conditioning which officers to use given an as_of_date
         '''
@@ -41,7 +42,8 @@ class FeatureLoader():
         self.timegated_feature_lookback_duration = timegated_feature_lookback_duration
         self.db_engine = db_engine
 
-        self.flatten_label_keys = [item for sublist in self.labels for item in sublist]
+        if type(self.labels)==list:
+            self.flatten_label_keys = [item for sublist in self.labels for item in sublist]
 
     def _block_tables_name(self, block_name):
         block_class = class_map.lookup_block(block_name,
@@ -150,13 +152,28 @@ class FeatureLoader():
                                cross_joins=" CROSS JOIN ".join([key.lower() + '_table' for key in self.flatten_label_keys])))
 
         # CREATE AND AND OR CONDITIONS
-        and_conditions = []
-        for and_labels in self.labels:
-            or_conditions = []
-            for label in and_labels:
-                or_conditions.append("event_type_array::text[] @> {key}_condition::text[]".format(key=label.lower()))
-            and_conditions.append(" OR ".join(or_conditions))
-        conditions = " AND ".join('({and_condition})'.format(and_condition=and_condition) for and_condition in and_conditions)
+        if type(self.labels)==list:
+            and_conditions = []
+            for and_labels in self.labels:
+                or_conditions = []
+                for label in and_labels:
+                    or_conditions.append("event_type_array::text[] @> {key}_condition::text[]".format(key=label.lower()))
+                and_conditions.append(" OR ".join(or_conditions))
+            conditions = " AND ".join('({and_condition})'.format(and_condition=and_condition) for and_condition in and_conditions)
+
+        elif type(self.labels)==str:
+
+            # Here we deal with a label selection like " $Major$ AND $Sustained$ ".
+            # To do that, we only need to replace all $-marked placeholders.
+
+            def replace_placeholders(x):
+                # replace placeholder with array condition string
+                return "(event_type_array::text[] @> {key}_condition::text[])".format(key=x.group(0).lower().strip('$')
+            # find $PLACEHOLDER$ and replace with above string
+            conditions = re.sub(r'\$\w+\$', replace_placeholders, self.labels)
+
+        else:
+            raise ValueError("Don't know how to parse the labels from config.")
 
         # QUERY OF AS OF DATES
         query_as_of_dates = (" as_of_dates as ( "
