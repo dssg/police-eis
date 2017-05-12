@@ -32,6 +32,7 @@ CREATE TABLE results.models (
   train_end_time    TIMESTAMP,
   experiment_hash   TEXT REFERENCES results.experiments (experiment_hash)
 );
+CREATE INDEX ON results.models (train_end_time)
 
 -- predictions corresponding to each model.
 CREATE TABLE results.predictions (
