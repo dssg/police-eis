@@ -68,13 +68,28 @@ def column_date(nested_dict, dict_columns=dict()):
                     column_date(val[key], dict_columns)
     return dict_columns
 
+def column_table(nested_dict, dict_columns=dict()):
+    temp_dict= {}
+    if isinstance(nested_dict, dict):
+        # pull out which table the column comes from, but default to 'incidents'
+        temp_dict[nested_dict['COLUMN']] = nested_dict.get('TABLE','incidents')
+        dict_columns.update(temp_dict)
+        for val in nested_dict['VALUES']:
+            if isinstance(val, dict):
+                for key in val.keys():
+                    column_table(val[key], dict_columns)
+    return dict_columns
+
 def populate_officer_labels_table(config, labels_config, table_name, engine):
-    """ Populates officer labels table in the database using staging.incidents.
+    """ Populates officer labels table in the database using 
+        the tables from the labels_config.
      """
 
     dict_columns = dict()
+    dict_tables = dict()
     for labels in labels_config.keys():
         dict_columns.update(column_date(labels_config[labels], dict_columns))
+        dict_tables.update(column_table(labels_config[labels], dict_tables))
 
     query_list = []
     for column, date_column in dict_columns.items():
@@ -83,12 +98,13 @@ def populate_officer_labels_table(config, labels_config, table_name, engine):
                           "       {event_datetime} as event_datetime, "
                           "       '{event_type}' as event_type, "
                           "       {event_type}::TEXT as value "
-                          "    FROM staging.incidents "
+                          "    FROM staging.{table} "
                           "    WHERE {event_type}::TEXT is not NULL "
                           "    AND {event_datetime} is not NULL "
                           "    AND officer_id is not NULL "
                       .format(event_datetime=date_column,
-                              event_type=column))
+                              event_type=column,
+                              table=dict_tables[column]))
 
     query_join = " UNION ".join(query_list)
     insert_query = ( "INSERT INTO features.{0}  "
