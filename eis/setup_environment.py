@@ -29,16 +29,16 @@ def get_database():
     try:
         engine = get_connection_from_profile()
         log.info("Connected to PostgreSQL database!")
+        return engine
     except IOError:
         log.exception("Failed to get database connection!")
-        return None, 'fail'
-
-    return engine
+        raise
 
 
 def get_connection_from_profile(config_file_name="default_profile.yaml"):
     """
-    Sets up database connection from config file.
+    Sets up database connection from config file. If the config file is not available,
+    it tries to load the Postgres credentials from environmental variables instead.
 
     Input:
     config_file_name: File containing PGHOST, PGUSER,
@@ -46,15 +46,22 @@ def get_connection_from_profile(config_file_name="default_profile.yaml"):
                       credentials for the PostgreSQL database
     """
 
-    with open(config_file_name, 'r') as f:
-        vals = yaml.load(f)
+    try:
+        with open(config_file_name, 'r') as f:
+            vals = yaml.load(f)
+    except IOError:
+        log.warning("YAML file %s not available, attempting to load "
+                    "Postgres variables from environment instead." 
+                    %config_file_name)
+        vals = os.environ
 
     if not ('PGHOST' in vals.keys() and
             'PGUSER' in vals.keys() and
             'PGPASSWORD' in vals.keys() and
             'PGDATABASE' in vals.keys() and
             'PGPORT' in vals.keys()):
-        raise Exception('Bad config file: ' + config_file_name)
+        log.error('Cannot find the necessary Postgres credential env variables')
+        raise Exception('Bad Postgres configuration!')
 
     return get_engine(vals['PGDATABASE'], vals['PGUSER'],
                       vals['PGHOST'], vals['PGPORT'],
