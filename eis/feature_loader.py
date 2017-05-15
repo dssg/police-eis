@@ -168,7 +168,7 @@ class FeatureLoader():
 
             def replace_placeholders(x):
                 # replace placeholder with array condition string
-                return "(event_type_array::text[] @> {key}_condition::text[])".format(key=x.group(0).lower().strip('$')
+                return "(event_type_array::text[] @> {key}_condition::text[])".format(key=x.group(0).lower().strip('$'))
             # find $PLACEHOLDER$ and replace with above string
             conditions = re.sub(r'\$\w+\$', replace_placeholders, self.labels)
 
