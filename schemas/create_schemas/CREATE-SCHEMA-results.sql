@@ -15,6 +15,14 @@ CREATE TABLE results.model_groups
   model_config     JSONB
 );
 
+-- experiments configurations
+CREATE TABLE results.experiments (
+   experiment_hash    TEXT PRIMARY KEY,
+   config             JSONB
+);
+
+CREATE INDEX ON results.experiments (experiment_hash);
+
 -- model table containing each of the models run.
 CREATE TABLE results.models (
   model_id          SERIAL PRIMARY KEY,
@@ -87,10 +95,3 @@ CREATE TABLE results.individual_importances (
 
 CREATE INDEX ON results.individual_importances (model_id);
 
--- experiments configurations
-CREATE TABLE results.experiments (
-   experiment_hash    TEXT,
-   config             JSONB
-);
-
-CREATE INDEX ON results.experiments (experiment_hash);
