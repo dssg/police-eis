@@ -232,7 +232,7 @@ RETURN QUERY
              from db_avaliable_features
              GROUP BY t_window;
 end; $$
-LANGUAGE 'plpgsql'
+LANGUAGE 'plpgsql';
 
 
 /*
@@ -251,7 +251,7 @@ Returns a Table with:
 column_original_name |  feature_long_name  |  of_type  |  time_aggregation  |  metric_used
 
 */
-CREATE OR REPLACE FUNCTION get_feature_complet_description (column_name TEXT,
+CREATE OR REPLACE FUNCTION get_feature_complete_description (column_name TEXT,
                                                             feature_dict JSON,
                                                              time_agg_dict JSON,
                                                               metric_dict JSON)
