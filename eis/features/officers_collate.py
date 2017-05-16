@@ -11,7 +11,7 @@ from sqlalchemy.sql import Select
 
 from .. import setup_environment
 
-from collate import collate
+from collate import collate, spacetime
 #from collate.collate import collate
 
 log = logging.getLogger(__name__)
@@ -90,7 +90,7 @@ class FeaturesBlock():
         feature_aggregations_list = self.feature_aggregations_to_use(feature_list,
                                                                      self._feature_aggregations_space_time_lookback(
                                                                          engine))
-        st = collate.SpacetimeAggregation(feature_aggregations_list,
+        st = spacetime.SpacetimeAggregation(feature_aggregations_list,
                                           from_obj=self.from_obj,
                                           groups={'id': self.unit_id},
                                           intervals=self.lookback_durations,
@@ -108,7 +108,7 @@ class FeaturesBlock():
         feature_aggregations_list = self.feature_aggregations_to_use(feature_list,
                                                                      self._feature_aggregations_space_time(
                                                                          engine))
-        st = collate.SpacetimeAggregation(feature_aggregations_list,
+        st = spacetime.SpacetimeAggregation(feature_aggregations_list,
                                           from_obj=self.from_obj,
                                           groups={'id': self.unit_id},
                                           intervals={'id': ["all"]},
@@ -123,7 +123,7 @@ class FeaturesBlock():
     def build_space_time_sub_query_aggregation(self, engine, as_of_dates, feature_list, schema):
         feature_aggregations_list = self.feature_aggregations_to_use(feature_list,
                                                                      self._feature_aggregations_sub(engine))
-        st = collate.SpacetimeSubQueryAggregation(feature_aggregations_list,
+        st = spacetime.SpacetimeSubQueryAggregation(feature_aggregations_list,
                                                   from_obj=self.from_obj_sub,
                                                   groups={'id': self.unit_id},
                                                   intervals=self.lookback_durations,
