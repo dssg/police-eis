@@ -240,6 +240,13 @@ class RunModels():
         log.info('Load train matrix using as of dates: {}'.format(self.temporal_split['train_as_of_dates']))
         train_df, train_matrix_uuid = self.load_store_matrix(train_metadata, self.temporal_split['train_as_of_dates'])
 
+        if len(train_df.iloc[:, -1].unique()) == 1:
+            log.warning('''Train Matrix %s had only one
+                        unique value, no point in training this model. Skipping
+                        ''', train_matrix_uuid)
+            return None, None
+
+
         # remove the index from the data-frame
         for column in train_metadata['indices']:
             if column in train_df.columns:

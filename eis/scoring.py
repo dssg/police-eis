@@ -110,9 +110,9 @@ def calculate_all_evaluation_metrics( test_label, test_predictions, test_predict
     all_metrics["recall@|default"] = metrics.recall_score(test_label, test_predictions_binary)
     # all_metrics["time|seconds"] = time_for_model_in_seconds
 
-    # Sort
-    test_predictions_sorted, test_label_sorted = zip(*sorted(zip(test_predictions, test_label), reverse=True))
-    
+    #sort
+    test_predictions_sorted, test_label_sorted = zip(*sorted(zip(test_predictions, test_label),key=lambda pair: pair[0], reverse=True))
+
     # Threshold Metrics by Percentage
     parameters = {'pct': [0.01, 0.10, 0.25, 0.50, 1.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0],
                'abs': [10, 50, 100, 200, 500, 1000]}
