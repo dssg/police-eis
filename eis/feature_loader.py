@@ -274,6 +274,9 @@ class FeatureLoader():
             else:
                  complete_df = complete_df.merge(table, on=['officer_id','as_of_date'], how='left')
 
+		# Set index
+		complete_df = complete_df.set_index('officer_id')		
+
         # Zero imputation
         complete_df.fillna(0, inplace=True)
 
