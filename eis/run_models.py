@@ -54,7 +54,10 @@ class RunModels():
         self.misc_db_parameters = misc_db_parameters
         self.experiment_hash = experiment_hash
         self.db_engine = db_engine
-        self.matrices_path = self.project_path + '/matrices'
+        self.matrices_path = os.path.join(self.project_path, 'matrices')
+
+        if not os.path.exists(self.matrices_path):
+            os.makedirs(self.matrices_path)
 
         # Save only used labels in labels_config
         self.labels_config = {}
@@ -92,7 +95,7 @@ class RunModels():
            matrix: dataframe with the features and the last column as the label (called: outcome)
         """
         uuid = metta.metta_io.generate_uuid(metadata)
-        matrix_filename = self.matrices_path + '/' + uuid
+        matrix_filename = os.path.join(self.matrices_path, uuid)
 
         with Lock(matrix_filename + '.lock', lifetime=datetime.timedelta(minutes=20)):
             if os.path.isfile(matrix_filename + '.h5'):
