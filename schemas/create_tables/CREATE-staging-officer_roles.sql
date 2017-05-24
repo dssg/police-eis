@@ -6,6 +6,7 @@ CREATE  TABLE staging.officer_roles (
         department_id                                                         varchar(20),       --department id number
         department_name                                                       TEXT,              -- name of the department
         job_start_date                                                        timestamp,         -- date the officer started the job
+        job_end_date                                                        timestamp,         -- date the officer ended the job
 	job_id                                                                varchar(20),       --the title associated with the role e.g. patrol officer
         job_title                                                              TEXT,              -- job name / description
         sworn_flag                                                            int,               -- flag for sworn officers 1 else 0

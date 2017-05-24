@@ -222,6 +222,15 @@ lookup_ranks:
         - [7, 'pc', 'Police Commander']
         - [8, 'dc', 'Deputy Chief']
         - [9, 'cf', 'Chief of Police']
+        - [10, 'ac', 'Assistant Chief']
+        - [11, 'mgr', 'Manager']
+        - [12, 'det', 'Detective']
+        - [13, 'po5', 'Police Officer 5']
+        - [14, 'po4', 'Police Officer 4']
+        - [15, 'po3', 'Police Officer 3']
+        - [16, 'po2', 'Police Officer 2']
+        - [17, 'po1', 'Police Officer 1']
+        - [18, 'mpo', 'Master Police Officer']
 
 lookup_shift_overtimes:
     columns: ['code', 'value', 'description']
