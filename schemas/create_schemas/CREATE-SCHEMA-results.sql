@@ -40,7 +40,7 @@ CREATE TABLE results.models (
   train_end_time    TIMESTAMP,
   experiment_hash   TEXT REFERENCES results.experiments (experiment_hash)
 );
-CREATE INDEX ON results.models (train_end_time)
+CREATE INDEX ON results.models (train_end_time);
 
 -- predictions corresponding to each model.
 CREATE TABLE results.predictions (
@@ -65,12 +65,15 @@ CREATE TABLE results.evaluations (
   parameter  TEXT,
   value      REAL,
   comment    TEXT,
-  as_of_date TIMESTAMP
+  evaluation_start_time TIMESTAMP,
+  evaluation_end_time   TIMESTAMP,
+  prediction_frequency INTERVAL
 );
 
 CREATE INDEX ON results.evaluations (model_id);
-CREATE INDEX ON results.evaluations (as_of_date);
-CREATE INDEX ON results.evaluations (model_id, as_of_date);
+CREATE INDEX ON results.evaluations (evaluation_start_time);
+CREATE INDEX ON results.evaluations (evaluation_end_time);
+CREATE INDEX ON results.evaluations (model_id, evaluation_start_time);
 
 -- feature_importance table for storing a json with feature importances
 CREATE TABLE results.feature_importances (
