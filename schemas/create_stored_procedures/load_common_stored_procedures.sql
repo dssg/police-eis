@@ -251,7 +251,7 @@ Returns a Table with:
 column_original_name |  feature_long_name  |  of_type  |  time_aggregation  |  metric_used
 
 */
-CREATE OR REPLACE FUNCTION get_feature_complet_description (column_name TEXT,
+CREATE OR REPLACE FUNCTION get_feature_complete_description (column_name TEXT,
                                                             feature_dict JSON,
                                                              time_agg_dict JSON,
                                                               metric_dict JSON)
@@ -293,4 +293,61 @@ BEGIN
             on metrics.key = t1.metric_used ;
 END; $$
 
-LANGUAGE 'plpgsql';;
+LANGUAGE 'plpgsql';
+
+
+
+
+/*
+FUNCTION THAT POPULATES THE PRODUCTION.PREDICTIONS TABLE
+
+inserts predictions going a year before the as_of_date and a month into the future
+*/
+
+create or replace function production.populate_predictions(chosen_model_group_id integer) 
+returns boolean as
+$$
+begin
+    delete from production.predictions;
+    insert into production.predictions (model_id, as_of_date, entity_id, score, rank_abs, rank_pct)
+        select a.model_id, b.as_of_date, b.entity_id, b.score, b.rank_abs, b.rank_pct 
+        from results.models as a
+        inner join results.predictions as b using (model_id) 
+        inner join staging.officers_hub as c on b.entity_id = c.officer_id 
+        where a.model_group_id = chosen_model_group_id
+              and a.train_end_time >= now() - interval '366 days'  
+              and b.as_of_date <= a.train_end_time + interval '31 days';
+    return true;
+end; 
+$$
+language 'plpgsql';
+
+
+
+/*
+FUNCTION THAT POPULATES THE PRODUCTION.TIME_DELTA
+
+inserts changes in relative rank over the last day, week, month, quarter, and year 
+*/
+create or replace function production.populate_time_delta() 
+returns boolean as
+$$
+begin
+    delete from production.time_delta;
+    insert into production.time_delta (model_id, entity_id, as_of_date, 
+        last_day, last_week, last_month, last_quarter, last_year)
+        select 
+            a.model_id, a.entity_id, a.as_of_date, 
+            a.rank_pct - lag(a.rank_pct, 1) over (partition by a.entity_id order by a.as_of_date) as last_day,
+            a.rank_pct - lag(a.rank_pct, 7) over (partition by a.entity_id order by a.as_of_date) as last_week,
+            a.rank_pct - lag(a.rank_pct, 30) over (partition by a.entity_id order by a.as_of_date) as last_month,
+            a.rank_pct - lag(a.rank_pct, 91) over (partition by a.entity_id order by a.as_of_date) as last_quarter,
+            a.rank_pct - lag(a.rank_pct, 365) over (partition by a.entity_id order by a.as_of_date) as last_year
+        from production.predictions as a        
+        inner join staging.officers_hub as b on a.entity_id = b.officer_id;
+    return true;
+end; 
+$$
+language 'plpgsql';
+
+
