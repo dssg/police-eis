@@ -29,7 +29,7 @@ CREATE  TABLE staging.dispatches (
   units_assigned                  INT,
   units_arrived                   INT,
   dispatch_category               VARCHAR, -- officer/civilian/alarm initiated
+  on_view                         BOOL, -- indicates if the dispatch was created by an officer upon view of a scene
   event_datetime                  TIMESTAMP,
   officer_id                      INT REFERENCES staging.officers_hub (officer_id)
-
 );
