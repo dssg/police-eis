@@ -120,11 +120,11 @@ feature_names:
     DisorderCallRate: 'Disorder call rate in areas where the officcer made arrests'
 
 time_aggregations:
-    1d: 'over the past day'
-    1w: 'over the past week'
-    1m: 'over the past month'
-    1y: 'over the past year'
-    5y: 'over the past 5 years'
+    p1d: 'over the past day'
+    p1w: 'over the past week'
+    p1m: 'over the past month'
+    p1y: 'over the past year'
+    p5y: 'over the past 5 years'
 
 metrics_name:
     sum: 'Total number of'
