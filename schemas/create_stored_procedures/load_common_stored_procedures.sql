@@ -242,7 +242,7 @@ dictionary for explaining the name
 -----------
 A call like:
 -----------
-select * from get_feature_complete_name('column_name',
+select * from get_feature_complete_description('column_name',
                                         json.dumps(features_config['feature_names'])::JSON,
                                         json.dumps(features_config['time_aggregations'])::JSON,
                                         json.dumps(features_config['metrics'])::JSON)
@@ -251,7 +251,7 @@ Returns a Table with:
 column_original_name |  feature_long_name  |  of_type  |  time_aggregation  |  metric_used
 
 */
-CREATE OR REPLACE FUNCTION get_feature_complet_description (column_name TEXT,
+CREATE OR REPLACE FUNCTION public.get_feature_complete_description (column_name TEXT,
                                                             feature_dict JSON,
                                                              time_agg_dict JSON,
                                                               metric_dict JSON)
@@ -278,16 +278,16 @@ BEGIN
                    array_col [4] as of_type,
                    array_col [5] as metric_used
                    from (
-                   select regexp_matches(column_name, '(.+)_id_(P\d+\w|all)?[_]?([A-Za-z0-9]+)[_]?(.+)?_(sum|avg|max|mode|rate)')
+                   select regexp_matches(column_name, '(.+)_id_([pP]\d+\w|all)?[_]?([A-Za-z0-9]+)[_]?(.+)?_(sum|avg|max|mode|rate)')
                      AS array_col
                    )  list_cut
                    ) t1
             LEFT JOIN ( SELECT *
                            FROM json_each(feature_dict::json) )features
-            on features.key = t1.feature
+            on UPPER(features.key) = UPPER(t1.feature)
             LEFT JOIN (SELECT *
                            FROM json_each(time_agg_dict::json)) time_aggregations
-            on time_aggregations.key = t1.time_window_agg
+            on UPPER(time_aggregations.key) = UPPER(t1.time_window_agg)
             LEFT JOIN (SELECT *
                            FROM json_each(metric_dict::json)) metrics
             on metrics.key = t1.metric_used ;
