@@ -34,7 +34,10 @@ def main(chosen_model_group_id, matrix_location):
                         handlers=[logging.FileHandler(log_filename), logging.StreamHandler()])
     log = logging.getLogger('eis')
 
-    db_engine = setup_environment.get_database()
+    try:
+        db_engine = setup_environment.get_database()
+    except:
+        log.warning('Could not connect to the database')
 
     test_object = populate_production_schema(db_engine, chosen_model_group_id,
         matrix_location) 
@@ -62,12 +65,6 @@ class populate_production_schema(object):
         OUTPUT:     returns 'true' on completion
         """
 
-        try:
-            db_engine = setup_environment.get_database()
-        except:
-            log.warning('Could not connect to the database')
-            raise
-        
         db_conn = self.db_engine.raw_connection()
         query = "select production.populate_predictions({:d});".format(self.chosen_model_group_id)
         db_conn.cursor().execute(query)
@@ -81,12 +78,6 @@ class populate_production_schema(object):
         INPUT:  database info
         OUTPUT: returns 'true' on completion
         """
-
-        try:
-            db_engine = setup_environment.get_database()
-        except:
-            log.warning('Could not connect to the database')
-            raise
 
         db_conn = self.db_engine.raw_connection()
         query = "select production.populate_time_delta();"
