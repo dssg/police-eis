@@ -25,7 +25,7 @@ from sklearn import linear_model, preprocessing
 log = logging.getLogger(__name__)
 
 
-def main():
+def main(chosen_model_group_id, matrix_location):
 
     now = datetime.datetime.now().strftime('%d-%m-%y_%H:%M:S')
     log_filename = 'logs/{}.log'.format(now)
@@ -36,10 +36,11 @@ def main():
 
     db_engine = setup_environment.get_database()
 
-    test_object = populate_production_schema(db_engine) 
-    test_object.populate_production_predictions(632)
+    test_object = populate_production_schema(db_engine, chosen_model_group_id,
+        matrix_location) 
+    test_object.populate_production_predictions()
     test_object.populate_production_time_delta()
-    test_object.populate_production_individual_importances('/mnt/data/public_safety/charlotte_eis/triage/matrix_feature_mix_1m_6y/')
+    #test_object.populate_production_individual_importances()
 
     log.info("Done!")
     return None
@@ -48,11 +49,13 @@ def main():
 
 class populate_production_schema(object):
 
-    def __init__(self, db_engine):
+    def __init__(self, db_engine, chosen_model_group_id, matrix_location):
         self.db_engine = db_engine
+        self.chosen_model_group_id = chosen_model_group_id
+        self.matrix_location = matrix_location
 
 
-    def populate_production_predictions(self, chosen_model_group_id):
+    def populate_production_predictions(self):
         """
         Assumes production.predictions table exists
         INPUT:      the model group id you want to use and database info
@@ -66,7 +69,7 @@ class populate_production_schema(object):
             raise
         
         db_conn = self.db_engine.raw_connection()
-        query = "select production.populate_predictions({:d});".format(chosen_model_group_id)
+        query = "select production.populate_predictions({:d});".format(self.chosen_model_group_id)
         db_conn.cursor().execute(query)
         db_conn.commit()
         db_conn.close()
@@ -93,6 +96,9 @@ class populate_production_schema(object):
 
 
 if __name__ == '__main__':
-    main()
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--modelgroupid", type=int, help="pass your chosen model group id", default=1)
+    parser.add_argument("--matrixlocation", type=str, help="pass the path to your stored hdf files")
+    args = parser.parse_args()
+    main(args.modelgroupid, args.matrixlocation)
 
