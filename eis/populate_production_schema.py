@@ -43,7 +43,7 @@ def main(chosen_model_group_id, matrix_location):
         matrix_location) 
     test_object.populate_production_predictions()
     test_object.populate_production_time_delta()
-    #test_object.populate_production_individual_importances()
+    test_object.populate_production_individual_importances()
 
     log.info("Done!")
     return None
@@ -81,6 +81,19 @@ class populate_production_schema(object):
 
         db_conn = self.db_engine.raw_connection()
         query = "select production.populate_time_delta();"
+        db_conn.cursor().execute(query)
+        db_conn.commit()
+        db_conn.close()
+
+    def populate_production_individual_importances(self):
+        """
+        Assumes production.individual_importances table exists
+        INPUT:      the model group id you want to use and database info
+        OUTPUT:     returns 'true' on completion
+        """
+
+        db_conn = self.db_engine.raw_connection()
+        query = "select production.populate_individual_importances({:d});".format(self.chosen_model_group_id)
         db_conn.cursor().execute(query)
         db_conn.commit()
         db_conn.close()
