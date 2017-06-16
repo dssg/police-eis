@@ -90,7 +90,7 @@ def main(config_file_name, labels_config_file, args):
     experiment_hash = save_experiment_and_get_hash(config, db_engine) 
     models_args['experiment_hash'] = experiment_hash
 
-    Parallel(n_jobs=n_cups, verbose=5)(delayed(apply_train_test)(temporal_set, blocks, **models_args)
+    Parallel(n_jobs=n_cups, verbose=51)(delayed(apply_train_test)(temporal_set, blocks, **models_args)
                                                  for temporal_set, blocks in product(temporal_sets, block_sets))
 
     log.info("Done!")
