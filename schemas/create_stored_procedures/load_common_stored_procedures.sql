@@ -294,3 +294,107 @@ BEGIN
 END; $$
 
 LANGUAGE 'plpgsql';;
+
+/*
+FUNCTION THAT POPULATES THE PRODUCTION.TIME_DELTA
+inserts changes in relative rank over the last day, week, month, quarter, and year
+*/
+CREATE OR REPLACE FUNCTION production.populate_time_delta()
+  RETURNS BOOLEAN AS
+$$
+BEGIN
+  DELETE FROM production.time_delta;
+  INSERT INTO production.time_delta (model_id, entity_id, as_of_date,
+                                     last_day, last_week, last_month, last_quarter, last_year)
+    SELECT
+      a.model_id,
+      a.entity_id,
+      a.as_of_date,
+      a.rank_pct - lag(a.rank_pct, 1)
+      OVER (PARTITION BY a.entity_id
+        ORDER BY a.as_of_date) AS last_day,
+      a.rank_pct - lag(a.rank_pct, 7)
+      OVER (PARTITION BY a.entity_id
+        ORDER BY a.as_of_date) AS last_week,
+      a.rank_pct - lag(a.rank_pct, 30)
+      OVER (PARTITION BY a.entity_id
+        ORDER BY a.as_of_date) AS last_month,
+      a.rank_pct - lag(a.rank_pct, 91)
+      OVER (PARTITION BY a.entity_id
+        ORDER BY a.as_of_date) AS last_quarter,
+      a.rank_pct - lag(a.rank_pct, 365)
+      OVER (PARTITION BY a.entity_id
+        ORDER BY a.as_of_date) AS last_year
+    FROM production.predictions AS a
+      INNER JOIN staging.officers_hub AS b ON a.entity_id = b.officer_id;
+  RETURN TRUE;
+END;
+$$
+LANGUAGE 'plpgsql';
+
+/*
+FUNCTION THAT POPULATES THE PRODUCTION.individual_importances
+Currently a random draw from the top30 features from the feature_importance table
+*/
+CREATE OR REPLACE FUNCTION production.populate_individual_importances(choosen_model_group_id INTEGER,choosen_as_of_date DATE)
+  RETURNS BOOLEAN AS
+$$
+BEGIN
+  DELETE FROM production.individual_importances
+  WHERE model_id = (
+    SELECT model_id
+    FROM production.models AS a
+      INNER JOIN production.predictions AS b USING (model_id)
+    WHERE a.model_group_id = choosen_model_group_id AND b.as_of_date = choosen_as_of_date
+    GROUP BY model_id) AND as_of_date = choosen_as_of_date;
+  INSERT INTO production.individual_importances (model_id, as_of_date, entity_id, risk_1, risk_2, risk_3, risk_4, risk_5)
+    WITH sub AS (
+        SELECT
+          a.model_id,
+          b.as_of_date,
+          b.entity_id
+        FROM production.models AS a
+          INNER JOIN production.predictions AS b USING (model_id)
+          INNER JOIN staging.officers_hub AS c ON b.entity_id = c.officer_id
+        WHERE a.model_group_id = choosen_model_group_id and b.as_of_date=choosen_as_of_date
+        GROUP BY
+          model_id,
+          as_of_date,
+          entity_id
+    ), importance_list AS (
+        SELECT *
+        FROM sub,
+          LATERAL (
+          SELECT feature
+          FROM production.feature_importances f
+          WHERE sub.model_id = f.model_id
+                AND rank_abs < 30
+          ORDER BY random()
+          LIMIT 5
+          ) a
+    ), officer_aggregates AS (
+        SELECT
+          model_id,
+          as_of_date,
+          entity_id,
+          array_agg(feature) AS risk_array
+        FROM importance_list
+        GROUP BY
+          model_id,
+          as_of_date,
+          entity_id
+    )
+    SELECT
+      model_id,
+      as_of_date,
+      entity_id,
+      risk_array [1] AS risk_1,
+      risk_array [2] AS risk_2,
+      risk_array [3] AS risk_3,
+      risk_array [4] AS risk_4,
+      risk_array [5] AS risk_5
+    FROM officer_aggregates;
+  RETURN TRUE;
+END;
+$$
+LANGUAGE 'plpgsql';
