@@ -25,9 +25,9 @@ def get_experiment_config(exp_config_file_name='experiment.yaml'):
     return config
 
 
-def get_database():
+def get_database(production=None):
     try:
-        engine = get_connection_from_profile()
+        engine = get_connection_from_profile(production=production)
         log.info("Connected to PostgreSQL database!")
     except IOError:
         log.exception("Failed to get database connection!")
@@ -36,7 +36,7 @@ def get_database():
     return engine
 
 
-def get_connection_from_profile(config_file_name="default_profile.yaml"):
+def get_connection_from_profile(config_file_name="default_profile.yaml", production=None):
     """
     Sets up database connection from config file.
 
@@ -58,10 +58,10 @@ def get_connection_from_profile(config_file_name="default_profile.yaml"):
 
     return get_engine(vals['PGDATABASE'], vals['PGUSER'],
                       vals['PGHOST'], vals['PGPORT'],
-                      vals['PGPASSWORD'])
+                      vals['PGPASSWORD'], production)
 
 
-def get_engine(db, user, host, port, passwd):
+def get_engine(db, user, host, port, passwd, production=None):
     """
     Get SQLalchemy engine using credentials.
 
@@ -75,5 +75,16 @@ def get_engine(db, user, host, port, passwd):
 
     url = 'postgresql://{user}:{passwd}@{host}:{port}/{db}'.format(
         user=user, passwd=passwd, host=host, port=port, db=db)
-    engine = create_engine(url, poolclass=NullPool)
+    if not production:
+        engine = create_engine(url, poolclass=NullPool)
+    else:
+        engine = create_engine(
+                url,
+                execution_options={'schema_translate_map': {
+                    'results': 'production'
+                }},
+                poolclass=NullPool
+        )
+
     return engine
+

@@ -221,7 +221,11 @@ def generate_model_config( config ):
 
 
 if __name__ == '__main__':
-    config_file_name = 'example_officer_config.yaml'
-    config_file = read_config(config_file_name)
+    config_file_name = 'officer_config_collate_daily.yaml'
+    config_file = read_yaml(config_file_name)
     temporal_sets = generate_temporal_info(config_file['temporal_info'])
+    as_of_dates = generate_feature_dates(config_file['temporal_info'])
+
+    dates_sorted = sorted(as_of_dates)
+    log.debug(as_of_dates)
 

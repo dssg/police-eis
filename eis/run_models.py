@@ -315,8 +315,65 @@ class RunModels():
                 predictions_binary, predictions_proba = predictor.predict(trained_model_id, test_matrix_store,
                                                                           misc_db_parameters)
                 ## Evaluation
-                log.info('Generate Evaluations for model_id: {}'.format(trained_model_id))
-                self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], trained_model_id, test_date)
+
+                if len(test_df.iloc[:, -1].unique()) == 1:
+                    log.warning('''Test Matrix %s had only one
+                                unique value, no point in testing this matrix. Skipping
+                                ''', test_uuid)
+                else:
+                    log.info('Generate Evaluations for model_id: {}'.format(trained_model_id))
+                    self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], trained_model_id, test_date)
+
+            # remove trained model from memory
+            predictor.delete_model(trained_model_id)
+
+        return None
+
+    # this function is used for training and scoring a day
+    def train_score_models(self, model_ids_generator, model_storage):
+
+
+        predictor = Predictor(project_path=self.project_path,
+                              model_storage_engine=model_storage,
+                              db_engine=self.db_engine)
+
+
+        for trained_model_id in model_ids_generator:
+            ## Prediction
+            log.info('Predict for model_id: {}'.format(trained_model_id))
+
+
+            # Loop over testing as of dates
+            for test_date in self.temporal_split['test_as_of_dates']:
+                # Load matrixes
+                log.info('Load production matrix for as of date: {}'.format(test_date))
+                test_matrix_id = str([test_date,
+                                      self.labels,
+                                      self.temporal_split['prediction_window']])
+
+                test_metadata = self._make_metadata(
+                    datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                    datetime.datetime.strptime(test_date, "%Y-%m-%d"),
+                    test_matrix_id,
+                    [test_date]
+                )
+
+                test_df, test_uuid = self.load_store_matrix(test_metadata, [test_date])
+                misc_db_parameters = {'matrix_uuid': test_uuid}
+
+                # remove the index from the data-frame
+                for column in test_metadata['indices']:
+                    if column in test_df.columns:
+                        del test_df[column]
+
+                # Store matrix
+                test_matrix_store = InMemoryMatrixStore(test_df.iloc[:, :-1], test_metadata, test_df.iloc[:, -1])
+
+                predictions_binary, predictions_proba = predictor.predict(trained_model_id, test_matrix_store,
+                                                                          misc_db_parameters)
+                ## Evaluation
+                #log.info('Generate Evaluations for model_id: {}'.format(trained_model_id))
+                #self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], trained_model_id, test_date)
 
             # remove trained model from memory
             predictor.delete_model(trained_model_id)
