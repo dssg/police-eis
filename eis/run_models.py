@@ -450,7 +450,7 @@ class RunModels():
             test_matrix_reduced[feature + '_rank'] = test_matrix_reduced[feature].rank()
             # the index of the median value
             idx = np.nanargmin(np.abs(test_matrix_reduced[feature] - feature_median))
-            median_rank = test_matrix_reduced[feature].iloc[idx]
+            median_rank = test_matrix_reduced[feature + '_rank'].iloc[idx]
             test_matrix_rank_distance[feature] = np.abs(test_matrix_reduced[feature + '_rank'] - median_rank)
 
         test_matrix_rank_distance = test_matrix_rank_distance.reset_index(drop=True)
