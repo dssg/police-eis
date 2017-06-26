@@ -76,17 +76,23 @@ CREATE TABLE results.feature_importances (
 CREATE INDEX ON results.feature_importances (model_id);
 
 -- individual feature importance
-CREATE TABLE results.individual_importances (
-  model_id  INT REFERENCES results.models (model_id),
-  entity_id BIGINT,
-  risk_1    TEXT,
-  risk_2    TEXT,
-  risk_3    TEXT,
-  risk_4    TEXT,
-  risk_5    TEXT
+
+DROP TABLE results.individual_importances;
+CREATE TABLE results.individual_importances(
+  model_id    INT REFERENCES results.models (model_id),
+  as_of_date  TIMESTAMP,
+  entity_id   BIGINT,
+  risk_1      TEXT,
+  risk_2      TEXT,
+  risk_3      TEXT,
+  risk_4      TEXT,
+  risk_5      TEXT
 );
 
-CREATE INDEX ON results.individual_importances (model_id);
+CREATE INDEX ON results.individual_importances (as_of_date);
+CREATE INDEX ON results.individual_importances (entity_id,as_of_date);
+
+
 
 -- experiments configurations
 CREATE TABLE results.experiments (

@@ -367,9 +367,12 @@ class RunModels():
 
                 predictions_binary, predictions_proba = predictor.predict(trained_model_id, test_matrix_store,
                                                                           misc_db_parameters)
-                ## Evaluation
-                # log.info('Generate Evaluations for model_id: {}'.format(trained_model_id))
-                # self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], trained_model_id, test_date)
+
+                self.individual_feature_ranking(
+                    fitted_model=predictor.load_model(trained_model_id),
+                    test_matrix=test_df.iloc[:, :-1],
+                    model_id=trained_model_id,
+                    test_date=test_date)
 
             # remove trained model from memory
             predictor.delete_model(trained_model_id)
@@ -425,7 +428,7 @@ class RunModels():
                 importance_dict[feature_list[j]] = value
 
         # filter out dummies
-        importance_dict_filtered = dict((k, v) for k, v in importance_dict.items() if not 'dummy' in k)
+        importance_dict_filtered = {k: v for k, v in importance_dict.items() if not 'dummy' in k}
 
         rftree_feature_list = sorted(importance_dict_filtered, key=importance_dict_filtered.get, reverse=True)
 

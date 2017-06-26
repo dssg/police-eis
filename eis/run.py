@@ -309,15 +309,9 @@ def apply_score_day(temporal_set, blocks, chosen_model_group_id, date, **kwargs)
     ### update statistic tables
     # time delta
     query = "select production.populate_time_delta();"
-
     conn = db_engine.raw_connection()
     conn.cursor().execute(query)
     conn.commit()
-    # populate individual importance
-    query = "select production.populate_individual_importances({},'{}');".format(chosen_model_group_id, date)
-    conn.cursor().execute(query)
-    conn.commit()
-    conn.close()
 
     db_engine.dispose()
     return None
