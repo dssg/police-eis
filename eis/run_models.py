@@ -321,7 +321,8 @@ class RunModels():
                         fitted_model=predictor.load_model(trained_model_id),
                         test_matrix=test_df.iloc[:, :-1],
                         model_id=trained_model_id,
-                        test_date=test_date)
+                        test_date=test_date,
+                        n_ranks=30)
 
             # remove trained model from memory
             predictor.delete_model(trained_model_id)
@@ -372,7 +373,8 @@ class RunModels():
                     fitted_model=predictor.load_model(trained_model_id),
                     test_matrix=test_df.iloc[:, :-1],
                     model_id=trained_model_id,
-                    test_date=test_date)
+                    test_date=test_date,
+                    n_ranks=30)
 
             # remove trained model from memory
             predictor.delete_model(trained_model_id)
@@ -413,7 +415,7 @@ class RunModels():
         db_conn.close()
         return None
 
-    def individual_feature_ranking(self, fitted_model, test_matrix, model_id, test_date):
+    def individual_feature_ranking(self, fitted_model, test_matrix, model_id, test_date,n_ranks):
         ###################
         # This method is a beta version tested for top k optimized random forests
         ###################
@@ -436,11 +438,10 @@ class RunModels():
         tmp_test = test_matrix.applymap(lambda x: float(x))
         test_matrix_reduced = pd.DataFrame()
 
-        # add the top 30 features from the RandomForest used without dummies
-        for idx, feature in enumerate(rftree_feature_list):
-            if idx >= 30:
-                break
+        # add the top n_ranks features from the RandomForest used without dummies
+        for feature in rftree_feature_list[:n_ranks]:
             test_matrix_reduced[feature] = tmp_test[feature]
+
 
         test_matrix_rank_distance = pd.DataFrame()
 
