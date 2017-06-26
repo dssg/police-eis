@@ -87,7 +87,10 @@ class FeatureLoader():
 
             if result_dict['col_missing']:
                 features_missing += result_dict['col_missing']
-        log.error('These features are missing: {}'.format(features_missing))
+        if not features_missing:
+            log.debug('No features are missing')
+        else:
+            log.debug('These features are missing: {}'.format(features_missing))
 
         return features_in_blocks
          
