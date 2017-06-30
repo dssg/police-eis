@@ -123,7 +123,10 @@ time_aggregations:
     p1d: 'over the past day'
     p1w: 'over the past week'
     p1m: 'over the past month'
+    p3m: 'over the past 3 months'
+    p6m: 'over the past 6 months'
     p1y: 'over the past year'
+    p2y: 'over the past 2 years'
     p5y: 'over the past 5 years'
 
 metrics_name:
