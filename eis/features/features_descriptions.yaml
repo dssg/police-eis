@@ -87,15 +87,15 @@ feature_names:
     
     #OfficerCharacteristics:
     DummyOfficerMarital: 'Officer marital status'
-    DummyOfficerGender: 'Officer gender'
-    DummyOfficerRace: 'Officer race '
-    DummyOfficerEthnicity: 'Officer ethnicity'
+    DummyOfficerGender: 'Officer gender is'
+    DummyOfficerRace: 'Officer race is'
+    DummyOfficerEthnicity: 'Officer ethnicity is'
     OfficerAge: 'Age of officer in years'
-    DummyOfficerEducation: 'Officer education level'
+    DummyOfficerEducation: 'Officer education level is'
     MilesFromPost: 'Number of miles to post'
     DummyOfficerMilitary: 'Officer Military experience'
     AcademyScore: 'Performance score at the police academy'
-    DummyOfficerRank: 'Officer rank'
+    DummyOfficerRank: 'Officer rank is'
     
     #OfficerEmployment:
     OutsideEmploymentHours: 'Outside employment hours worked'
