@@ -345,10 +345,10 @@ class FeatureLoader():
                          "                    LIMIT 1 ) sub_activity, "
                          "            LATERAL "
                          "                (SELECT 1 "
-                         "                 FROM staging.officer_roles r "
-                         "                 WHERE off.officer_id = r.officer_id "
-                         "                 AND r.job_start_date <= d.as_of_date "
-                         "                 AND sworn_flag = 1 "
+#                         "                 FROM staging.officer_roles r "
+#                         "                 WHERE off.officer_id = r.officer_id "
+#                         "                 AND r.job_start_date <= d.as_of_date "
+#                         "                 AND sworn_flag = 1 "
                          "                 LIMIT 1) sub_sworn )"
                          .format(window=self.officer_past_activity_window))
 

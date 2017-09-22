@@ -367,6 +367,7 @@ lookup_dispatch_types:
         - [27, 'gang_activity', 'Gang activity']
         - [28, 'stabbing', 'Cutting / Stabbing']
         - [29, 'other', 'Other']
+        - [30, 'offficer_attack', 'Officer is under attack / in serious danger']           
 
 lookup_field_interview_types:
     columns: ['code', 'value', 'description']

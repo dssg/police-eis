@@ -549,7 +549,8 @@ class Dispatches(FeaturesBlock):
     def __init__(self, **kwargs):
         FeaturesBlock.__init__(self, **kwargs)
         self.unit_id = 'officer_id'
-        self.from_obj = ex.text('staging.dispatches LEFT JOIN staging.dispatch_geo_time_officer using(dispatch_id, officer_id)')
+        #self.from_obj = ex.text('staging.dispatches LEFT JOIN staging.dispatch_geo_time_officer using(dispatch_id, officer_id)')
+        self.from_obj = ex.text('staging.dispatches')
         self.date_column = 'event_datetime'
         self.prefix_space_time_lookback = 'dispatch'
         self.prefix_post = 'dispatchPOST'
