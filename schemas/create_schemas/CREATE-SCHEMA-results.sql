@@ -15,6 +15,14 @@ CREATE TABLE results.model_groups
   model_config     JSONB
 );
 
+-- experiments configurations
+CREATE TABLE results.experiments (
+   experiment_hash    TEXT PRIMARY KEY ,
+   config             JSONB
+);
+
+CREATE INDEX ON results.experiments (experiment_hash);
+
 -- model table containing each of the models run.
 CREATE TABLE results.models (
   model_id          SERIAL PRIMARY KEY,
@@ -32,7 +40,7 @@ CREATE TABLE results.models (
   train_end_time    TIMESTAMP,
   experiment_hash   TEXT REFERENCES results.experiments (experiment_hash)
 );
-CREATE INDEX ON results.models (train_end_time)
+CREATE INDEX ON results.models (train_end_time);
 
 -- predictions corresponding to each model.
 CREATE TABLE results.predictions (
@@ -51,18 +59,23 @@ CREATE INDEX ON results.predictions (as_of_date);
 CREATE INDEX ON results.predictions (model_id, as_of_date);
 
 -- evaluation table containing metrics for each of the models run.
-CREATE TABLE results.evaluations (
-  model_id   INT REFERENCES results.models (model_id),
-  metric     TEXT,
-  parameter  TEXT,
-  value      REAL,
-  comment    TEXT,
-  as_of_date TIMESTAMP
+CREATE TABLE results.evaluations
+(
+    model_id INT,
+    metric VARCHAR,
+    parameter VARCHAR,
+    value REAL,
+    comment VARCHAR,
+    evaluation_start_time TIMESTAMP,
+    evaluation_end_time TIMESTAMP,
+    prediction_frequency INTERVAL,
+    CONSTRAINT evaluations_model_id_fkey FOREIGN KEY (model_id) REFERENCES results.models (model_id)
 );
+CREATE INDEX evaluations_model_id_as_of_date_idx ON results.evaluations (model_id, evaluation_start_time);
+CREATE INDEX evaluations_parameter_metric_model_id_idx ON results.evaluations (parameter, metric, model_id);
+CREATE INDEX evaluations_as_of_date_idx ON results.evaluations (evaluation_start_time);
 
-CREATE INDEX ON results.evaluations (model_id);
-CREATE INDEX ON results.evaluations (as_of_date);
-CREATE INDEX ON results.evaluations (model_id, as_of_date);
+
 
 -- feature_importance table for storing a json with feature importances
 CREATE TABLE results.feature_importances (
@@ -77,7 +90,7 @@ CREATE INDEX ON results.feature_importances (model_id);
 
 -- individual feature importance
 
-DROP TABLE results.individual_importances;
+DROP TABLE IF EXISTS results.individual_importances;
 CREATE TABLE results.individual_importances(
   model_id    INT REFERENCES results.models (model_id),
   as_of_date  TIMESTAMP,
@@ -94,10 +107,4 @@ CREATE INDEX ON results.individual_importances (entity_id,as_of_date);
 
 
 
--- experiments configurations
-CREATE TABLE results.experiments (
-   experiment_hash    TEXT,
-   config             JSONB
-);
 
-CREATE INDEX ON results.experiments (experiment_hash);
