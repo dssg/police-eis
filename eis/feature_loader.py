@@ -228,6 +228,7 @@ class FeatureLoader():
                                                                 schema=self.schema_name,
                                                                 table_name=table_name))                                    
             else:
+                log.debug("Retrieving table: {0} with params: {1}".format(table_name,as_of_dates_to_use))
                 query = ("""SELECT officer_id,
                                    as_of_date::timestamp,
                                   {features_coalesce}
