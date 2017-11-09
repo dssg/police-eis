@@ -232,8 +232,7 @@ class FeatureLoader():
                                    as_of_date::timestamp,
                                   {features_coalesce}
                             FROM {schema}."{table_name}"
-                            WHERE as_of_date in (
-                                SELECT unnest(ARRAY{as_of_dates}::timestamp[]))
+                            WHERE as_of_date in {as_of_dates}
                              AND officer_id is not null
                                 ;""".format(features_coalesce=features_coalesce,
                                                  schema=self.schema_name,
