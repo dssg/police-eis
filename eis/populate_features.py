@@ -21,6 +21,7 @@ def populate_features_table(config, schema):
     if config['unit'] == 'officer':
         populate_officer_features_table(config, schema, engine)
 
+
 def populate_dispatch_features_table(config, table_name, engine):
     """Calculate all the feature values and store them in the features table in the database"""
 
@@ -113,7 +114,7 @@ def join_feature_table(engine, list_prefixes, schema, features_table_name):
             table_names_no_date = table_names_no_date[1:]
 
         for table_name in table_names_no_date:
-                query += """ full outer join {}."{}"  using (officer_id)""".format(schema, table_name)
+            query += """ full outer join {}."{}"  using (officer_id)""".format(schema, table_name)
 
         drop_table_query = """DROP TABLE IF EXISTS features."{}";""".format(features_table_name)
         engine.execute(drop_table_query)
@@ -125,8 +126,34 @@ def join_feature_table(engine, list_prefixes, schema, features_table_name):
         create_as_of_date_index = """CREATE INDEX on features."{0}" (as_of_date);  """.format(features_table_name)
         engine.execute(create_as_of_date_index)
 
-        create_officer_date_index = """CREATE INDEX on features."{0}" (as_of_date, officer_id);  """.format(features_table_name)
+        create_officer_date_index = """CREATE INDEX on features."{0}" (as_of_date, officer_id);  """.format(
+            features_table_name)
         engine.execute(create_officer_date_index)
+
+
+def add_feature_indexes(engine, list_prefixes, schema):
+    """
+    This function add indexes to each feature table created to speed up the matrix creation
+
+    :param engine: engine to connect to db
+    :param list list_prefixes: list of prefixes specified in each block class
+    :param str schema: name of schema where collate table are stored
+    """
+
+    table_names = ['{}_aggregation'.format(prefix) for prefix in list_prefixes]
+
+    # seperate the tables by block that have a date column or not
+    table_names_no_date = [x for x in table_names if 'ND' in x]
+    table_names_with_date = [x for x in table_names if x not in set(table_names_no_date)]
+
+    for table_name in table_names_with_date:
+        create_as_of_date_index = """CREATE UNIQUE INDEX on "{0}"."{1}" (as_of_date,officer_id);  """.format(schema,
+                                                                                                             table_name)
+        engine.execute(create_as_of_date_index)
+
+    for table_name in table_names_no_date:
+        create_officer_index = """CREATE UNIQUE INDEX on "{0}"."{1}" (officer_id);  """.format(schema, table_name)
+        engine.execute(create_officer_index)
 
 
 def populate_officer_features_table(config, schema, engine):
@@ -165,4 +192,6 @@ def populate_officer_features_table(config, schema, engine):
 
     # Join all tables into one
     log.debug(list_prefixes)
+    add_feature_indexes(engine, list_prefixes, schema)
+
 #    join_feature_table(engine, list_prefixes, schema, table_name)
