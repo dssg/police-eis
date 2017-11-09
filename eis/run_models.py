@@ -102,7 +102,7 @@ class RunModels():
 
             else:
 
-                df = self.feature_loader.get_dataset(as_of_dates)
+                df = self.feature_loader.get_dataset(as_of_dates,metadata['end_time'])
                 log.debug('storing matrix {}'.format(uuid))
                 metta.metta_io.archive_matrix(matrix_config=metadata,
                                               df_matrix=df,
