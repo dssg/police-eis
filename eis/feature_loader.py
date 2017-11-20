@@ -209,7 +209,6 @@ class FeatureLoader():
 
     def get_dataset(self, as_of_dates_to_use):
         features_in_blocks = self.features_in_blocks()
-         
         # Read labels master 
         complete_df = self.get_master_labels(as_of_dates_to_use)
 
@@ -228,12 +227,12 @@ class FeatureLoader():
                                                                 schema=self.schema_name,
                                                                 table_name=table_name))                                    
             else:
-                log.debug("Retrieving table: {0} with params: {1}".format(table_name,as_of_dates_to_use))
                 query = ("""SELECT officer_id,
                                    as_of_date::timestamp,
                                   {features_coalesce}
                             FROM {schema}."{table_name}"
-                            WHERE as_of_date in {as_of_dates}
+                            WHERE as_of_date in (
+                                SELECT unnest(ARRAY{as_of_dates}::DATE[]))
                              AND officer_id is not null
                                 ;""".format(features_coalesce=features_coalesce,
                                                  schema=self.schema_name,
