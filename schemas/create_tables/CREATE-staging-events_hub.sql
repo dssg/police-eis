@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.events_hub CASCADE;
-CREATE  TABLE staging.events_hub (
+CREATE TABLE staging.events_hub (
   event_id                    SERIAL PRIMARY KEY, -- unique id for the event
   event_chain_id              INT, -- id for the set of events that are linked together
   source_event_id             INT, -- unique id in the source table of this event.
@@ -10,5 +10,6 @@ CREATE  TABLE staging.events_hub (
   event_datetime              TIMESTAMP, --
   shift_id                    INT, --
   dispatch_id                 BIGINT,
-  off_duty_flag               BOOL                --
+  off_duty_flag               BOOL, --
+  last_moddate                TIMESTAMP DEFAULT now() -- last time this row was modified
 );
