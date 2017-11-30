@@ -1,6 +1,6 @@
-DROP TABLE IF EXISTS staging.lookup_genders; 
-CREATE  TABLE staging.lookup_genders (
-	code                                                                  int,                --
-	value                                                                 varchar,            --
-	description                                                           varchar             --
+DROP TABLE IF EXISTS staging.lookup_genders;
+CREATE TABLE staging.lookup_genders (
+  code        INT PRIMARY KEY, --
+  value       VARCHAR, --
+  description VARCHAR             --
 );
