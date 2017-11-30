@@ -43,7 +43,7 @@ lookup_hair_colors:
         - [7, 'blue', 'Blue']
         - [8, 'purple', 'Purple']
         - [9, 'green', 'Green']
-        - [10, 'blonde', 'Blonde or Strawberry']
+        - [10, 'blond', 'Blond or Strawberry']
         - [11, 'gray', 'Gray or partial gray']
         - [12, 'white', 'White or partial gray']
         - [13, 'brown', 'Brown']
@@ -360,13 +360,15 @@ lookup_dispatch_types:
         - [20, 'shooting', 'Shooting / Shots Fired']
         - [21, 'suicide', 'Suicidal Person / Report']
         - [22, 'suspicious', 'Suspicious person']
-        - [23, 'theft', 'Theft / burlary / robbery / holdup']
+        - [23, 'theft', 'Theft / burglary / robbery / holdup']
         - [24, 'traffic', 'Traffic' ]
         - [25, 'want_officer', 'Want officer']
-        - [26, 'prisioner_escapee', 'Prisioner Escapee']
+        - [26, 'prisoner_escapee', 'Prisoner Escapee']
         - [27, 'gang_activity', 'Gang activity']
         - [28, 'stabbing', 'Cutting / Stabbing']
         - [29, 'other', 'Other']
+        - [30, 'officer_attack', 'Officer is under attack / in serious danger']
+
 
 lookup_field_interview_types:
     columns: ['code', 'value', 'description']
@@ -398,7 +400,7 @@ lookup_search_justifications:
         - [1, 'prob_cause', 'Probable Cause']
         - [2, 'frisk', 'Frisk']
         - [3, 'arrest', 'Arrest']
-        - [4, 'warrent', 'Warrent']
+        - [4, 'warrant', 'Warrant']
 
 lookup_field_interview_outcomes:
     columns: ['code', 'value', 'description']
@@ -452,7 +454,7 @@ lookup_ucr4_codes:
     rows:
         - ['0101', 'murder_non_negligent_manslaughter', 'Murder & Non-negligent Manslaughter']
         - ['0102', 'negligent_manslaughter', 'Negligent Manslaughter']
-        - ['0103', 'vehicular_manslaughter', 'Vehicular Manslaughter (Trafffic Fatality)']
+        - ['0103', 'vehicular_manslaughter', 'Vehicular Manslaughter (Traffic Fatality)']
         - ['0201', 'forcible_rape', 'Forcible Rape (Actual)']
         - ['0202', 'attempted_rape', 'Attempted Rape']
         - ['0301', 'armed_robbery', 'Armed Robbery']
