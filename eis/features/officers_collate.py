@@ -11,8 +11,8 @@ from sqlalchemy.sql import Select
 
 from .. import setup_environment
 
-from collate import collate
-#from collate.collate import collate
+#from collate import collate
+from collate.collate import collate
 
 log = logging.getLogger(__name__)
 
@@ -54,6 +54,19 @@ class FeaturesBlock():
                                                                                     fix_condition)
             else:
                 dict_temp[prefix + '_' + value] = "({0} = {1})::int".format(column_code_name, code)
+        return dict_temp
+
+    def _lookup_values_conditions_str(self, engine, column_code_name, lookup_table, fix_condition='', prefix=''):
+        query = """select code, value from staging.{0}""".format(lookup_table)
+        lookup_values = engine.connect().execute(query)
+        dict_temp = {}
+        for code, value in lookup_values:
+            if fix_condition:
+                dict_temp[prefix + '_' + value] = "({0} = '{1}' AND {2})::int".format(column_code_name,
+                                                                                    code,
+                                                                                    fix_condition)
+            else:
+                dict_temp[prefix + '_' + value] = "({0} = '{1}')::int".format(column_code_name, code)
         return dict_temp
 
     def feature_aggregations_to_use(self, feature_list, feature_aggregations):
@@ -560,6 +573,11 @@ class Dispatches(FeaturesBlock):
                 self._lookup_values_conditions(engine, column_code_name='dispatch_final_type_code',
                                                lookup_table='lookup_dispatch_types',
                                                prefix='DispatchType'), ['sum', 'avg']),
+
+            'DispatchTypeRaw': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='dispatch_final_type',
+                                               lookup_table='lookup_dispatch_types_raw',
+                                               prefix='DispatchTypeRaw'), ['sum', 'avg']),
 
             'DispatchInitiatiationType': collate.Aggregate(
                 {"DispatchInitiatiationType_ci": "(dispatch_category = 'CI')::int",
