@@ -9,6 +9,7 @@ lookup_races:
         - [5, 'pacific_islander', 'Native Hawaiian / Pacific Islander']
         - [6, 'other', 'Other']
         - [7, 'mixed', 'Mixed']
+        - [8, 'hispanic', 'Hispanic / Latino']
 
 
 lookup_genders:
