@@ -12,7 +12,8 @@ from sqlalchemy.sql import Select
 from .. import setup_environment
 
 from collate import collate
-#from collate.collate import collate
+
+# from collate.collate import collate
 
 log = logging.getLogger(__name__)
 
@@ -305,28 +306,49 @@ class IncidentsCompleted(FeaturesBlock):
                 ['sum', 'avg']),
 
             'IncidentsOfTypeOutSustained': collate.Aggregate(
+                self._lookup_values_conditions(engine,
+                                               column_code_name='grouped_incident_type_code',
+                                               lookup_table='lookup_incident_types',
+                                               fix_condition=AllegationOutcome.sustained.value,
+                                               prefix='IncidentsOfTypeOutSustained'), ['sum', 'avg']),
+
+            'IncidentsOfTypeUnSustained': collate.Aggregate(
+                self._lookup_values_conditions(engine,
+                                               column_code_name='grouped_incident_type_code',
+                                               lookup_table='lookup_incident_types',
+                                               fix_condition=AllegationOutcome.unsustained.value,
+                                               prefix='IncidentsOfTypeUnSustained'), ['sum', 'avg']),
+
+            'IncidentsOfTypeUnknown': collate.Aggregate(
+                self._lookup_values_conditions(engine,
+                                               column_code_name='grouped_incident_type_code',
+                                               lookup_table='lookup_incident_types',
+                                               fix_condition=AllegationOutcome.unknown.value,
+                                               prefix='IncidentsOfTypeUnknown'), ['sum', 'avg']),
+
+            'IncidentsOfTypeDepartmentOutSustained': collate.Aggregate(
                 self._group_category_conditions_str(engine,
                                                     column_name='department_defined_policy_type',
                                                     schema='staging',
                                                     table='incidents',
                                                     fix_condition=AllegationOutcome.sustained.value,
-                                                    prefix='IncidentsOfTypeOutSustained'), ['sum', 'avg']),
+                                                    prefix='IncidentsOfTypeDepartmentOutSustained'), ['sum', 'avg']),
 
-            'IncidentsOfTypeUnSustained': collate.Aggregate(
+            'IncidentsOfTypeDepartmentUnSustained': collate.Aggregate(
                 self._group_category_conditions_str(engine,
                                                     column_name='department_defined_policy_type',
                                                     schema='staging',
                                                     table='incidents',
                                                     fix_condition=AllegationOutcome.unsustained.value,
-                                                    prefix='IncidentsOfTypeUnSustained'), ['sum', 'avg']),
+                                                    prefix='IncidentsOfTypeDepartmentUnSustained'), ['sum', 'avg']),
 
-            'IncidentsOfTypeUnknown': collate.Aggregate(
+            'IncidentsOfTypeDepartmentUnknown': collate.Aggregate(
                 self._group_category_conditions_str(engine,
                                                     column_name='department_defined_policy_type',
                                                     schema='staging',
                                                     table='incidents',
                                                     fix_condition=AllegationOutcome.unknown.value,
-                                                    prefix='IncidentsOfTypeUnknown'), ['sum', 'avg']),
+                                                    prefix='IncidentsOfTypeDepartmentUnknown'), ['sum', 'avg']),
 
         }
 
