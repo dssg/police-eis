@@ -230,7 +230,7 @@ class IncidentsReported(FeaturesBlock):
                                                     column_name='department_defined_policy_type',
                                                     schema='staging',
                                                     table='incidents',
-                                                    prefix='IncidentsOfTypeDepartment'), ['sum', 'avg']),
+                                                    prefix='IncidentsOfTypeDep'), ['sum', 'avg']),
 
             'ComplaintsTypeSource': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='origination_type_code',
@@ -332,7 +332,7 @@ class IncidentsCompleted(FeaturesBlock):
                                                     schema='staging',
                                                     table='incidents',
                                                     fix_condition=AllegationOutcome.sustained.value,
-                                                    prefix='IncidentsOfTypeDepartmentOutSustained'), ['sum', 'avg']),
+                                                    prefix='IncidentsOfTypeDepOutSustained'), ['sum', 'avg']),
 
             'IncidentsOfTypeDepUnSustained': collate.Aggregate(
                 self._group_category_conditions_str(engine,
@@ -340,7 +340,7 @@ class IncidentsCompleted(FeaturesBlock):
                                                     schema='staging',
                                                     table='incidents',
                                                     fix_condition=AllegationOutcome.unsustained.value,
-                                                    prefix='IncidentsOfTypeDepartmentUnSustained'), ['sum', 'avg']),
+                                                    prefix='IncidentsOfTypeDepUnSustained'), ['sum', 'avg']),
 
             'IncidentsOfTypeDepUnknown': collate.Aggregate(
                 self._group_category_conditions_str(engine,
@@ -348,7 +348,7 @@ class IncidentsCompleted(FeaturesBlock):
                                                     schema='staging',
                                                     table='incidents',
                                                     fix_condition=AllegationOutcome.unknown.value,
-                                                    prefix='IncidentsOfTypeDepartmentUnknown'), ['sum', 'avg']),
+                                                    prefix='IncidentsOfTypeDepUnknown'), ['sum', 'avg']),
 
         }
 
