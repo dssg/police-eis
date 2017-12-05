@@ -225,7 +225,7 @@ class IncidentsReported(FeaturesBlock):
                                                lookup_table='lookup_incident_types',
                                                prefix='IncidentsOfType'), ['sum', 'avg']),
 
-            'IncidentsOfTypeDepartment': collate.Aggregate(
+            'IncidentsOfTypeDep': collate.Aggregate(
                 self._group_category_conditions_str(engine,
                                                     column_name='department_defined_policy_type',
                                                     schema='staging',
@@ -326,7 +326,7 @@ class IncidentsCompleted(FeaturesBlock):
                                                fix_condition=AllegationOutcome.unknown.value,
                                                prefix='IncidentsOfTypeUnknown'), ['sum', 'avg']),
 
-            'IncidentsOfTypeDepartmentOutSustained': collate.Aggregate(
+            'IncidentsOfTypeDepOutSustained': collate.Aggregate(
                 self._group_category_conditions_str(engine,
                                                     column_name='department_defined_policy_type',
                                                     schema='staging',
@@ -334,7 +334,7 @@ class IncidentsCompleted(FeaturesBlock):
                                                     fix_condition=AllegationOutcome.sustained.value,
                                                     prefix='IncidentsOfTypeDepartmentOutSustained'), ['sum', 'avg']),
 
-            'IncidentsOfTypeDepartmentUnSustained': collate.Aggregate(
+            'IncidentsOfTypeDepUnSustained': collate.Aggregate(
                 self._group_category_conditions_str(engine,
                                                     column_name='department_defined_policy_type',
                                                     schema='staging',
@@ -342,7 +342,7 @@ class IncidentsCompleted(FeaturesBlock):
                                                     fix_condition=AllegationOutcome.unsustained.value,
                                                     prefix='IncidentsOfTypeDepartmentUnSustained'), ['sum', 'avg']),
 
-            'IncidentsOfTypeDepartmentUnknown': collate.Aggregate(
+            'IncidentsOfTypeDepUnknown': collate.Aggregate(
                 self._group_category_conditions_str(engine,
                                                     column_name='department_defined_policy_type',
                                                     schema='staging',
