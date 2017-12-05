@@ -305,12 +305,12 @@ class IncidentsCompleted(FeaturesBlock):
                     fix_condition=AllegationOutcome.unknown.value + ' and origination_type_code NOTNULL'),
                 ['sum', 'avg']),
 
-            'IncidentsOfTypeOutSustained': collate.Aggregate(
+            'IncidentsOfTypeOutSust': collate.Aggregate(
                 self._lookup_values_conditions(engine,
                                                column_code_name='grouped_incident_type_code',
                                                lookup_table='lookup_incident_types',
                                                fix_condition=AllegationOutcome.sustained.value,
-                                               prefix='IncidentsOfTypeOutSustained'), ['sum', 'avg']),
+                                               prefix='IncidentsOfTypeOutSust'), ['sum', 'avg']),
 
             'IncidentsOfTypeUnSustained': collate.Aggregate(
                 self._lookup_values_conditions(engine,
