@@ -147,12 +147,12 @@ def add_feature_indexes(engine, list_prefixes, schema):
     table_names_with_date = [x for x in table_names if x not in set(table_names_no_date)]
 
     for table_name in table_names_with_date:
-        create_as_of_date_index = """CREATE UNIQUE INDEX on "{0}"."{1}" (as_of_date,officer_id);  """.format(schema,
+        create_as_of_date_index = """ALTER TABLE "{0}"."{1}" ADD PRIMARY KEY (as_of_date,officer_id);  """.format(schema,
                                                                                                              table_name)
         engine.execute(create_as_of_date_index)
 
     for table_name in table_names_no_date:
-        create_officer_index = """CREATE UNIQUE INDEX on "{0}"."{1}" (officer_id);  """.format(schema, table_name)
+        create_officer_index = """ALTER TABLE  "{0}"."{1}" ADD PRIMARY KEY (officer_id);  """.format(schema, table_name)
         engine.execute(create_officer_index)
 
 
