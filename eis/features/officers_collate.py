@@ -696,7 +696,11 @@ class OfficerEmployment(FeaturesBlock):
         return {
 
             'OutsideEmploymentHours': collate.Aggregate(
-                {"OutsideEmploymentHours": "hours_on_shift"}, ['sum', 'avg'])
+                {"OutsideEmploymentHours": "hours_on_shift"}, ['sum', 'avg']),
+
+
+            'OutsideEmploymentIncome': collate.Aggregate(
+                {"OutsideEmploymentIncome": "hours_on_shift*hourly_rate"}, ['sum', 'avg'])
         }
 
 
