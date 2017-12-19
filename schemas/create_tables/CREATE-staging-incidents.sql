@@ -1,5 +1,5 @@
 DROP TABLE IF EXISTS staging.incidents;
-CREATE  TABLE staging.incidents (
+CREATE TABLE staging.incidents (
   event_id                                   INT PRIMARY KEY REFERENCES staging.events_hub (event_id) ON DELETE CASCADE, --links to event_hub
   investigation_id                           INT, --auto generated id for the investigation
   department_defined_investigation_id        TEXT, -- the investigation number from the department
@@ -7,6 +7,7 @@ CREATE  TABLE staging.incidents (
   department_defined_incident_type_code      INT, --if there is already an internal set of groupings for incident type within the department
   department_defined_policy_violated         TEXT, -- the policy number of the (alleged) violation, from the department
   department_defined_policy_violated_cleaned TEXT, --  the policy number from the department that has been cleaned to then be look-upable
+  grouped_incident_type_code                 INT, --the type of incident being complained about e.g. uniform, profanity
   number_of_allegations                      INT, --if multiple allegations of the same incident_type_code are made for the same event (e.g. multiple uniform violations), they will be aggregated into one row. This column shows how many of these allegations there were
   number_of_justified_allegations            INT, --if incident type can be classed into justified or unjustified (e.g. UOF), this shows the number of these. If not, it is a null
   number_of_unjustified_allegations          INT, --as above, for un-justified allegations
@@ -31,7 +32,7 @@ CREATE  TABLE staging.incidents (
   hours_active_suspension                    INT, --number of days suspended, if any.
   hours_inactive_suspension                  INT, --number of days suspended, if any.
   training_id                                INT, --this links to the training table, which describes what training an officer received as a result of the investigation
-  date_of_judgment                          TIMESTAMP, --date that a judgement was reached
+  date_of_judgment                           TIMESTAMP, --date that a judgement was reached
   final_ruling_code                          INT, -- the code for what the final ruling was
   date_intervention_received                 TIMESTAMP, --date that an intervention was received. May duplicated what is seen in the training table.
   reprimand_type_code                        INT, --the kind of repirmand, e.g. verbal, written, none etc

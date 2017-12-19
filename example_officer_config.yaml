@@ -4,23 +4,30 @@
 ################################################
 
 # Name of the department:
-department_unit: 'department_name'
+department_unit: 'pd'
 
 # Set the officer table name.
-officer_feature_table_name: "example_officer_feature_table"
-officer_label_table_name: "example_officer_labels_table"
-schema_feature_blocks: "example_schema_block"
+officer_label_table_name: "pd_label"
+schema_feature_blocks: "pd_features"
+
+# production parameters
+production_officer_label_table_name: "production_labels"
+production_schema_feature_blocks: "production_feature_blocks"
+
 
 # determine whether model objects gets stored in a pickle in root_path/department_unit/directory
 store_model_object: False
-directory: ''
+# directory for storing matricies
+project_path: '/localdisk/triage/'
+
 ########################
 # Comment fields       #
 ########################
 model_comment: ""
 batch_comment: ""
 
-test_flag: True
+test_flag: False
+
 ########################
 # Type of Experiment   #
 ########################
@@ -30,27 +37,32 @@ unit: 'officer'  # other options: 'dispatch'
 ########################
 # Temporal parameters  #
 ########################
-start_date: '2008-01-01' # The first day of the data
-end_date: '2016-04-01' # The last day of the data
-prediction_window: ['1y'] # prediction window  used for officer-level prediction eg: ['1d', '1w', '1m', '6m', '1y']
-update_window: ['1y'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
-training_window: ['1y'] # months, used for training the model
-officer_past_activity_window: ['1y'] # Include officers that have activity in the x months preceding start time of test/train
-timegated_feature_lookback_duration: ["1w","1m","1y","5y"] # Aggregation time for features eg: ["1 day", "10 days", "1 week", "1 month", "1 year", "5 years"] 
-
+temporal_info:
+    start_date: '2009-01-01' # The first day of the data
+    end_date: '2016-09-01' # The last day of the data
+    train_size: ['1y','2y','3y','4y','5y','6y','7y'] # ['3y','5y']
+    prediction_window: ['1m','3m','6m','9m','1y'] # prediction window  used for officer-level prediction eg: ['1d', '1w', '1m', '6m', '1y']
+    update_window: ['1m'] # update window used for updating the model eg: ['1d', '1w', '1m', '6m', '1y']
+    features_frequency: ['1m','2m','3m','6m','9m','1y'] # months, used for training the model
+    test_frequency: ['1d'] # which intervall to use for testing
+    test_time_ahead: ['0d'] # how many days ahead the same model will be used for scoring and generating evaluations
+    officer_past_activity_window: ['1y'] # Include officers that have activity in the x months preceding start time of test/train
+    timegated_feature_lookback_duration: ["P1D", "P1W", "P1M", "P1Y", "P5Y"] # Aggregation time for features
 ########################
 # Labelling Details    #
 ########################
-
 labels:
-   - ['Major']
-   - ['Sustained']
+  # ['Major', 'Minor'] for or conditions for and conditions list them underneath
+  - ['Major']
+  - ['Sustained']
 
 ########################
 # Feature selection    #
 ########################
 
-officer_features: [ 'IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'OfficerCharacteristics', 'DemographicNpaArrests','OfficerEmployment']
+
+officer_features: ['IncidentsReported', 'IncidentsCompleted', 'OfficerShifts', 'OfficerArrests', 'TrafficStops', 'FieldInterviews', 'Dispatches', 'DemographicNpaArrests', 'OfficerCharacteristics','OfficerEmployment', 'OfficerCompliments']
+leave_out: 0 # Iterates through all officer_features blocks leaving X out
 
 feature_blocks:
     IncidentsReported:
@@ -59,22 +71,30 @@ feature_blocks:
         InterventionsOfType: True # time-gated, The number of interventions of each type an officer has had
         AllAllegations: True # time-gated, Number of allegations made against an officer
         IncidentsOfType: True # time-gated, The number of reported incidents incidents of certain type
-        IncidentsOfSeverity: True # time-gated, The number of all reported allegations, mayor or minor
-        IncidentsSeverityUnknown: True # time-gated, The number of all reported allegations, mayor or minor with unknown outcome
+        IncidentsOfTypeDep: True # time-gated, The number of reported incidents incidents of certain type department specific
         ComplaintsTypeSource: True # time-gated, Number of complaints by source an officer had
-        Complaints: True # time-gated, Number of complaints an officer had
         DaysSinceLastAllegation: True # The number of days since the last allegation was made against the officer.
 
     IncidentsCompleted:
         IncidentsByOutcome: True # time-gated, The number of incidents by type of outcome
-        MajorIncidentsByOutcome:  True # time-gated, The number of major incidents by type of outcome
-        MinorIncidentsByOutcome: True # time-gated, The number of minor incidents by type of outcome
-        DaysSinceLastSustainedAllegation: True # time-gated, The number of days since the last sustained allegation was made against the officer
+        IncidentsOfTypeOutSust: True
+        IncidentsOfTypeUnSust: True
+        IncidentsOfTypeUnknown: True
+        IncidentsOfTypeDepOutSust: True
+        IncidentsOfTypeDepUnSust: True
+        IncidentsOfTypeDepUnknown: True
+        DaysSinceLastCompletedAllegation: True # time-gated, The number of days since the last sustained allegation was made against the officer
+        ComplaintsTypeSourceOutSustained: True # time-gated, The number sustained complaints by source (internal, external, unknown)
+        ComplaintsTypeSourceOutUnSustained: True # time-gated, The number unsustained complaints by source (internal, external, unknown)
+        ComplaintsTypeSourceOutUnknown: True # time-gated, The number sustained complaints by source (internal, external, unknown)
+
+    OfficerCompliments:
+        Compliments: True # time-gated, Number of Compliments an officer received
 
     OfficerShifts:
         ShiftsOfType: True # time-gated, The Number of time-gated shifts by categorical type
         HoursPerShift: True # time-gated, The Average number of hours per shift
-    
+
     OfficerArrests:
         ArrestMonthlyVariance: True # time-gated, month-by-month variance of arrest counts. 
         ArrestMonthlyCOV: False # time-gated, month-by-month coefficient of variation in arrest counts. ##TODO: in a collate branch
@@ -83,6 +103,7 @@ feature_blocks:
         ArrestsON: True # Number of time-gated arrests by day of week.
         SuspectsArrestedOfRace: True #Number of suspects arrested by race type, time-gated periods.
         SuspectsArrestedOfEthnicity: True #Number of suspects arrested by ethnicity type, time-gated periods.
+        ArrestsCrimeType: True # time-gated, the number of crimes by ucr4 grouped  
 
     TrafficStops:
         TrafficStopsWithSearch: True # time gated
@@ -105,18 +126,20 @@ feature_blocks:
         FieldInterviewsByRace: True
         FieldInterviewsByOutcome: True
         FieldInterviewsWithFlag: True 
-        InterviewsType: True
-    
+        InterviewsType: True 
+
     UseOfForce: ##TODO
         UsesOfForceOfType: True # The number of uses of force by type of force over time-gated periods.
         UnjustifiedUsesOfForceOfType: True # The number of unjustified uses of force by time over time-gated periods.
         UnjustUOFInterventionsOfType: True #Number of interventions of type X following an unjustified force, time gated.
         UOFwithSuspectInjury: False #Number of uses of force by whether the suspect was injured, time gated ##TODO
         SuspectInjuryToUOFRatio: False #Ratio of suspect injuries to uses of force that an officer has, time gated.##TODO
-    
+
     Dispatches:
-        DispatchType: True #Number of dispatches of different type aggregated over time
+        DispatchType: True # Number of dispatches of different type aggregated over time
         DispatchInitiatiationType: True
+        DispatchDivision: True
+        DispatchMovement: True
 
     EISAlerts: ##TODO
         EISInterventionsOfType: True
@@ -136,7 +159,8 @@ feature_blocks:
         DummyOfficerRank: True # Officer rank.
 
     OfficerEmployment:
-        OutsideEmploymentHours: True #Extra duty
+        OutsideEmploymentHours: True # Extra duty
+        OutsideEmploymentIncome: True # income generated form it
 
     Other:
         CountUOFwithResistingArrest: True #Number of uses of force by whether the suspect resisted arrest, time gated
@@ -145,14 +169,6 @@ feature_blocks:
         ComplaintsPerHourWorked: False # The rate of complaints per hour worked.
         UOFtoArrestRatio: True #Ratio of uses of force per arrest ratio, time gated.
         ComplimentsToComplaintsRatio: False #Ratio of internal compliments to complaints and officer has
-
-    Demographic_Features:
-        OfficerAvgArrestDemographics_1: False
-        OfficerAvgArrestDemographics_2: False
-        OfficerAvgDispatchDemographics_1: False
-        OfficerAvgDispatchDemographics_2: False
-        OfficerAvgStopsDemographics_1: False
-        OfficerAvgStopsDemographics_2: False
 
     DemographicNpaArrests:
         Arrests311Call: True
@@ -181,15 +197,16 @@ feature_blocks:
 #        'AdaBoost', 'LogisticRegression', 'SVM', 'GradientBoostingClassifier',
 #        'DecisionTreeClassifier', 'SGDClassifier', 'KNeighborsClassifier']
 
-model: ['RandomForest', 'ExtraTrees', 'LogisticRegression']
+model: ['RandomForest','ExtraTrees']
 parameters:
   RandomForest:
     n_estimators: [10000] #[50,100, 1000, 10000, 50000]
-    max_depth: [2,5] #[100, 5, 10, 50] 
+    max_depth: [5,10] #[100, 5, 10, 50] 
     max_features: ['log2'] # ['log2', 2, 4, 8, 16, "auto"]
     criterion: ['gini'] # ['entropy']
     min_samples_split: [2,5] #[2, 5, 10]
     random_state: [2193]
+    n_jobs: [-1]
   RandomForestBagging:
     n_estimators: [10] # [25, 50, 100, 1000, 10000]
     max_depth: [5] # [10, 20, 50, 100]
@@ -214,22 +231,23 @@ parameters:
     random_state: [2193]
   ExtraTrees:
     n_estimators: [10000] #[ 25, 50, 100, 1000, 10000, 50000, 100000]
-    max_depth: [2,5] #[5, 10, 50, 100 ]
+    max_depth: [2,5,10] #[5, 10, 50, 100 ]
     max_features: ['log2'] # [4, 8, 16, "auto"]
     criterion: ['gini'] #, 'entropy']
-    min_samples_split: [2,5] #[2, 5, 10] #, 5, 10]
+    min_samples_split: [2,5,10] #[2, 5, 10] #, 5, 10]
     random_state: [2193]
+    n_jobs: [-1] 
   AdaBoost:
     algorithm: ['SAMME', 'SAMME.R']
     n_estimators: [1, 10, 100]  # [1000, 10000]
     learning_rate: [0.01, 0.1, 1, 10, 100]
     random_state: [2193]
   LogisticRegression:
-    C_reg: [ 0.001, 0.01, 1]  # [1, 10]
+    C: [ 0.001, 0.01, 1]  # [1, 10]
     penalty: ['l1', 'l2']
     random_state: [2193]
   SVM:
-    C_reg: [0.00001, 0.0001, 0.001, 0.01, 0.1]  # [1, 10]
+    C: [0.00001, 0.0001, 0.001, 0.01, 0.1]  # [1, 10]
     kernel: ['linear']
     random_state: [2193]
   GradientBoostingClassifier:
@@ -257,10 +275,4 @@ parameters:
 ########################
 # Parallelization      #
 ########################
-n_cpus: 4
-
-########################
-# Auditing hooks       #
-########################
-auditing: False  # Turn on if you want auditing performed
-audits: 'audits/'
+n_cpus: 38
