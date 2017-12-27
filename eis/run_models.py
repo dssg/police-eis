@@ -121,7 +121,9 @@ class RunModels():
             'prediction_window': self.temporal_split['prediction_window'],
             'train_size': self.temporal_split['train_size'],
             'features_frequency': self.temporal_split['features_frequency'],
-            'blocks': sorted(self.blocks)
+            'blocks': sorted(self.blocks),
+            'end_time_equal_label_end': 'True',
+
         }
 
         matrix_metadata = {
