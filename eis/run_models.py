@@ -103,11 +103,14 @@ class RunModels():
             else:
 
                 df = self.feature_loader.get_dataset(as_of_dates,metadata['end_time'])
-                log.debug('storing matrix {}'.format(uuid))
+                log.debug('Start storing matrix {}, memory consumption: {}'.format(uuid,df.memory_usage(index=True).sum()))
+
                 metta.metta_io.archive_matrix(matrix_config=metadata,
                                               df_matrix=df,
                                               directory=self.matrices_path,
                                               format='hd5')
+                log.debug('Done storing matrix {}'.format(uuid))
+
                 if return_matrix:
                     return df, uuid
 
