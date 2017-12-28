@@ -182,7 +182,7 @@ class FeatureLoader():
                         "        event_type_array "
                         " FROM group_events "
                         " JOIN  as_of_dates ON "
-                        "   min_date > as_of_date and max_date < '{end_time}' + INTERVAL '{prediction_window}' "
+                        "   min_date > as_of_date and max_date < '{end_time}'::DATE + INTERVAL '{prediction_window}') "
                         .format(event_types=list(event_type_columns),
                                 labels_table=self.labels_table,
                                 prediction_window=self.prediction_window,

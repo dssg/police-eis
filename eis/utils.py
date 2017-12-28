@@ -50,8 +50,10 @@ def relative_deltas_conditions(str_times):
     dict_abbreviations = {'h':'hours',
                           'd':'days',
                           'w':'weeks', 
-                          'm':'months', 
-                          'y':'years'}
+                          'm':'months',
+                          'M':'months', 
+                          'y':'years',
+                          'Y':'years'}
 
     time_deltas = {}
     try:
