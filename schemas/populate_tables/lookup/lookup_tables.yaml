@@ -232,7 +232,8 @@ lookup_ranks:
         - [7, 'pc', 'Police Commander']
         - [8, 'dc', 'Deputy Chief']
         - [9, 'cf', 'Chief of Police']
-
+        - [10, 'ac', 'Assistant Chief']
+        - [11, 'mj', 'Major']
 
 lookup_shift_overtimes:
     columns: ['code', 'value', 'description']
