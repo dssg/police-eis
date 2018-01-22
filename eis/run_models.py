@@ -315,6 +315,12 @@ class RunModels():
                     log.warning('''Test Matrix %s had only one
                                 unique value, no point in testing this matrix. Skipping
                                 ''', test_uuid)
+                    self.individual_feature_ranking(
+                        fitted_model=predictor.load_model(trained_model_id),
+                        test_matrix=test_df.iloc[:, :-1],
+                        model_id=trained_model_id,
+                        test_date=test_date,
+                        n_ranks=30)            
                 else:
                     log.info('Generate Evaluations for model_id: {}'.format(trained_model_id))
                     self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], trained_model_id,
