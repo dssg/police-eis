@@ -875,7 +875,7 @@ class OfficerRoles(FeaturesBlock):
         select_sub = collate.make_sql_clause(""
                                              "officer_id,"
                                              "count(distinct paygrade_raw)  AS count_paygrade,"
-                                             "count(distinct police_area_id)  AS count_policearea,", ex.text)
+                                             "count(distinct police_area_id)  AS count_policearea ", ex.text)
         from_sub = collate.make_sql_clause('staging.officer_roles', ex.text)
         group_by_sub = collate.make_sql_clause("officer_id ", ex.text)
 
