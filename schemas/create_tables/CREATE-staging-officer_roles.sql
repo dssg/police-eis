@@ -11,7 +11,10 @@ CREATE TABLE staging.officer_roles (
   sworn_flag                         INT, -- flag for sworn officers 1 else 0
   rank_code                          INT, --rank associated with the role
   paygrade_code                      INT, --pay grade of the role
+  paygrade_raw                       TEXT, --pay grade of the role
   police_area_id                     INT, --largest geographical grouping that the role is part of (e.g. Western District vs Eastern District)
   police_group_id                    INT, --largest task-type grouping the role is part of (e.g. Homicide, Organized Crime, Patrol, etc)
-  duty_status_code                   INT                 --whether the role is active, inactive (e.g. parental leave), or terminated (e.g retired, resigned, or fired)
+  duty_status_code                   INT,                 --whether the role is active, inactive (e.g. parental leave), or terminated (e.g retired, resigned, or fired)
+  bid_transfer                       INT, --whether the police_area_id was changed to a preference by the officer
+  no_pay_no_bid_change_transfer      INT -- the police area changed without a preference by the officer or a promotion
 );
