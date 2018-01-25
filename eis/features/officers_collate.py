@@ -629,22 +629,22 @@ class Dispatches(FeaturesBlock):
                                                lookup_table='lookup_dispatch_types',
                                                prefix='DispatchType'), ['sum', 'avg']),
 
-            'DispatchTypeTravelTimeMinutes': collate.Aggregate(
+            'DispTypeTravelTimeM': collate.Aggregate(
                 self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
                                                           lookup_table='lookup_dispatch_types',
-                                                          prefix='DispatchTypeTravelTimeMinutes',
+                                                          prefix='DispTypeTravelTimeM',
                                                           multiplier='travel_time_minutes'), ['sum', 'avg']),
 
-            'DispatchTypeResponseTimeMinutes': collate.Aggregate(
+            'DispTypeResponseTimeM': collate.Aggregate(
                 self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
                                                           lookup_table='lookup_dispatch_types',
-                                                          prefix='DispatchTypeResponseTimeMinutes',
+                                                          prefix='DispTypeResponseTimeM',
                                                           multiplier='response_time_minutes'), ['sum', 'avg']),
 
             'DispTypeTimeOnSceneM': collate.Aggregate(
                 self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
                                                           lookup_table='lookup_dispatch_types',
-                                                          prefix='DispatchTypeTimeOnSceneMinutes',
+                                                          prefix='DispTypeTimeOnSceneM',
                                                           multiplier='time_on_scene_minutes'), ['sum', 'avg']),
 
             'DispatchInitiatiationType': collate.Aggregate(
