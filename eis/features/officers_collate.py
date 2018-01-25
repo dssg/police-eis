@@ -641,7 +641,7 @@ class Dispatches(FeaturesBlock):
                                                           prefix='DispatchTypeResponseTimeMinutes',
                                                           multiplier='response_time_minutes'), ['sum', 'avg']),
 
-            'DispatchTypeTimeOnSceneMinutes': collate.Aggregate(
+            'DispTypeTimeOnSceneM': collate.Aggregate(
                 self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
                                                           lookup_table='lookup_dispatch_types',
                                                           prefix='DispatchTypeTimeOnSceneMinutes',
