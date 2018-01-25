@@ -875,9 +875,10 @@ class OfficerRoles(FeaturesBlock):
         select_sub = collate.make_sql_clause(""
                                              "officer_id,"
                                              "count(distinct paygrade_raw)  AS count_paygrade,"
-                                             "count(distinct police_area_id)  AS count_policearea ", ex.text)
+                                             "count(distinct police_area_id)  AS count_policearea,"
+                                             "date_trunc('month', job_start_date) as job_start_date", ex.text)
         from_sub = collate.make_sql_clause('staging.officer_roles', ex.text)
-        group_by_sub = collate.make_sql_clause("officer_id ", ex.text)
+        group_by_sub = collate.make_sql_clause("officer_id, date_trunc('month', job_start_date) ", ex.text)
 
         sub_query = ex.select(columns=[select_sub], from_obj=from_sub) \
             .group_by(group_by_sub)
