@@ -845,6 +845,9 @@ class OfficerRoles(FeaturesBlock):
         self.from_obj = 'staging.officer_roles'
         self.date_column = 'job_start_date'
         self.prefix_space_time_lookback = 'role'
+        self.from_obj_sub = 'sub_query'
+        self.join_table = 'staging.officer_roles'
+        self.prefix_sub = 'rolestat'
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
@@ -855,12 +858,31 @@ class OfficerRoles(FeaturesBlock):
             'OfficerRoleNoBidNoPayTransfer': collate.Aggregate(
                 {"OfficerRoleNoBidNoPayTransfer": "no_pay_no_bid_change_transfer"}, ['sum', 'avg']),
 
+        }
+
+
+    def _feature_aggregations_sub(self, engine):
+        return {
             'OfficerRolePayGradeChange': collate.Aggregate(
-                {"OfficerRolePayGradeChange": "distinct paygrade_raw"}, ['count']),
+                {"OfficerRolePayGradeChange": 'count_officer'}, ['sum']),
 
             'OfficerRolePoliceAreaChange': collate.Aggregate(
-                {"OfficerRolePayGradeChange": "distinct police_area_id"}, ['count']),
+                {"OfficerRolePoliceAreaChange": 'count_policearea'}, ['sum']),
         }
+
+    # add a sub query to perform the pre aggregation step
+    def _sub_query(self):
+        select_sub = collate.make_sql_clause(""
+                                             "officer_id,"
+                                             "count(distinct paygrade_raw)  AS count_paygrade,"
+                                             "count(distinct police_area_id)  AS count_policearea,", ex.text)
+        from_sub = collate.make_sql_clause('staging.officer_roles', ex.text)
+        group_by_sub = collate.make_sql_clause("officer_id ", ex.text)
+
+        sub_query = ex.select(columns=[select_sub], from_obj=from_sub) \
+            .group_by(group_by_sub)
+
+        return sub_query
 
 
 # --------------------------------------------------------
