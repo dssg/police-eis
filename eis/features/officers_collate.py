@@ -838,29 +838,29 @@ class OfficerCharacteristics(FeaturesBlock):
 # --------------------------------------------------------
 # BLOCK: OFFICER ROLES
 # --------------------------------------------------------
-    class OfficerRoles(FeaturesBlock):
-        def __init__(self, **kwargs):
-            FeaturesBlock.__init__(self, **kwargs)
-            self.unit_id = 'officer_id'
-            self.from_obj = 'staging.officer_roles'
-            self.date_column = 'job_start_date'
-            self.prefix_space_time_lookback = 'role'
+class OfficerRoles(FeaturesBlock):
+    def __init__(self, **kwargs):
+        FeaturesBlock.__init__(self, **kwargs)
+        self.unit_id = 'officer_id'
+        self.from_obj = 'staging.officer_roles'
+        self.date_column = 'job_start_date'
+        self.prefix_space_time_lookback = 'role'
 
-        def _feature_aggregations_space_time_lookback(self, engine):
-            return {
+    def _feature_aggregations_space_time_lookback(self, engine):
+        return {
 
-                'OfficerRoleBidTransfer': collate.Aggregate(
-                    {"OfficerRoleBidTransfer": "bid_transfer"}, ['sum', 'avg']),
+            'OfficerRoleBidTransfer': collate.Aggregate(
+                {"OfficerRoleBidTransfer": "bid_transfer"}, ['sum', 'avg']),
 
-                'OfficerRoleNoBidNoPayTransfer': collate.Aggregate(
-                    {"OfficerRoleNoBidNoPayTransfer": "no_pay_no_bid_change_transfer"}, ['sum', 'avg']),
+            'OfficerRoleNoBidNoPayTransfer': collate.Aggregate(
+                {"OfficerRoleNoBidNoPayTransfer": "no_pay_no_bid_change_transfer"}, ['sum', 'avg']),
 
-                'OfficerRolePayGradeChange': collate.Aggregate(
-                    {"OfficerRolePayGradeChange": "distinct paygrade_raw"}, ['count']),
+            'OfficerRolePayGradeChange': collate.Aggregate(
+                {"OfficerRolePayGradeChange": "distinct paygrade_raw"}, ['count']),
 
-                'OfficerRolePoliceAreaChange': collate.Aggregate(
-                    {"OfficerRolePayGradeChange": "distinct police_area_id"}, ['count']),
-            }
+            'OfficerRolePoliceAreaChange': collate.Aggregate(
+                {"OfficerRolePayGradeChange": "distinct police_area_id"}, ['count']),
+        }
 
 
 # --------------------------------------------------------
