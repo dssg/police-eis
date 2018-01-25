@@ -864,10 +864,10 @@ class OfficerRoles(FeaturesBlock):
     def _feature_aggregations_sub(self, engine):
         return {
             'OfficerRolePayGradeChange': collate.Aggregate(
-                {"OfficerRolePayGradeChange": 'count_paygrade'}, ['sum']),
+                {"OfficerRolePayGradeChange": 'count_paygrade'}, ['variance']),
 
             'OfficerRolePoliceAreaChange': collate.Aggregate(
-                {"OfficerRolePoliceAreaChange": 'count_policearea'}, ['sum']),
+                {"OfficerRolePoliceAreaChange": 'count_policearea'}, ['variance']),
         }
 
     # add a sub query to perform the pre aggregation step
