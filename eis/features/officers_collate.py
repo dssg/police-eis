@@ -215,10 +215,6 @@ class IncidentsReported(FeaturesBlock):
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
-            'InterventionsOfType': collate.Aggregate(
-                self._lookup_values_conditions(engine, column_code_name='intervention_type_code',
-                                               lookup_table='lookup_intervention_types',
-                                               prefix='InterventionsOfType'), ['sum', 'avg']),
 
             'IncidentsOfType': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='grouped_incident_type_code',
@@ -237,14 +233,6 @@ class IncidentsReported(FeaturesBlock):
                                                lookup_table='lookup_complaint_origins',
                                                prefix='ComplaintsTypeSource',
                                                fix_condition='origination_type_code NOTNULL'), ['sum', 'avg']),
-
-            'SuspensionsOfType': collate.Aggregate(
-                {"SuspensionsOfType_active": "(hours_active_suspension > 0)::int",
-                 "SuspensionsOfType_inactive": "(hours_inactive_suspension > 0)::int"}, ['sum', 'avg']),
-
-            'HoursSuspensionsOfType': collate.Aggregate(
-                {"HoursSuspensionsOfType_active": "hours_active_suspension",
-                 "HoursSuspensionsOfType_inactive": "hours_inactive_suspension"}, ['sum', 'avg']),
 
             'AllAllegations': collate.Aggregate(
                 {"AllAllegations": "number_of_allegations"}, ['sum', 'avg']),
@@ -276,6 +264,20 @@ class IncidentsCompleted(FeaturesBlock):
 
     def _feature_aggregations_space_time_lookback(self, engine):
         return {
+            'InterventionsOfType': collate.Aggregate(
+                self._lookup_values_conditions(engine, column_code_name='intervention_type_code',
+                                               lookup_table='lookup_intervention_types',
+                                               prefix='InterventionsOfType'), ['sum', 'avg']),
+           
+            'SuspensionsOfType': collate.Aggregate(
+                {"SuspensionsOfType_active": "(hours_active_suspension > 0)::int",
+                 "SuspensionsOfType_inactive": "(hours_inactive_suspension > 0)::int"}, ['sum', 'avg']),
+
+            'HoursSuspensionsOfType': collate.Aggregate(
+                {"HoursSuspensionsOfType_active": "hours_active_suspension",
+                 "HoursSuspensionsOfType_inactive": "hours_inactive_suspension"}, ['sum', 'avg']),
+
+ 
             'IncidentsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
                                                lookup_table='lookup_final_rulings',
