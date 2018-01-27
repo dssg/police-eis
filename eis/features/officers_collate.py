@@ -1,17 +1,12 @@
 #!/usr/bin/env python
-import pdb
 import logging
 import sys
-import yaml
-import datetime
-import sqlalchemy
 from enum import Enum
-import sqlalchemy.sql.expression as ex
-from sqlalchemy.sql import Select
 
-from .. import setup_environment
+import sqlalchemy.sql.expression as ex
 
 from collate import collate
+from .. import setup_environment
 
 # from collate.collate import collate
 
@@ -57,6 +52,21 @@ class FeaturesBlock():
                 dict_temp[prefix + '_' + value] = "({0} = {1})::int".format(column_code_name, code)
         return dict_temp
 
+    def _lookup_values_conditions_multiplier(self, engine, column_code_name, lookup_table, multiplier='',
+                                             fix_condition='', prefix=''):
+        query = """select code, value from staging.{0}""".format(lookup_table)
+        lookup_values = engine.connect().execute(query)
+        dict_temp = {}
+        for code, value in lookup_values:
+            if fix_condition:
+                dict_temp[prefix + '_' + value] = "({0} = {1} AND {2})::int * {3}".format(column_code_name,
+                                                                                          code,
+                                                                                          fix_condition,
+                                                                                          multiplier)
+            else:
+                dict_temp[prefix + '_' + value] = "({0} = {1})::int * {2}".format(column_code_name, code, multiplier)
+        return dict_temp
+
     def _group_category_conditions_str(self, engine, column_name, table, fix_condition='', prefix='', schema='staging'):
         query = """select {column_name} from {schema}.{table} GROUP BY {column_name} """.format(
             schema=schema,
@@ -67,7 +77,7 @@ class FeaturesBlock():
         for row in group_categories:
             value = list(row)[0]
 
-            name = value.strip().replace(' ', '_').lower()
+            name = value.strip().replace(' ', '_').replace('-', '_').lower()
             if fix_condition:
                 dict_temp[prefix + '_' + name] = "({0} = '{1}' AND {2})::int".format(column_name,
                                                                                      value,
@@ -382,8 +392,16 @@ class OfficerShifts(FeaturesBlock):
                                                lookup_table='lookup_shift_types',
                                                prefix='ShiftsOfType'), ['sum', 'avg']),
 
+            'HoursPerShiftType': collate.Aggregate(
+                self._lookup_values_conditions_multiplier(engine, column_code_name='shift_type_code',
+                                                          lookup_table='lookup_shift_types',
+                                                          prefix='HoursPerShiftType',
+                                                          multiplier='(EXTRACT( EPOCH from shift_length)/3600)'),
+                ['sum', 'avg']),
+
             'HoursPerShift': collate.Aggregate(
-                {'HoursPerShift': '(EXTRACT( EPOCH from shift_length)/3600)'}, ['avg', 'sum'])
+                {'HoursPerShift': '(EXTRACT( EPOCH from shift_length)/3600)'}, ['avg', 'sum']),
+
         }
 
 
@@ -613,6 +631,24 @@ class Dispatches(FeaturesBlock):
                                                lookup_table='lookup_dispatch_types',
                                                prefix='DispatchType'), ['sum', 'avg']),
 
+            'DispTypeTravelTimeM': collate.Aggregate(
+                self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
+                                                          lookup_table='lookup_dispatch_types',
+                                                          prefix='DispTypeTravelTimeM',
+                                                          multiplier='travel_time_minutes'), ['sum', 'avg']),
+
+            'DispTypeResponseTimeM': collate.Aggregate(
+                self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
+                                                          lookup_table='lookup_dispatch_types',
+                                                          prefix='DispTypeResponseTimeM',
+                                                          multiplier='response_time_minutes'), ['sum', 'avg']),
+
+            'DispTypeTimeOnSceneM': collate.Aggregate(
+                self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
+                                                          lookup_table='lookup_dispatch_types',
+                                                          prefix='DispTypeTimeOnSceneM',
+                                                          multiplier='time_on_scene_minutes'), ['sum', 'avg']),
+
             'DispatchInitiatiationType': collate.Aggregate(
                 self._group_category_conditions_str(engine,
                                                     column_name='dispatch_category',
@@ -699,7 +735,6 @@ class OfficerEmployment(FeaturesBlock):
 
             'OutsideEmploymentHours': collate.Aggregate(
                 {"OutsideEmploymentHours": "hours_on_shift"}, ['sum', 'avg']),
-
 
             'OutsideEmploymentIncome': collate.Aggregate(
                 {"OutsideEmploymentIncome": "hours_on_shift*hourly_rate"}, ['sum', 'avg'])
@@ -801,6 +836,56 @@ class OfficerCharacteristics(FeaturesBlock):
                 {"OfficerAge": "EXTRACT( DAY FROM ('{collate_date}' - date_of_birth)/365)"}, ['max'])
 
         }
+
+# --------------------------------------------------------
+# BLOCK: OFFICER ROLES
+# --------------------------------------------------------
+class OfficerRoles(FeaturesBlock):
+    def __init__(self, **kwargs):
+        FeaturesBlock.__init__(self, **kwargs)
+        self.unit_id = 'officer_id'
+        self.from_obj = 'staging.officer_roles'
+        self.date_column = 'job_start_date'
+        self.prefix_space_time_lookback = 'role'
+        self.from_obj_sub = 'sub_query'
+        self.join_table = 'staging.officer_roles'
+        self.prefix_sub = 'rolestat'
+
+    def _feature_aggregations_space_time_lookback(self, engine):
+        return {
+
+            'OfficerRoleBidTransfer': collate.Aggregate(
+                {"OfficerRoleBidTransfer": "bid_transfer"}, ['sum', 'avg']),
+
+            'OfficerRoleNoBidNoPayTransfer': collate.Aggregate(
+                {"OfficerRoleNoBidNoPayTransfer": "no_pay_no_bid_change_transfer"}, ['sum', 'avg']),
+
+        }
+
+
+    def _feature_aggregations_sub(self, engine):
+        return {
+            'OfficerRolePayGradeChange': collate.Aggregate(
+                {"OfficerRolePayGradeChange": 'count_paygrade'}, ['variance']),
+
+            'OfficerRolePoliceAreaChange': collate.Aggregate(
+                {"OfficerRolePoliceAreaChange": 'count_policearea'}, ['variance']),
+        }
+
+    # add a sub query to perform the pre aggregation step
+    def _sub_query(self):
+        select_sub = collate.make_sql_clause(""
+                                             "officer_id,"
+                                             "count(distinct paygrade_raw)  AS count_paygrade,"
+                                             "count(distinct police_area_id)  AS count_policearea,"
+                                             "date_trunc('month', job_start_date) as job_start_date", ex.text)
+        from_sub = collate.make_sql_clause('staging.officer_roles', ex.text)
+        group_by_sub = collate.make_sql_clause("officer_id, date_trunc('month', job_start_date) ", ex.text)
+
+        sub_query = ex.select(columns=[select_sub], from_obj=from_sub) \
+            .group_by(group_by_sub)
+
+        return sub_query
 
 
 # --------------------------------------------------------
