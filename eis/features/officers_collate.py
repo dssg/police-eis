@@ -278,7 +278,7 @@ class IncidentsCompleted(FeaturesBlock):
                 self._lookup_values_conditions(engine, column_code_name='intervention_type_code',
                                                lookup_table='lookup_intervention_types',
                                                prefix='InterventionsOfType'), ['sum', 'avg']),
-           
+
             'SuspensionsOfType': collate.Aggregate(
                 {"SuspensionsOfType_active": "(hours_active_suspension > 0)::int",
                  "SuspensionsOfType_inactive": "(hours_inactive_suspension > 0)::int"}, ['sum', 'avg']),
@@ -287,7 +287,6 @@ class IncidentsCompleted(FeaturesBlock):
                 {"HoursSuspensionsOfType_active": "hours_active_suspension",
                  "HoursSuspensionsOfType_inactive": "hours_inactive_suspension"}, ['sum', 'avg']),
 
- 
             'IncidentsByOutcome': collate.Aggregate(
                 self._lookup_values_conditions(engine, column_code_name='final_ruling_code',
                                                lookup_table='lookup_final_rulings',
@@ -720,6 +719,41 @@ class Dispatches(FeaturesBlock):
 
 
 # --------------------------------------------------------
+# BLOCK: DISPATCHES TIME - Separate Block to not hit the column limit of postgres
+# --------------------------------------------------------
+class DispatchesTime(FeaturesBlock):
+    def __init__(self, **kwargs):
+        FeaturesBlock.__init__(self, **kwargs)
+        self.unit_id = 'officer_id'
+        self.from_obj = ex.text('staging.dispatches')
+        self.date_column = 'event_datetime'
+        self.prefix_space_time_lookback = 'dispT'
+
+    def _feature_aggregations_space_time_lookback(self, engine):
+        return {
+
+            'DispTypeTravelTimeM': collate.Aggregate(
+                self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
+                                                          lookup_table='lookup_dispatch_types',
+                                                          prefix='DispTypeTravelTimeM',
+                                                          multiplier='travel_time_minutes'), ['sum', 'avg']),
+
+            'DispTypeResponseTimeM': collate.Aggregate(
+                self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
+                                                          lookup_table='lookup_dispatch_types',
+                                                          prefix='DispTypeResponseTimeM',
+                                                          multiplier='response_time_minutes'), ['sum', 'avg']),
+
+            'DispTypeTimeOnSceneM': collate.Aggregate(
+                self._lookup_values_conditions_multiplier(engine, column_code_name='dispatch_final_type_code',
+                                                          lookup_table='lookup_dispatch_types',
+                                                          prefix='DispTypeTimeOnSceneM',
+                                                          multiplier='time_on_scene_minutes'), ['sum', 'avg']),
+
+        }
+
+
+# --------------------------------------------------------
 # BLOCK: OFFICER EMPLOYMENT
 # --------------------------------------------------------
 class OfficerEmployment(FeaturesBlock):
@@ -837,6 +871,7 @@ class OfficerCharacteristics(FeaturesBlock):
 
         }
 
+
 # --------------------------------------------------------
 # BLOCK: OFFICER ROLES
 # --------------------------------------------------------
@@ -861,7 +896,6 @@ class OfficerRoles(FeaturesBlock):
                 {"OfficerRoleNoBidNoPayTransfer": "no_pay_no_bid_change_transfer"}, ['sum', 'avg']),
 
         }
-
 
     def _feature_aggregations_sub(self, engine):
         return {
