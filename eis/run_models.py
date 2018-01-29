@@ -1,25 +1,23 @@
-import os
-import pandas as pd
-import pickle
-import pdb
 import datetime
-import logging
 import json
+import logging
+import os
+
 import numpy as np
-
+import pandas as pd
 from flufl.lock import Lock
-
-from triage.model_trainers import ModelTrainer
-from triage.predictors import Predictor
-from triage.storage import FSModelStorageEngine, InMemoryMatrixStore, InMemoryModelStorageEngine
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 import metta.metta_io
-
-from .feature_loader import FeatureLoader
+from triage.model_trainers import ModelTrainer
+from triage.predictors import Predictor
+from triage.storage import InMemoryMatrixStore
 from . import dataset
-from . import utils
-from . import setup_environment
 from . import scoring
+from . import setup_environment
+from . import utils
+from .feature_loader import FeatureLoader
 
 log = logging.getLogger(__name__)
 
@@ -101,6 +99,7 @@ class RunModels():
                     return df, uuid
 
             else:
+
 
                 df = self.feature_loader.get_dataset(as_of_dates,metadata['end_time'])
                 log.debug('Start storing matrix {}, memory consumption: {}'.format(uuid,df.memory_usage(index=True).sum()))
@@ -318,6 +317,12 @@ class RunModels():
                     log.warning('''Test Matrix %s had only one
                                 unique value, no point in testing this matrix. Skipping
                                 ''', test_uuid)
+                    self.individual_feature_ranking(
+                        fitted_model=predictor.load_model(trained_model_id),
+                        test_matrix=test_df.iloc[:, :-1],
+                        model_id=trained_model_id,
+                        test_date=test_date,
+                        n_ranks=30)
                 else:
                     log.info('Generate Evaluations for model_id: {}'.format(trained_model_id))
                     self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], trained_model_id,
@@ -420,10 +425,16 @@ class RunModels():
         db_conn.close()
         return None
 
-    def individual_feature_ranking(self, fitted_model, test_matrix, model_id, test_date,n_ranks):
+    def individual_feature_ranking(self, fitted_model, test_matrix, model_id, test_date, n_ranks):
         ###################
         # This method is a beta version tested for top k optimized random forests
         ###################
+
+        if not (isinstance(fitted_model, RandomForestClassifier) or isinstance(fitted_model, ExtraTreesClassifier)):
+            log.info(
+                'Individual Feature Ranking is currently only implemented for tree based methods, skipping: {}'.format(
+                    model_id))
+            return None
 
         # get the list of all features in the test matrix
         feature_list = test_matrix.columns
@@ -446,7 +457,6 @@ class RunModels():
         # add the top n_ranks features from the RandomForest used without dummies
         for feature in rftree_feature_list[:n_ranks]:
             test_matrix_reduced[feature] = tmp_test[feature]
-
 
         test_matrix_rank_distance = pd.DataFrame()
 

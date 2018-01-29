@@ -135,7 +135,7 @@ def generate_temporal_info(temporal_config):
 
         test_end_date = end_date
         # loop moving giving an update_window
-        while start_date <= test_end_date - 2*relativedelta(**prediction_window_deltas[prediction_window]):
+        while start_date <= test_end_date - relativedelta(**update_window_deltas[update_window]):
 
             test_start_date = test_end_date - relativedelta(**test_time_ahead_deltas[test_time_ahead])
             test_as_of_dates = as_of_dates_in_window(test_start_date,
