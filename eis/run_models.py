@@ -100,9 +100,10 @@ class RunModels():
 
             else:
 
-                df = self.feature_loader.get_dataset(as_of_dates)
-                log.debug(
-                    'Start storing matrix {}, memory consumption: {}'.format(uuid, df.memory_usage(index=True).sum()))
+
+                df = self.feature_loader.get_dataset(as_of_dates,metadata['end_time'])
+                log.debug('Start storing matrix {}, memory consumption: {}'.format(uuid,df.memory_usage(index=True).sum()))
+
                 metta.metta_io.archive_matrix(matrix_config=metadata,
                                               df_matrix=df,
                                               directory=self.matrices_path,
@@ -119,7 +120,9 @@ class RunModels():
             'prediction_window': self.temporal_split['prediction_window'],
             'train_size': self.temporal_split['train_size'],
             'features_frequency': self.temporal_split['features_frequency'],
-            'blocks': sorted(self.blocks)
+            'blocks': sorted(self.blocks),
+            'end_time_equal_label_end': 'True',
+
         }
 
         matrix_metadata = {
