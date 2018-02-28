@@ -88,7 +88,7 @@ def main(config_file_name, labels_config_file, args):
 
         prod_config['temporal_info']['start_date'] = start_date.strftime("%Y-%m-%d")
         prod_config['temporal_info']['end_date'] = args.date
-        prod_config['temporal_info']['update_window'] = ['99y']
+        prod_config['temporal_info']['update_window'] = [model_config['train_size']] 
         prod_config['temporal_info']['test_time_ahead'] = ['0d']
         prod_config['temporal_info']['test_frequency'] = ['1d']
         prod_config['temporal_info']['officer_past_activity_window'] = ['1y']
