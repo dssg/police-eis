@@ -21,6 +21,7 @@ feature_names:
     AllAllegations: 'Allegations made against an officer'
     IncidentsOfType: 'IA Reported incidents'
     ComplaintsTypeSource: 'Complaints against officer by source'
+    IncidentsOfTypeDep: 'IA incidents of department policy'
     DaysSinceLastAllegation: 'Days since the last allegation was made against the officer'
     
     #IncidentsCompleted:
