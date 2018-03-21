@@ -7,30 +7,41 @@ feature_blocks_suffixes:
     TrafficStops: ['ts']
     FieldInterviews: ['fi']
     UseOfForce: ['uof']
-    Dispatches: ['dispatch', 'dispatchPOST']
+    Dispatches: ['dispatch', 'dispatchPOST', 'dispT']
     OfficerEmployment: ['outemp']
     EISAlerts: ['eis']
     OfficerCharacteristics: ['ocND', 'ocAG']
     DemographicNpaArrests: ['demarrests']
     OfficerCompliments: ['compliments']
+    OfficerRoles: ['role','rolestat']
 
 # names of features for each block
 feature_names:
     #IncidentsReported:
-    SuspensionsOfType: 'Officer suspensions'
-    HoursSuspensionsOfType: 'Hours of suspension an officer has had'
-    InterventionsOfType: 'Punitive actions of each type an officer has had'
     AllAllegations: 'Allegations made against an officer'
     IncidentsOfType: 'IA Reported incidents'
     ComplaintsTypeSource: 'Complaints against officer by source'
     DaysSinceLastAllegation: 'Days since the last allegation was made against the officer'
     
     #IncidentsCompleted:
+    SuspensionsOfType: 'Officer suspensions'
+    HoursSuspensionsOfType: 'Hours of suspension an officer has had'
+    InterventionsOfType: 'Punitive actions of each type an officer has had'
     IncidentsByOutcome: 'IA Incidents of outcome'
+    IncidentsOfTypeOutSust: 'IA Sustained incidents of group'
+    IncidentsOfTypeUnSust: 'IA Unsustained incidents of group'
+    IncidentsOfTypeUnknown: 'IA Unknown outcome incidents of group'
+    IncidentsOfTypeDepOutSust: 'IA Sustained incidents of department policy'
+    IncidentsOfTypeDepUnSust: 'IA Unsustained incidents of department policy'
+    IncidentsOfTypeDepUnknown: 'IA Unknown outcome incidents of department policy'
     IncidentsOfTypeOutSustained: 'IA Sustained incidents '
     IncidentsOfTypeUnSustained: 'IA Unsustained incidents '
     IncidentsOfTypeUnknown: 'IA Unknown outcome incidents '
-    DaysSinceLastSustainedAllegation: 'Days since the last sustained allegation was made against the officer'
+    DaysSinceLastCompletedAllegation: 'Days since the last sustained allegation was made against the officer'
+    ComplaintsTypeSourceOutSustained: 'Sustained complaints against officer by source'
+    ComplaintsTypeSourceOutUnSustained: 'Unsustained complaints against officer by source'
+    ComplaintsTypeSourceOutUnknown: 'Unknown outcome complaints against officer by source'
+
     
     #OfficerCompliments:
     Compliments: 'Officer compliments'
@@ -38,6 +49,7 @@ feature_names:
     #OfficerShifts:
     ShiftsOfType: 'Shifts Types'
     HoursPerShift: 'Hours per shift'
+    HoursPerShiftType: 'Hours per shift of type'
     
     #OfficerArrests:
     ArrestMonthlyVariance: 'Month-by-month variance of arrest counts'
@@ -84,6 +96,9 @@ feature_names:
     DispatchInitiatiationType: 'Dispatches by type of initiation (Officer or Citizen)'
     DispatchDivision: 'Dispatches by division'
     DispatchMovement: 'Cross Division Dispatches'
+    DispTypeTravelTimeM: 'Dispatches Types travel time'
+    DispTypeResponseTimeM: 'Dispatches Types response time'
+    DispTypeTimeOnSceneM: 'Dispatches Types time on scene'
     
     #OfficerCharacteristics:
     DummyOfficerMarital: 'Officer marital status'
@@ -96,28 +111,35 @@ feature_names:
     DummyOfficerMilitary: 'Officer Military experience'
     AcademyScore: 'Performance score at the police academy'
     DummyOfficerRank: 'Officer rank is'
+
+    #    OfficerRoles:
+    OfficerRoleBidTransfer: 'Number of bid transfer'
+    OfficerRoleNoBidNoPayTransfer: 'Number no pay no bid change transfer'
+    OfficerRolePayGradeChange: 'Pay grade changes'
+    OfficerRolePoliceAreaChange: 'Police area changes'
     
     #OfficerEmployment:
     OutsideEmploymentHours: 'Outside employment hours worked'
+    OutsideEmploymentIncome: 'Outside employment income received'
     
     #DemographicNpaArrests:
-    Arrests311Call: '311 calls in areas  where the officcer made arrests'
-    Arrests311Requests: '311 requests in areas where the officcer made arrests'
-    PopulationDensity: 'Population density in areas where the officcer made arrests'
-    AgeOfResidents: 'Age of Residents in areas where the officcer made arrests'
-    BlackPopulation: 'Black population in areas where the officcer made arrests'
-    HouseholdIncome: 'Household income in areas where the officcer made arrests'
-    EmploymentRate: 'Employment rate in areas where the officcer made arrests'
-    VacantLandArea: 'Vacant land area in areas where the officcer made arrests'
-    VoterParticipation: 'Voter participation in areas where the officcer made arrests'
-    AgeOfDeath: 'Age of death in areas where the officcer made arrests'
-    HousingDensity: 'Housing density in areas where the officcer made arrests'
-    NuisanceViolations: 'Nuisance violations in areas where the officcer made arrests'
-    ViolentCrimeRate: 'Violent crime rate in areas where the officcer made arrests'
-    PropertyCrimeRate: 'Property crime rate in areas where the officcer made arrests'
-    SidewalkAvailability: 'Sidewalk availability in areas where the officcer made arrests'
-    Foreclosures: 'Foreclosures in areas where the officcer made arrests'
-    DisorderCallRate: 'Disorder call rate in areas where the officcer made arrests'
+    Arrests311Call: '311 calls in areas  where the officer made arrests'
+    Arrests311Requests: '311 requests in areas where the officer made arrests'
+    PopulationDensity: 'Population density in areas where the officer made arrests'
+    AgeOfResidents: 'Age of Residents in areas where the officer made arrests'
+    BlackPopulation: 'Black population in areas where the officer made arrests'
+    HouseholdIncome: 'Household income in areas where the officer made arrests'
+    EmploymentRate: 'Employment rate in areas where the officer made arrests'
+    VacantLandArea: 'Vacant land area in areas where the officer made arrests'
+    VoterParticipation: 'Voter participation in areas where the officer made arrests'
+    AgeOfDeath: 'Age of death in areas where the officer made arrests'
+    HousingDensity: 'Housing density in areas where the officer made arrests'
+    NuisanceViolations: 'Nuisance violations in areas where the officer made arrests'
+    ViolentCrimeRate: 'Violent crime rate in areas where the officer made arrests'
+    PropertyCrimeRate: 'Property crime rate in areas where the officer made arrests'
+    SidewalkAvailability: 'Sidewalk availability in areas where the officer made arrests'
+    Foreclosures: 'Foreclosures in areas where the officer made arrests'
+    DisorderCallRate: 'Disorder call rate in areas where the officer made arrests'
 
 time_aggregations:
     p1d: 'over the past day'
