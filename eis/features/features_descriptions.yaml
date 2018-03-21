@@ -13,7 +13,7 @@ feature_blocks_suffixes:
     OfficerCharacteristics: ['ocND', 'ocAG']
     DemographicNpaArrests: ['demarrests']
     OfficerCompliments: ['compliments']
-    OfficerRoles: ['role','rolestat']
+    OfficerRoles: ['role', 'rolestat']
 
 # names of features for each block
 feature_names:
@@ -85,20 +85,20 @@ feature_names:
     InterviewsType: 'Field interviews Types'
     
     #UseOfForce: 
-    UsesOfForceOfType: 'Uses of force  of force'
+    UsesOfForceOfType: 'Uses of force of type'
     UnjustifiedUsesOfForceOfType: 'Unjustified uses of force'
     UnjustUOFInterventionsOfType: 'Punitive action types following an unjustified force'
     UOFwithSuspectInjury: 'Uses of force where the suspect was injured'
     SuspectInjuryToUOFRatio: 'Ratio of suspect injuries to uses of force that an officer has'
     
     #Dispatches:
-    DispatchType: 'Dispatches Types'
+    DispatchType: 'Dispatch Types'
     DispatchInitiatiationType: 'Dispatches by type of initiation (Officer or Citizen)'
     DispatchDivision: 'Dispatches by division'
-    DispatchMovement: 'Cross Division Dispatches'
-    DispTypeTravelTimeM: 'Dispatches Types travel time minutes'
-    DispTypeResponseTimeM: 'Dispatches Types response time minutes'
-    DispTypeTimeOnSceneM: 'Dispatches Types time on scene minutes'
+    DispatchMovement: 'Cross-Division Dispatches'
+    DispTypeTravelTimeM: 'Travel time in minutes for dispatch types'
+    DispTypeResponseTimeM: 'Response time in minutes for dispatch types'
+    DispTypeTimeOnSceneM: 'On scene time in minutes for dispatch types'
     
     #OfficerCharacteristics:
     DummyOfficerMarital: 'Officer marital status'
@@ -114,7 +114,7 @@ feature_names:
 
     #    OfficerRoles:
     OfficerRoleBidTransfer: 'Number of bid transfer'
-    OfficerRoleNoBidNoPayTransfer: 'Number no pay no bid change transfer'
+    OfficerRoleNoBidNoPayTransfer: 'Number of no pay increase, no bid change transfers'
     OfficerRolePayGradeChange: 'Pay grade changes'
     OfficerRolePoliceAreaChange: 'Police area changes'
     
@@ -123,7 +123,7 @@ feature_names:
     OutsideEmploymentIncome: 'Outside employment income received'
     
     #DemographicNpaArrests:
-    Arrests311Call: '311 calls in areas  where the officer made arrests'
+    Arrests311Call: '311 calls in areas where the officer made arrests'
     Arrests311Requests: '311 requests in areas where the officer made arrests'
     PopulationDensity: 'Population density in areas where the officer made arrests'
     AgeOfResidents: 'Age of Residents in areas where the officer made arrests'
@@ -154,6 +154,6 @@ time_aggregations:
 metrics_name:
     sum: 'Total number of'
     avg: 'Average number of'
-    max: ''
+    max: 'Maximum value of'
     mode: 'The most common value of'
     rate: 'Rate of'
