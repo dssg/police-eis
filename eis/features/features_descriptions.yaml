@@ -96,9 +96,9 @@ feature_names:
     DispatchInitiatiationType: 'Dispatches by type of initiation (Officer or Citizen)'
     DispatchDivision: 'Dispatches by division'
     DispatchMovement: 'Cross Division Dispatches'
-    DispTypeTravelTimeM: 'Dispatches Types travel time'
-    DispTypeResponseTimeM: 'Dispatches Types response time'
-    DispTypeTimeOnSceneM: 'Dispatches Types time on scene'
+    DispTypeTravelTimeM: 'Dispatches Types travel time minutes'
+    DispTypeResponseTimeM: 'Dispatches Types response time minutes'
+    DispTypeTimeOnSceneM: 'Dispatches Types time on scene minutes'
     
     #OfficerCharacteristics:
     DummyOfficerMarital: 'Officer marital status'
