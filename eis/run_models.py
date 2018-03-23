@@ -319,7 +319,7 @@ class RunModels():
                         test_matrix=test_df.iloc[:, :-1],
                         model_id=trained_model_id,
                         test_date=test_date,
-                        n_ranks=30)
+                        n_ranks=200)
                 else:
                     log.info('Generate Evaluations for model_id: {}'.format(trained_model_id))
                     self.evaluations(predictions_proba, predictions_binary, test_df.iloc[:, -1], trained_model_id,
@@ -329,7 +329,7 @@ class RunModels():
                         test_matrix=test_df.iloc[:, :-1],
                         model_id=trained_model_id,
                         test_date=test_date,
-                        n_ranks=30)
+                        n_ranks=200)
 
             # remove trained model from memory
             predictor.delete_model(trained_model_id)
@@ -381,7 +381,7 @@ class RunModels():
                     test_matrix=test_df.iloc[:, :-1],
                     model_id=trained_model_id,
                     test_date=test_date,
-                    n_ranks=30)
+                    n_ranks=200)
 
             # remove trained model from memory
             predictor.delete_model(trained_model_id)
