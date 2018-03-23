@@ -6,12 +6,12 @@ import pandas as pd
 
 from eis import setup_environment
 
-
 """
 Example: To run with model_id 19932 
 python generate_feature_mapping.py 19932
 Output: 19932_feature_mapping.csv
 """
+
 ## Setup connection
 engine = setup_environment.get_connection_from_profile(config_file_name="default_profile.yaml")
 
@@ -22,12 +22,12 @@ with open('eis/features/features_descriptions.yaml') as f:
 	features_config = yaml.load(f)
 
 ## Get the feature names you are trying to map
-feature_query = "SELECT feature from production.feature_importances where model_id = {}".format(model_id)
+feature_query = "SELECT feature FROM production.feature_importances WHERE model_id = {}".format(model_id)
 feature_names = pd.read_sql(feature_query, engine)
 
 ## Build queries 
 def get_query(feature_name):
-	query = """SELECT * from public.get_feature_complete_description('{feature}',
+	query = """SELECT * FROM public.get_feature_complete_description('{feature}',
 			'{feature_names}'::JSON, '{time_aggregations}'::JSON, '{metrics}'::JSON)""".format(feature=feature_name,feature_names=json.dumps(features_config['feature_names']), time_aggregations = json.dumps(features_config['time_aggregations']), metrics = json.dumps(features_config['metrics_name']))
 	return query
 
