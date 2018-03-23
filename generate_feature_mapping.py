@@ -1,8 +1,11 @@
-import pandas as pd
-from eis import setup_environment
 import json
 import yaml
 import sys
+
+import pandas as pd
+
+from eis import setup_environment
+
 
 """
 Example: To run with model_id 19932 
@@ -38,10 +41,5 @@ feature_mapping = pd.concat(list_of_dfs, axis=0, ignore_index=True)
 ## Write to csv
 feature_mapping.to_csv(str(model_id)+'_feature_mapping.csv', index=False, quotechar='|')
 
-
 # write to database
 feature_mapping.to_sql("feature_mapping", engine, if_exists="replace", schema="production", index=False)
-
-			
-
-
