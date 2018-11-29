@@ -278,7 +278,7 @@ BEGIN
                    array_col [4] as of_type,
                    array_col [5] as metric_used
                    from (
-                   select regexp_matches(column_name, '(.+)_id_([pP]\d+\w|all)?[_]?([A-Za-z0-9]+)[_]?(.+)?_(sum|avg|max|mode|rate)')
+                   select regexp_matches(column_name, '(.+)_id_([pP]\d+\w|all)?[_]?([A-Za-z0-9]+)[_]?(.+)?_(sum|avg|min|max|mode|rate|a|s|av|su)$')
                      AS array_col
                    )  list_cut
                    ) t1
